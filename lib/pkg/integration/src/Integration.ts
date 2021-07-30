@@ -8,37 +8,25 @@ enum HTTPMethod {
   PATCH = 'patch',
   DELETE = 'delete',
 }
-const accessToken = '';
-const baseUrl = '';
 
 class Integration {
   constructor() {
     this.router = new Router();
-    this.storageClient = Storage.createStorage({
-      baseUrl,
-      accessToken,
-      accountId,
-      subscriptionId,
-    });
-    this.accessToken = accessToken;
-    this.baseUrl = baseUrl;
-    this.functionUrl = new URL(baseUrl);
   }
 
   public readonly router: Router;
 
-  private readonly accessToken: string;
-  private readonly baseUrl: string;
-  private readonly functionUrl: URL;
-  private readonly storageClient: IStorageClient;
-
   readonly storage = {
-    setData: async (dataKey: string, data: any) => this.storageClient.put(data, dataKey),
-    getData: async (dataKey: string) => this.storageClient.get(dataKey),
-    listData: async (dataKeyPrefix: string, options?: IListOption) => this.storageClient.list(dataKeyPrefix, options),
-    deleteData: (dataKey?: string) => this.storageClient.delete(dataKey),
-    deleteDataWithPrefix: (dataKeyPrefix?: string) => this.storageClient.delete(dataKeyPrefix, true, true),
-    listTenants: async (tenantPrefix?: string) => this.storageClient.get(`tenant/${tenantPrefix}*`),
+    setData: async (ctx: Context, dataKey: string, data: any) =>
+      Storage.createStorage(ctx.state.params).put(data, dataKey),
+    getData: async (ctx: Context, dataKey: string) => Storage.createStorage(ctx.state.params).get(dataKey),
+    listData: async (ctx: Context, dataKeyPrefix: string, options?: IListOption) =>
+      Storage.createStorage(ctx.state.params).list(dataKeyPrefix, options),
+    deleteData: (ctx: Context, dataKey?: string) => Storage.createStorage(ctx.state.params).delete(dataKey),
+    deleteDataWithPrefix: (ctx: Context, dataKeyPrefix?: string) =>
+      Storage.createStorage(ctx.state.params).delete(dataKeyPrefix, true, true),
+    listTenants: async (ctx: Context, tenantPrefix?: string) =>
+      Storage.createStorage(ctx.state.params).get(`tenant/${tenantPrefix}*`),
     listInstanceTenants: async (instanceId: string) => undefined, //TODO
     listTenantInstances: async (tenantId: string) => undefined, //TODO
     deleteTenant: async (tenant: string) => undefined, //TODO
@@ -63,17 +51,3 @@ class Integration {
   };
 }
 export default Integration;
-
-// private v2Request = async (method: HTTPMethod = HTTPMethod.GET, uri: string, body?: any) => {
-//   const request = superagent[method](`${this.baseUrl}/v2/account/${accountId}/subscriptions/${subscriptionId}/${uri}`)
-//     .set('Content-Type', 'application/json')
-//     .set('Authorization', `Bearer ${this.accessToken}`)
-//     .set('Accept', 'application/json')
-//     .ok((res) => res.status < 300 || res.status === 404);
-//
-//   if (![HTTPMethod.GET, HTTPMethod.DELETE].includes(method)) {
-//     return request.send(body);
-//   } else {
-//     return request;
-//   }
-// };

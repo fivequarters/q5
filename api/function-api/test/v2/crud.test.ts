@@ -55,7 +55,7 @@ const sampleEntitiesWithData: SampleEntityMap = {
           '});',
           '',
           "router.get('/api/sillyrabbit', async (ctx) => {",
-          "  ctx.body = 'trix are for kids';",
+          '  ctx.body = process.env;',
           '});',
           'module.exports = router;',
         ].join('\n'),
@@ -543,11 +543,11 @@ const performIntegrationTest = (sampleEntitiesMap: SampleEntityMap) => {
   const testEntityType = Model.EntityType.integration;
   const sampleEntity = sampleEntitiesMap[testEntityType];
 
-  performTests(testEntityType, sampleEntitiesMap);
+  //performTests(testEntityType, sampleEntitiesMap);
 
   test('Invoke Entity GET', async () => {
     const entity = await createEntity(testEntityType, sampleEntity());
-    const invokeResponse = await ApiRequestMap[testEntityType].dispatch(account, entity.id, 'GET', '/api/');
+    const invokeResponse = await ApiRequestMap[testEntityType].dispatch(account, entity.id, 'GET', '/api/sillyrabbit');
     expect(invokeResponse).toBeHttp({ statusCode: 200, data: 'Hello World' });
   }, 180000);
 

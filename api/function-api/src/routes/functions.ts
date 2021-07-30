@@ -136,6 +136,9 @@ const createFunction = async (
 ): Promise<ICreateFunction> => {
   const url = new URL(process.env.API_SERVER as string);
   const subscription = await subscriptionCache.get(params.accountId, params.subscriptionId);
+  spec.configuration = spec.configuration || {};
+  spec.configuration.subscriptionId = params.subscriptionId;
+  spec.configuration.accountId = params.accountId;
   if (!subscription) {
     throw create_error(400, `Unknown account/subscription: ${params.accountId}/${params.subscriptionId}`);
   }

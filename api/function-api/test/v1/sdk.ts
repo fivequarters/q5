@@ -28,11 +28,11 @@ if (!process.env.LOGS_HOST) {
     console.log('WARNING: LOGS_HOST IS NOT SPECIFIED - localhost tests must have a tunnel running.');
   }
 }
-
-if (!process.env.LAMBDA_USER_FUNCTION_PERMISSIONLESS_ROLE) {
-  console.log('Missing LAMBDA_USER_FUNCTION_PERMISSIONLESS_ROLE');
-  process.exit(-1);
-}
+//
+// if (!process.env.LAMBDA_USER_FUNCTION_PERMISSIONLESS_ROLE) {
+//   console.log('Missing LAMBDA_USER_FUNCTION_PERMISSIONLESS_ROLE');
+//   process.exit(-1);
+// }
 
 // ------------------
 // Internal Constants
