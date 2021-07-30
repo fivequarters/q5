@@ -18,8 +18,7 @@
     "@5qtrs/constants": "^0.0.1",
     "@5qtrs/function-tags": "^0.0.1",
     "@5qtrs/jwt": "^0.0.1",
-    "@5qtrs/key-pair": "^0.0.1",
-    "@5qtrs/account": "^0.0.1"
+    "@5qtrs/key-pair": "^0.0.1"
   },
   "devServer": {
     "port": 9509
