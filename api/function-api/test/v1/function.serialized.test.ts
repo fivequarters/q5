@@ -96,7 +96,7 @@ describe('Function Serialized', () => {
 
   test('PUT with configurationSerialized sets configuration', async () => {
     let response = await putFunction(account, boundaryId, function1Id, helloWorldWithConfigurationSerialized);
-    expect(response).toBeHttp({ statusCode: 200, status: 'success' });
+    expect(response).toBeHttp({ statusCode: 200 });
     response = await getFunction(account, boundaryId, function1Id, true);
     expect(response).toBeHttp({ statusCode: 200 });
     expect(response.data.configuration).toEqual({ FOO: '123', BAR: 'abc' });
@@ -105,7 +105,7 @@ describe('Function Serialized', () => {
 
   test('PUT with configurationSerialized with empty value sets configuration', async () => {
     let response = await putFunction(account, boundaryId, function1Id, helloWorldWithConfigurationSerializedEmptyValue);
-    expect(response).toBeHttp({ statusCode: 200, status: 'success' });
+    expect(response).toBeHttp({ statusCode: 200 });
     response = await getFunction(account, boundaryId, function1Id, true);
     expect(response).toBeHttp({ statusCode: 200 });
     expect(response.data.configuration).toEqual({ FOO: '', BAR: 'abc' });
@@ -122,7 +122,7 @@ describe('Function Serialized', () => {
 
   test('PUT with computeSerialized sets compute', async () => {
     let response = await putFunction(account, boundaryId, function1Id, helloWorldWithComputeSerialized);
-    expect(response).toBeHttp({ statusCode: 200, status: 'success' });
+    expect(response).toBeHttp({ statusCode: 200 });
     response = await getFunction(account, boundaryId, function1Id, true);
     expect(response).toBeHttp({ statusCode: 200 });
     expect(response.data.configuration).toBeUndefined();
@@ -133,7 +133,7 @@ describe('Function Serialized', () => {
 
   test('PUT with scheduleSerialized sets schedule', async () => {
     let response = await putFunction(account, boundaryId, function1Id, helloWorldWithScheduleSerialized);
-    expect(response).toBeHttp({ statusCode: 200, status: 'success' });
+    expect(response).toBeHttp({ statusCode: 200 });
     response = await getFunction(account, boundaryId, function1Id, true);
     expect(response).toBeHttp({ statusCode: 200 });
     expect(response.data.configuration).toBeUndefined();
@@ -144,7 +144,7 @@ describe('Function Serialized', () => {
 
   test('PUT with configurationSerialized set to empty string resets configurationSerialized', async () => {
     let response = await putFunction(account, boundaryId, function1Id, helloWorldWithConfigurationSerialized);
-    expect(response).toBeHttp({ statusCode: 200, status: 'success' });
+    expect(response).toBeHttp({ statusCode: 200 });
 
     response = await getFunction(account, boundaryId, function1Id, true);
 
@@ -155,7 +155,7 @@ describe('Function Serialized', () => {
     response.data.configurationSerialized = '';
 
     response = await putFunction(account, boundaryId, function1Id, response.data);
-    expect(response).toBeHttp({ statusCode: 200, status: 'success' });
+    expect(response).toBeHttp({ statusCode: 200 });
 
     response = await getFunction(account, boundaryId, function1Id, true);
 
@@ -166,7 +166,7 @@ describe('Function Serialized', () => {
 
   test('PUT with computeSerialized set to empty string resets computeSerialized', async () => {
     let response = await putFunction(account, boundaryId, function1Id, helloWorldWithComputeSerialized);
-    expect(response).toBeHttp({ statusCode: 200, status: 'success' });
+    expect(response).toBeHttp({ statusCode: 200 });
 
     response = await getFunction(account, boundaryId, function1Id, true);
 
@@ -176,7 +176,7 @@ describe('Function Serialized', () => {
 
     response.data.computeSerialized = '';
     response = await putFunction(account, boundaryId, function1Id, response.data);
-    expect(response).toBeHttp({ statusCode: 200, status: 'success' });
+    expect(response).toBeHttp({ statusCode: 200 });
 
     response = await getFunction(account, boundaryId, function1Id, true);
 
@@ -187,7 +187,7 @@ describe('Function Serialized', () => {
 
   test('PUT with scheduleSerialized set to empty string resets scheduleSerialized', async () => {
     let response = await putFunction(account, boundaryId, function1Id, helloWorldWithScheduleSerialized);
-    expect(response).toBeHttp({ statusCode: 200, status: 'success' });
+    expect(response).toBeHttp({ statusCode: 200 });
 
     response = await getFunction(account, boundaryId, function1Id, true);
 
@@ -197,7 +197,7 @@ describe('Function Serialized', () => {
     response.data.scheduleSerialized = '';
 
     response = await putFunction(account, boundaryId, function1Id, response.data);
-    expect(response).toBeHttp({ statusCode: 200, status: 'success' });
+    expect(response).toBeHttp({ statusCode: 200 });
 
     response = await getFunction(account, boundaryId, function1Id, true);
     expect(response.data.schedule).toEqual({ cron: '0 0 1 1 *', timezone: 'UTC' });
@@ -206,7 +206,7 @@ describe('Function Serialized', () => {
 
   test('PUT with configurationSerialized undefined is ignored', async () => {
     let response = await putFunction(account, boundaryId, function1Id, helloWorldWithConfigurationSerialized);
-    expect(response).toBeHttp({ statusCode: 200, status: 'success' });
+    expect(response).toBeHttp({ statusCode: 200 });
 
     response = await getFunction(account, boundaryId, function1Id);
 
@@ -220,7 +220,7 @@ describe('Function Serialized', () => {
 
   test('PUT with computeSerialized undefined is ignored', async () => {
     let response = await putFunction(account, boundaryId, function1Id, helloWorldWithComputeSerialized);
-    expect(response).toBeHttp({ statusCode: 200, status: 'success' });
+    expect(response).toBeHttp({ statusCode: 200 });
 
     response = await getFunction(account, boundaryId, function1Id);
 
@@ -234,7 +234,7 @@ describe('Function Serialized', () => {
 
   test('PUT with scheduleSerialized undefined is ignored', async () => {
     let response = await putFunction(account, boundaryId, function1Id, helloWorldWithScheduleSerialized);
-    expect(response).toBeHttp({ statusCode: 200, status: 'success' });
+    expect(response).toBeHttp({ statusCode: 200 });
 
     response = await getFunction(account, boundaryId, function1Id);
 
@@ -248,7 +248,7 @@ describe('Function Serialized', () => {
 
   test('PUT with empty compute resets compute', async () => {
     let response = await putFunction(account, boundaryId, function1Id, helloWorldWithComputeSerialized);
-    expect(response).toBeHttp({ statusCode: 200, status: 'success' });
+    expect(response).toBeHttp({ statusCode: 200 });
 
     response = await getFunction(account, boundaryId, function1Id, true);
 
@@ -258,7 +258,7 @@ describe('Function Serialized', () => {
 
     response.data.compute = {};
     response = await putFunction(account, boundaryId, function1Id, response.data);
-    expect(response).toBeHttp({ statusCode: 200, status: 'success' });
+    expect(response).toBeHttp({ statusCode: 200 });
 
     response = await getFunction(account, boundaryId, function1Id, true);
 
@@ -269,7 +269,7 @@ describe('Function Serialized', () => {
 
   test('PUT with empty configuration resets configuration', async () => {
     let response = await putFunction(account, boundaryId, function1Id, helloWorldWithConfiguration);
-    expect(response).toBeHttp({ statusCode: 200, status: 'success' });
+    expect(response).toBeHttp({ statusCode: 200 });
 
     response = await getFunction(account, boundaryId, function1Id, true);
 
@@ -279,7 +279,7 @@ describe('Function Serialized', () => {
 
     response.data.configuration = {};
     response = await putFunction(account, boundaryId, function1Id, response.data);
-    expect(response).toBeHttp({ statusCode: 200, status: 'success' });
+    expect(response).toBeHttp({ statusCode: 200 });
 
     response = await getFunction(account, boundaryId, function1Id, true);
 
@@ -290,7 +290,7 @@ describe('Function Serialized', () => {
 
   test('PUT with empty schedule resets schedule', async () => {
     let response = await putFunction(account, boundaryId, function1Id, helloWorldWithCron);
-    expect(response).toBeHttp({ statusCode: 200, status: 'success' });
+    expect(response).toBeHttp({ statusCode: 200 });
 
     response = await getFunction(account, boundaryId, function1Id, true);
 
@@ -309,7 +309,7 @@ describe('Function Serialized', () => {
 
   test('PUT with undefined configuration is ignored', async () => {
     let response = await putFunction(account, boundaryId, function1Id, helloWorldWithConfiguration);
-    expect(response).toBeHttp({ statusCode: 200, status: 'success' });
+    expect(response).toBeHttp({ statusCode: 200 });
 
     response = await getFunction(account, boundaryId, function1Id, true);
 
@@ -324,7 +324,7 @@ describe('Function Serialized', () => {
 
   test('PUT with undefined schedule is ignored', async () => {
     let response = await putFunction(account, boundaryId, function1Id, helloWorldWithCron);
-    expect(response).toBeHttp({ statusCode: 200, status: 'success' });
+    expect(response).toBeHttp({ statusCode: 200 });
 
     response = await getFunction(account, boundaryId, function1Id, true);
 
@@ -339,7 +339,7 @@ describe('Function Serialized', () => {
 
   test('PUT with undefined compute and undefined computeSerialized resets compute', async () => {
     let response = await putFunction(account, boundaryId, function1Id, helloWorldWithComputeSerialized);
-    expect(response).toBeHttp({ statusCode: 200, status: 'success' });
+    expect(response).toBeHttp({ statusCode: 200 });
 
     response = await getFunction(account, boundaryId, function1Id, true);
 
@@ -350,7 +350,7 @@ describe('Function Serialized', () => {
     response.data.computeSerialized = undefined;
     response.data.compute = undefined;
     response = await putFunction(account, boundaryId, function1Id, response.data);
-    expect(response).toBeHttp({ statusCode: 200, status: 'success' });
+    expect(response).toBeHttp({ statusCode: 200 });
 
     response = await getFunction(account, boundaryId, function1Id, true);
 
@@ -361,7 +361,7 @@ describe('Function Serialized', () => {
 
   test('PUT with undefined configuration and undefined configurationSerialized resets configuration', async () => {
     let response = await putFunction(account, boundaryId, function1Id, helloWorldWithConfiguration);
-    expect(response).toBeHttp({ statusCode: 200, status: 'success' });
+    expect(response).toBeHttp({ statusCode: 200 });
 
     response = await getFunction(account, boundaryId, function1Id, true);
 
@@ -372,7 +372,7 @@ describe('Function Serialized', () => {
     response.data.configurationSerialized = undefined;
     response.data.configuration = undefined;
     response = await putFunction(account, boundaryId, function1Id, response.data);
-    expect(response).toBeHttp({ statusCode: 200, status: 'success' });
+    expect(response).toBeHttp({ statusCode: 200 });
 
     response = await getFunction(account, boundaryId, function1Id, true);
 
@@ -383,7 +383,7 @@ describe('Function Serialized', () => {
 
   test('PUT with undefined schedule and undefined scheduleSerialized resets schedule', async () => {
     let response = await putFunction(account, boundaryId, function1Id, helloWorldWithCron);
-    expect(response).toBeHttp({ statusCode: 200, status: 'success' });
+    expect(response).toBeHttp({ statusCode: 200 });
 
     response = await getFunction(account, boundaryId, function1Id, true);
 
@@ -394,7 +394,7 @@ describe('Function Serialized', () => {
     response.data.scheduleSerialized = undefined;
     response.data.schedule = undefined;
     response = await putFunction(account, boundaryId, function1Id, response.data);
-    expect(response).toBeHttp({ statusCode: 200, status: 'success' });
+    expect(response).toBeHttp({ statusCode: 200 });
 
     response = await getFunction(account, boundaryId, function1Id, true);
 
@@ -405,7 +405,7 @@ describe('Function Serialized', () => {
 
   test('PUT with new configuration values updates configuration and configurationSerialized', async () => {
     let response = await putFunction(account, boundaryId, function1Id, helloWorldWithConfiguration);
-    expect(response).toBeHttp({ statusCode: 200, status: 'success' });
+    expect(response).toBeHttp({ statusCode: 200 });
 
     response = await getFunction(account, boundaryId, function1Id, true);
 
@@ -425,7 +425,7 @@ describe('Function Serialized', () => {
 
   test('PUT with new schedule values updates schedule and scheduleSerialized', async () => {
     let response = await putFunction(account, boundaryId, function1Id, helloWorldWithCron);
-    expect(response).toBeHttp({ statusCode: 200, status: 'success' });
+    expect(response).toBeHttp({ statusCode: 200 });
 
     response = await getFunction(account, boundaryId, function1Id, true);
 
@@ -445,7 +445,7 @@ describe('Function Serialized', () => {
 
   test('PUT with non-conflicting serialized and structured data changes is supported', async () => {
     let response = await putFunction(account, boundaryId, function1Id, helloWorldWithConfiguration);
-    expect(response).toBeHttp({ statusCode: 200, status: 'success' });
+    expect(response).toBeHttp({ statusCode: 200 });
     response = await getFunction(account, boundaryId, function1Id, true);
     const data = response.data;
     data.compute.timeout = 60;
@@ -464,7 +464,7 @@ describe('Function Serialized', () => {
 
   test('PUT with conflicting configuration and configurationSerialized uses configuration', async () => {
     let response = await putFunction(account, boundaryId, function1Id, helloWorldWithConfiguration);
-    expect(response).toBeHttp({ statusCode: 200, status: 'success' });
+    expect(response).toBeHttp({ statusCode: 200 });
     response = await getFunction(account, boundaryId, function1Id, true);
 
     const data = response.data;
@@ -481,7 +481,7 @@ describe('Function Serialized', () => {
 
   test('PUT with conflicting schedule and scheduleSerialized uses schedule', async () => {
     let response = await putFunction(account, boundaryId, function1Id, helloWorldWithCron);
-    expect(response).toBeHttp({ statusCode: 200, status: 'success' });
+    expect(response).toBeHttp({ statusCode: 200 });
 
     response = await getFunction(account, boundaryId, function1Id, true);
 
@@ -502,7 +502,7 @@ describe('Function Serialized', () => {
 
   test('PUT with conflicting compute and computeSerialized uses compute', async () => {
     let response = await putFunction(account, boundaryId, function1Id, helloWorld);
-    expect(response).toBeHttp({ statusCode: 200, status: 'success' });
+    expect(response).toBeHttp({ statusCode: 200 });
     response = await getFunction(account, boundaryId, function1Id, true);
 
     const data = response.data;
@@ -520,7 +520,7 @@ describe('Function Serialized', () => {
 
   test('GET retrieves information of simple function', async () => {
     let response = await putFunction(account, boundaryId, function1Id, helloWorld);
-    expect(response).toBeHttp({ statusCode: 200, status: 'success' });
+    expect(response).toBeHttp({ statusCode: 200 });
     response = await getFunction(account, boundaryId, function1Id, true);
     expect(response).toBeHttp({ statusCode: 200 });
     expect(response.data).toMatchObject({
