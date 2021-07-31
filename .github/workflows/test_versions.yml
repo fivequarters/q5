@@ -2,6 +2,7 @@
 # Auto-created by the cicd-actions tool
 on: workflow_dispatch
 name: Test version checks
+runs-on: self-hosted
 jobs:
   deploy:
     name: Deploy
