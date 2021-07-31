@@ -6,7 +6,6 @@ jobs:
   deploy:
     runs-on: self-hosted
     name: Deploy
-    runs-on: ubuntu-latest
     steps:
       - name: Upgrade aws-cli
         run: >
