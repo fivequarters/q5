@@ -21,6 +21,20 @@ jobs:
           node-version: 14.17.2
       - name: Install yarn
         run: npm i -g yarn
+      - name: Setup .env files
+        run: >
+          echoerr "Creating api/function-api/.env"
+
+          DOTENV=api/function-api/.env
+
+          echo DEPLOYMENT_KEY=stage > ${DOTENV}.template
+
+          echo AWS_REGION=us-west-2 >> ${DOTENV}.template
+
+          echo API_SERVER=https://stage.us-west-2.fusebit.io >>
+          ${DOTENV}.template
+
+          echo > ${DOTENV}.bootstrap
       - name: Checkout
         uses: actions/checkout@v2
         with:
