@@ -6,6 +6,7 @@ on:
     types:
       - ready_for_review
       - review_requested
+      - syncronize
 name: Test Function-API
 jobs:
   deploy:
@@ -41,7 +42,8 @@ jobs:
         run: node cli/fusebit-ops-cli/libc/index.js stack ls
       - name: Qualify - fuse works
         run: node cli/fusebit-cli/libc/index.js function ls
-      - null
+      - name: Publish - function-api - 749 Only
+        run: ./tool/cicd/actions/scripts/publish_function_api_dev.sh
       - name: Test - deploy exclusive to stage/us-west-2
         env:
           REGION: us-east-2

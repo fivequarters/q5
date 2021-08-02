@@ -59,13 +59,13 @@ const specs = [
   },
   {
     name: 'Test Function-API',
-    inputs: ['checkout', 'full_build', 'publish_function_api_dev', 'deploy_test', 'publish_slack'],
+    inputs: ['checkout', 'full_build', 'deploy_test', 'publish_slack'],
     output: 'test_function_api',
     options: {
       on_trigger: {
         pull_request: {
           branches: 'master',
-          types: ['ready_for_review', 'review_requested'],
+          types: ['ready_for_review', 'review_requested', 'syncronize'],
         },
       },
       runner_type: 'self-hosted',
