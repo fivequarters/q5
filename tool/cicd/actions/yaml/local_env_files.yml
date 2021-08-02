@@ -2,7 +2,7 @@ steps:
   - name: Setup .env files
     run: |
       DOTENV=api/function-api/.env
-      echo DEPLOYMENT_KEY=stage > ${DOTENV}.template
-      echo AWS_REGION=us-west-2 >> ${DOTENV}.template
+      echo DEPLOYMENT_KEY=cicd > ${DOTENV}.template
+      echo AWS_REGION=us-east-2 >> ${DOTENV}.template
       echo API_SERVER=https://stage.us-west-2.fusebit.io >> ${DOTENV}.template
       echo > ${DOTENV}.bootstrap
