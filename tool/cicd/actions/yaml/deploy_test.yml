@@ -2,8 +2,8 @@
 steps:
   - name: Test - deploy exclusive to stage/us-west-2
     env:
-      REGION: us-west-2
-      DEPLOYMENT_NAME: stage
+      REGION: us-east-2
+      DEPLOYMENT_NAME: cicd
     run: ./tool/cicd/actions/scripts/deploy_exclusive_function_api.sh
 
   - name: Test - function-api

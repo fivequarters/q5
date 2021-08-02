@@ -5,6 +5,9 @@ const OUTPUT_DIR = '../../../.github/workflows';
 const INPUT_DIR = './yaml';
 const BASE_YML = 'base';
 
+// Using a separate base YAML for local runners because local runners act different from regular runners.
+const LOCAL_BASE_YML = 'local_base';
+
 const BANNER = [
   '###################################################################',
   '# Auto-created by the cicd-actions tool',
@@ -54,11 +57,28 @@ const specs = [
     inputs: ['checkout', ...fullBuild, 'publish_api_docs', 'publish_slack'],
     output: 'publish_api_docs',
   },
+  {
+    name: 'Test Function-API',
+    inputs: ['checkout', 'full_build', 'publish_function_api_dev', 'deploy_test', 'publish_slack'],
+    output: 'test_function_api',
+    options: {
+      on_trigger: {
+        pull_request: {
+          branches: 'master',
+          types: ['ready_for_review', 'review_requested'],
+        },
+      },
+      runner_type: 'self-hosted',
+    },
+  },
 ];
 
 function buildSpec(name: string, inputs: string[], output: string, options: any = {}) {
-  const base = yaml.load(fs.readFileSync(`${INPUT_DIR}/${BASE_YML}.yml`, 'utf8')) as any;
-
+  let base = yaml.load(fs.readFileSync(`${INPUT_DIR}/${BASE_YML}.yml`, 'utf8')) as any;
+  // Used when custom runners are used. Currently we only need self-hosted runners when used for automated tests.
+  if (options.runner_type === 'self-hosted') {
+    base = yaml.load(fs.readFileSync(`${INPUT_DIR}/${LOCAL_BASE_YML}.yml`, 'utf8')) as any;
+  }
   base.name = name;
   if (options.on_trigger) {
     base.on = options.on_trigger;

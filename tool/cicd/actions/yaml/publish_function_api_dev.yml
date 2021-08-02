@@ -1,0 +1,2 @@
+- name: Publish - function-api - 749 Only
+  run: ./tool/cicd/actions/scripts/publish_function_api_dev.sh

@@ -1,44 +1,23 @@
 ###################################################################
 # Auto-created by the cicd-actions tool
-on: workflow_dispatch
-name: Deploy to us-west-2/stage and Test
+on:
+  pull_request:
+    branches: master
+    types:
+      - ready_for_review
+      - review_requested
+name: Test Function-API
 jobs:
   deploy:
     name: Deploy
-    runs-on: ubuntu-latest
+    runs-on: self-hosted
     steps:
-      - name: Upgrade aws-cli
-        run: >
-          curl "https://awscli.amazonaws.com/awscli-exe-linux-x86_64.zip" -o
-          "awscliv2.zip"
-
-          unzip awscliv2.zip >/dev/null
-
-          sudo ./aws/install --update
-
-          /usr/local/bin/aws --version
-
-          aws --version
+      - name: Ensure AWS CLI exists and credentials works.
+        run: aws s3 ls
       - name: Use Node.js
         uses: actions/setup-node@v1
         with:
           node-version: 14.17.2
-      - name: Cache Node.js modules
-        uses: actions/cache@v2
-        with:
-          path: ~/.npm
-          key: ${{ runner.OS }}-node
-      - name: Get yarn cache directory path
-        id: yarn-cache-dir-path
-        run: echo "::set-output name=dir::$(yarn cache dir)"
-      - name: Cache yarn modules
-        uses: actions/cache@v2
-        id: yarn-cache
-        with:
-          path: ${{ steps.yarn-cache-dir-path.outputs.dir }}
-          key: ${{ runner.os }}-yarn-${{ hashFiles('**/yarn.lock') }}
-          restore-keys: |
-            ${{ runner.os }}-yarn-
       - name: Checkout
         uses: actions/checkout@v2
         with:
@@ -51,16 +30,6 @@ jobs:
           echo "Versions: function_api/${{env.VERSION_FUNCTION_API}}
           fuse-cli/${{env.VERSION_FUSEBIT_CLI}}
           fuse-ops/${{env.VERSION_FUSEBIT_OPS_CLI}}"
-      - name: Setup Environments and Profiles
-        env:
-          SECRET_FUSEBIT_PROFILE: ${{secrets.FUSEBIT_STAGE_US_WEST_2}}
-          SECRET_NPM_TOKEN: ${{secrets.NPM_PUBLISH_TOKEN}}
-          SECRET_GC_BQ_KEY_BASE64: ${{secrets.FUSEBIT_GC_BQ_KEY_BASE64}}
-        run: ./tool/cicd/actions/scripts/create_env_files.sh
-      - name: Qualify - aws-cli works
-        run: aws s3 ls
-      - name: Qualify - npm works
-        run: npm whoami
       - name: Pre-Build Summary
         run: |
           echo function-api: ${VERSION_FUNCTION_API}
@@ -72,10 +41,7 @@ jobs:
         run: node cli/fusebit-ops-cli/libc/index.js stack ls
       - name: Qualify - fuse works
         run: node cli/fusebit-cli/libc/index.js function ls
-      - name: Yarn - image
-        run: yarn image
-      - name: Publish - function-api
-        run: ./tool/cicd/actions/scripts/publish_function_api.sh
+      - null
       - name: Test - deploy exclusive to stage/us-west-2
         env:
           REGION: us-east-2
