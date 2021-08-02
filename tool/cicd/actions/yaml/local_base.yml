@@ -15,3 +15,6 @@ jobs:
         uses: actions/setup-node@v1
         with:
           node-version: '14.17.2'
+
+      - name: Install yarn
+        run: npm i -g yarn

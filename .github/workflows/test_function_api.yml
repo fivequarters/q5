@@ -6,7 +6,7 @@ on:
     types:
       - ready_for_review
       - review_requested
-      - syncronize
+      - synchronize
 name: Test Function-API
 jobs:
   deploy:
@@ -19,6 +19,8 @@ jobs:
         uses: actions/setup-node@v1
         with:
           node-version: 14.17.2
+      - name: Install yarn
+        run: npm i -g yarn
       - name: Checkout
         uses: actions/checkout@v2
         with:
