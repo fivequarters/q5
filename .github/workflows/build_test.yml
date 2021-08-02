@@ -82,6 +82,8 @@ jobs:
         env:
           REGION: us-east-2
           DEPLOYMENT_NAME: cicd
+          NETWORK_NAME: cicd
+          DEPLOYMENT_DOMAIN: dev.fusebit.io
         run: ./tool/cicd/actions/scripts/deploy_exclusive_function_api.sh
       - name: Test - function-api
         env:
