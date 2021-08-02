@@ -83,7 +83,7 @@ jobs:
         run: ./tool/cicd/actions/scripts/deploy_exclusive_function_api.sh
       - name: Test - function-api
         env:
-          SECRET_FUSEBIT_PROFILE: ${{secrets.FUSEBIT_STAGE_US_WEST_2}}
+          FUSE_PROFILE: cicd
         run: ./tool/cicd/actions/scripts/test_function_api.sh
       - name: Notify slack success
         if: success()
