@@ -74,11 +74,11 @@ const specs = [
 ];
 
 function buildSpec(name: string, inputs: string[], output: string, options: any = {}) {
-  let base = yaml.load(fs.readFileSync(`${INPUT_DIR}/${BASE_YML}.yml`, 'utf8')) as any;
   // Used when custom runners are used. Currently we only need self-hosted runners when used for automated tests.
-  if (options.runner_type === 'self-hosted') {
-    base = yaml.load(fs.readFileSync(`${INPUT_DIR}/${LOCAL_BASE_YML}.yml`, 'utf8')) as any;
-  }
+  let base: any =
+    options.runner_type === 'self-hosted'
+      ? yaml.load(fs.readFileSync(`${INPUT_DIR}/${LOCAL_BASE_YML}.yml`, 'utf8'))
+      : yaml.load(fs.readFileSync(`${INPUT_DIR}/${BASE_YML}.yml`, 'utf8'));
   base.name = name;
   if (options.on_trigger) {
     base.on = options.on_trigger;
