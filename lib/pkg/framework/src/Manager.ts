@@ -87,8 +87,6 @@ class Manager {
     // Load the configuration for the integrations
     this.connectors.setup(cfg.components);
 
-    //
-
     if (vendorError) {
       this.vendorError = vendorError;
     }

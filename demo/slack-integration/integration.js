@@ -7,10 +7,6 @@ router.get("/api", async (ctx) => {
   ctx.body = "Slack integration example works!";
 });
 
-router.get("/api/v2", (ctx) => {
-  ctx.body = "so this works, right?";
-});
-
 router.post("/api/message/:identityId", async (ctx) => {
   const identityId = ctx.params.identityId;
   const message = ctx.req.body?.message;
