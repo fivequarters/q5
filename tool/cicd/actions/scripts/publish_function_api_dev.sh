@@ -10,7 +10,7 @@ VERSION=${VERSION_FUNCTION_API:=`jq -r '.version' ./package.json`}
 
 # -- Script --
 set -e
-
+yarn image
 ${FUSEOPS} image publish ${VERSION} 1>&2
 
 echoerr "Completed successfully:"
