@@ -1,13 +1,19 @@
 import { DynamoDB, Lambda } from 'aws-sdk';
 import create_error from 'http-errors';
-import * as superagent from 'superagent';
 
 import { IAgent, ISubscription } from '@5qtrs/account-data';
 import * as Constants from '@5qtrs/constants';
 
 import * as FunctionUtilities from '../../src/routes/functions';
-import { getParams, fakeAgent, createRegistry, keyStore, subscriptionCache } from './function.utils';
-import { putFunction, waitForBuild, getFunction, disableFunctionUsageRestriction } from './sdk';
+import { getParams, fakeAgent, subscriptionCache } from './function.utils';
+import {
+  putFunction,
+  refreshSubscriptionCache,
+  getSubscription,
+  waitForBuild,
+  getFunction,
+  disableFunctionUsageRestriction,
+} from './sdk';
 
 import { getEnv } from './setup';
 
@@ -15,10 +21,6 @@ let { account, boundaryId, function1Id, function2Id, function3Id, function4Id, f
 beforeEach(() => {
   ({ account, boundaryId, function1Id, function2Id, function3Id, function4Id, function5Id } = getEnv());
 });
-
-FunctionUtilities.initFunctions(keyStore, subscriptionCache);
-
-const registry = createRegistry(account, boundaryId);
 
 const dynamo = new DynamoDB({ apiVersion: '2012-08-10' });
 const lambda = new Lambda({ apiVersion: '2015-03-31' });
@@ -78,26 +80,11 @@ async function setSubscriptionStaticIpFlag(subscription: ISubscription, staticIp
       ':flags': { S: JSON.stringify(flags) },
     },
   };
+
   await dynamo.updateItem(params).promise();
   subscriptionCache.refresh();
 
-  const refreshUrl = `${account.baseUrl}/v1/refresh`;
-  const MAX_TEST_DELAY = Constants.MAX_CACHE_REFRESH_RATE * 5;
-  const startTime = Date.now();
-  do {
-    const timeBeforeRefreshRequest = Date.now();
-    const refreshResponse = await superagent.get(refreshUrl);
-    const { at } = refreshResponse.body;
-    if (at > timeBeforeRefreshRequest) {
-      return;
-    }
-    // tslint:disable-next-line: no-console
-    console.log("Stale cache due to refresh rate, let's wait and try to refresh again.");
-
-    await new Promise((resolve) => setTimeout(resolve, Constants.MAX_CACHE_REFRESH_RATE - (Date.now() - at)));
-  } while (Date.now() < startTime + MAX_TEST_DELAY);
-
-  throw new Error(`ERROR: Unable to refresh the subscription: ${account.subscriptionId}. Tests will fail.`);
+  await refreshSubscriptionCache(account);
 }
 
 describe('Subscription with staticIp=true', () => {
@@ -109,7 +96,7 @@ describe('Subscription with staticIp=true', () => {
 
   test('Create a function that requires a build', async () => {
     const params = getParams(function1Id, account, boundaryId);
-    const create = await FunctionUtilities.createFunction(params, asyncFunction, fakeAgent as IAgent, registry);
+    const create = await FunctionUtilities.createFunction(params, asyncFunction, fakeAgent as IAgent);
     expect(create).toMatchObject({ code: 201 });
 
     const build = await FunctionUtilities.waitForFunctionBuild(params, create.buildId as string, 120000);
@@ -118,7 +105,7 @@ describe('Subscription with staticIp=true', () => {
 
   test('Create a function with a short timeout fails', async () => {
     const params = getParams(function1Id, account, boundaryId);
-    const create = await FunctionUtilities.createFunction(params, asyncFunction, fakeAgent as IAgent, registry);
+    const create = await FunctionUtilities.createFunction(params, asyncFunction, fakeAgent as IAgent);
     expect(create).toMatchObject({ code: 201 });
 
     expect(FunctionUtilities.waitForFunctionBuild(params, create.buildId as string, 1)).rejects.toEqual(
@@ -221,7 +208,7 @@ describe('Subscription with staticIp=true', () => {
 
     let response = await putFunction(account, boundaryId, function1Id, helloWorldWithStaticIp);
     response = await waitForBuild(account, response.data, 120, 1000);
-    expect(response).toBeHttp({ statusCode: 200, status: 'success' });
+    expect(response).toBeHttp({ statusCode: 200 });
 
     response = await getFunction(account, boundaryId, function1Id, true);
 

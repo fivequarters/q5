@@ -7,6 +7,7 @@ import { pem2jwk } from 'pem-jwk';
 
 import { nextBoundary } from './setup';
 
+import * as Constants from '@5qtrs/constants';
 import ms from 'ms';
 import { IAccount as IAccountAPI } from '@5qtrs/account-data';
 
@@ -1225,4 +1226,39 @@ export async function getMe(account: IAccount, accessToken?: string) {
     },
     url: `${account.baseUrl}/v1/account/${account.accountId}/me`,
   });
+}
+
+export async function getSubscription(account: IAccount, subscriptionId?: string, include?: 'cache') {
+  return request({
+    method: 'GET',
+    headers: {
+      Authorization: `Bearer ${account.accessToken}`,
+      'user-agent': account.userAgent,
+    },
+    url: `${account.baseUrl}/v1/account/${account.accountId}/subscription/${subscriptionId || account.subscriptionId}${
+      include ? '?include=cache' : ''
+    }`,
+  });
+}
+
+export async function refreshSubscriptionCache(account: IAccount) {
+  const MAX_TEST_DELAY = Constants.MAX_CACHE_REFRESH_RATE * 5;
+  const startTime = Date.now();
+  do {
+    const refreshResponse = await request({
+      method: 'GET',
+      headers: {
+        'user-agent': account.userAgent,
+      },
+      url: `${account.baseUrl}/v1/refresh`,
+    });
+    expect(refreshResponse).toBeHttp({ statusCode: 200 });
+    const { at } = refreshResponse.data;
+    if (at > startTime) {
+      return;
+    }
+    await new Promise((resolve) => setTimeout(resolve, Constants.MAX_CACHE_REFRESH_RATE - (Date.now() - at)));
+  } while (Date.now() < startTime + MAX_TEST_DELAY);
+
+  throw new Error(`ERROR: Unable to refresh the subscription: ${account.subscriptionId}. Tests will fail.`);
 }

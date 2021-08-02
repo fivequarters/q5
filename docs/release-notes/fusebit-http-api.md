@@ -17,9 +17,21 @@ All public releases of the Fusebit HTTP API are documented here, including notab
 <!-- 1. TOC
 {:toc} -->
 
+# Version 1.20.28
+
+_Released 7/27/21_
+
+- **Enhancement** Subscriptions now support default values supplied via global configuration elements.
+
+# Version 1.20.27
+
+_Released 7/26/21_
+
+- **Enhancement** OperationId corresponding to processing of session into instances and identities is now saved to sessions. 
+
 ## Version 1.20.26
 
-_Released 07/16/23_
+_Released 07/23/21_
 
 - **Enhancement** Restricts access to the static IP feature of Fusebit Functions to subscriptions that contain the `staticIp` flag set to `"true"`.
 

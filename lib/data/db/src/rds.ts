@@ -264,7 +264,6 @@ class RDS implements IRds {
       await this.commitTransaction(transactionId);
       return result;
     } catch (e) {
-      console.log(e);
       await this.rollbackTransaction(transactionId);
       throw e;
     }

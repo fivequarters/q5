@@ -9,7 +9,7 @@
     "build": "tsc -b",
     "create-env": "node createEnv.js",
     "dev": "yarn build && node --inspect=9229 --trace-warnings libc/index.js",
-    "test": "yarn create-env && jest --colors",
+    "test": "yarn create-env && jest --colors --no-cache",
     "coverage": "jest --colors --coverage --detectOpenHandles",
     "lint": "tslint --fix -t stylish src/{,**/}*.ts{,x} test/{,**/}*.ts{,x}",
     "clean": "rm -r -f libc",

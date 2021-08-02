@@ -9,7 +9,7 @@ module.exports = Joi.object().keys({
   email: Joi.string(),
   issuerId: Common.issuerId,
   subject: Joi.string(),
-  include: Joi.string().valid('all'),
+  include: Joi.string().valid('all', 'cache'),
   cron: Joi.string().valid('true', 'false', '1', '0'),
   search: [Joi.string(), Joi.array()],
   action: Joi.string(),

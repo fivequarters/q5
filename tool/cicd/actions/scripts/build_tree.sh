@@ -16,3 +16,7 @@ yarn --frozen-lockfile install
 
 echoerr "yarn build:"
 yarn build
+
+echoerr "Validate tests all build:"
+cd api/function-api
+EC2=1 LAMBDA_USER_FUNCTION_PERMISSIONLESS_ROLE=1 yarn test --no-cache --forceExit --testNamePattern=DoesNotMatchAnyTests

@@ -5,7 +5,7 @@ import { v4 as uuidv4 } from 'uuid';
 
 import * as Constants from '@5qtrs/constants';
 
-import { SubscriptionCache } from '@5qtrs/runas';
+import { SubscriptionCache } from '@5qtrs/account';
 
 const filter = eval(process.env.CRON_FILTER || 'ctx => true;');
 const MAX_PARALLEL_LOOKUP = 20; // Only lookup 20 functions at a time from Dynamo

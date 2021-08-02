@@ -18,6 +18,12 @@ All public releases of the Fusebit Operations CLI are documented here, including
 {:toc}
 -->
 
+## Version 1.28.4
+
+_Released 07/27/21_
+
+- **Enhancement** Subscriptions now support default values supplied via global configuration elements.
+
 ## Version 1.28.1
 
 _Released 07/23/21_
@@ -26,7 +32,7 @@ _Released 07/23/21_
 
 ## Version 1.28.0
 
-_Released 07/16/21_
+_Released 07/23/21_
 
 - **Enhancement** Introduces the ability to set a feature flag on subscriptions to either block or allow them to use the static IP feature on Fusebit function.
 

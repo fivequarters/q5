@@ -23,6 +23,7 @@
     "jsonwebtoken": "^8.5.0",
     "uuid": "^7.0.2",
     "@5qtrs/constants": "^0.0.1",
-    "@5qtrs/runas": "^0.0.1"
+    "@5qtrs/runas": "^0.0.1",
+    "@5qtrs/account": "^0.0.1"
   }
 }

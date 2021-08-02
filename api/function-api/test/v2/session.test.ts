@@ -436,6 +436,53 @@ describe('Sessions', () => {
     });
   }, 180000);
 
+  test('Finish a session and receive operationId, and session gains replacementTargetId', async () => {
+    const { integrationId } = await createPair(account, boundaryId);
+    let response = await ApiRequestMap.integration.session.post(account, integrationId, {
+      redirectUrl: demoRedirectUrl,
+    });
+    const parentSessionId = response.data.id;
+
+    // Start the session to make sure it starts correctly.
+    response = await ApiRequestMap.integration.session.start(account, integrationId, parentSessionId);
+    const loc = getElementsFromUrl(response.headers.location);
+
+    // Verify replacementTargetId and operationId are undefined
+    response = await ApiRequestMap.integration.session.get(account, integrationId, parentSessionId);
+    expect(response.data.operationId).toBeUndefined();
+    expect(response.data.replacementTargetId).toBeUndefined();
+
+    // Call the callback
+    response = await ApiRequestMap[loc.entityType].session.callback(account, loc.entityId, loc.sessionId);
+
+    // Post to finish
+    response = await ApiRequestMap.integration.session.postSession(account, integrationId, parentSessionId);
+    expect(response).toBeHttp({ statusCode: 200 });
+    // Verify Operation Id
+    const operationId = response.data.operationId;
+    response = await ApiRequestMap.integration.session.getResult(account, integrationId, parentSessionId);
+    const sessionOperationId = response.data.operationId;
+    expect(sessionOperationId).toBe(operationId);
+
+    // Verify replacementTargetId matches created instance, to impose idempotence
+    const replacementTargetId = response.data.replacementTargetId;
+    const instanceId = response.data.output.entityId;
+    expect(replacementTargetId).toBe(instanceId);
+
+    // Verify Operation Id matches an existing operation
+    response = await ApiRequestMap.operation.get(account, operationId);
+    expect(response).toBeHttp({ statusCode: 200 });
+
+    // New call to `postSession` results in new operationId, but new operation
+    // does an update on the same instance with contents of session
+    await ApiRequestMap.integration.session.postSession(account, integrationId, parentSessionId);
+    response = await ApiRequestMap.integration.session.getResult(account, integrationId, parentSessionId);
+    const idempotentReplacementTargetId = response.data.replacementTargetId;
+    const idempotentInstanceId = response.data.output.entityId;
+    expect(idempotentReplacementTargetId).toBe(replacementTargetId);
+    expect(idempotentInstanceId).toBe(instanceId);
+  }, 180000);
+
   test('The /callback endpoint of a step session redirects to the next entry', async () => {
     const numConnectors = 5;
     const { integrationId, connectorId } = await createPair(account, boundaryId, undefined, undefined, numConnectors);
@@ -663,13 +710,84 @@ describe('Sessions', () => {
     ).toBe(0);
   }, 180000);
 
+  test('Tags specified on the session get persisted to identities and instances', async () => {
+    const { integrationId } = await createPair(account, boundaryId);
+    const tenantId = 'exampleTenantId';
+    let response = await ApiRequestMap.integration.session.post(account, integrationId, {
+      tags: {
+        tenantId,
+      },
+      redirectUrl: demoRedirectUrl,
+    });
+    const parentSessionId = response.data.id;
+
+    // Start the session to make sure it starts correctly.
+    response = await ApiRequestMap.integration.session.start(account, integrationId, parentSessionId);
+    const loc = getElementsFromUrl(response.headers.location);
+
+    // Call the callback
+    response = await ApiRequestMap[loc.entityType].session.callback(account, loc.entityId, loc.sessionId);
+
+    // Post to finish
+    response = await ApiRequestMap.integration.session.postSession(account, integrationId, parentSessionId);
+    expect(response).toBeHttp({ statusCode: 200 });
+
+    // Verify Operation Id
+    response = await ApiRequestMap.integration.session.getResult(account, integrationId, parentSessionId);
+    const instanceId = response.data.output.entityId;
+
+    // Get the instance, and validate it has the tag specified
+    response = await ApiRequestMap.instance.get(account, integrationId, instanceId);
+    expect(response).toBeHttp({ statusCode: 200, data: { tags: { tenantId } } });
+  }, 180000);
+
+  test('Tags specified on the integration get extended to instances and identities', async () => {
+    const integTag = 'anIntegrationTag';
+
+    const { integrationId, connectorId } = await createPair(account, boundaryId, { componentTags: { integTag } });
+    const tenantId = 'exampleTenantId';
+    let response = await ApiRequestMap.integration.session.post(account, integrationId, {
+      tags: {
+        tenantId,
+      },
+      extendTags: true,
+      redirectUrl: demoRedirectUrl,
+    });
+    const parentSessionId = response.data.id;
+
+    // Start the session to make sure it starts correctly.
+    response = await ApiRequestMap.integration.session.start(account, integrationId, parentSessionId);
+    const loc = getElementsFromUrl(response.headers.location);
+
+    // Call the callback
+    response = await ApiRequestMap[loc.entityType].session.callback(account, loc.entityId, loc.sessionId);
+
+    // Post to finish
+    response = await ApiRequestMap.integration.session.postSession(account, integrationId, parentSessionId);
+    expect(response).toBeHttp({ statusCode: 200 });
+
+    // Verify Operation Id
+    response = await ApiRequestMap.integration.session.getResult(account, integrationId, parentSessionId);
+    const instanceId = response.data.output.entityId;
+
+    // Get the instance, and validate it has the tag specified
+    response = await ApiRequestMap.instance.get(account, integrationId, instanceId);
+    expect(response).toBeHttp({ statusCode: 200, data: { tags: { tenantId, integTag } } });
+
+    const identityId = response.data.data.conn.entityId;
+
+    // Get the identity and validate it has the tag specified
+    response = await ApiRequestMap.identity.get(account, connectorId, identityId);
+    expect(response).toBeHttp({ statusCode: 200, data: { tags: { tenantId, integTag } } });
+  }, 180000);
+
+  test('Validate tags application (various additional)', async () => {
+    // foo
+  }, 180000);
   test('Validate security permissions (various)', async () => {
     // foo
   }, 180000);
   test('Validate parameter validation (various)', async () => {
-    // foo
-  }, 180000);
-  test('Validate tags application (various)', async () => {
     // foo
   }, 180000);
 });

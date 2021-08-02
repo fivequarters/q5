@@ -83,9 +83,12 @@ class OperationService {
           operationEntity.data.code = 200;
         }
       } catch (err) {
-        console.log(err);
-        // Update operation with the error message
-        operationEntity.data = { ...operation, code: err.status || err.statusCode || 500, message: err.message };
+        if (err.message && err.message.match(/duplicate key value/)) {
+          operationEntity.data = { ...operation, code: 400, message: `Duplicate key value: ${entity.id}` };
+        } else {
+          // Update operation with the error message
+          operationEntity.data = { ...operation, code: err.status || err.statusCode || 500, message: err.message };
+        }
       }
 
       console.log(

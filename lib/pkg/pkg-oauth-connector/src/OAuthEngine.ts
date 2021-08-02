@@ -85,9 +85,13 @@ class OAuthEngine {
       client_secret: this.cfg.clientSecret,
       redirect_uri: redirectUri,
     };
-    const response = await superagent.post(this.cfg.tokenUrl).type('form').send(params);
+    try {
+      const response = await superagent.post(this.cfg.tokenUrl).type('form').send(params);
 
-    return response.body;
+      return response.body;
+    } catch (error) {
+      throw new Error(`Unable to connect to tokenUrl ${this.cfg.tokenUrl}: ${error}`);
+    }
   }
 
   /**
@@ -104,10 +108,14 @@ class OAuthEngine {
       redirect_uri: `${this.cfg.mountUrl}${callbackSuffixUrl}`,
     };
 
-    const response = await superagent.post(this.cfg.tokenUrl).type('form').send(params);
+    try {
+      const response = await superagent.post(this.cfg.tokenUrl).type('form').send(params);
 
-    // Use the current token if a new one isn't supplied.
-    return { refresh_token: refreshToken, ...response.body };
+      // Use the current token if a new one isn't supplied.
+      return { refresh_token: refreshToken, ...response.body };
+    } catch (error) {
+      throw new Error(`Unable to connecto to tokenUrl '${this.cfg.tokenUrl}: ${error}`);
+    }
   }
 
   /**

@@ -17,6 +17,8 @@ import Project from './Project';
 import Tsconfig from './Tsconfig';
 import WorkspaceInfo from './WorkspaceInfo';
 
+const antiCircularLoopStack: string[] = [];
+
 export default class Workspace {
   public static async FromLocation(project: Project, location: string) {
     const workspaces = await project.GetWorkspaces();
@@ -76,15 +78,26 @@ export default class Workspace {
   public async GetAllDescendantDependencies(): Promise<any> {
     const childrenDependencies = await this.GetDependencies();
     const allDependencies: { [index: string]: string } = {};
-    for (const child in childrenDependencies) {
+
+    const name = await this.GetName();
+    if (antiCircularLoopStack.includes(name)) {
+      throw new Error(`Circular dependencies discovered: ${antiCircularLoopStack.join(' -> ')} -> ${name}`);
+    }
+    antiCircularLoopStack.push(name);
+
+    for (const child of Object.keys(childrenDependencies)) {
       allDependencies[child] = childrenDependencies[child];
       const workspace = await this.project.GetWorkspace(child);
       if (workspace) {
         const descendants = await workspace.GetAllDescendantDependencies();
-        for (const descendant in descendants) {
+        for (const descendant of Object.keys(descendants)) {
           allDependencies[descendant] = descendants[descendant];
         }
       }
+    }
+
+    if (antiCircularLoopStack.pop() !== name) {
+      throw new Error('Failed to keep antiCircularLoopStack a stack; aborting.');
     }
     return allDependencies;
   }
