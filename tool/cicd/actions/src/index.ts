@@ -59,7 +59,7 @@ const specs = [
   },
   {
     name: 'Test Function-API',
-    inputs: ['checkout', 'local_env_files', 'full_build', 'deploy_test', 'publish_slack'],
+    inputs: ['checkout', 'local_env_files', 'full_build', 'publish_pkg', 'deploy_test', 'publish_slack'],
     output: 'test_function_api',
     options: {
       on_trigger: {
