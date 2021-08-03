@@ -46,6 +46,8 @@ jobs:
         run: node cli/fusebit-ops-cli/libc/index.js stack ls
       - name: Qualify - fuse works
         run: node cli/fusebit-cli/libc/index.js function ls
+      - name: Publish Everything in lib/pkg
+        run: ./tool/cicd/actions/scripts/publish_all_artifacts.sh
       - name: Publish - function-api - 749 Only
         run: ./tool/cicd/actions/scripts/publish_function_api_dev.sh
       - name: Test - deploy exclusive to stage/us-west-2
