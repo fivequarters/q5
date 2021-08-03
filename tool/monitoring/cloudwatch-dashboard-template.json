@@ -1,0 +1,255 @@
+{
+  "widgets": [
+    {
+      "height": 6,
+      "width": 6,
+      "y": 0,
+      "x": 0,
+      "type": "metric",
+      "properties": {
+        "metrics": [
+          [
+            {
+              "expression": "SEARCH('{AWS/ApplicationELB,LoadBalancer} MetricName=\"RequestCount\" ', 'Sum', 60)"
+            }
+          ]
+        ],
+        "view": "timeSeries",
+        "stacked": false,
+        "region": "AWS_REGION",
+        "title": "ELB Request Count"
+      }
+    },
+    {
+      "height": 6,
+      "width": 6,
+      "y": 0,
+      "x": 6,
+      "type": "metric",
+      "properties": {
+        "metrics": [
+          [
+            {
+              "expression": "SEARCH('{AWS/ApplicationELB,LoadBalancer} MetricName=\"HTTPCode_Target_2XX_Count\" ', 'Sum', 60)"
+            }
+          ]
+        ],
+        "view": "timeSeries",
+        "stacked": false,
+        "region": "AWS_REGION",
+        "title": "ELB 2XX"
+      }
+    },
+    {
+      "height": 6,
+      "width": 6,
+      "y": 0,
+      "x": 12,
+      "type": "metric",
+      "properties": {
+        "metrics": [
+          [
+            {
+              "expression": "SEARCH('{AWS/ApplicationELB,LoadBalancer} MetricName=\"HTTPCode_ELB_4XX_Count\" ', 'Sum', 60)"
+            }
+          ]
+        ],
+        "view": "timeSeries",
+        "stacked": false,
+        "region": "AWS_REGION",
+        "title": "ELB 4xx"
+      }
+    },
+    {
+      "height": 6,
+      "width": 6,
+      "y": 0,
+      "x": 18,
+      "type": "metric",
+      "properties": {
+        "metrics": [
+          [
+            {
+              "expression": "SEARCH('{AWS/ApplicationELB,LoadBalancer} MetricName=\"HTTPCode_ELB_5XX_Count\" ', 'Sum', 60)"
+            }
+          ]
+        ],
+        "view": "timeSeries",
+        "stacked": false,
+        "region": "AWS_REGION",
+        "title": "ELB 5xx"
+      }
+    },
+    {
+      "height": 6,
+      "width": 6,
+      "y": 6,
+      "x": 0,
+      "type": "metric",
+      "properties": {
+        "metrics": [
+          [
+            {
+              "expression": "SEARCH('{AWS/EC2,AutoScalingGroupName} MetricName=\"CPUUtilization\" ', 'Average', 300)"
+            }
+          ]
+        ],
+        "view": "timeSeries",
+        "stacked": false,
+        "region": "AWS_REGION",
+        "title": "CPU Utilization"
+      }
+    },
+    {
+      "height": 6,
+      "width": 6,
+      "y": 6,
+      "x": 6,
+      "type": "metric",
+      "properties": {
+        "view": "timeSeries",
+        "stacked": false,
+        "metrics": [
+          [
+            {
+              "expression": "SEARCH('{CWAgent,AutoScalingGroupName,ImageId,InstanceId,InstanceType} mem_used_percent', 'Average', 300)"
+            }
+          ]
+        ],
+        "region": "AWS_REGION",
+        "title": "Mem Utilization"
+      }
+    },
+    {
+      "height": 6,
+      "width": 6,
+      "y": 6,
+      "x": 12,
+      "type": "metric",
+      "properties": {
+        "metrics": [
+          [
+            {
+              "expression": "SEARCH('{AWS/ApplicationELB,TargetGroup,LoadBalancer} MetricName=\"UnHealthyHostCount\" ', 'Sum', 60)"
+            }
+          ],
+          [
+            {
+              "expression": "SEARCH('{AWS/ApplicationELB,TargetGroup,LoadBalancer} MetricName=\"HealthyHostCount\" ', 'Sum', 60)"
+            }
+          ]
+        ],
+        "view": "timeSeries",
+        "stacked": false,
+        "region": "AWS_REGION",
+        "title": "Healthy Targets"
+      }
+    },
+    {
+      "height": 6,
+      "width": 6,
+      "y": 6,
+      "x": 18,
+      "type": "metric",
+      "properties": {
+        "metrics": [
+          [
+            {
+              "expression": "SEARCH('{AWS/ApplicationELB,LoadBalancer} MetricName=\"TargetResponseTime\" ', 'Average', 60)"
+            }
+          ]
+        ],
+        "view": "timeSeries",
+        "stacked": false,
+        "region": "AWS_REGION",
+        "title": "Response Time"
+      }
+    },
+    {
+      "height": 6,
+      "width": 6,
+      "y": 12,
+      "x": 0,
+      "type": "metric",
+      "properties": {
+        "metrics": [
+          [
+            "AWS/Lambda",
+            "Errors",
+            { "id": "errors", "stat": "Sum", "color": "#d13212" }
+          ],
+          [
+            ".",
+            "Invocations",
+            { "id": "invocations", "stat": "Sum", "visible": false }
+          ],
+          [
+            {
+              "expression": "100 - 100 * errors / MAX([errors, invocations])",
+              "label": "Success rate (%)",
+              "id": "availability",
+              "yAxis": "right"
+            }
+          ]
+        ],
+        "region": "AWS_REGION",
+        "title": "Lambda Errors & Success Rate (%)",
+        "yAxis": {
+          "right": {
+            "max": 100
+          }
+        }
+      }
+    },
+    {
+      "height": 6,
+      "width": 6,
+      "y": 12,
+      "x": 6,
+      "type": "metric",
+      "properties": {
+        "metrics": [
+          [
+            "AWS/Lambda",
+            "ConcurrentExecutions",
+            { "stat": "Maximum", "label": "ConcurrentExecutions Maximum" }
+          ]
+        ],
+        "region": "AWS_REGION",
+        "title": "Lambda Concurrent Executions"
+      }
+    },
+    {
+      "height": 6,
+      "width": 6,
+      "y": 12,
+      "x": 12,
+      "type": "metric",
+      "properties": {
+        "metrics": [
+          ["AWS/Lambda", "Duration", { "stat": "Minimum" }],
+          ["...", { "stat": "Average" }],
+          ["...", { "stat": "Maximum" }]
+        ],
+        "region": "AWS_REGION",
+        "title": "Lambda Duration"
+      }
+    },
+    {
+      "height": 6,
+      "width": 6,
+      "y": 12,
+      "x": 18,
+      "type": "metric",
+      "properties": {
+        "metrics": [["AWS/Lambda", "ConcurrentExecutions"]],
+        "view": "timeSeries",
+        "stacked": false,
+        "region": "AWS_REGION",
+        "stat": "Sum",
+        "period": 60,
+        "title": "Lambda Calls"
+      }
+    }
+  ]
+}
