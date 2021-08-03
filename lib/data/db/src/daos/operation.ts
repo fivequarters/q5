@@ -11,6 +11,7 @@ export default class Operation extends Entity<Model.IOperation> {
       RDS,
       filterExpired: true,
       entityType: Entity.EntityType.operation,
+      upsert: true,
       transactionId,
     });
   }
