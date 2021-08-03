@@ -27,11 +27,6 @@ const specs = [
   { name: 'Checkout the project', inputs: ['checkout', 'publish_slack'], output: 'checkout' },
   { name: 'Full build', inputs: ['checkout', ...fullBuild, 'publish_slack'], output: 'full_build' },
   {
-    name: 'Deploy to us-west-2/stage and Test',
-    inputs: ['checkout', ...fullBuild, 'publish_function_api', 'deploy_test', 'publish_slack'],
-    output: 'build_test',
-  },
-  {
     name: 'Publish All Artifacts',
     inputs: ['checkout', ...fullBuild, ...publishAll, 'publish_slack'],
     output: 'publish',

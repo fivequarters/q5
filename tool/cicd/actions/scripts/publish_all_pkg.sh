@@ -4,7 +4,7 @@ set -e
 cd lib/pkg
 
 FUSE="node ../../cli/fusebit-cli/libc/index.js"
-${FUSE} profile set cicd
+${FUSE} profile set ${FUSE_PROFILE}
 ${FUSE} npm login
 for pkgPath in framework ./pkg-* ./slack-*; do
   pkgName=$(basename $pkgPath)
