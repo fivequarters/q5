@@ -34,7 +34,8 @@ jobs:
           fuse-cli/${{env.VERSION_FUSEBIT_CLI}}
           fuse-ops/${{env.VERSION_FUSEBIT_OPS_CLI}}"
       - name: Setup .env files
-        run: ./tool/cicd/actions/scripts/create_env.dev.sh
+        run: >-
+          ./tool/cicd/actions/scripts/create_function_api_env.cicd.us-east-2.749775346857.sh
       - name: Pre-Build Summary
         run: |
           echo function-api: ${VERSION_FUNCTION_API}
