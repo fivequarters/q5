@@ -22,6 +22,8 @@ describe('Instance', () => {
     expect(response).toBeHttp({ statusCode: 200 });
     response = await ApiRequestMap.instance.get(account, integrationId, entityId);
     expect(response).toBeHttp({ statusCode: 404 });
+    response = await ApiRequestMap.instance.delete(account, integrationId, entityId);
+    expect(response).toBeHttp({ statusCode: 404 });
   }, 180000);
 });
 
@@ -36,6 +38,8 @@ describe('Identity', () => {
     response = await ApiRequestMap.identity.delete(account, connectorId, entityId);
     expect(response).toBeHttp({ statusCode: 200 });
     response = await ApiRequestMap.identity.get(account, connectorId, entityId);
+    expect(response).toBeHttp({ statusCode: 404 });
+    response = await ApiRequestMap.instance.delete(account, connectorId, entityId);
     expect(response).toBeHttp({ statusCode: 404 });
   }, 180000);
 });
