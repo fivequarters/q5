@@ -49,7 +49,7 @@ jobs:
         run: node cli/fusebit-cli/libc/index.js function ls
       - name: Publish Everything in lib/pkg to 749 CICD.
         env:
-          - FUSE_PROFILE: cicd
+          FUSE_PROFILE: cicd
         run: ./tool/cicd/actions/scripts/publish_all_pkg.sh
       - name: Publish - function-api - 749 Only
         run: ./tool/cicd/actions/scripts/publish_function_api_dev.sh

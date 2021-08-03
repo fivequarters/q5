@@ -1,5 +1,5 @@
 steps:
   - name: Publish Everything in lib/pkg to 749 CICD.
     env:
-      - FUSE_PROFILE: cicd
+      FUSE_PROFILE: cicd
     run: ./tool/cicd/actions/scripts/publish_all_pkg.sh
