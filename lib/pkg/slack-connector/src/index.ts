@@ -9,13 +9,10 @@ const router = new Router();
 const TOKEN_URL = 'https://slack.com/api/oauth.v2.access';
 const AUTHORIZATION_URL = 'https://slack.com/oauth/v2/authorize';
 
-interface ISettings {
+interface IConfigurationData {
   scope: string;
   clientId: string;
   clientSecret: string;
-}
-
-interface IAdvancedSettings {
   refreshErrorLimit: number;
   refreshInitialBackoff: number;
   refreshWaitCountLimit: number;
@@ -23,11 +20,6 @@ interface IAdvancedSettings {
   accessTokenExpirationBuffer: number;
   tokenUrl: string;
   authorizationUrl: string;
-}
-
-interface IConfigurationSettings {
-  settings: ISettings;
-  advanced: IAdvancedSettings;
 }
 
 router.on('startup', async ({ mgr, cfg }: IOnStartup, next: Next) => {
@@ -38,7 +30,7 @@ router.on('startup', async ({ mgr, cfg }: IOnStartup, next: Next) => {
 
 router.get('/api/configure', Middleware.authorize('connector:put'), async (ctx: Context) => {
   ctx.body = {
-    data: ctx.state.manager.config.configuration,
+    data: ctx.state.manager.config.configuration as IConfigurationData,
     schema,
     uischema,
   };
