@@ -10,7 +10,7 @@
         "metrics": [
           [
             {
-              "expression": "SEARCH('{AWS/ApplicationELB,LoadBalancer} MetricName=\"RequestCount\" ', 'Sum', 60)"
+              "expression": "SEARCH('{AWS/ApplicationELB,LoadBalancer} MetricName=\"RequestCount\" AND DEPLOYMENT_NAME', 'Sum', 60)"
             }
           ]
         ],
@@ -30,7 +30,7 @@
         "metrics": [
           [
             {
-              "expression": "SEARCH('{AWS/ApplicationELB,LoadBalancer} MetricName=\"HTTPCode_Target_2XX_Count\" ', 'Sum', 60)"
+              "expression": "SEARCH('{AWS/ApplicationELB,LoadBalancer} MetricName=\"HTTPCode_Target_2XX_Count\" AND DEPLOYMENT_NAME', 'Sum', 60)"
             }
           ]
         ],
@@ -50,7 +50,7 @@
         "metrics": [
           [
             {
-              "expression": "SEARCH('{AWS/ApplicationELB,LoadBalancer} MetricName=\"HTTPCode_ELB_4XX_Count\" ', 'Sum', 60)"
+              "expression": "SEARCH('{AWS/ApplicationELB,LoadBalancer} MetricName=\"HTTPCode_ELB_4XX_Count\" AND DEPLOYMENT_NAME', 'Sum', 60)"
             }
           ]
         ],
@@ -70,7 +70,7 @@
         "metrics": [
           [
             {
-              "expression": "SEARCH('{AWS/ApplicationELB,LoadBalancer} MetricName=\"HTTPCode_ELB_5XX_Count\" ', 'Sum', 60)"
+              "expression": "SEARCH('{AWS/ApplicationELB,LoadBalancer} MetricName=\"HTTPCode_ELB_5XX_Count\" AND DEPLOYMENT_NAME', 'Sum', 60)"
             }
           ]
         ],
@@ -90,7 +90,7 @@
         "metrics": [
           [
             {
-              "expression": "SEARCH('{AWS/EC2,AutoScalingGroupName} MetricName=\"CPUUtilization\" ', 'Average', 300)"
+              "expression": "SEARCH('{AWS/EC2,AutoScalingGroupName} MetricName=\"CPUUtilization\" AND DEPLOYMENT_NAME', 'Average', 300)"
             }
           ]
         ],
@@ -112,7 +112,7 @@
         "metrics": [
           [
             {
-              "expression": "SEARCH('{CWAgent,AutoScalingGroupName,ImageId,InstanceId,InstanceType} mem_used_percent', 'Average', 300)"
+              "expression": "SEARCH('{CWAgent,AutoScalingGroupName,ImageId,InstanceId,InstanceType} mem_used_percent AND DEPLOYMENT_NAME', 'Average', 300)"
             }
           ]
         ],
@@ -130,12 +130,12 @@
         "metrics": [
           [
             {
-              "expression": "SEARCH('{AWS/ApplicationELB,TargetGroup,LoadBalancer} MetricName=\"UnHealthyHostCount\" ', 'Sum', 60)"
+              "expression": "SEARCH('{AWS/ApplicationELB,TargetGroup,LoadBalancer} MetricName=\"UnHealthyHostCount\" AND DEPLOYMENT_NAME', 'Sum', 60)"
             }
           ],
           [
             {
-              "expression": "SEARCH('{AWS/ApplicationELB,TargetGroup,LoadBalancer} MetricName=\"HealthyHostCount\" ', 'Sum', 60)"
+              "expression": "SEARCH('{AWS/ApplicationELB,TargetGroup,LoadBalancer} MetricName=\"HealthyHostCount\" AND DEPLOYMENT_NAME', 'Sum', 60)"
             }
           ]
         ],
@@ -155,7 +155,7 @@
         "metrics": [
           [
             {
-              "expression": "SEARCH('{AWS/ApplicationELB,LoadBalancer} MetricName=\"TargetResponseTime\" ', 'Average', 60)"
+              "expression": "SEARCH('{AWS/ApplicationELB,LoadBalancer} MetricName=\"TargetResponseTime\" AND DEPLOYMENT_NAME', 'Average', 60)"
             }
           ]
         ],
