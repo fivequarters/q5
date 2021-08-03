@@ -18,65 +18,71 @@ All public releases of the Fusebit Operations CLI are documented here, including
 {:toc}
 -->
 
+## Version 1.28.5
+
+_Released 08/02/21_
+
+- **Bugfix.** Clear transaction id during non-transaction-compatible migrations.
+
 ## Version 1.28.4
 
 _Released 07/27/21_
 
-- **Enhancement** Subscriptions now support default values supplied via global configuration elements.
+- **Enhancement.** Subscriptions now support default values supplied via global configuration elements.
 
 ## Version 1.28.1
 
 _Released 07/23/21_
 
-- **Bugfix** Fuse-ops now properly tags restored resources.
+- **Bugfix.** Fuse-ops now properly tags restored resources.
 
 ## Version 1.28.0
 
 _Released 07/23/21_
 
-- **Enhancement** Introduces the ability to set a feature flag on subscriptions to either block or allow them to use the static IP feature on Fusebit function.
+- **Enhancement.** Introduces the ability to set a feature flag on subscriptions to either block or allow them to use the static IP feature on Fusebit function.
 
 ## Version 1.27.18
 
 _Released 07/21/21_
 
-- **Bugfix** Fuse-ops will no longer break if there are deployments of the same name in different regions.
+- **Bugfix.** Fuse-ops will no longer break if there are deployments of the same name in different regions.
 
 ## Version 1.27.17
 
 _Released 07/16/21_
 
-- **Enhancement** Integration Sessions can now be ran against an existing set of Instances and Identities in order to update their values
+- **Enhancement.** Integration Sessions can now be ran against an existing set of Instances and Identities in order to update their values
 
 ## Version 1.27.16
 
 _Released 07/13/21_
 
-- **Bugfix** Fuse-ops backup restore no longer fails when the cluster is not found.
+- **Bugfix.** Fuse-ops backup restore no longer fails when the cluster is not found.
 
 ## Version 1.27.15
 
 _Released 07/13/21_
 
-- **Enhancement** Change fuse-ops backup ls command to include the region of the backup.
+- **Enhancement.** Change fuse-ops backup ls command to include the region of the backup.
 
 ## Version 1.27.14
 
 _Released 07/12/21_
 
-- **Bugfix** Fix an issue with multiple deployments using similar prefixes causing deployment failure.
+- **Bugfix.** Fix an issue with multiple deployments using similar prefixes causing deployment failure.
 
 ## Version 1.27.13
 
 _Released 07/09/21_
 
-- **Security** Update Axios for security patching against CVE-2020-28168.
+- **Security.** Update Axios for security patching against CVE-2020-28168.
 
 ## Version 1.27.10
 
 _Released 07/07/21_
 
-- **Enhancement** Make Aurora error slightly less cryptic.
+- **Enhancement.** Make Aurora error slightly less cryptic.
 
 ## Version 1.27.9
 
