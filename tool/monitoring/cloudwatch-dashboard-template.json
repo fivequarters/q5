@@ -17,7 +17,12 @@
         "view": "timeSeries",
         "stacked": false,
         "region": "AWS_REGION",
-        "title": "ELB Request Count"
+        "title": "ELB Request Count",
+        "yAxis": {
+          "left": {
+            "min": 0
+          }
+        }
       }
     },
     {
@@ -37,7 +42,12 @@
         "view": "timeSeries",
         "stacked": false,
         "region": "AWS_REGION",
-        "title": "ELB 2XX"
+        "title": "ELB 2XX",
+        "yAxis": {
+          "left": {
+            "min": 0
+          }
+        }
       }
     },
     {
@@ -57,7 +67,12 @@
         "view": "timeSeries",
         "stacked": false,
         "region": "AWS_REGION",
-        "title": "ELB 4xx"
+        "title": "ELB 4xx",
+        "yAxis": {
+          "left": {
+            "min": 0
+          }
+        }
       }
     },
     {
@@ -77,7 +92,12 @@
         "view": "timeSeries",
         "stacked": false,
         "region": "AWS_REGION",
-        "title": "ELB 5xx"
+        "title": "ELB 5xx",
+        "yAxis": {
+          "left": {
+            "min": 0
+          }
+        }
       }
     },
     {
@@ -97,7 +117,13 @@
         "view": "timeSeries",
         "stacked": false,
         "region": "AWS_REGION",
-        "title": "CPU Utilization"
+        "title": "CPU Utilization",
+        "yAxis": {
+          "left": {
+            "min": 0,
+            "max": 100
+          }
+        }
       }
     },
     {
@@ -117,7 +143,13 @@
           ]
         ],
         "region": "AWS_REGION",
-        "title": "Mem Utilization"
+        "title": "Mem Utilization",
+        "yAxis": {
+          "left": {
+            "min": 0,
+            "max": 100
+          }
+        }
       }
     },
     {
@@ -162,7 +194,12 @@
         "view": "timeSeries",
         "stacked": false,
         "region": "AWS_REGION",
-        "title": "Response Time"
+        "title": "Response Time",
+        "yAxis": {
+          "left": {
+            "min": 0
+          }
+        }
       }
     },
     {
@@ -173,16 +210,8 @@
       "type": "metric",
       "properties": {
         "metrics": [
-          [
-            "AWS/Lambda",
-            "Errors",
-            { "id": "errors", "stat": "Sum", "color": "#d13212" }
-          ],
-          [
-            ".",
-            "Invocations",
-            { "id": "invocations", "stat": "Sum", "visible": false }
-          ],
+          ["AWS/Lambda", "Errors", { "id": "errors", "stat": "Sum", "color": "#d13212" }],
+          [".", "Invocations", { "id": "invocations", "stat": "Sum", "visible": false }],
           [
             {
               "expression": "100 - 100 * errors / MAX([errors, invocations])",
@@ -196,6 +225,11 @@
         "title": "Lambda Errors & Success Rate (%)",
         "yAxis": {
           "right": {
+            "min": 0,
+            "max": 100
+          },
+          "left": {
+            "min": 0,
             "max": 100
           }
         }
@@ -216,7 +250,12 @@
           ]
         ],
         "region": "AWS_REGION",
-        "title": "Lambda Concurrent Executions"
+        "title": "Lambda Concurrent Executions",
+        "yAxis": {
+          "left": {
+            "min": 0
+          }
+        }
       }
     },
     {
@@ -232,7 +271,12 @@
           ["...", { "stat": "Maximum" }]
         ],
         "region": "AWS_REGION",
-        "title": "Lambda Duration"
+        "title": "Lambda Duration",
+        "yAxis": {
+          "left": {
+            "min": 0
+          }
+        }
       }
     },
     {
@@ -248,7 +292,12 @@
         "region": "AWS_REGION",
         "stat": "Sum",
         "period": 60,
-        "title": "Lambda Calls"
+        "title": "Lambda Calls",
+        "yAxis": {
+          "left": {
+            "min": 0
+          }
+        }
       }
     }
   ]
