@@ -98,8 +98,10 @@ describe('Workflow', () => {
     expect(integration).toBeHttp({ statusCode: 200 });
     integration.data.data.files['integration.js'] = [
       "const superagent = require('superagent');",
-      "const { Router, Manager, Form } = require('@fusebit-int/framework');",
-      'const router = new Router();',
+      "const Integration = require('@fusebit-int/integration');",
+      '',
+      'const integration = new Integration();',
+      'const router = integration.router;',
       "router.get('/api/getSession', async (ctx) => {",
       "  const response = await superagent.get(`${ctx.state.params.baseUrl}/session/${ctx.query.session}`).set('Authorization', `Bearer ${ctx.state.params.functionAccessToken}`);",
       '  ctx.body = response.body;',
@@ -123,7 +125,7 @@ describe('Workflow', () => {
       '});',
       "router.get('/api/doASessionThing/:sessionId', async (ctx) => { ctx.body = 'doASessionThing'; });",
       "router.get('/api/doAThing/:instanceId', async (ctx) => { ctx.body = 'doAThing'; });",
-      'module.exports = router;',
+      'module.exports = integration;',
     ].join('\n');
     const pkgJson = JSON.parse(integration.data.data.files['package.json']);
     pkgJson.dependencies.superagent = '*';

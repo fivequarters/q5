@@ -7,6 +7,9 @@ export const Handler = (handler: string, config: any) => {
   let routerError;
   try {
     router = require(handler).router;
+    if (!router) {
+      throw `No Router found on handler ${handler}`;
+    }
   } catch (e) {
     routerError = e;
   }

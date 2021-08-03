@@ -1,7 +1,7 @@
 /**
  * Fusebit, Inc. Slack Connector
  */
-import { Context, IOnStartup, Middleware, Next, Router, Manager } from '@fusebit-int/framework';
+import { Context, IOnStartup, Middleware, Next, Router } from '@fusebit-int/framework';
 const OAuthConnectorRouter = require('@fusebit-int/pkg-oauth-connector');
 import { schema, uischema } from './form';
 

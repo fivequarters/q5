@@ -97,7 +97,7 @@ class Manager {
       try {
         this.router.use(vendor.routes());
       } catch (err) {
-        this.vendorError = err;
+        this.vendorError = this.vendorError || err;
       }
     }
 

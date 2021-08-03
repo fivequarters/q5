@@ -781,7 +781,7 @@ describe('Function', () => {
     expect(response).toBeHttp({ statusCode: 200 });
     response = await putFunction(account, boundaryId, function2Id, helloWorldWithCron);
     expect(response).toBeHttp({ statusCode: 200 });
-    response = await listFunctions(account);
+    response = await listFunctions(account, boundaryId);
     expect(response).toBeHttp({ statusCode: 200 });
     expect(response.data).toMatchObject({ items: expect.any(Array) });
     expect(response.data.items.length).toBeGreaterThanOrEqual(2);
@@ -808,7 +808,7 @@ describe('Function', () => {
     expect(response).toBeHttp({ statusCode: 200 });
     response = await putFunction(account, boundaryId, function2Id, helloWorldWithCron);
     expect(response).toBeHttp({ statusCode: 200 });
-    response = await listFunctions(account, undefined, undefined, undefined, undefined, undefined, true);
+    response = await listFunctions(account, boundaryId, undefined, undefined, undefined, undefined, true);
     expect(response).toBeHttp({ statusCode: 200 });
     expect(response.data).toMatchObject({ items: expect.any(Array) });
     expect(response.data.items.length).toBeGreaterThanOrEqual(2);
