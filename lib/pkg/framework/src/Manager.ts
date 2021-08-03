@@ -247,12 +247,6 @@ class Manager {
         : {}),
     };
     ctx.state.fusebit = { ...fusebitCtx.fusebit, caller: fusebitCtx.caller };
-    if (fusebitCtx.fusebit) {
-      this.sdk.initialize(
-        fusebitCtx.fusebit.functionAccessToken,
-        `${fusebitCtx.fusebit.endpoint}/v2/account/${fusebitCtx.accountId}/subscription/${fusebitCtx.subscriptionId}`
-      );
-    }
     ctx.state.manager = this;
 
     // Pre-load the status as OK

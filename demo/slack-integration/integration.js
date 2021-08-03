@@ -12,11 +12,7 @@ integration.router.post(
       ctx.throw(400, "Expected message");
     }
 
-    const WebClient = await integration.service.getSDK(
-      ctx,
-      "slack1",
-      "tenantId"
-    );
+    const WebClient = await integration.service.getSDK(ctx, "slack1");
     if (!WebClient) {
       ctx.throw(400, "Expected slack connector");
     }
