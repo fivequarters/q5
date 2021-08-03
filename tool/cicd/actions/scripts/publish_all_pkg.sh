@@ -1,5 +1,9 @@
 #!/bin/bash
 set -e
+export FUSEBIT_DEBUG=1
+
+FUSEOPS="node cli/fusebit-ops-cli/libc/index.js"
+${FUSEOPS} registry setMaster cicd acc-657e7fe7f3044b91 @fusebit-int --region us-east-2
 
 cd lib/pkg
 

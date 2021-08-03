@@ -10,7 +10,7 @@ set -e
 
 echoerr() { printf "%s\n" "$*" >&2; }
 FUSEOPS="node cli/fusebit-ops-cli/libc/index.js"
-export FUSEBIT_DEBUG=
+export FUSEBIT_DEBUG=1
 
 # -- Parameter Validation --
 if [ -z "${DEPLOYMENT_NAME}" ]; then
@@ -20,16 +20,6 @@ fi
 
 if [ -z "${REGION}" ]; then
   echoerr "ERROR: REGION is unset."
-  exit -1
-fi
-
-if [ -z "${NETWORK_NAME}" ]; then
-  echoerr "ERROR: NETWORK_NAME is unset."
-  exit -1
-fi
-
-if [ -z "${DEPLOYMENT_DOMAIN}" ]; then
-  echoerr "ERROR: NETWORK_NAME is unset."
   exit -1
 fi
 
@@ -47,8 +37,6 @@ else
 fi
 
 # -- Script --
-${FUSEOPS} setup -c false
-${FUSEOPS} deployment add ${DEPLOYMENT_NAME} ${NETWORK_NAME} ${DEPLOYMENT_DOMAIN} --dataWarehouse false --size 1 --region us-east-2 -c false
 
 ALL_STACKS=`${FUSEOPS} stack ls -o json --deployment ${DEPLOYMENT_NAME}`
 OLD_STACKS=`echo ${ALL_STACKS} | jq --arg region ${REGION} -r 'map(select(.region == $region)) | .[] | .id'`
