@@ -233,7 +233,7 @@ export async function createDatabase(
     const migrationError = async (n: number, transactionId: string | false, error: any) => {
       if (!transactionId) {
         debug('NON TRANSACTIONAL MIGRATION ERROR', n);
-        return;
+        throw new Error(`Failed to apply migration ${n}; aborting. Manual action needed.`);
       }
       try {
         await rdsData.rollbackTransaction({ ...dbCredentials, transactionId }).promise();
@@ -249,7 +249,7 @@ export async function createDatabase(
       debug('STARTING MIGRATION', n);
 
       const isTransactional = Migrations[n].split('\n')[0] !== '-- No Transaction';
-      debug(`Migration is ${isTransactional ? '' : 'NOT'} in a transaction`);
+      debug(`Migration is${isTransactional ? '' : ' NOT'} in a transaction`);
       let transactionId;
 
       // Certain migrations might require that they be run outside of a transaction.
@@ -262,6 +262,9 @@ export async function createDatabase(
       if (isTransactional) {
         transactionId = (await rdsData.beginTransaction(commonParams).promise()).transactionId;
         params.transactionId = transactionId as string;
+      } else {
+        // Remove the transaction id so it doesn't get used in the this migration.
+        delete params.transactionId;
       }
 
       try {
