@@ -43,10 +43,6 @@ jobs:
           echo fusebit-ops-cli: ${VERSION_FUSEBIT_OPS_CLI}
       - name: Build
         run: ./tool/cicd/actions/scripts/build_tree.sh
-      - name: Qualify - fuse-ops works
-        run: node cli/fusebit-ops-cli/libc/index.js stack ls
-      - name: Qualify - fuse works
-        run: node cli/fusebit-cli/libc/index.js function ls
       - name: Publish Everything in lib/pkg to 749 CICD.
         env:
           FUSE_PROFILE: cicd
