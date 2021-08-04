@@ -347,7 +347,7 @@ paths:
         - Integration
       summary: Create a new object of the specified type
       operationId: postIntegration
-      parameters:
+      requestBody:
         - $ref: '#/components/requestBodies/PostIntegrationBody'
       responses:
         200:
