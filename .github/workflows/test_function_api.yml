@@ -49,7 +49,7 @@ jobs:
         run: ./tool/cicd/actions/scripts/publish_all_pkg.sh
       - name: Publish - function-api - 749 Only
         run: ./tool/cicd/actions/scripts/publish_function_api_dev.sh
-      - name: Test - deploy exclusive to stage/us-east-2
+      - name: Test - deploy exclusive to cicd/us-east-2
         env:
           REGION: us-east-2
           DEPLOYMENT_NAME: cicd
