@@ -39,6 +39,18 @@ jobs:
           key: ${{ runner.os }}-yarn-${{ hashFiles('**/yarn.lock') }}
           restore-keys: |
             ${{ runner.os }}-yarn-
+      - name: Checkout
+        uses: actions/checkout@v2
+        with:
+          fetch-depth: 0
+      - name: Version
+        id: package-versions
+        run: ./tool/cicd/actions/scripts/export_versions.sh
+      - name: Discovered versions
+        run: >
+          echo "Versions: function_api/${{env.VERSION_FUNCTION_API}}
+          fuse-cli/${{env.VERSION_FUSEBIT_CLI}}
+          fuse-ops/${{env.VERSION_FUSEBIT_OPS_CLI}}"
       - name: Setup Environments and Profiles
         env:
           SECRET_FUSEBIT_PROFILE: ${{secrets.FUSEBIT_STAGE_US_WEST_2}}
@@ -49,21 +61,29 @@ jobs:
         run: aws s3 ls
       - name: Qualify - npm works
         run: npm whoami
+      - name: Install zsh
+        run: sudo apt-get install zsh -y
       - name: Dashboard - us-west-2/stage
         env:
-          DASHBOARD_NAME: STAGE-US-WEST-1
-          REGION: us-west-1
+          REGION: us-west-2
+          DASHBOARD_NAME: STAGE-US-WEST-2
+          DASHBOARD_REGION: us-west-2
+          DASHBOARD_DEPLOYMENT: stage
           DASHBOARD: ./tool/monitoring/cloudwatch-dashboard-template.json
         run: ./tool/cicd/actions/scripts/deploy_dashboard.sh
       - name: Dashboard - us-west-1/api
         env:
-          DASHBOARD_NAME: API-US-WEST-1
           REGION: us-west-1
+          DASHBOARD_NAME: API-US-WEST-1
+          DASHBOARD_REGION: us-west-1
+          DASHBOARD_DEPLOYMENT: api
           DASHBOARD: ./tool/monitoring/cloudwatch-dashboard-template.json
         run: ./tool/cicd/actions/scripts/deploy_dashboard.sh
       - name: Dashboard - us-east-1/api
         env:
-          DASHBOARD_NAME: API-US-EAST-1
           REGION: us-east-1
+          DASHBOARD_NAME: API-US-EAST-1
+          DASHBOARD_REGION: us-east-1
+          DASHBOARD_DEPLOYMENT: api
           DASHBOARD: ./tool/monitoring/cloudwatch-dashboard-template.json
         run: ./tool/cicd/actions/scripts/deploy_dashboard.sh

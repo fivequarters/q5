@@ -66,11 +66,16 @@ const specs = [
       runner_type: 'self-hosted',
     },
   },
+  {
+    name: 'Deploy Dashboards',
+    inputs: ['checkout', 'setup_env', 'deploy_dashboard'],
+    output: 'deploy_dashboards',
+  },
 ];
 
 function buildSpec(name: string, inputs: string[], output: string, options: any = {}) {
   // Used when custom runners are used. Currently we only need self-hosted runners when used for automated tests.
-  let base: any =
+  const base: any =
     options.runner_type === 'self-hosted'
       ? yaml.load(fs.readFileSync(`${INPUT_DIR}/${LOCAL_BASE_YML}.yml`, 'utf8'))
       : yaml.load(fs.readFileSync(`${INPUT_DIR}/${BASE_YML}.yml`, 'utf8'));
