@@ -155,7 +155,7 @@ describe.skip('Function Legacy', () => {
 
   test('PUT with applicationSettings sets configuration', async () => {
     let response = await putFunction(account, boundaryId, function1Id, helloWorldWithApplicationSettings);
-    expect(response).toBeHttp({ statusCode: 200, status: 'success' });
+    expect(response).toBeHttp({ statusCode: 200 });
     response = await getFunction(account, boundaryId, function1Id);
     expect(response).toBeHttp({ statusCode: 200 });
     expect(response.data.configuration).toEqual({ FOO: '123', BAR: 'abc' });
@@ -169,7 +169,7 @@ describe.skip('Function Legacy', () => {
 
   test('PUT with computeSettings sets compute', async () => {
     let response = await putFunction(account, boundaryId, function1Id, helloWorldWithComputeSettings);
-    expect(response).toBeHttp({ statusCode: 200, status: 'success' });
+    expect(response).toBeHttp({ statusCode: 200 });
     response = await getFunction(account, boundaryId, function1Id);
     expect(response).toBeHttp({ statusCode: 200 });
     expect(response.data.configuration).toBeUndefined();
@@ -183,7 +183,7 @@ describe.skip('Function Legacy', () => {
 
   test('PUT with cronSettings sets schedule', async () => {
     let response = await putFunction(account, boundaryId, function1Id, helloWorldWithCronSettings);
-    expect(response).toBeHttp({ statusCode: 200, status: 'success' });
+    expect(response).toBeHttp({ statusCode: 200 });
     response = await getFunction(account, boundaryId, function1Id);
     expect(response).toBeHttp({ statusCode: 200 });
     expect(response.data.configuration).toBeUndefined();
@@ -199,7 +199,7 @@ describe.skip('Function Legacy', () => {
 
   test('PUT with applicationSettings set to empty string resets applicationSettings', async () => {
     let response = await putFunction(account, boundaryId, function1Id, helloWorldWithApplicationSettings);
-    expect(response).toBeHttp({ statusCode: 200, status: 'success' });
+    expect(response).toBeHttp({ statusCode: 200 });
 
     response = await getFunction(account, boundaryId, function1Id);
 
@@ -210,7 +210,7 @@ describe.skip('Function Legacy', () => {
     response.data.metadata.fusebit.applicationSettings = '';
 
     response = await putFunction(account, boundaryId, function1Id, response.data);
-    expect(response).toBeHttp({ statusCode: 200, status: 'success' });
+    expect(response).toBeHttp({ statusCode: 200 });
 
     response = await getFunction(account, boundaryId, function1Id);
 
@@ -221,7 +221,7 @@ describe.skip('Function Legacy', () => {
 
   test('PUT with computeSettings set to empty string resets computeSettings', async () => {
     let response = await putFunction(account, boundaryId, function1Id, helloWorldWithComputeSettings);
-    expect(response).toBeHttp({ statusCode: 200, status: 'success' });
+    expect(response).toBeHttp({ statusCode: 200 });
 
     response = await getFunction(account, boundaryId, function1Id);
 
@@ -231,7 +231,7 @@ describe.skip('Function Legacy', () => {
 
     response.data.metadata.fusebit.computeSettings = '';
     response = await putFunction(account, boundaryId, function1Id, response.data);
-    expect(response).toBeHttp({ statusCode: 200, status: 'success' });
+    expect(response).toBeHttp({ statusCode: 200 });
 
     response = await getFunction(account, boundaryId, function1Id);
 
@@ -242,7 +242,7 @@ describe.skip('Function Legacy', () => {
 
   test('PUT with cronSettings set to empty string resets schedule', async () => {
     let response = await putFunction(account, boundaryId, function1Id, helloWorldWithCronSettings);
-    expect(response).toBeHttp({ statusCode: 200, status: 'success' });
+    expect(response).toBeHttp({ statusCode: 200 });
 
     response = await getFunction(account, boundaryId, function1Id);
 
@@ -252,7 +252,7 @@ describe.skip('Function Legacy', () => {
     response.data.metadata.fusebit.cronSettings = '';
 
     response = await putFunction(account, boundaryId, function1Id, response.data);
-    expect(response).toBeHttp({ statusCode: 200, status: 'success' });
+    expect(response).toBeHttp({ statusCode: 200 });
 
     response = await getFunction(account, boundaryId, function1Id);
     expect(response.data.schedule).toEqual({ cron: '0 0 1 1 *', timezone: 'UTC' });
@@ -261,7 +261,7 @@ describe.skip('Function Legacy', () => {
 
   test('PUT with applicationSettings undefined is ignored', async () => {
     let response = await putFunction(account, boundaryId, function1Id, helloWorldWithConfigurationAndMetadata);
-    expect(response).toBeHttp({ statusCode: 200, status: 'success' });
+    expect(response).toBeHttp({ statusCode: 200 });
 
     response = await getFunction(account, boundaryId, function1Id);
 
@@ -280,7 +280,7 @@ describe.skip('Function Legacy', () => {
 
   test('PUT with computeSettings undefined is ignored', async () => {
     let response = await putFunction(account, boundaryId, function1Id, helloWorldWithStaticIp);
-    expect(response).toBeHttp({ statusCode: 200, status: 'success' });
+    expect(response).toBeHttp({ statusCode: 200 });
 
     response = await getFunction(account, boundaryId, function1Id);
 
@@ -298,7 +298,7 @@ describe.skip('Function Legacy', () => {
 
   test('PUT with cronSettings undefined is ignored', async () => {
     let response = await putFunction(account, boundaryId, function1Id, helloWorldWithCron);
-    expect(response).toBeHttp({ statusCode: 200, status: 'success' });
+    expect(response).toBeHttp({ statusCode: 200 });
 
     response = await getFunction(account, boundaryId, function1Id);
 
@@ -317,7 +317,7 @@ describe.skip('Function Legacy', () => {
 
   test('PUT with empty compute resets compute', async () => {
     let response = await putFunction(account, boundaryId, function1Id, helloWorldWithComputeSettings);
-    expect(response).toBeHttp({ statusCode: 200, status: 'success' });
+    expect(response).toBeHttp({ statusCode: 200 });
 
     response = await getFunction(account, boundaryId, function1Id);
 
@@ -327,7 +327,7 @@ describe.skip('Function Legacy', () => {
 
     response.data.compute = {};
     response = await putFunction(account, boundaryId, function1Id, response.data);
-    expect(response).toBeHttp({ statusCode: 200, status: 'success' });
+    expect(response).toBeHttp({ statusCode: 200 });
 
     response = await getFunction(account, boundaryId, function1Id);
 
@@ -338,7 +338,7 @@ describe.skip('Function Legacy', () => {
 
   test('PUT with empty configuration resets configuration', async () => {
     let response = await putFunction(account, boundaryId, function1Id, helloWorldWithConfigurationAndMetadata);
-    expect(response).toBeHttp({ statusCode: 200, status: 'success' });
+    expect(response).toBeHttp({ statusCode: 200 });
 
     response = await getFunction(account, boundaryId, function1Id);
 
@@ -348,7 +348,7 @@ describe.skip('Function Legacy', () => {
 
     response.data.configuration = {};
     response = await putFunction(account, boundaryId, function1Id, response.data);
-    expect(response).toBeHttp({ statusCode: 200, status: 'success' });
+    expect(response).toBeHttp({ statusCode: 200 });
 
     response = await getFunction(account, boundaryId, function1Id);
 
@@ -359,7 +359,7 @@ describe.skip('Function Legacy', () => {
 
   test('PUT with empty schedule resets schedule', async () => {
     let response = await putFunction(account, boundaryId, function1Id, helloWorldWithCron);
-    expect(response).toBeHttp({ statusCode: 200, status: 'success' });
+    expect(response).toBeHttp({ statusCode: 200 });
 
     response = await getFunction(account, boundaryId, function1Id);
 
@@ -378,7 +378,7 @@ describe.skip('Function Legacy', () => {
 
   test('PUT with undefined compute is ignored', async () => {
     let response = await putFunction(account, boundaryId, function1Id, helloWorldWithStaticIp);
-    expect(response).toBeHttp({ statusCode: 200, status: 'success' });
+    expect(response).toBeHttp({ statusCode: 200 });
 
     response = await getFunction(account, boundaryId, function1Id);
 
@@ -398,7 +398,7 @@ describe.skip('Function Legacy', () => {
 
   test('PUT with undefined configuration is ignored', async () => {
     let response = await putFunction(account, boundaryId, function1Id, helloWorldWithConfigurationAndMetadata);
-    expect(response).toBeHttp({ statusCode: 200, status: 'success' });
+    expect(response).toBeHttp({ statusCode: 200 });
 
     response = await getFunction(account, boundaryId, function1Id);
 
@@ -419,7 +419,7 @@ describe.skip('Function Legacy', () => {
 
   test('PUT with undefined schedule is ignored', async () => {
     let response = await putFunction(account, boundaryId, function1Id, helloWorldWithCron);
-    expect(response).toBeHttp({ statusCode: 200, status: 'success' });
+    expect(response).toBeHttp({ statusCode: 200 });
 
     response = await getFunction(account, boundaryId, function1Id);
 
@@ -439,7 +439,7 @@ describe.skip('Function Legacy', () => {
 
   test('PUT with undefined compute and undefined computeSettings resets compute', async () => {
     let response = await putFunction(account, boundaryId, function1Id, helloWorldWithComputeSettings);
-    expect(response).toBeHttp({ statusCode: 200, status: 'success' });
+    expect(response).toBeHttp({ statusCode: 200 });
 
     response = await getFunction(account, boundaryId, function1Id);
 
@@ -450,7 +450,7 @@ describe.skip('Function Legacy', () => {
     response.data.metadata.fusebit.computeSettings = undefined;
     response.data.compute = undefined;
     response = await putFunction(account, boundaryId, function1Id, response.data);
-    expect(response).toBeHttp({ statusCode: 200, status: 'success' });
+    expect(response).toBeHttp({ statusCode: 200 });
 
     response = await getFunction(account, boundaryId, function1Id);
 
@@ -460,7 +460,7 @@ describe.skip('Function Legacy', () => {
 
   test('PUT with undefined configuration and undefined applicationSettings resets configuration', async () => {
     let response = await putFunction(account, boundaryId, function1Id, helloWorldWithConfigurationAndMetadata);
-    expect(response).toBeHttp({ statusCode: 200, status: 'success' });
+    expect(response).toBeHttp({ statusCode: 200 });
 
     response = await getFunction(account, boundaryId, function1Id);
 
@@ -471,7 +471,7 @@ describe.skip('Function Legacy', () => {
     response.data.metadata.fusebit.applicationSettings = undefined;
     response.data.configuration = undefined;
     response = await putFunction(account, boundaryId, function1Id, response.data);
-    expect(response).toBeHttp({ statusCode: 200, status: 'success' });
+    expect(response).toBeHttp({ statusCode: 200 });
 
     response = await getFunction(account, boundaryId, function1Id);
 
@@ -482,7 +482,7 @@ describe.skip('Function Legacy', () => {
 
   test('PUT with undefined schedule and undefined cronSettings resets schedule', async () => {
     let response = await putFunction(account, boundaryId, function1Id, helloWorldWithCron);
-    expect(response).toBeHttp({ statusCode: 200, status: 'success' });
+    expect(response).toBeHttp({ statusCode: 200 });
 
     response = await getFunction(account, boundaryId, function1Id);
 
@@ -493,7 +493,7 @@ describe.skip('Function Legacy', () => {
     response.data.metadata.fusebit.cronSettings = undefined;
     response.data.schedule = undefined;
     response = await putFunction(account, boundaryId, function1Id, response.data);
-    expect(response).toBeHttp({ statusCode: 200, status: 'success' });
+    expect(response).toBeHttp({ statusCode: 200 });
 
     response = await getFunction(account, boundaryId, function1Id);
 
@@ -525,7 +525,7 @@ describe.skip('Function Legacy', () => {
 
   test('PUT with new configuration values configuration compute and applicationSettings', async () => {
     let response = await putFunction(account, boundaryId, function1Id, helloWorldWithConfigurationAndMetadata);
-    expect(response).toBeHttp({ statusCode: 200, status: 'success' });
+    expect(response).toBeHttp({ statusCode: 200 });
 
     response = await getFunction(account, boundaryId, function1Id);
 
@@ -545,7 +545,7 @@ describe.skip('Function Legacy', () => {
 
   test('PUT with new schedule values updates schedule and cronSettings', async () => {
     let response = await putFunction(account, boundaryId, function1Id, helloWorldWithCron);
-    expect(response).toBeHttp({ statusCode: 200, status: 'success' });
+    expect(response).toBeHttp({ statusCode: 200 });
 
     response = await getFunction(account, boundaryId, function1Id);
 
@@ -586,7 +586,7 @@ describe.skip('Function Legacy', () => {
 
   test('PUT with non-conflicting metadata and structured data changes is supported', async () => {
     let response = await putFunction(account, boundaryId, function1Id, helloWorldWithConfigurationAndMetadata);
-    expect(response).toBeHttp({ statusCode: 200, status: 'success' });
+    expect(response).toBeHttp({ statusCode: 200 });
     response = await getFunction(account, boundaryId, function1Id);
     const data = response.data;
     data.compute.timeout = 60;
@@ -611,7 +611,7 @@ describe.skip('Function Legacy', () => {
 
   test('PUT with conflicting configuration and application settings uses configuration', async () => {
     let response = await putFunction(account, boundaryId, function1Id, helloWorldWithConfigurationAndMetadata);
-    expect(response).toBeHttp({ statusCode: 200, status: 'success' });
+    expect(response).toBeHttp({ statusCode: 200 });
     response = await getFunction(account, boundaryId, function1Id);
 
     const data = response.data;
@@ -628,7 +628,7 @@ describe.skip('Function Legacy', () => {
 
   test('PUT with conflicting schedule and cronSettings uses schedule', async () => {
     let response = await putFunction(account, boundaryId, function1Id, helloWorldWithCron);
-    expect(response).toBeHttp({ statusCode: 200, status: 'success' });
+    expect(response).toBeHttp({ statusCode: 200 });
 
     response = await getFunction(account, boundaryId, function1Id);
 
@@ -649,7 +649,7 @@ describe.skip('Function Legacy', () => {
 
   test('PUT with conflicting compute and computeSettings uses compute', async () => {
     let response = await putFunction(account, boundaryId, function1Id, helloWorld);
-    expect(response).toBeHttp({ statusCode: 200, status: 'success' });
+    expect(response).toBeHttp({ statusCode: 200 });
     response = await getFunction(account, boundaryId, function1Id);
 
     const data = response.data;
@@ -686,7 +686,7 @@ describe.skip('Function Legacy', () => {
 
   test('GET retrieves information of simple function', async () => {
     let response = await putFunction(account, boundaryId, function1Id, helloWorld);
-    expect(response).toBeHttp({ statusCode: 200, status: 'success' });
+    expect(response).toBeHttp({ statusCode: 200 });
     response = await getFunction(account, boundaryId, function1Id);
     expect(response).toBeHttp({ statusCode: 200 });
     expect(response.data).toMatchObject({
@@ -707,7 +707,7 @@ describe.skip('Function Legacy', () => {
 
   test('GET retrieves information of function with package.json as JavaScript object', async () => {
     let response = await putFunction(account, boundaryId, function2Id, helloWorldWithNode8JavaScript);
-    expect(response).toBeHttp({ statusCode: 200, status: 'success' });
+    expect(response).toBeHttp({ statusCode: 200 });
     response = await getFunction(account, boundaryId, function2Id);
     expect(response).toBeHttp({ statusCode: 200 });
     expect(response.data).toMatchObject({
@@ -728,7 +728,7 @@ describe.skip('Function Legacy', () => {
 
   test('GET retrieves information of function with package.json as string', async () => {
     let response = await putFunction(account, boundaryId, function2Id, helloWorldWithNode8String);
-    expect(response).toBeHttp({ statusCode: 200, status: 'success' });
+    expect(response).toBeHttp({ statusCode: 200 });
     response = await getFunction(account, boundaryId, function2Id);
     expect(response).toBeHttp({ statusCode: 200 });
     expect(response.data).toMatchObject({

@@ -11,6 +11,7 @@ import { BaseEntityService } from '../../service';
 const router = (EntityService: BaseEntityService<any, any>, paramIdNames: string[] = ['entityId']) => {
   const componentTagRouter = express.Router({ mergeParams: true });
 
+  componentTagRouter.options('/', common.cors());
   componentTagRouter.get(
     '/',
     common.management({
@@ -30,6 +31,7 @@ const router = (EntityService: BaseEntityService<any, any>, paramIdNames: string
 
   componentTagRouter
     .route('/:tagKey')
+    .options(common.cors())
     .get(
       common.management({
         validate: { params: Validation.EntityIdParams },
@@ -65,6 +67,7 @@ const router = (EntityService: BaseEntityService<any, any>, paramIdNames: string
       }
     );
 
+  componentTagRouter.options('/:tagKey/:tagValue', common.cors());
   componentTagRouter.put(
     '/:tagKey/:tagValue',
     common.management({

@@ -53,11 +53,11 @@ describe('Module', () => {
     if (response.status === 201) {
       response = await waitForBuild(account, response.data, 15, 1000);
     }
-    expect(response).toBeHttp({ statusCode: 200, status: 'success' });
+    expect(response).toBeHttp({ statusCode: 200 });
     response = await deleteFunction(account, boundaryId, function1Id);
     expect(response).toBeHttp({ statusCode: 204 });
     response = await putFunction(account, boundaryId, function1Id, helloWorldWithSuperagentDependency);
-    expect(response).toBeHttp({ statusCode: 200, status: 'success' });
+    expect(response).toBeHttp({ statusCode: 200 });
   }, 180000);
 
   test('PUT completes for function with complex dependencies', async () => {

@@ -1,0 +1,18 @@
+{
+  "id": "slack-integration",
+  "tags": {},
+  "handler": "./integration",
+  "components": [
+    {
+      "name": "slack1",
+      "path": "/api/authorize",
+      "skip": false,
+      "package": "@fusebit-int/slack-integration",
+      "entityId": "slack-connector",
+      "dependsOn": [],
+      "entityType": "connector"
+    }
+  ],
+  "componentTags": {},
+  "configuration": {}
+}

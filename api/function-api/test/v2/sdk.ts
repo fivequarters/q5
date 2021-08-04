@@ -83,7 +83,7 @@ export const ApiRequestMap: { [key: string]: any } = {
       getResult: async (account: IAccount, entityId: string, sessionId: string, options?: IRequestOptions) => {
         const response = await v2Request(account, {
           method: 'GET',
-          uri: `/connector/${encodeURI(entityId)}/session/result/${sessionId}`,
+          uri: `/connector/${encodeURI(entityId)}/session/${sessionId}/result`,
           ...options,
         });
         if (response.status < 300) {
@@ -252,7 +252,7 @@ export const ApiRequestMap: { [key: string]: any } = {
       getResult: async (account: IAccount, entityId: string, sessionId: string, options?: IRequestOptions) => {
         const response = await v2Request(account, {
           method: 'GET',
-          uri: `/integration/${encodeURI(entityId)}/session/result/${sessionId}`,
+          uri: `/integration/${encodeURI(entityId)}/session/${sessionId}/result`,
           ...options,
         });
         if (response.status < 300) {
@@ -592,6 +592,7 @@ export const createPair = async (
       muxIntegration?: Model.IEntityId;
       [key: string]: any;
     };
+    componentTags?: Record<string, string>;
   },
   numConnectors: number = 1
 ) => {
@@ -632,10 +633,12 @@ export const createPair = async (
       handler: './integration',
       files: {
         ['integration.js']: [
-          "const { Router, Manager, Form } = require('@fusebit-int/framework');",
-          'const router = new Router();',
+          "const Integration = require('@fusebit-int/integration');",
+          '',
+          'const integration = new Integration();',
+          'const router = integration.router;',
           "router.get('/api/', async (ctx) => { });",
-          'module.exports = router;',
+          'module.exports = integration;',
         ].join('\n'),
       },
 

@@ -1,0 +1,49 @@
+{
+  "type": "VerticalLayout",
+  "elements": [
+    {
+      "type": "Group",
+      "label": "Settings",
+      "elements": [
+        {
+          "type": "Control",
+          "scope": "#/properties/settings/properties/scope"
+        },
+        {
+          "type": "Control",
+          "scope": "#/properties/settings/properties/clientId"
+        },
+        {
+          "type": "Control",
+          "scope": "#/properties/settings/properties/clientSecret"
+        }
+      ]
+    },
+    {
+      "type": "Group",
+      "label": "Advanced settings",
+      "elements": [
+        {
+          "type": "Control",
+          "scope": "#/properties/advanced/properties/refreshErrorLimit"
+        },
+        {
+          "type": "Control",
+          "scope": "#/properties/advanced/properties/refreshInitialBackoff"
+        },
+        {
+          "type": "Control",
+          "scope": "#/properties/advanced/properties/refreshWaitCountLimit"
+        },
+        {
+          "type": "Control",
+          "scope": "#/properties/advanced/properties/refreshBackoffIncrement"
+        },
+        {
+          "type": "Control",
+          "scope": "#/properties/advanced/properties/accessTokenExpirationBuffer"
+        }
+      ]
+    }
+  ]
+}

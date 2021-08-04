@@ -1,11 +1,11 @@
 import { IAgent } from '@5qtrs/account-data';
 import { Model } from '@5qtrs/db';
-import { AwsRegistry } from '@5qtrs/registry';
 
 import { operationService } from './OperationService';
 import * as Function from '../functions';
 
-export const defaultFrameworkSemver = '^2.0.0';
+export const defaultFrameworkSemver = '^2.0.5';
+export const defaultIntegrationSemver = '^1.0.0';
 
 export interface IServiceResult {
   statusCode: number;
@@ -98,8 +98,7 @@ export default abstract class BaseEntityService<E extends Model.IEntity, F exten
     const result = await Function.createFunction(
       params,
       this.createFunctionSpecification(entity),
-      rejectPermissionAgent as IAgent,
-      AwsRegistry.create({ ...entity, registryId: 'default' })
+      rejectPermissionAgent as IAgent
     );
 
     if (result.code === 201 && result.buildId) {

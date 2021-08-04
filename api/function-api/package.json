@@ -9,7 +9,7 @@
     "build": "tsc -b",
     "create-env": "node createEnv.js",
     "dev": "yarn build && node --inspect=9229 --trace-warnings libc/index.js",
-    "test": "yarn create-env && jest --colors",
+    "test": "yarn create-env && jest --colors --no-cache",
     "coverage": "jest --colors --coverage --detectOpenHandles",
     "lint": "tslint --fix -t stylish src/{,**/}*.ts{,x} test/{,**/}*.ts{,x}",
     "clean": "rm -r -f libc",
@@ -22,6 +22,7 @@
   "keywords": [],
   "dependencies": {
     "@5qtrs/account": "^0.0.1",
+    "@5qtrs/account-data": "^0.0.1",
     "@5qtrs/account-data-aws": "^0.0.1",
     "@5qtrs/aws-config": "^0.0.1",
     "@5qtrs/bq-metering": "^0.0.1",
@@ -55,6 +56,7 @@
   "devDependencies": {
     "@5qtrs/fusebit-profile-sdk": "^0.0.1",
     "@5qtrs/key-pair": "^0.0.1",
+    "@5qtrs/random": "^0.0.1",
     "@5qtrs/request": "^0.0.1",
     "@fusebit/tunnel": "^3.2.5",
     "@npm/types": "^1.0.1",

@@ -25,10 +25,19 @@ const sampleEntitiesWithData: SampleEntityMap = {
   [Model.EntityType.connector]: (): { id: string; tags: Model.ITags; data: Model.IConnectorData } => ({
     data: {
       handler: '@fusebit-int/pkg-oauth-connector',
-      files: {},
+      files: {
+        ['package.json']: JSON.stringify({
+          scripts: {},
+          dependencies: {
+            ['@fusebit-int/framework']: '^2.0.5',
+            ['@fusebit-int/pkg-oauth-connector']: '^1.2.0',
+          },
+        }),
+      },
       configuration: {
         scope: 'test scope',
         accessTokenExpirationBuffer: 123,
+        package: '@fusebit-int/pkg-oauth-connector',
       },
     },
     id: newId('Test'),
@@ -41,14 +50,16 @@ const sampleEntitiesWithData: SampleEntityMap = {
         ['package.json']: JSON.stringify({
           scripts: {},
           dependencies: {
-            ['@fusebit-int/framework']: '^2.0.0',
+            ['@fusebit-int/framework']: '^2.0.5',
+            ['@fusebit-int/integration']: '1.0.0',
           },
           files: ['./integrationTest.js'],
         }),
         ['integrationTest.js']: [
-          "const { Router, Manager, Form } = require('@fusebit-int/framework');",
+          "const Integration = require('@fusebit-int/integration');",
           '',
-          'const router = new Router();',
+          'const integration = new Integration();',
+          'const router = integration.router;',
           '',
           "router.get('/api/', async (ctx) => {",
           "  ctx.body = 'Hello World';",
@@ -57,7 +68,7 @@ const sampleEntitiesWithData: SampleEntityMap = {
           "router.get('/api/sillyrabbit', async (ctx) => {",
           "  ctx.body = 'trix are for kids';",
           '});',
-          'module.exports = router;',
+          'module.exports = integration;',
         ].join('\n'),
       },
       configuration: {},
@@ -154,7 +165,8 @@ const performTests = (testEntityType: TestableEntityTypes, sampleEntityMap: Samp
     const entity = sampleEntity();
     await createEntityTest(entity);
     const createResponseConflict = await ApiRequestMap[testEntityType].post(account, entity);
-    expect(createResponseConflict).toBeHttp({ status: 400 });
+    const operation = await ApiRequestMap.operation.waitForCompletion(account, createResponseConflict.data.operationId);
+    expect(operation).toBeHttp({ statusCode: 400 });
   }, 180000);
 
   test('Update Entity', async () => {
@@ -580,16 +592,16 @@ const performIntegrationTest = (sampleEntitiesMap: SampleEntityMap) => {
     const newFiles = {
       ...entity.data.files,
       './integration.js': [
-        "const { Router, Manager, Form } = require('@fusebit-int/framework');",
-        "const connectors = require('@fusebit-int/framework').connectors;",
+        "const Integration = require('@fusebit-int/integration');",
         '',
-        'const router = new Router();',
+        'const integration = new Integration();',
+        'const router = integration.router;',
         '',
         "router.get('/api/', async (ctx) => {",
         "  ctx.body = 'Hello Monkeys';",
         '});',
         '',
-        'module.exports = router;',
+        'module.exports = integration;',
       ].join('\n'),
     };
     Object.assign(entityUpdated, setFiles(entityUpdated, newFiles, './integration.js'));
@@ -609,23 +621,23 @@ const performIntegrationTest = (sampleEntitiesMap: SampleEntityMap) => {
     const newFiles = {
       ...entity.data.files,
       './integration.js': [
-        "const { Router, Manager, Form } = require('@fusebit-int/framework');",
-        "const connectors = require('@fusebit-int/framework').connectors;",
+        "const Integration = require('@fusebit-int/integration');",
         '',
-        'const router = new Router();',
+        'const integration = new Integration();',
+        'const router = integration.router;',
         '',
-        "router.post('/api/', async (ctx) => {",
+        "router.post('/api/helloWorld', async (ctx) => {",
         '  ctx.body = ctx.req.body;',
         '});',
         '',
-        'module.exports = router;',
+        'module.exports = integration;',
       ].join('\n'),
     };
 
     Object.assign(entityUpdated, setFiles(entityUpdated, newFiles, './integration.js'));
     const updateResponse = await ApiRequestMap[testEntityType].putAndWait(account, entity.id, entityUpdated);
     expect(updateResponse).toBeHttp({ statusCode: 200 });
-    const invokeResponse = await ApiRequestMap[testEntityType].dispatch(account, entity.id, 'POST', '/api/', {
+    const invokeResponse = await ApiRequestMap[testEntityType].dispatch(account, entity.id, 'POST', '/api/helloWorld', {
       body: { hello: 'world' },
     });
     expect(invokeResponse).toBeHttp({ statusCode: 200, data: { hello: 'world' } });
@@ -636,16 +648,16 @@ const performIntegrationTest = (sampleEntitiesMap: SampleEntityMap) => {
     const newFiles = {
       ...entity.data.files,
       './integration.js': [
-        "const { Router, Manager, Form } = require('@fusebit-int/framework');",
-        "const connectors = require('@fusebit-int/framework').connectors;",
+        "const Integration = require('@fusebit-int/integration');",
         '',
-        'const router = new Router();',
+        'const integration = new Integration();',
+        'const router = integration.router;',
         '',
         "router.on('/testEvent', async ({tasty}) => {",
         '  return { answer: tasty + " and mango"};',
         '});',
         '',
-        'module.exports = router;',
+        'module.exports = integration;',
       ].join('\n'),
     };
 

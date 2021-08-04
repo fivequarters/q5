@@ -19,8 +19,17 @@ beforeEach(() => {
 
 const regScope = '@package';
 
-const masterAccount = 'acc-00000000';
-const masterScope = '@fuse-int';
+let masterAccount = 'acc-00000000';
+let masterScope = '@fusebit-int';
+
+beforeAll(async () => {
+  const cfg = await Registry.getGlobal();
+  if (!cfg?.params || !cfg?.params.accountId) {
+    throw new Error('Set a master account on the registries before running unit tests.');
+  }
+  masterAccount = cfg.params.accountId;
+  masterScope = cfg.scopes[0];
+});
 
 const VALID_PKG = '/mock/sample-npm.tgz';
 const BROKEN_PKG = '/mock/sample-broken-npm.tgz';
@@ -126,7 +135,7 @@ const expect404: (name: string) => void = async (name) => {
   try {
     await libnpm.packument(name, getOpts(regScope));
   } catch (e) {
-    expect(e).toBeHttp({ status: 404 });
+    expect(e.statusCode).toBe(404);
     errorRecieved = true;
   }
   expect(errorRecieved).toBeTruthy();
@@ -210,7 +219,7 @@ describe('Npm', () => {
 
     await libnpm.publish(manifest, tarData, getOpts(regScope));
     const results = await libnpm.search(manifest.name, { ...getOpts(regScope), registry: registryUrl });
-    expect(results.length).toBe(1);
+    expect(results.length).toBeGreaterThanOrEqual(1);
     expect(results[0].name).toBe(manifest.name);
   }, 180000);
 
@@ -224,7 +233,7 @@ describe('Npm', () => {
     const { registryUrl } = getRegistryUrl();
     const { manifest } = preparePackage(regScope);
     const results = await libnpm.search(manifest.name, { ...getOpts(regScope), registry: registryUrl });
-    expect(results.length).toBe(1);
+    expect(results.length).toBeGreaterThanOrEqual(1);
     expect(results[0].name).toBe(manifest.name);
   }, 180000);
 
@@ -305,13 +314,13 @@ describe('Npm', () => {
       ...getOpts(regScope),
       registry: registryUrl,
     });
-    expect(results.length).toBe(1);
+    expect(results.length).toBeGreaterThanOrEqual(1);
 
     results = await libnpm.search(`libnpm`, {
       ...getOpts(regScope),
       registry: registryUrl,
     });
-    expect(results.length).toBe(2);
+    expect(results.length).toBeGreaterThanOrEqual(2);
 
     // Validate that the results match what's expected.
     const mani = await libnpm.manifest(`${masterScope}/libnpm`, fullOpts);

@@ -4,23 +4,27 @@ import { Permissions, v2Permissions, safePathMap } from '@5qtrs/constants';
 import RDS, { Model } from '@5qtrs/db';
 
 import SessionedEntityService from './SessionedEntityService';
-import { defaultFrameworkSemver } from './BaseEntityService';
+import { defaultFrameworkSemver, defaultIntegrationSemver } from './BaseEntityService';
 
 const defaultIntegrationJs = [
-  "const { Router, Manager, Form } = require('@fusebit-int/framework');",
+  "const Integration = require('@fusebit-int/integration');",
   '',
-  'const router = new Router();',
+  'const integration = new Integration();',
+  'const router = integration.router;',
   '',
   "router.get('/api/', async (ctx) => {",
   "  ctx.body = 'Hello World';",
   '});',
   '',
-  'module.exports = router;',
+  'module.exports = integration;',
 ].join('\n');
 
 const defaultPackageJson = (entityId: string) => ({
   scripts: { deploy: `fuse integration deploy ${entityId} -d .`, get: `fuse integration get ${entityId} -d .` },
-  dependencies: { ['@fusebit-int/framework']: defaultFrameworkSemver },
+  dependencies: {
+    ['@fusebit-int/framework']: defaultFrameworkSemver,
+    ['@fusebit-int/integration']: defaultIntegrationSemver,
+  },
   files: ['./integration.js'], // Make sure the default file is included, if nothing else.
 });
 
@@ -72,6 +76,8 @@ class IntegrationService extends SessionedEntityService<Model.IIntegration, Mode
 
     // Enforce @fusebit-int/framework as a dependency.
     pkg.dependencies['@fusebit-int/framework'] = pkg.dependencies['@fusebit-int/framework'] || defaultFrameworkSemver;
+    pkg.dependencies['@fusebit-int/integration'] =
+      pkg.dependencies['@fusebit-int/integration'] || defaultIntegrationSemver;
 
     // Validate the components in the integration, and adjust the dependencies in the package.json if
     // necessary.

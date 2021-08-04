@@ -1,20 +1,19 @@
 import { Router, Context, Next } from './Router';
 import { Manager, IStorage, IOnStartup } from './Manager';
 import { ConnectorManager, IInstanceConnectorConfig } from './ConnectorManager';
+import * as Storage from './Storage';
 import { Form } from './Form';
-
 import { Handler } from './Handler';
-
 import * as Middleware from './middleware';
+import IntegrationActivator from './IntegrationActivator';
 
-// Placeholder object until we have better logging in place.
-const Sdk: { debug: (...s: any[]) => void } = { debug: console.log };
+// Types
+export * from './Storage';
 
+// Objects
 export {
   Handler,
   Router,
-  Router as Integration,
-  Router as Connector,
   Form,
   ConnectorManager,
   Manager,
@@ -22,7 +21,8 @@ export {
   Next,
   IStorage,
   IOnStartup,
-  Sdk,
   IInstanceConnectorConfig,
   Middleware,
+  Storage,
+  IntegrationActivator,
 };

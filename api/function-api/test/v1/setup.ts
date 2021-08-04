@@ -14,7 +14,7 @@ import {
 // Internal Functions
 // ------------------
 
-function toBeHttp(response: IHttpResponse, { statusCode, data, headers, has, hasNot, tests }: any) {
+function toBeHttp(response: IHttpResponse, { statusCode, data, headers, has, hasNot, tests }: IToBeHttp) {
   let keyValueMsg;
   try {
     if (statusCode) {
@@ -76,7 +76,7 @@ function toBeHttp(response: IHttpResponse, { statusCode, data, headers, has, has
     const { account } = getEnv();
     const msg = `${err.message} ${keyValueMsg}\n\nfailing request:\n${
       response.status
-    } ${response.request.method.toUpperCase()} ${response.request.url} - headers: ${JSON.stringify(
+    } ${response.request?.method.toUpperCase()} ${response.request?.url} - headers: ${JSON.stringify(
       response.headers,
       null,
       2
@@ -289,10 +289,19 @@ const matchers = {
   toExtend,
 };
 
+export interface IToBeHttp {
+  statusCode?: number | number[];
+  data?: any;
+  headers?: Record<string, string>;
+  tests?: (() => any)[];
+  has?: string[];
+  hasNot?: string[];
+}
+
 declare global {
   namespace jest {
     interface Matchers<R, T> {
-      toBeHttp: ({ statusCode, data, headers, tests }: any) => R;
+      toBeHttp: ({ statusCode, data, headers, tests }: IToBeHttp) => R;
       toBeHttpError: (status: number, message: string) => R;
       toBeMalformedAccountError: (malformedAccountId: string) => R;
       toBeUnauthorizedError: () => R;

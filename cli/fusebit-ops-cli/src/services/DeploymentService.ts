@@ -11,6 +11,9 @@ import {
   IFusebitAccount,
   IInitAdmin,
 } from '@5qtrs/ops-data';
+
+import { Defaults } from '@5qtrs/account';
+import * as Constants from '@5qtrs/constants';
 import { ExecuteService } from './ExecuteService';
 
 // ----------------
@@ -217,6 +220,39 @@ export class DeploymentService {
     );
   }
 
+  public async setSubscriptionFlags(subscription: IFusebitSubscription): Promise<void> {
+    if (!subscription.flags) {
+      return;
+    }
+
+    const opsDataContext = await this.opsService.getOpsDataContext();
+    const deploymentData = opsDataContext.deploymentData;
+
+    const keys = Object.keys(subscription.flags);
+    const values = keys.map((key) => (subscription.flags ? subscription.flags[key] : null));
+
+    const flagsAndValues = Object.entries(subscription.flags).map(([key, value]) =>
+      Text.create(Text.eol(), Text.dim('• '), key, Text.dim(': '), `${value}`)
+    );
+    const executeMessage = Text.create(['Setting the following flags on the subscription:', ...flagsAndValues]);
+
+    await this.executeService.execute(
+      {
+        header: 'Set Subscription Flags',
+        message: executeMessage,
+        errorHeader: 'Subscription Error',
+      },
+      () => deploymentData.setFlags(subscription.account as string, subscription)
+    );
+
+    const executedMessage = Text.create([
+      'The following flags were successfully configured on the subscription:',
+      ...flagsAndValues,
+    ]);
+
+    this.executeService.result('Subscription Flags Set', executedMessage);
+  }
+
   public async initAdmin(deployment: IOpsDeployment, init: IInitAdmin): Promise<IInitAdmin> {
     const opsDataContext = await this.opsService.getOpsDataContext();
     const deploymentData = opsDataContext.deploymentData;
@@ -320,6 +356,49 @@ export class DeploymentService {
     return result as IOpsDeployment[];
   }
 
+  public async displayDefaults(deployment: IOpsDeployment): Promise<void> {
+    const opsDataContext = await this.opsService.getOpsDataContext();
+    const deploymentData = opsDataContext.deploymentData;
+
+    const result: (Text | string)[] = [];
+    for (const entry of Defaults.Keys) {
+      const defaults = await deploymentData.getDefaults(deployment, entry.key);
+      result.push(
+        ...[Text.dim(`${entry.name}: `), Text.eol(), JSON.stringify(defaults, null, 2), Text.eol(), Text.eol()]
+      );
+    }
+
+    await this.executeService.message('All Defaults', Text.create(result));
+  }
+
+  public findDefaultKey(key: string): { key: string; name: string } {
+    const defaultKey = Defaults.Keys.find((entry: { name: string }) => entry.name.toLowerCase() === key.toLowerCase());
+    if (!defaultKey) {
+      throw new Error('Invalid defaults key provided');
+    }
+    return defaultKey;
+  }
+
+  public async setDefaults(deployment: IOpsDeployment, key: string, defaults: any): Promise<void> {
+    const opsDataContext = await this.opsService.getOpsDataContext();
+    const deploymentData = opsDataContext.deploymentData;
+
+    const defaultKey = this.findDefaultKey(key);
+
+    await deploymentData.setDefaults(deployment, defaultKey.key, defaults);
+    await this.executeService.message(`Updating ${defaultKey.name}`, Text.create(JSON.stringify(defaults, null, 2)));
+  }
+
+  public async unsetDefaults(deployment: IOpsDeployment, key: string, dotKey: string): Promise<void> {
+    const opsDataContext = await this.opsService.getOpsDataContext();
+    const deploymentData = opsDataContext.deploymentData;
+
+    const defaultKey = this.findDefaultKey(key);
+
+    await deploymentData.unsetDefaults(deployment, defaultKey.key, dotKey);
+    await this.executeService.message(`Unset ${defaultKey.name}`, Text.create(dotKey));
+  }
+
   public async listAllSubscriptions(deployment: IOpsDeployment): Promise<IFusebitAccount[]> {
     const opsDataContext = await this.opsService.getOpsDataContext();
     const deploymentData = opsDataContext.deploymentData;
@@ -363,7 +442,7 @@ export class DeploymentService {
       return;
     }
 
-    if (accounts.length == 0) {
+    if (accounts.length === 0) {
       await this.executeService.warning(
         'No Fusebit Accounts',
         `There are no fusebit accounts on the ${deployment.deploymentName} deployment`
@@ -436,7 +515,7 @@ export class DeploymentService {
       return;
     }
 
-    if (deployments.length == 0) {
+    if (deployments.length === 0) {
       await this.executeService.warning('No Deployments', 'There are no deployments on the Fusebit platform');
       return;
     }
@@ -469,7 +548,7 @@ export class DeploymentService {
       deployment.networkName,
       Text.eol(),
       Text.dim('Default Size: '),
-      deployment.size != undefined ? deployment.size.toString() : '',
+      deployment.size !== undefined ? deployment.size.toString() : '',
       Text.eol(),
       Text.dim('Elastic Search: '),
       deployment.elasticSearch ? deployment.elasticSearch.toString() : '',
@@ -522,10 +601,17 @@ export class DeploymentService {
       Object.entries(subscription.limits).forEach((e: [string, number]) => {
         details.push(Text.eol(), Text.dim(`Limit '${e[0]}': `), `${e[1]}`);
       });
-      await this.executeService.message(
-        Text.bold((subscription.subscriptionName || subscription.subscription) as string),
-        Text.create(details)
-      );
     }
+
+    if (subscription.flags) {
+      Object.entries(subscription.flags).forEach(([key, value]) => {
+        details.push(Text.eol(), Text.dim(`Flag '${key}': `), `${value}`);
+      });
+    }
+
+    await this.executeService.message(
+      Text.bold((subscription.subscriptionName || subscription.subscription) as string),
+      Text.create(details)
+    );
   }
 }

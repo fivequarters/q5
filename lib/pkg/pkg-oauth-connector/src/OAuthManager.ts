@@ -73,7 +73,7 @@ router.delete('/api/:lookupKey', async (ctx: Context) => {
 });
 
 // OAuth Flow Endpoints
-router.get('/api/configure', async (ctx: Context) => {
+router.get('/api/authorize', async (ctx: Context) => {
   ctx.redirect(await engine.getAuthorizationUrl(ctx.query.session));
 });
 
@@ -178,7 +178,7 @@ router.get(callbackSuffixUrl, async (ctx: Context) => {
     await engine.convertAccessCodeToToken(ctx, state, code);
     return await engine.redirectToCallback(ctx);
   } catch (e) {
-    ctx.throw(e.status, `${e.response.text} - ${e.stack}`);
+    ctx.throw(e.status, `${e.response?.text} - ${e.stack}`);
   }
 });
 

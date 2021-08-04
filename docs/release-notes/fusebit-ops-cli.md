@@ -18,6 +18,30 @@ All public releases of the Fusebit Operations CLI are documented here, including
 {:toc}
 -->
 
+## Version 1.28.4
+
+_Released 07/27/21_
+
+- **Enhancement** Subscriptions now support default values supplied via global configuration elements.
+
+## Version 1.28.1
+
+_Released 07/23/21_
+
+- **Bugfix** Fuse-ops now properly tags restored resources.
+
+## Version 1.28.0
+
+_Released 07/23/21_
+
+- **Enhancement** Introduces the ability to set a feature flag on subscriptions to either block or allow them to use the static IP feature on Fusebit function.
+
+## Version 1.27.18
+
+_Released 07/21/21_
+
+- **Bugfix** Fuse-ops will no longer break if there are deployments of the same name in different regions.
+
 ## Version 1.27.17
 
 _Released 07/16/21_

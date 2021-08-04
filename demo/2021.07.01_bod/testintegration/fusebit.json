@@ -1,7 +1,32 @@
 {
   "handler": "./integration",
   "configuration": {
-    "connectors": {}
+    "connectors": {
+      "oauth1": {
+        "package": "@fusebit-int/pkg-oauth-integration",
+        "connector": "asanaconnector"
+      }
+    },
+    "creation": {
+      "steps": [
+        {
+          "name": "conn1",
+          "target": {
+            "entityType": "connector",
+            "entityId": "asanaconnector"
+          }
+        },
+        {
+          "name": "form",
+          "target": {
+            "entityType": "integration",
+            "path": "/api/aForm",
+            "entityId": "{{integration}}"
+          },
+          "uses": ["conn1"]
+        }
+      ]
+    }
   },
   "tags": {}
 }
