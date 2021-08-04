@@ -60,7 +60,7 @@ const specs = [
       on_trigger: {
         pull_request: {
           branches: 'master',
-          types: ['ready_for_review', 'review_requested', 'synchronize'],
+          types: ['ready_for_review', 'review_requested'],
         },
       },
       runner_type: 'self-hosted',

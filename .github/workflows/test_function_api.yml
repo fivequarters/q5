@@ -6,7 +6,6 @@ on:
     types:
       - ready_for_review
       - review_requested
-      - synchronize
 name: Test Function-API
 jobs:
   deploy:
