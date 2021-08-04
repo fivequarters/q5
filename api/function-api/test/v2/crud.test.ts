@@ -29,8 +29,8 @@ const sampleEntitiesWithData: SampleEntityMap = {
         ['package.json']: JSON.stringify({
           scripts: {},
           dependencies: {
-            ['@fusebit-int/framework']: '^2.0.5',
-            ['@fusebit-int/pkg-oauth-connector']: '^1.2.0',
+            ['@fusebit-int/framework']: '^2.0.7',
+            ['@fusebit-int/pkg-oauth-connector']: '^1.0.2',
           },
         }),
       },
@@ -50,8 +50,8 @@ const sampleEntitiesWithData: SampleEntityMap = {
         ['package.json']: JSON.stringify({
           scripts: {},
           dependencies: {
-            ['@fusebit-int/framework']: '^2.0.5',
-            ['@fusebit-int/integration']: '1.0.0',
+            ['@fusebit-int/framework']: '^2.0.7',
+            ['@fusebit-int/integration']: '1.0.2',
           },
           files: ['./integrationTest.js'],
         }),
