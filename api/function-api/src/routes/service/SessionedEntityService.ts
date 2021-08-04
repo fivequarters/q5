@@ -100,7 +100,6 @@ export default abstract class SessionedEntityService<
 
     // Any tags present? Include any on the entity, if the session says to extend rather than replace.
     tags = { ...(sessionDetails.extendTags ? entity.data.componentTags : {}), ...sessionDetails.tags };
-    tags['fusebit.sessionId'] = sessionId;
 
     // If there's any additional input or uses parameters, include those in the specification.
     Object.entries(sessionDetails.input || {}).forEach(([inputName, inputVal]) => {
