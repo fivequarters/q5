@@ -1,0 +1,69 @@
+###################################################################
+# Auto-created by the cicd-actions tool
+on: workflow_dispatch
+name: Deploy Dashboards
+jobs:
+  deploy:
+    name: Deploy
+    runs-on: ubuntu-latest
+    steps:
+      - name: Upgrade aws-cli
+        run: >
+          curl "https://awscli.amazonaws.com/awscli-exe-linux-x86_64.zip" -o
+          "awscliv2.zip"
+
+          unzip awscliv2.zip >/dev/null
+
+          sudo ./aws/install --update
+
+          /usr/local/bin/aws --version
+
+          aws --version
+      - name: Use Node.js
+        uses: actions/setup-node@v1
+        with:
+          node-version: 14.17.2
+      - name: Cache Node.js modules
+        uses: actions/cache@v2
+        with:
+          path: ~/.npm
+          key: ${{ runner.OS }}-node
+      - name: Get yarn cache directory path
+        id: yarn-cache-dir-path
+        run: echo "::set-output name=dir::$(yarn cache dir)"
+      - name: Cache yarn modules
+        uses: actions/cache@v2
+        id: yarn-cache
+        with:
+          path: ${{ steps.yarn-cache-dir-path.outputs.dir }}
+          key: ${{ runner.os }}-yarn-${{ hashFiles('**/yarn.lock') }}
+          restore-keys: |
+            ${{ runner.os }}-yarn-
+      - name: Setup Environments and Profiles
+        env:
+          SECRET_FUSEBIT_PROFILE: ${{secrets.FUSEBIT_STAGE_US_WEST_2}}
+          SECRET_NPM_TOKEN: ${{secrets.NPM_PUBLISH_TOKEN}}
+          SECRET_GC_BQ_KEY_BASE64: ${{secrets.FUSEBIT_GC_BQ_KEY_BASE64}}
+        run: ./tool/cicd/actions/scripts/create_env_files.sh
+      - name: Qualify - aws-cli works
+        run: aws s3 ls
+      - name: Qualify - npm works
+        run: npm whoami
+      - name: Dashboard - us-west-2/stage
+        env:
+          DASHBOARD_NAME: STAGE-US-WEST-1
+          REGION: us-west-1
+          DASHBOARD: ./tool/monitoring/cloudwatch-dashboard-template.json
+        run: ./tool/cicd/actions/scripts/deploy_dashboard.sh
+      - name: Dashboard - us-west-1/api
+        env:
+          DASHBOARD_NAME: API-US-WEST-1
+          REGION: us-west-1
+          DASHBOARD: ./tool/monitoring/cloudwatch-dashboard-template.json
+        run: ./tool/cicd/actions/scripts/deploy_dashboard.sh
+      - name: Dashboard - us-east-1/api
+        env:
+          DASHBOARD_NAME: API-US-EAST-1
+          REGION: us-east-1
+          DASHBOARD: ./tool/monitoring/cloudwatch-dashboard-template.json
+        run: ./tool/cicd/actions/scripts/deploy_dashboard.sh
