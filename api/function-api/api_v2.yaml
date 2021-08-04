@@ -102,7 +102,7 @@ paths:
       tags:
         - Operation
       summary: Update the status of an operation
-      operationId: getOperation
+      operationId: putOperation
       description: |
         Update the status of the operation.
       requestBody:
