@@ -23,6 +23,16 @@ if [ -z "${REGION}" ]; then
   exit -1
 fi
 
+if [ -z "${NETWORK_NAME}" ]; then
+  echoerr "ERROR: NETWORK_NAME is unset."
+  exit -1
+fi
+
+if [ -z "${DEPLOYMENT_DOMAIN}" ]; then
+  echoerr "ERROR: NETWORK_NAME is unset."
+  exit -1
+fi
+
 # -- Optional Parameters --
 # Pin to a specific version
 IMG_VER=${VERSION_FUNCTION_API:=`jq -r '.version' ./package.json`}
@@ -37,6 +47,8 @@ else
 fi
 
 # -- Script --
+${FUSEOPS} setup -c false
+${FUSEOPS} deployment add ${DEPLOYMENT_NAME} ${NETWORK_NAME} ${DEPLOYMENT_DOMAIN} --dataWarehouse false --size 1 --region ${REGION} -c false
 
 ALL_STACKS=`${FUSEOPS} stack ls -o json --deployment ${DEPLOYMENT_NAME}`
 OLD_STACKS=`echo ${ALL_STACKS} | jq --arg region ${REGION} -r 'map(select(.region == $region)) | .[] | .id'`

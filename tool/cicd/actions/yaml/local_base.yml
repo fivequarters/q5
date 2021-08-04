@@ -1,0 +1,20 @@
+on: workflow_dispatch
+
+name: Common Base for All Github Actions
+
+jobs:
+  deploy:
+    name: Deploy
+    runs-on: self-hosted
+
+    steps:
+      - name: Ensure AWS CLI exists and credentials works.
+        run: aws s3 ls
+
+      - name: Use Node.js
+        uses: actions/setup-node@v1
+        with:
+          node-version: '14.17.2'
+
+      - name: Install yarn
+        run: npm i -g yarn

@@ -1,0 +1,3 @@
+steps:
+  - name: Setup .env files
+    run: ./tool/cicd/actions/scripts/create_function_api_env.cicd.us-east-2.749775346857.sh

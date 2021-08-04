@@ -1,12 +1,17 @@
-# Deploy the image to stage/us-west-2 and run the test automation against it
+# Deploy the image to cicd/us-east-2 and run the test automation against it
 steps:
-  - name: Test - deploy exclusive to stage/us-west-2
+  - name: Publish - function-api - 749 Only
+    run: ./tool/cicd/actions/scripts/publish_function_api_dev.sh
+
+  - name: Test - deploy exclusive to cicd/us-east-2
     env:
-      REGION: us-west-2
-      DEPLOYMENT_NAME: stage
+      REGION: us-east-2
+      DEPLOYMENT_NAME: cicd
+      NETWORK_NAME: cicd
+      DEPLOYMENT_DOMAIN: dev.fusebit.io
     run: ./tool/cicd/actions/scripts/deploy_exclusive_function_api.sh
 
   - name: Test - function-api
     env:
-      SECRET_FUSEBIT_PROFILE: ${{secrets.FUSEBIT_STAGE_US_WEST_2}}
+      FUSE_PROFILE: cicd
     run: ./tool/cicd/actions/scripts/test_function_api.sh
