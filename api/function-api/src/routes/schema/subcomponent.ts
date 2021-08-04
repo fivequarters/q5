@@ -86,6 +86,49 @@ const subcomponentRouter = (
           next(e);
         }
       }
+    )
+    .delete(
+      common.management({
+        validate: { params: Validation.EntityIdParams, query: Validation.EntityIdQuery },
+        authorize: { operation: v2Permissions[service.entityType].delete },
+      }),
+      async (req: express.Request, res: express.Response, next: express.NextFunction) => {
+        try {
+          // Note: This endpoint can be better, need to get a little bit more context.
+          const { accountId, subscriptionId, entityId: id } = req.params;
+          const parentEntity = await RDS.DAO[parentEntityType].getEntity({
+            accountId,
+            subscriptionId,
+            id,
+          });
+
+          // Ensure a tag is found from the request filter
+          const response = await service.dao.listEntities(
+            {
+              ...{ accountId: req.params.accountId, subscriptionId: req.params.subscriptionId },
+              ...query.tags(req),
+              ...{ idPrefix: `/${parentEntityType}/${parentEntity.__databaseId}/` },
+            },
+            {
+              ...query.listPagination(req),
+            }
+          );
+
+          // This operation is only allowed for one filtered tag
+          if (response?.items?.length > 1) {
+            res.sendStatus(400);
+          }
+
+          if (!response?.items?.length) {
+            res.status(404).send('Instance not found');
+          }
+          // Delete instance
+          await service.dao.deleteEntity({ accountId, subscriptionId, id: response.items[0].id });
+          res.sendStatus(200);
+        } catch (e) {
+          next(e);
+        }
+      }
     );
 
   router.use(createPath('/tag'), CommonTagRouter(service, idParamNames));

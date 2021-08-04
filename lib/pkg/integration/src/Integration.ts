@@ -1,4 +1,4 @@
-import { Router, Storage, Context, IListOption } from '@fusebit-int/framework';
+import { Router, Storage, Context, IListOption, Tenant } from '@fusebit-int/framework';
 
 class Integration {
   constructor() {
@@ -16,10 +16,8 @@ class Integration {
     deleteData: (ctx: Context, dataKey?: string) => Storage.createStorage(ctx.state.params).delete(dataKey),
     deleteDataWithPrefix: (ctx: Context, dataKeyPrefix?: string) =>
       Storage.createStorage(ctx.state.params).delete(dataKeyPrefix, true, true),
-    listTenants: async (ctx: Context, tags?: string | string[]) => undefined, //TODO
-    listInstanceTenants: async (instanceId: string) => undefined, //TODO
-    listTenantInstances: async (tenantId: string) => undefined, //TODO
-    deleteTenant: async (tenant: string) => undefined, //TODO
+    getTenant: (ctx: Context, tenantId: string) => Tenant.createRequest(ctx.state.params).get(tenantId),
+    deleteTenant: async (ctx: Context, tenantId: string) => Tenant.createRequest(ctx.state.params).delete(tenantId),
   };
 
   readonly middleware = {
