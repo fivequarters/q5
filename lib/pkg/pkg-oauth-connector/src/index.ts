@@ -1,3 +1,3 @@
-import router from './OAuthManager';
+import connector from './OAuthManager';
 
-module.exports = router;
+module.exports = connector;

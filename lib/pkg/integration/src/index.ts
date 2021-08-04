@@ -1,3 +1,3 @@
-import Integration from './Integration';
+import { Integration } from '@fusebit-int/framework';
 
-export default Integration;
+module.exports = Integration;

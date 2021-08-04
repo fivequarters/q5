@@ -6,6 +6,9 @@ import { Form } from './Form';
 import { Handler } from './Handler';
 import * as Middleware from './middleware';
 import IntegrationActivator from './IntegrationActivator';
+import * as Tenant from './Tenant';
+import Integration from './client/Integration';
+import Connector from './client/Connector';
 
 // Types
 export * from './Storage';
@@ -25,4 +28,7 @@ export {
   Middleware,
   Storage,
   IntegrationActivator,
+  Tenant,
+  Integration,
+  Connector,
 };

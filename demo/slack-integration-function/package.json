@@ -4,9 +4,9 @@
     "get": "fuse integration get slack-integration -d ."
   },
   "dependencies": {
-    "@fusebit-int/integration": "0.0.6",
-    "@fusebit-int/framework": "^2.0.0",
-    "@fusebit-int/slack-integration": "*"
+    "@fusebit-int/integration": "1.0.2",
+    "@fusebit-int/framework": "^2.0.7",
+    "@fusebit-int/slack-integration": "1.2.1"
   },
   "files": [
     "./integration.js"

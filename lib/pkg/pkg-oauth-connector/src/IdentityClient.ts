@@ -52,10 +52,6 @@ class IdentityClient {
 
   public getToken = async (identityId: string) => {
     identityId = this.cleanId(identityId);
-    console.log('accesstoken:');
-    console.log(this.accessToken);
-    console.log('identityId', identityId);
-    console.log('url', this.getUrl(identityId));
     const response = await superagent
       .get(this.getUrl(identityId))
       .set('Authorization', `Bearer ${this.accessToken}`)
