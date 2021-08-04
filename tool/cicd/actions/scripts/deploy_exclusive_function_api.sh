@@ -61,6 +61,7 @@ NEW_STACK_ID=`echo ${STACK_ADD} | jq -r '.id'`
 
 echoerr "Promoting stack ${DEPLOYMENT_NAME}: ${NEW_STACK_ID}"
 ${FUSEOPS} stack promote ${DEPLOYMENT_NAME} ${NEW_STACK_ID} --region ${REGION} -c f 1>&2
+while [ 1 ]; do curl -s https://cicd.us-east-2.dev.fusebit.io/v1/health | grep -v status 2> /dev/null; RET=$?; if [ ${RET} == 0 ]; then break; fi; sleep 0.1; done
 
 echoerr "Deleting old stacks: ${OLD_STACKS}"
 echo -n ${OLD_STACKS} | \
