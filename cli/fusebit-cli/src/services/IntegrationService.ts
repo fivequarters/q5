@@ -11,11 +11,8 @@ interface IIntegration extends IBaseComponentType {
 }
 
 export class IntegrationService extends BaseComponentService<IIntegration> {
-  protected entityType: EntityType;
-
   private constructor(profileService: ProfileService, executeService: ExecuteService, input: IExecuteInput) {
-    super(profileService, executeService, input);
-    this.entityType = EntityType.integration;
+    super(EntityType.integration, profileService, executeService, input);
   }
 
   public static async create(input: IExecuteInput) {

@@ -47,12 +47,20 @@ export abstract class BaseComponentService<IComponentType extends IBaseComponent
   protected executeService: ExecuteService;
   protected input: IExecuteInput;
 
-  protected abstract entityType: EntityType;
+  protected entityType: EntityType;
+  protected entityTypeName: string;
 
-  constructor(profileService: ProfileService, executeService: ExecuteService, input: IExecuteInput) {
+  constructor(
+    entityType: EntityType,
+    profileService: ProfileService,
+    executeService: ExecuteService,
+    input: IExecuteInput
+  ) {
     this.input = input;
     this.profileService = profileService;
     this.executeService = executeService;
+    this.entityType = entityType;
+    this.entityTypeName = (entityType as string).charAt(0).toUpperCase() + (entityType as string).slice(1);
   }
 
   public abstract createEmptySpec(): IComponentType;
@@ -274,7 +282,7 @@ export abstract class BaseComponentService<IComponentType extends IBaseComponent
     const result = await this.executeService.executeRequest(
       {
         header: 'List Entities',
-        message: Text.create(`Listing ${this.entityType}...`),
+        message: Text.create(`Listing ${this.entityType}s...`),
         errorHeader: 'List Entity Error',
         errorMessage: Text.create(`Unable to list ${this.entityType}`),
       },
@@ -337,7 +345,7 @@ export abstract class BaseComponentService<IComponentType extends IBaseComponent
 
     profile.boundary = this.entityType;
     profile.function = entityId;
-    return functionService.getFunctionLogsByProfile(profile);
+    return functionService.getFunctionLogsByProfile(profile, this.entityType, this.entityTypeName, false);
   }
 
   public async startEditServer(entityId: string, theme: string = 'dark', functionSpec?: any) {
@@ -346,7 +354,10 @@ export abstract class BaseComponentService<IComponentType extends IBaseComponent
     profile.boundary = this.entityType;
 
     if (theme !== 'light' && theme !== 'dark') {
-      await this.executeService.error('Edit Function Error', Text.create('Unsupported value of the theme parameter'));
+      await this.executeService.error(
+        `Edit ${this.entityTypeName} Error`,
+        Text.create('Unsupported value of the theme parameter')
+      );
     }
 
     const editorHtml = this.getEditorHtml(profile, theme, functionSpec);
@@ -388,19 +399,17 @@ export abstract class BaseComponentService<IComponentType extends IBaseComponent
 
     if (!port) {
       await this.executeService.error(
-        'Edit Function Error',
+        `Edit ${this.entityTypeName} Error`,
         'Unable to find a free port in the 80xx range to host a local service. Please try again.'
       );
     }
 
     await this.executeService.result(
-      'Edit Function',
+      `Edit ${this.entityTypeName}`,
       Text.create(
         "Editing the '",
         Text.bold(`${profile.function}`),
-        "' function in boundary '",
-        Text.bold(`${profile.boundary}`),
-        "'.",
+        `' ${this.entityType}.`,
         Text.eol(),
         Text.eol(),
         'Hosting the Fusebit editor at ',
