@@ -55,5 +55,5 @@ jobs:
         uses: readmeio/github-readme-sync@v2
         with:
           readme-oas-key: ${{secrets.README_COM_OAS_KEY}}
-          oas-file-path: ./api/function-api/api_v2.yaml
-          api-version: v1.0
+          oas-file-path: './api/function-api/api_v2.yaml'
+          api-version: 'v1.0'
