@@ -1,35 +1,30 @@
 import EntityBase from './EntityBase';
 import { Context, Next } from '../Router';
-import { IntegrationConnectors } from './IntegrationConnectors';
-// @ts-ignore
-let config: IConfig;
-try {
-  config = require('./fusebitConfig');
-} catch (e) {
-  config = require('./fusebit_integration');
-}
+import * as TenantService from '../Tenant';
 
 class Middleware extends EntityBase.MiddlewareBase {
   loadConnector = (name: string) => async (ctx: Context, next: Next) => undefined; //TODO
 }
 class Service extends EntityBase.ServiceBase {
-  constructor() {
-    super();
-    this.IntegrationConnectors = new IntegrationConnectors(config);
-  }
-  private readonly IntegrationConnectors: IntegrationConnectors;
-
-  getSdk = this.IntegrationConnectors.getByName;
-
-  getSdks = this.IntegrationConnectors.getByNames;
+  getSdk = async (ctx: Context, connectorName: string, instanceId: string) =>
+    ctx.state.manager.connectors.getByName(ctx, connectorName, instanceId);
+  getSdks = (ctx: Context, connectorNames: string[], instanceId: string) =>
+    ctx.state.manager.connectors.getByNames(ctx, connectorNames, instanceId);
 }
-namespace Service {
-  export const connectors = config;
+class Tenant extends EntityBase.TenantDefault {
+  listTenants: (ctx: Context, tags: string) => Promise<any> = async (ctx: Context, tags: string) =>
+    TenantService.createRequest(ctx.state.params).get(tags);
+  listInstanceTenants: (ctx: Context, instanceId: string) => Promise<any> = async (ctx: Context, instanceId: string) =>
+    TenantService.createRequest(ctx.state.params).getInstanceTenants(instanceId);
+  listTenantInstances: (ctx: Context, tenantId: string) => Promise<any> = async (ctx: Context, tenantId: string) =>
+    TenantService.createRequest(ctx.state.params).getTenantInstances(tenantId);
+  deleteTenant: (ctx: Context, tenantId: string) => Promise<any> = async (ctx: Context, tenantId: string) =>
+    TenantService.createRequest(ctx.state.params).delete(tenantId);
 }
 export default class Integration extends EntityBase {
   service = new Service();
   middleware = new Middleware();
   storage = new EntityBase.StorageDefault();
-  tenant = new EntityBase.TenantDefault();
+  tenant = new Tenant();
   response = new EntityBase.ResponseDefault();
 }

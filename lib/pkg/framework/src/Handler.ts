@@ -5,10 +5,10 @@ export const Handler = (handler: string, config: any) => {
 
   let router;
   let routerError;
-  let sdkClass;
+  let componentClass;
   try {
-    sdkClass = require(handler);
-    router = sdkClass.router;
+    componentClass = require(handler);
+    router = componentClass.router;
     if (!router) {
       throw `No Router found on handler ${handler}`;
     }
