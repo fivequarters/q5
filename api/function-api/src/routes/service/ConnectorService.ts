@@ -3,13 +3,12 @@ import RDS, { Model } from '@5qtrs/db';
 
 import SessionedEntityService from './SessionedEntityService';
 import { defaultFrameworkSemver } from './BaseEntityService';
-
-const defaultPkgOAuthConnectorSemver = '^1.2.0';
+const defaultConnectorSemver = '^1.0.2';
 
 const defaultPackage = (entityId: string) => ({
   scripts: { deploy: `"fuse connector deploy ${entityId} -d ."`, get: `"fuse connector get ${entityId} -d ."` },
   dependencies: {
-    '@fusebit-int/pkg-oauth-connector': defaultPkgOAuthConnectorSemver,
+    '@fusebit-int/connector': defaultConnectorSemver,
     '@fusebit-int/framework': defaultFrameworkSemver,
   },
 });

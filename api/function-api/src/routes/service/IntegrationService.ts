@@ -4,7 +4,8 @@ import { Permissions, v2Permissions, safePathMap } from '@5qtrs/constants';
 import RDS, { Model } from '@5qtrs/db';
 
 import SessionedEntityService from './SessionedEntityService';
-import { defaultFrameworkSemver, defaultIntegrationSemver } from './BaseEntityService';
+import { defaultFrameworkSemver } from './BaseEntityService';
+const defaultIntegrationSemver = '^1.0.2';
 
 const defaultIntegrationJs = [
   "const Integration = require('@fusebit-int/integration');",

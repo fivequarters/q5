@@ -5,7 +5,6 @@ import { operationService } from './OperationService';
 import * as Function from '../functions';
 
 export const defaultFrameworkSemver = '^2.0.7';
-export const defaultIntegrationSemver = '^1.0.2';
 
 export interface IServiceResult {
   statusCode: number;
