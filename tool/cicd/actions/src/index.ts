@@ -67,6 +67,14 @@ const specs = [
     },
   },
   {
+    name: 'Test Function-API (Manual)',
+    inputs: ['checkout', 'local_env_files', 'full_build_no_qualify', 'publish_all_pkg', 'deploy_test', 'publish_slack'],
+    output: 'test_function_api-manual',
+    options: {
+      runner_type: 'self-hosted',
+    },
+  },
+  {
     name: 'Deploy Dashboards',
     inputs: ['checkout', 'setup_env', 'deploy_dashboard'],
     output: 'deploy_dashboards',
