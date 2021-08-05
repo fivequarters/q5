@@ -1,27 +1,35 @@
-import SdkBaseClass, { NamespaceArguments, SdkClass } from './SdkBase';
-import { Context } from '../Router';
-
-const constructorArguments: NamespaceArguments = {
-  middleware: {
-    loadConnector: undefined,
-  },
-  service: {
-    getSdk: async (ctx: Context, connectorName: string) =>
-      ctx.state.manager.connectors.getByName(connectorName, (ctx: Context) => ctx.params.tenantId)(ctx),
-    getSdks: (ctx: Context, connectorNames: string[]) =>
-      ctx.state.manager.connectors.getByNames(connectorNames, (ctx: Context) => ctx.params.tenantIc)(ctx),
-  },
-  storage: {},
-  response: {
-    createJsonForm: undefined, //TODO
-    createError: undefined, //TODO
-  },
-};
-
-class Integration extends SdkBaseClass implements SdkClass {
-  constructor() {
-    super(constructorArguments);
-  }
+import EntityBase from './EntityBase';
+import { Context, Next } from '../Router';
+import { IntegrationConnectors } from './IntegrationConnectors';
+// @ts-ignore
+let config: IConfig;
+try {
+  config = require('./fusebitConfig');
+} catch (e) {
+  config = require('./fusebit_integration');
 }
 
-export default Integration;
+class Middleware extends EntityBase.MiddlewareBase {
+  loadConnector = (name: string) => async (ctx: Context, next: Next) => undefined; //TODO
+}
+class Service extends EntityBase.ServiceBase {
+  constructor() {
+    super();
+    this.IntegrationConnectors = new IntegrationConnectors(config);
+  }
+  private readonly IntegrationConnectors: IntegrationConnectors;
+
+  getSdk = this.IntegrationConnectors.getByName;
+
+  getSdks = this.IntegrationConnectors.getByNames;
+}
+namespace Service {
+  export const connectors = config;
+}
+export default class Integration extends EntityBase {
+  service = new Service();
+  middleware = new Middleware();
+  storage = new EntityBase.StorageDefault();
+  tenant = new EntityBase.TenantDefault();
+  response = new EntityBase.ResponseDefault();
+}

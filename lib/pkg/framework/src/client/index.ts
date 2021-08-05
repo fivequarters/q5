@@ -1,5 +1,5 @@
 import Integration from './Integration';
 import Connector from './Connector';
-import SdkBase from './SdkBase';
+import { IntegrationConnectors, IConnectorConfig } from './IntegrationConnectors';
 
-export { Integration, Connector, SdkBase };
+export { Integration, Connector, IntegrationConnectors, IConnectorConfig };
