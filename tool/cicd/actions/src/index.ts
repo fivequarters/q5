@@ -20,6 +20,7 @@ const publishAll = [
   'publish_fusebit_editor',
   'publish_fusebit_ops_cli',
   'publish_api_docs',
+  'publish_api_readme_com',
 ];
 const fullBuild = ['setup_env', 'full_build'];
 
@@ -48,8 +49,8 @@ const specs = [
     output: 'publish_website',
   },
   {
-    name: 'Publish API Documentation',
-    inputs: ['checkout', ...fullBuild, 'publish_api_docs', 'publish_slack'],
+    name: 'Publish API Documentation to Readme.com',
+    inputs: ['checkout', 'publish_api_readme_com'],
     output: 'publish_api_docs',
   },
   {
