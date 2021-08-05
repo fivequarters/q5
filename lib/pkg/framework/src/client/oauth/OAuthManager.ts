@@ -1,11 +1,10 @@
-import { Context, IOnStartup, Next, Router, Middleware, Connector } from '@fusebit-int/framework';
+import { Context, IOnStartup, Next, Router, Middleware } from '@fusebit-int/framework';
 import { OAuthEngine, IOAuthConfig } from './OAuthEngine';
 
 import { callbackSuffixUrl } from './OAuthConstants';
 import IdentityClient from './IdentityClient';
 
-const connector = new Connector();
-const router = connector.router;
+const router = new Router();
 
 let engine: OAuthEngine;
 
@@ -183,4 +182,4 @@ router.get(callbackSuffixUrl, async (ctx: Context) => {
   }
 });
 
-export default connector;
+export default router;

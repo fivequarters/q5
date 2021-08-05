@@ -1,3 +1,3 @@
-import connector from './OAuthManager';
+import OAuthIntegration from './OAuthIntegration';
 
-module.exports = connector;
+module.exports = OAuthIntegration;

@@ -1,0 +1,12 @@
+{
+  "scripts": {
+    "deploy": "fuse connector deploy slack-connector -d .",
+    "get": "fuse connector get slack-connector -d ."
+  },
+  "dependencies": {
+    "@fusebit-int/connector": "^1.0.0"
+  },
+  "files": [
+    "./connector.js"
+  ]
+}

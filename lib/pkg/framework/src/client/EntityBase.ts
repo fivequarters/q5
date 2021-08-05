@@ -9,7 +9,11 @@ abstract class EntityBase {
   abstract middleware: EntityBase.MiddlewareBase;
   abstract response: EntityBase.ResponseBase;
 
-  public readonly router: Router = new Router();
+  protected _router: Router = new Router();
+  public readonly router = function getRouter() {
+    // @ts-ignore
+    return this._router;
+  }.call(this);
 }
 
 namespace EntityBase {
