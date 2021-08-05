@@ -47,11 +47,17 @@ else
 fi
 
 # -- Script --
-${FUSEOPS} setup -c false
-${FUSEOPS} deployment add ${DEPLOYMENT_NAME} ${NETWORK_NAME} ${DEPLOYMENT_DOMAIN} --dataWarehouse false --size 1 --region ${REGION} -c false
 
 ALL_STACKS=`${FUSEOPS} stack ls -o json --deployment ${DEPLOYMENT_NAME}`
 OLD_STACKS=`echo ${ALL_STACKS} | jq --arg region ${REGION} -r 'map(select(.region == $region)) | .[] | .id'`
+
+echoerr "Deleting old stacks: ${OLD_STACKS}"
+echo -n ${OLD_STACKS} | \
+  xargs -d ' ' -I STACKID \
+  ${FUSEOPS} stack rm ${DEPLOYMENT_NAME} STACKID --force true -c f --region ${REGION} -o json 1>&2
+
+${FUSEOPS} setup -c false
+${FUSEOPS} deployment add ${DEPLOYMENT_NAME} ${NETWORK_NAME} ${DEPLOYMENT_DOMAIN} --dataWarehouse false --size 1 --region ${REGION} -c false
 
 echoerr "Deploying stack ${DEPLOYMENT_NAME}/${REGION}: ${IMG_VER} with environment params: ${ENV_PARAMS}"
 
@@ -62,10 +68,7 @@ NEW_STACK_ID=`echo ${STACK_ADD} | jq -r '.id'`
 echoerr "Promoting stack ${DEPLOYMENT_NAME}: ${NEW_STACK_ID}"
 ${FUSEOPS} stack promote ${DEPLOYMENT_NAME} ${NEW_STACK_ID} --region ${REGION} -c f 1>&2
 
-echoerr "Deleting old stacks: ${OLD_STACKS}"
-echo -n ${OLD_STACKS} | \
-  xargs -d ' ' -I STACKID \
-  ${FUSEOPS} stack rm ${DEPLOYMENT_NAME} STACKID --force true -c f --region ${REGION} -o json 1>&2
+while [ 1 ]; do curl -s https://${DEPLOYMENT_NAME}.${REGION}.${NETWORK_NAME}.fusebit.io/v1/health | grep -v status 2> /dev/null; RET=$?; if [ ${RET} == 0 ]; then break; fi; sleep 0.1; done
 
 echoerr "Completed successfully:"
 echo { \"deployment\": \"${DEPLOYMENT_NAME}\", \"id\": \"${NEW_STACK_ID}\" }
