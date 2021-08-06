@@ -1,5 +1,5 @@
 import superagent from 'superagent';
-import { Internal } from '@fusebit-int/framework';
+import { Context, Internal, Next } from '@fusebit-int/framework';
 
 import { IOAuthConfig, IOAuthToken } from './OAuthTypes';
 
@@ -12,7 +12,7 @@ class OAuthEngine {
     this.cfg = cfg;
     this.router = router;
 
-    router.on('uninstall', async (ctx: Internal.Context, next: Internal.Next) => {
+    router.on('uninstall', async (ctx: Context, next: Next) => {
       return next();
     });
   }
@@ -21,7 +21,7 @@ class OAuthEngine {
     this.cfg.mountUrl = mountUrl;
   }
 
-  public async deleteUser(ctx: Internal.Context, lookupKey: string) {
+  public async deleteUser(ctx: Context, lookupKey: string) {
     return ctx.state.identityClient?.delete(lookupKey);
   }
 
@@ -48,7 +48,7 @@ class OAuthEngine {
   /**
    * Convert the successful callback into a token via getAccessToken.
    */
-  public async convertAccessCodeToToken(ctx: Internal.Context, lookupKey: string, code: string) {
+  public async convertAccessCodeToToken(ctx: Context, lookupKey: string, code: string) {
     const token = await this.getAccessToken(code, this.cfg.mountUrl + callbackSuffixUrl);
     if (!isNaN(token.expires_in)) {
       token.expires_at = Date.now() + +token.expires_in * 1000;
@@ -65,7 +65,7 @@ class OAuthEngine {
   /**
    * Fetches callback url from session that is managing the connector
    */
-  public async redirectToCallback(ctx: Internal.Context) {
+  public async redirectToCallback(ctx: Context) {
     const callbackUrl = await ctx.state.identityClient!.getCallbackUrl(ctx.query.state);
     ctx.redirect(callbackUrl);
   }
@@ -118,13 +118,13 @@ class OAuthEngine {
   }
 
   /**
-   * Returns a valid access token to the vendor's system representing the vendor's user described by the userInternal.Context.
+   * Returns a valid access token to the vendor's system representing the vendor's user described by the Context.
    * For the vendor's system, if the currently stored access token is expired or nearing expiry, and a refresh
    * token is available, a new access token is obtained, stored for future use, and returned. If a current
    * access token cannot be returned, an exception is thrown.
-   * @param {*} userInternal.Context The vendor user context
+   * @param {*} Context The vendor user context
    */
-  public async ensureAccessToken(ctx: Internal.Context, lookupKey: string, identity: boolean = true) {
+  public async ensureAccessToken(ctx: Context, lookupKey: string, identity: boolean = true) {
     let token: IOAuthToken | undefined;
     const tokenRw = identity
       ? {
@@ -163,7 +163,7 @@ class OAuthEngine {
     }
   }
 
-  protected async ensureLocalAccessToken(ctx: Internal.Context, lookupKey: string, tokenRw: any) {
+  protected async ensureLocalAccessToken(ctx: Context, lookupKey: string, tokenRw: any) {
     let token: IOAuthToken = await tokenRw.get(lookupKey);
     if (
       token.access_token &&
@@ -211,7 +211,7 @@ class OAuthEngine {
   }
 
   protected async waitForRefreshedAccessToken(
-    ctx: Internal.Context,
+    ctx: Context,
     lookupKey: string,
     count: number,
     backoff: number,

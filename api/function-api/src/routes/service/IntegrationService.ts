@@ -8,7 +8,7 @@ import { defaultFrameworkSemver } from './BaseEntityService';
 const defaultIntegrationSemver = '^1.0.2';
 
 const defaultIntegrationJs = [
-  "const Integration = require('@fusebit-int/integration');",
+  "const { Integration } = require('@fusebit-int/framework');",
   '',
   'const integration = new Integration();',
   'const router = integration.router;',
@@ -24,7 +24,6 @@ const defaultPackageJson = (entityId: string) => ({
   scripts: { deploy: `fuse integration deploy ${entityId} -d .`, get: `fuse integration get ${entityId} -d .` },
   dependencies: {
     ['@fusebit-int/framework']: defaultFrameworkSemver,
-    ['@fusebit-int/integration']: defaultIntegrationSemver,
   },
   files: ['./integration.js'], // Make sure the default file is included, if nothing else.
 });
@@ -77,8 +76,6 @@ class IntegrationService extends SessionedEntityService<Model.IIntegration, Mode
 
     // Enforce @fusebit-int/framework as a dependency.
     pkg.dependencies['@fusebit-int/framework'] = pkg.dependencies['@fusebit-int/framework'] || defaultFrameworkSemver;
-    pkg.dependencies['@fusebit-int/integration'] =
-      pkg.dependencies['@fusebit-int/integration'] || defaultIntegrationSemver;
 
     // Validate the components in the integration, and adjust the dependencies in the package.json if
     // necessary.

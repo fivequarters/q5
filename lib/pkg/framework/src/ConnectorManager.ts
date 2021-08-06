@@ -102,10 +102,10 @@ class ConnectorManager {
     return inst.instantiate(ctx, instanceId);
   }
 
-  public getByNames(ctx: Context, names: string[], tenantId: string): Record<string, any> {
+  public getByNames(ctx: Context, names: string[], instanceId: string): Record<string, any> {
     return (ctx: Context) => {
       return names.reduce<Record<string, any>>((acc, cur) => {
-        acc[name] = this.getByName(ctx, name, tenantId)(ctx);
+        acc[name] = this.getByName(ctx, name, instanceId);
         return acc;
       }, {});
     };

@@ -98,7 +98,7 @@ describe('Workflow', () => {
     expect(integration).toBeHttp({ statusCode: 200 });
     integration.data.data.files['integration.js'] = [
       "const superagent = require('superagent');",
-      "const Integration = require('@fusebit-int/integration');",
+      "const { Integration } = require('@fusebit-int/framework');",
       '',
       'const integration = new Integration();',
       'const router = integration.router;',

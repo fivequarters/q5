@@ -1,4 +1,4 @@
-import { Internal, Connector } from '@fusebit-int/framework';
+import { Internal, Connector, Context, Next } from '@fusebit-int/framework';
 import { OAuthEngine, IOAuthConfig } from './OAuthEngine';
 
 import { callbackSuffixUrl } from './OAuthConstants';
@@ -9,7 +9,7 @@ const router = connector.router;
 
 let engine: OAuthEngine;
 
-router.use(async (ctx: Internal.Context, next: Internal.Next) => {
+router.use(async (ctx: Context, next: Next) => {
   if (engine) {
     engine.setMountUrl(ctx.state.params.baseUrl);
     ctx.state.identityClient = new IdentityClient({
@@ -20,7 +20,7 @@ router.use(async (ctx: Internal.Context, next: Internal.Next) => {
   return next();
 });
 
-router.on('startup', async ({ mgr, cfg, router: rtr }: Internal.IOnStartup, next: Internal.Next) => {
+router.on('startup', async ({ mgr, cfg, router: rtr }: Internal.IOnStartup, next: Next) => {
   // Router's already been mounted, so any further additions need to happen here on 'rtr'.
   //
   // Create the engine, now that the configuration has been loaded.
@@ -30,12 +30,12 @@ router.on('startup', async ({ mgr, cfg, router: rtr }: Internal.IOnStartup, next
 });
 
 // Internal Endpoints
-router.delete('/', async (ctx: Internal.Context, next: Internal.Next) => {
+router.delete('/', async (ctx: Context, next: Next) => {
   await ctx.state.manager.invoke('uninstall', {});
   return next();
 });
 
-router.get('/api/:lookupKey/health', async (ctx: Internal.Context) => {
+router.get('/api/:lookupKey/health', async (ctx: Context) => {
   try {
     if (!(await engine.ensureAccessToken(ctx, ctx.params.lookupKey))) {
       ctx.throw(404);
@@ -47,7 +47,7 @@ router.get('/api/:lookupKey/health', async (ctx: Internal.Context) => {
   }
 });
 
-router.get('/api/session/:lookupKey/token', async (ctx: Internal.Context) => {
+router.get('/api/session/:lookupKey/token', async (ctx: Context) => {
   try {
     ctx.body = await engine.ensureAccessToken(ctx, ctx.params.lookupKey, false);
   } catch (error) {
@@ -58,7 +58,7 @@ router.get('/api/session/:lookupKey/token', async (ctx: Internal.Context) => {
   }
 });
 
-router.get('/api/:lookupKey/token', async (ctx: Internal.Context) => {
+router.get('/api/:lookupKey/token', async (ctx: Context) => {
   try {
     ctx.body = await engine.ensureAccessToken(ctx, ctx.params.lookupKey);
   } catch (error) {
@@ -69,16 +69,16 @@ router.get('/api/:lookupKey/token', async (ctx: Internal.Context) => {
   }
 });
 
-router.delete('/api/:lookupKey', async (ctx: Internal.Context) => {
+router.delete('/api/:lookupKey', async (ctx: Context) => {
   ctx.body = await engine.deleteUser(ctx, ctx.params.lookupKey);
 });
 
 // OAuth Flow Endpoints
-router.get('/api/authorize', async (ctx: Internal.Context) => {
+router.get('/api/authorize', async (ctx: Context) => {
   ctx.redirect(await engine.getAuthorizationUrl(ctx.query.session));
 });
 
-router.get('/api/form', Internal.Middleware.authorize('connector:put'), async (ctx: Internal.Context) => {
+router.get('/api/form', Internal.Middleware.authorize('connector:put'), async (ctx: Context) => {
   ctx.body = {
     data: ctx.state.manager.config.configuration,
     schema: {
@@ -167,7 +167,7 @@ router.get('/api/form', Internal.Middleware.authorize('connector:put'), async (c
   };
 });
 
-router.get(callbackSuffixUrl, async (ctx: Internal.Context) => {
+router.get(callbackSuffixUrl, async (ctx: Context) => {
   const state = ctx.query.state;
   const code = ctx.query.code;
 

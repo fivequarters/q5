@@ -25,15 +25,7 @@ const sampleEntitiesWithData: SampleEntityMap = {
   [Model.EntityType.connector]: (): { id: string; tags: Model.ITags; data: Model.IConnectorData } => ({
     data: {
       handler: '@fusebit-int/pkg-oauth-connector',
-      files: {
-        ['package.json']: JSON.stringify({
-          scripts: {},
-          dependencies: {
-            ['@fusebit-int/framework']: '^2.0.7',
-            ['@fusebit-int/pkg-oauth-connector']: '^1.0.2',
-          },
-        }),
-      },
+      files: {},
       configuration: {
         scope: 'test scope',
         accessTokenExpirationBuffer: 123,
@@ -51,12 +43,11 @@ const sampleEntitiesWithData: SampleEntityMap = {
           scripts: {},
           dependencies: {
             ['@fusebit-int/framework']: '^2.0.7',
-            ['@fusebit-int/integration']: '1.0.2',
           },
           files: ['./integrationTest.js'],
         }),
         ['integrationTest.js']: [
-          "const Integration = require('@fusebit-int/integration');",
+          "const { Integration } = require('@fusebit-int/framework');",
           '',
           'const integration = new Integration();',
           'const router = integration.router;',
@@ -592,7 +583,7 @@ const performIntegrationTest = (sampleEntitiesMap: SampleEntityMap) => {
     const newFiles = {
       ...entity.data.files,
       './integration.js': [
-        "const Integration = require('@fusebit-int/integration');",
+        "const { Integration } = require('@fusebit-int/framework');",
         '',
         'const integration = new Integration();',
         'const router = integration.router;',
@@ -621,7 +612,7 @@ const performIntegrationTest = (sampleEntitiesMap: SampleEntityMap) => {
     const newFiles = {
       ...entity.data.files,
       './integration.js': [
-        "const Integration = require('@fusebit-int/integration');",
+        "const { Integration } = require('@fusebit-int/framework');",
         '',
         'const integration = new Integration();',
         'const router = integration.router;',
@@ -648,7 +639,7 @@ const performIntegrationTest = (sampleEntitiesMap: SampleEntityMap) => {
     const newFiles = {
       ...entity.data.files,
       './integration.js': [
-        "const Integration = require('@fusebit-int/integration');",
+        "const { Integration } = require('@fusebit-int/framework');",
         '',
         'const integration = new Integration();',
         'const router = integration.router;',

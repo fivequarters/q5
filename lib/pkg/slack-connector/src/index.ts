@@ -1,7 +1,7 @@
 /**
  * Fusebit, Inc. Slack Connector
  */
-import { Connector } from '@fusebit-int/framework';
+import { Connector, Context, Next } from '@fusebit-int/framework';
 const OAuthConnectorRouter = require('@fusebit-int/pkg-oauth-connector');
 import { schema, uischema } from './configure';
 
@@ -23,13 +23,13 @@ interface IConfigurationData {
   authorizationUrl: string;
 }
 
-router.on('startup', async ({ mgr, cfg }: Connector.IOnStartup, next: Connector.Next) => {
+router.on('startup', async ({ mgr, cfg }: Connector.IOnStartup, next: Next) => {
   cfg.configuration.tokenUrl = TOKEN_URL;
   cfg.configuration.authorizationUrl = AUTHORIZATION_URL;
   return next();
 });
 
-router.get('/api/configure', connector.middleware.authorizeUser('connector:put'), async (ctx: Connector.Context) => {
+router.get('/api/configure', connector.middleware.authorizeUser('connector:put'), async (ctx: Context) => {
   ctx.body = {
     data: ctx.state.manager.config.configuration as IConfigurationData,
     schema,
