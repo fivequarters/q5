@@ -1,5 +1,5 @@
-import { Router as RouterType, Context, Next } from './Router';
-import { Manager, IStorage as IStorageInterface, IOnStartup } from './Manager';
+import { Router as RouterType, Context as ContextType, Next as NextType } from './Router';
+import { Manager, IStorage as IStorageInterface, IOnStartup as IOnStartupInterface } from './Manager';
 import { ConnectorManager, IInstanceConnectorConfig as IInstanceConnectorConfigInterface } from './ConnectorManager';
 import * as Storage from './Storage';
 import { Form } from './Form';
@@ -27,12 +27,18 @@ module Internal {
   export type Form = typeof Form;
   export type ConnectorManager = typeof ConnectorManager;
   export type Manager = typeof Manager;
-  export interface IStorage extends IStorageInterface {}
   export type Middleware = typeof Middleware;
   export type Storage = typeof Storage;
   export type IntegrationActivator = typeof IntegrationActivator;
   export type Tenant = typeof Tenant;
-  export interface IInstanceConnectorConfig extends IInstanceConnectorConfigInterface {}
 }
 
-export { Connector, Integration, Internal, Context, Next, IOnStartup };
+module Types {
+  export type Context = ContextType;
+  export type Next = NextType;
+  export interface IOnStartup extends IOnStartupInterface {}
+  export interface IInstanceConnectorConfig extends IInstanceConnectorConfigInterface {}
+  export interface IStorage extends IStorageInterface {}
+}
+
+export { Connector, Integration, Internal, Types };
