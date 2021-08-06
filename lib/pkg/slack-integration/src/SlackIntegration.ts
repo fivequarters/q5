@@ -5,9 +5,9 @@ export default class SlackIntegration extends Internal.IntegrationActivator<WebC
   /*
    * This function will create an authorized wrapper of the Slack SDK client.
    */
-  protected async instantiate(ctx: Internal.Types.Context, lookupKey: string): Promise<WebClient> {
+  protected async instantiate(ctx: Internal.Types.Context, lookupKey: string): Promise<any> {
     const token = await this.requestConnectorToken({ ctx, lookupKey });
-    const slackClient = new WebClient(token);
-    return slackClient;
+    const slackClient = await new WebClient(token);
+    return token;
   }
 }

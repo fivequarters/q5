@@ -6,7 +6,8 @@ import IdentityClient from './IdentityClient';
 
 const connector = new Connector();
 const router = connector.router;
-
+console.log('testing:');
+console.log(connector.middleware.authorizeUser);
 let engine: OAuthEngine;
 
 router.use(async (ctx: Connector.Types.Context, next: Connector.Types.Next) => {

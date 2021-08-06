@@ -1,0 +1,17 @@
+{
+  "id": "slack-connector",
+  "tags": {},
+  "handler": "@fusebit-int/slack-connector",
+  "configuration": {
+    "scope": "chat:write",
+    "clientId": "457394426995.2306221278340",
+    "tokenUrl": "https://slack.com/api/oauth.v2.access",
+    "clientSecret": "9c5c246865c03dd849d6c23b796380d3",
+    "authorizationUrl": "https://slack.com/oauth/v2/authorize",
+    "refreshErrorLimit": 100000,
+    "refreshInitialBackoff": 100000,
+    "refreshWaitCountLimit": 100000,
+    "refreshBackoffIncrement": 100000,
+    "accessTokenExpirationBuffer": 500
+  }
+}
