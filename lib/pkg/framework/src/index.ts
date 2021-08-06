@@ -9,9 +9,6 @@ import IntegrationActivator from './IntegrationActivator';
 import * as Tenant from './Tenant';
 import { Connector, Integration } from './client/index';
 
-// Types
-export * from './Storage';
-
 // Objects
 const Internal = {
   Handler,
