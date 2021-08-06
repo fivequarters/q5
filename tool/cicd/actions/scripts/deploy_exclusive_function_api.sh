@@ -29,7 +29,7 @@ if [ -z "${NETWORK_NAME}" ]; then
 fi
 
 if [ -z "${DEPLOYMENT_DOMAIN}" ]; then
-  echoerr "ERROR: NETWORK_NAME is unset."
+  echoerr "ERROR: DEPLOYMENT_DOMAIN is unset."
   exit -1
 fi
 
