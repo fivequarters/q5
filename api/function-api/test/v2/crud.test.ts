@@ -29,7 +29,6 @@ const sampleEntitiesWithData: SampleEntityMap = {
       configuration: {
         scope: 'test scope',
         accessTokenExpirationBuffer: 123,
-        package: '@fusebit-int/pkg-oauth-connector',
       },
     },
     id: newId('Test'),
