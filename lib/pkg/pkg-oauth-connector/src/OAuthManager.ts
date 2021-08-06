@@ -1,4 +1,4 @@
-import { Internal, Connector, Context, Next } from '@fusebit-int/framework';
+import { Internal, Connector, Context, Next, IOnStartup } from '@fusebit-int/framework';
 import { OAuthEngine, IOAuthConfig } from './OAuthEngine';
 
 import { callbackSuffixUrl } from './OAuthConstants';
@@ -20,7 +20,7 @@ router.use(async (ctx: Context, next: Next) => {
   return next();
 });
 
-router.on('startup', async ({ mgr, cfg, router: rtr }: Internal.IOnStartup, next: Next) => {
+router.on('startup', async ({ mgr, cfg, router: rtr }: IOnStartup, next: Next) => {
   // Router's already been mounted, so any further additions need to happen here on 'rtr'.
   //
   // Create the engine, now that the configuration has been loaded.

@@ -1,7 +1,7 @@
 /**
  * Fusebit, Inc. Slack Connector
  */
-import { Connector, Context, Next } from '@fusebit-int/framework';
+import { Connector, Context, IOnStartup, Next } from '@fusebit-int/framework';
 const OAuthConnectorRouter = require('@fusebit-int/pkg-oauth-connector');
 import { schema, uischema } from './configure';
 
@@ -23,7 +23,7 @@ interface IConfigurationData {
   authorizationUrl: string;
 }
 
-router.on('startup', async ({ mgr, cfg }: Connector.IOnStartup, next: Next) => {
+router.on('startup', async ({ mgr, cfg }: IOnStartup, next: Next) => {
   cfg.configuration.tokenUrl = TOKEN_URL;
   cfg.configuration.authorizationUrl = AUTHORIZATION_URL;
   return next();
