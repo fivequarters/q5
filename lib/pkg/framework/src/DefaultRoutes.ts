@@ -1,4 +1,5 @@
-import { Router, Manager, Context, Next, IOnStartup } from './';
+import { Router, Context, Next } from './Router';
+import { Manager, IOnStartup } from './Manager';
 
 const router = new Router();
 

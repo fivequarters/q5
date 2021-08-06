@@ -1,6 +1,7 @@
 import { Context, Next, Router } from '../Router';
 import * as Storage from '../Storage';
 import * as Tenant from '../Tenant';
+import { authorize } from '../middleware/index';
 
 abstract class EntityBase {
   abstract service: EntityBase.ServiceBase;
@@ -50,13 +51,7 @@ namespace EntityBase {
     ) => Storage.createStorage(ctx.state.params).delete(dataKeyPrefix, true, true);
   }
   export abstract class MiddlewareBase {
-    authorizeUser: (Permissions: string | string[]) => (ctx: Context, next: Next) => undefined = (
-      Permissions: string | string[]
-    ) => {
-      return (ctx: Context, next: Next) => {
-        return undefined; //Todo
-      };
-    };
+    authorizeUser = authorize;
     loadTenant: (tags: string) => (ctx: Context, next: Next) => Promise<any> = (tags: string) => {
       return async (ctx: Context, next: Next) => {
         return undefined; //Todo

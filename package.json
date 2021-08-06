@@ -196,6 +196,7 @@
       "lib/server/registry",
       "lib/server/runas",
       "tool/cicd/actions",
+      "lib/pkg/connector",
       "lib/pkg/framework",
       "lib/pkg/pkg-integration",
       "lib/pkg/pkg-oauth-connector",

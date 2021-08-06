@@ -1,5 +1,6 @@
 import superagent from 'superagent';
-import { Context, IInstanceConnectorConfig } from './';
+import { Context } from './Router';
+import { IInstanceConnectorConfig } from './ConnectorManager';
 
 export default abstract class IntegrationActivator<T> {
   protected abstract instantiate(ctx: Context, lookupKey: string): Promise<T>;

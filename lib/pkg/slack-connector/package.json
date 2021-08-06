@@ -17,9 +17,7 @@
   "dependencies": {
     "@fusebit-int/pkg-oauth-connector": "^1.2.1",
     "@slack/web-api": "^6.3.0",
-    "superagent": "6.1.0"
-  },
-  "peerDependencies": {
+    "superagent": "6.1.0",
     "@fusebit-int/framework": "^2.0.7"
   }
 }
