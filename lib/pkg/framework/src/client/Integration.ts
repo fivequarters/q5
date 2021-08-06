@@ -12,14 +12,12 @@ class Service extends EntityBase.ServiceBase {
     ctx.state.manager.connectors.getByNames(ctx, connectorNames, instanceId);
 }
 class Tenant {
-  listTenants: (ctx: Context, tags: string) => Promise<any> = async (ctx: Context, tags: string) =>
-    TenantService.createRequest(ctx.state.params).get(tags);
-  listInstanceTenants: (ctx: Context, instanceId: string) => Promise<any> = async (ctx: Context, instanceId: string) =>
-    TenantService.createRequest(ctx.state.params).getInstanceTenants(instanceId);
-  listTenantInstances: (ctx: Context, tenantId: string) => Promise<any> = async (ctx: Context, tenantId: string) =>
-    TenantService.createRequest(ctx.state.params).getTenantInstances(tenantId);
+  getTenant: (ctx: Context, tenantId: string) => Promise<TenantService.IInstance> = async (
+    ctx: Context,
+    tenantId: string
+  ) => TenantService.createRequest(ctx.state.params).getTenant(tenantId);
   deleteTenant: (ctx: Context, tenantId: string) => Promise<any> = async (ctx: Context, tenantId: string) =>
-    TenantService.createRequest(ctx.state.params).delete(tenantId);
+    TenantService.createRequest(ctx.state.params).deleteTenant(tenantId);
 }
 
 namespace Integration {
