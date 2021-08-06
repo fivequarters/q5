@@ -1,4 +1,4 @@
-import { Internal, Connector, Context, Next, IOnStartup } from '@fusebit-int/framework';
+import { Connector, Context, Next, IOnStartup } from '@fusebit-int/framework';
 import { OAuthEngine, IOAuthConfig } from './OAuthEngine';
 
 import { callbackSuffixUrl } from './OAuthConstants';
@@ -78,7 +78,7 @@ router.get('/api/authorize', async (ctx: Context) => {
   ctx.redirect(await engine.getAuthorizationUrl(ctx.query.session));
 });
 
-router.get('/api/form', Internal.Middleware.authorize('connector:put'), async (ctx: Context) => {
+router.get('/api/form', connector.middleware.authorizeUser('connector:put'), async (ctx: Context) => {
   ctx.body = {
     data: ctx.state.manager.config.configuration,
     schema: {
