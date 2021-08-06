@@ -21,6 +21,16 @@ class Tenant {
   deleteTenant: (ctx: Context, tenantId: string) => Promise<any> = async (ctx: Context, tenantId: string) =>
     TenantService.createRequest(ctx.state.params).delete(tenantId);
 }
+
+namespace Integration {
+  export namespace Types {
+    export type Context = EntityBase.Types.Context;
+    export type Next = EntityBase.Types.Next;
+    export interface IOnStartup extends EntityBase.Types.IOnStartup {}
+    export interface IInstanceConnectorConfig extends EntityBase.Types.IInstanceConnectorConfig {}
+    export interface IStorage extends EntityBase.Types.IStorage {}
+  }
+}
 export default class Integration extends EntityBase {
   service = new Service();
   middleware = new Middleware();

@@ -1,8 +1,14 @@
 import { Context, Next, Router } from '../Router';
 import * as Storage from '../Storage';
 import { authorize } from '../middleware/index';
+import { IOnStartup as IOnStartupInterface, IStorage as IStorageInterface } from '../Manager';
+import { IInstanceConnectorConfig as IInstanceConnectorConfigInterface } from '../ConnectorManager';
+type ContextType = Context;
+type NextType = Next;
 
 abstract class EntityBase {
+  public readonly events = {};
+
   abstract service: EntityBase.ServiceBase;
   abstract storage: EntityBase.StorageBase;
   abstract middleware: EntityBase.MiddlewareBase;
@@ -12,6 +18,13 @@ abstract class EntityBase {
 }
 
 namespace EntityBase {
+  export namespace Types {
+    export type Context = ContextType;
+    export type Next = NextType;
+    export interface IOnStartup extends IOnStartupInterface {}
+    export interface IInstanceConnectorConfig extends IInstanceConnectorConfigInterface {}
+    export interface IStorage extends IStorageInterface {}
+  }
   export abstract class ServiceBase {}
 
   export abstract class StorageBase {
