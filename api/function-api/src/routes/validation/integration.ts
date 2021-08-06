@@ -20,7 +20,7 @@ const Data = Joi.alternatives().try(
           skip: Joi.boolean().optional().default(false),
           path: Joi.string().when('entityType', {
             is: 'connector',
-            then: Joi.default('/api/configure'),
+            then: Joi.default('/api/authorize'),
             otherwise: Joi.required(),
           }),
           package: Joi.string().when('entityType', {

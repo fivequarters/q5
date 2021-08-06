@@ -85,22 +85,29 @@ class ConnectorManager {
    * multiple calls and endpoints.
    *
    * @param name Connector name
-   * @param handler A function that converts a Context into a unique string that the connector can use as a
+   * @param instanceId A function that converts a Context into a unique string that the connector can use as a
    * key to look up identities.
    */
-  public getByName(name: string, handler: (ctx: Context) => string) {
-    return (ctx: Context) => {
-      const cfg = this.connectors[name];
-      if (!cfg) {
-        throw new Error(
-          `Unknown connector ${name}; add it to the configuration (known: ${JSON.stringify(
-            Object.keys(this.connectors)
-          )})?`
-        );
-      }
-      const inst = cfg.instance ? cfg.instance : this.loadConnector(name, cfg);
+  public getByName(ctx: Context, name: string, instanceId: string): any {
+    const cfg = this.connectors[name];
+    if (!cfg) {
+      throw new Error(
+        `Unknown connector ${name}; add it to the configuration (known: ${JSON.stringify(
+          Object.keys(this.connectors)
+        )})?`
+      );
+    }
+    const inst = cfg.instance ? cfg.instance : this.loadConnector(name, cfg);
 
-      return inst.instantiate(ctx, handler(ctx));
+    return inst.instantiate(ctx, instanceId);
+  }
+
+  public getByNames(ctx: Context, names: string[], instanceId: string): Record<string, any> {
+    return (ctx: Context) => {
+      return names.reduce<Record<string, any>>((acc, cur) => {
+        acc[name] = this.getByName(ctx, name, instanceId);
+        return acc;
+      }, {});
     };
   }
 

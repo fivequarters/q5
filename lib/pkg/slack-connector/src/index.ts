@@ -1,21 +1,32 @@
 /**
  * Fusebit, Inc. Slack Connector
  */
-import { IOnStartup, Next, Router } from '@fusebit-int/framework'; // TODO: Export this from the oauth connector
-const OAuthConnectorRouter = require('@fusebit-int/pkg-oauth-connector');
+import { Connector } from '@fusebit-int/framework';
+import OAuthConnector from '@fusebit-int/pkg-oauth-connector';
+import { schema, uischema } from './configure';
 
-import superagent from 'superagent';
-const { WebClient } = require('@slack/web-api');
+const connector = new Connector();
+const router = connector.router;
+const TOKEN_URL = 'https://slack.com/api/oauth.v2.access';
+const AUTHORIZATION_URL = 'https://slack.com/oauth/v2/authorize';
 
-const router = new Router();
-// 1. Inject common configuration values for consuming slack sdk.
-
-router.on('startup', async ({ mgr, cfg, router: rtr }: IOnStartup, next: Next) => {
-  cfg.configuration.channel = 'example-slack-connector-v2';
-  cfg.configuration.scope = 'chat:write';
-  cfg.configuration.tokenUrl = 'https://slack.com/api/oauth.v2.access';
-  cfg.configuration.authorizationUrl = 'https://slack.com/oauth/v2/authorize';
+router.on('startup', async ({ mgr, cfg }: Connector.Types.IOnStartup, next: Connector.Types.Next) => {
+  cfg.configuration.tokenUrl = TOKEN_URL;
+  cfg.configuration.authorizationUrl = AUTHORIZATION_URL;
   return next();
 });
-router.use(OAuthConnectorRouter.routes());
-module.exports = router;
+
+router.get(
+  '/api/configure',
+  connector.middleware.authorizeUser('connector:put'),
+  async (ctx: Connector.Types.Context) => {
+    ctx.body = {
+      data: ctx.state.manager.config.configuration,
+      schema,
+      uischema,
+    };
+  }
+);
+
+router.use(OAuthConnector.router.routes());
+module.exports = connector;

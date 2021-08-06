@@ -98,8 +98,10 @@ describe('Workflow', () => {
     expect(integration).toBeHttp({ statusCode: 200 });
     integration.data.data.files['integration.js'] = [
       "const superagent = require('superagent');",
-      "const { Router, Manager, Form } = require('@fusebit-int/framework');",
-      'const router = new Router();',
+      "const { Integration } = require('@fusebit-int/framework');",
+      '',
+      'const integration = new Integration();',
+      'const router = integration.router;',
       "router.get('/api/getSession', async (ctx) => {",
       "  const response = await superagent.get(`${ctx.state.params.baseUrl}/session/${ctx.query.session}`).set('Authorization', `Bearer ${ctx.state.params.functionAccessToken}`);",
       '  ctx.body = response.body;',
@@ -123,7 +125,7 @@ describe('Workflow', () => {
       '});',
       "router.get('/api/doASessionThing/:sessionId', async (ctx) => { ctx.body = 'doASessionThing'; });",
       "router.get('/api/doAThing/:instanceId', async (ctx) => { ctx.body = 'doAThing'; });",
-      'module.exports = router;',
+      'module.exports = integration;',
     ].join('\n');
     const pkgJson = JSON.parse(integration.data.data.files['package.json']);
     pkgJson.dependencies.superagent = '*';
@@ -149,15 +151,15 @@ describe('Workflow', () => {
     response = await ApiRequestMap.integration.session.start(account, integrationId, parentSessionId);
     expect(response).toBeHttp({ statusCode: 302 });
 
-    // Validate that it goes to connector/api/configure
-    expect(response.headers.location.indexOf(`${baseUrl}/connector/${connectorId}/api/configure?session=`)).toBe(0);
+    // Validate that it goes to connector/api/authorize
+    expect(response.headers.location.indexOf(`${baseUrl}/connector/${connectorId}/api/authorize?session=`)).toBe(0);
     let url = new URL(response.headers.location);
     expect(url.searchParams.get('redirect_uri')).toBe(
       `${baseUrl}/connector/${connectorId}/session/${url.searchParams.get('session')}/callback`
     );
     const connectorSessionId = url.searchParams.get('session');
 
-    // Load the connector/api/configure
+    // Load the connector/api/authorize
     response = await request({ url: response.headers.location, maxRedirects: 0 });
     expect(response).toBeHttp({ statusCode: 302 });
 
@@ -298,7 +300,7 @@ describe('Workflow', () => {
         components: [
           {
             name: 'conn1',
-            path: '/api/configure',
+            path: '/api/authorize',
             entityId: connectorId,
             entityType: Model.EntityType.connector,
           },
@@ -395,7 +397,7 @@ describe('Workflow', () => {
     response = await ApiRequestMap.connector.session.getResult(account, connectorId, identitySessionId);
     expect(response.data.output.token.access_token).toBe('original token');
 
-    // Load the connector/api/configure
+    // Load the connector/api/authorize
     nextUrl = await nextSessionStep(nextUrl);
 
     // Load the authorization url

@@ -1,4 +1,5 @@
-import { Router, Manager, Context, Next, IOnStartup } from './';
+import { Router, Context, Next } from './Router';
+import { Manager, IOnStartup } from './Manager';
 
 const router = new Router();
 
@@ -16,8 +17,7 @@ router.get('/api/health', async (ctx: Context, next: Next) => {
   if (ctx.status === 200 && ctx.state.manager.vendorError) {
     // TODO: The ctx.throw doesn't seem to support an optional parameter, or it gets stripped out later.
     ctx.body = ctx.state.manager.vendorError
-      ? ctx.throw(501, {
-          message: `invalid code: ${ctx.state.manager.vendorError}`,
+      ? ctx.throw(501, `invalid code: ${ctx.state.manager.vendorError}`, {
           backtrace: ctx.state.manager.vendorError.stack,
         })
       : { status: 'ok' };

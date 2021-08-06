@@ -5,8 +5,13 @@ export const Handler = (handler: string, config: any) => {
 
   let router;
   let routerError;
+  let componentClass;
   try {
-    router = require(handler);
+    componentClass = require(handler);
+    router = componentClass.router;
+    if (!router) {
+      throw `No Router found on handler ${handler}`;
+    }
   } catch (e) {
     routerError = e;
   }

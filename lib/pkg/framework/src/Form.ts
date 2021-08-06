@@ -59,4 +59,4 @@ const Form = (spec: IFormSpecification) => {
   return [form, 'text/html; charset=UTF-8'];
 };
 
-export { Form };
+export { Form, IFormSpecification };

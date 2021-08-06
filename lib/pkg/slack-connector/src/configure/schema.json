@@ -1,0 +1,46 @@
+{
+  "type": "object",
+  "properties": {
+    "settings": {
+      "title": "Settings",
+      "type": "object",
+      "properties": {
+        "scope": {
+          "title": "Scope",
+          "description": "Comma separated scopes to request from your Slack app",
+          "type": "string"
+        },
+        "clientId": {
+          "title": "Client ID",
+          "description": "The client ID from your Slack app",
+          "type": "string"
+        },
+        "clientSecret": {
+          "title": "Client Secret",
+          "type": "string",
+          "description": "The client Secret from your Slack app"
+        }
+      },
+      "required": ["scope", "clientId", "clientSecret"]
+    },
+    "advanced": {
+      "properties": {
+        "refreshErrorLimit": {
+          "type": "integer"
+        },
+        "refreshInitialBackoff": {
+          "type": "integer"
+        },
+        "refreshWaitCountLimit": {
+          "type": "integer"
+        },
+        "refreshBackoffIncrement": {
+          "type": "integer"
+        },
+        "accessTokenExpirationBuffer": {
+          "type": "integer"
+        }
+      }
+    }
+  }
+}

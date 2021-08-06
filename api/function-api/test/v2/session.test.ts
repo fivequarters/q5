@@ -42,7 +42,7 @@ describe('Sessions', () => {
               dependsOn: [],
               entityType: 'connector',
               entityId: connectorId,
-              path: '/api/configure',
+              path: '/api/authorize',
             },
           ],
         },
@@ -109,7 +109,7 @@ describe('Sessions', () => {
               dependsOn: [],
               entityType: 'connector',
               entityId: connectorId,
-              path: '/api/configure',
+              path: '/api/authorize',
               input: {
                 iguana: 'mango',
               },
@@ -171,7 +171,7 @@ describe('Sessions', () => {
     expect(response).toBeHttp({ statusCode: 302 });
     expect(
       response.headers.location.indexOf(
-        `${process.env.API_SERVER}/v2/account/${account.accountId}/subscription/${account.subscriptionId}/connector/${connectorId}/api/configure?session=`
+        `${process.env.API_SERVER}/v2/account/${account.accountId}/subscription/${account.subscriptionId}/connector/${connectorId}/api/authorize?session=`
       )
     ).toBe(0);
     const location = new URL(response.headers.location);
@@ -190,7 +190,7 @@ describe('Sessions', () => {
     expect(response).toBeHttp({ statusCode: 302 });
     expect(
       response.headers.location.indexOf(
-        `${process.env.API_SERVER}/v2/account/${account.accountId}/subscription/${account.subscriptionId}/connector/${connectorId}/api/configure?session=`
+        `${process.env.API_SERVER}/v2/account/${account.accountId}/subscription/${account.subscriptionId}/connector/${connectorId}/api/authorize?session=`
       )
     ).toBe(0);
     let location = new URL(response.headers.location);
@@ -220,14 +220,14 @@ describe('Sessions', () => {
           entityId: `${boundaryId}-con`,
           dependsOn: [],
           package: '@fusebit-int/pkg-oauth-integration',
-          path: '/api/configure',
+          path: '/api/authorize',
         },
         {
           name: 'form',
           entityType: Model.EntityType.integration,
           entityId: `${boundaryId}-integ`,
           dependsOn: ['conn'],
-          path: '/api/configure',
+          path: '/api/authorize',
         },
       ],
     });
@@ -287,7 +287,7 @@ describe('Sessions', () => {
           entityType: Model.EntityType.integration,
           entityId: `${boundaryId}-integ`,
           dependsOn: [],
-          path: '/api/configure',
+          path: '/api/authorize',
         },
       ],
     });
@@ -344,14 +344,14 @@ describe('Sessions', () => {
           entityId: `${boundaryId}-con`,
           dependsOn: [],
           package: '@fusebit-int/pkg-oauth-integration',
-          path: '/api/configure',
+          path: '/api/authorize',
         },
         {
           name: 'form',
           entityType: Model.EntityType.integration,
           entityId: `${boundaryId}-integ`,
           dependsOn: ['conn'],
-          path: '/api/configure',
+          path: '/api/authorize',
         },
       ],
     });
@@ -634,7 +634,7 @@ describe('Sessions', () => {
         components: [
           {
             name: 'conn',
-            path: '/api/configure',
+            path: '/api/authorize',
             entityId: connectorId,
             entityType: Model.EntityType.connector,
           },

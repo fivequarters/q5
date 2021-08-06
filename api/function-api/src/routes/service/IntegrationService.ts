@@ -5,22 +5,26 @@ import RDS, { Model } from '@5qtrs/db';
 
 import SessionedEntityService from './SessionedEntityService';
 import { defaultFrameworkSemver } from './BaseEntityService';
+const defaultIntegrationSemver = '^1.0.2';
 
 const defaultIntegrationJs = [
-  "const { Router, Manager, Form } = require('@fusebit-int/framework');",
+  "const { Integration } = require('@fusebit-int/framework');",
   '',
-  'const router = new Router();',
+  'const integration = new Integration();',
+  'const router = integration.router;',
   '',
   "router.get('/api/', async (ctx) => {",
   "  ctx.body = 'Hello World';",
   '});',
   '',
-  'module.exports = router;',
+  'module.exports = integration;',
 ].join('\n');
 
 const defaultPackageJson = (entityId: string) => ({
   scripts: { deploy: `fuse integration deploy ${entityId} -d .`, get: `fuse integration get ${entityId} -d .` },
-  dependencies: { ['@fusebit-int/framework']: defaultFrameworkSemver },
+  dependencies: {
+    ['@fusebit-int/framework']: defaultFrameworkSemver,
+  },
   files: ['./integration.js'], // Make sure the default file is included, if nothing else.
 });
 
