@@ -535,7 +535,12 @@ export class FunctionService {
     return this.getFunctionLogsByProfile(profile);
   }
 
-  public async getFunctionLogsByProfile(profile: IFusebitExecutionProfile): Promise<void> {
+  public async getFunctionLogsByProfile(
+    profile: IFusebitExecutionProfile,
+    entityType: string = 'function',
+    entityTypeName: string = 'Function',
+    withBoundary: boolean = true
+  ): Promise<void> {
     const isJson = this.input.options.output === 'json';
     const version = await this.versionService.getVersion();
 
@@ -543,26 +548,18 @@ export class FunctionService {
     const url = profile.function
       ? `${baseUrl}/boundary/${profile.boundary}/function/${profile.function}/log?token=${profile.accessToken}`
       : `${baseUrl}/boundary/${profile.boundary}/log?token=${profile.accessToken}`;
-    const functionMessage = profile.function ? ["of function '", Text.bold(profile.function || ''), "' "] : [''];
+    const functionMessage = [
+      ...(profile.function ? [`of ${entityType} '`, Text.bold(profile.function || ''), "'"] : ['']),
+      ...(profile.function && withBoundary ? [' '] : ['']),
+      ...(withBoundary ? ["in boundary '", Text.bold(profile.boundary || ''), "'"] : ['']),
+    ];
 
     await this.executeService.execute(
       {
-        header: 'Get Function Logs',
-        message: Text.create(
-          'Connecting to logs ',
-          ...functionMessage,
-          "in boundary '",
-          Text.bold(profile.boundary || ''),
-          "'..."
-        ),
-        errorHeader: 'Get Function Logs Error',
-        errorMessage: Text.create(
-          'Unable to connect to logs ',
-          ...functionMessage,
-          "in boundary '",
-          Text.bold(profile.boundary || ''),
-          "'"
-        ),
+        header: `Get ${entityTypeName} Logs`,
+        message: Text.create('Connecting to logs ', ...functionMessage, '...'),
+        errorHeader: `Get ${entityTypeName} Logs Error`,
+        errorMessage: Text.create('Unable to connect to logs ', ...functionMessage),
       },
       async () => {
         return new Promise(async (resolve, reject) => {
@@ -581,8 +578,8 @@ export class FunctionService {
                     parsed = JSON.parse(message.data);
                   } catch (error) {
                     await this.executeService.error(
-                      'Function Log Error',
-                      'There was an error parsing the function logs',
+                      `${entityTypeName} Log Error`,
+                      `There was an error parsing the ${entityType} logs`,
                       error
                     );
                   }
@@ -621,13 +618,7 @@ export class FunctionService {
     await this.executeService.newLine();
     await this.executeService.warning(
       'Logs Disconnected',
-      Text.create(
-        'The connection to logs ',
-        ...functionMessage,
-        "in boundary '",
-        Text.bold(profile.boundary || ''),
-        "' was terminated"
-      )
+      Text.create('The connection to logs ', ...functionMessage, ' was terminated')
     );
   }
 

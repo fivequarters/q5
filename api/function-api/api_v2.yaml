@@ -102,7 +102,7 @@ paths:
       tags:
         - Operation
       summary: Update the status of an operation
-      operationId: getOperation
+      operationId: putOperation
       description: |
         Update the status of the operation.
       requestBody:
@@ -306,6 +306,16 @@ paths:
                 $ref: '#/components/schemas/IdentityEntity'
       security:
         - AccessToken: []
+    delete:
+      tags:
+        - Identity
+      summary: Delete an identity
+      operationId: deleteIdentity
+      responses:
+        200:
+          description: The object deletion succeeded
+      security:
+        - AccessToken: []
 
   #############################################################################
   # Integration
@@ -337,8 +347,8 @@ paths:
         - Integration
       summary: Create a new object of the specified type
       operationId: postIntegration
-      parameters:
-        - $ref: '#/components/requestBodies/PostIntegrationBody'
+      requestBody:
+        $ref: '#/components/requestBodies/PostIntegrationBody'
       responses:
         200:
           description: The created object
@@ -485,6 +495,16 @@ paths:
                 $ref: '#/components/schemas/InstanceEntity'
       security:
         - AccessToken: []
+    delete:
+      tags:
+        - Instance
+      summary: Delete an instance
+      operationId: deleteInstance
+      responses:
+        200:
+          description: The object deletion succeeded
+      security:
+        - AccessToken: []
 
 #############################################################################
 # Components
@@ -593,11 +613,23 @@ components:
 
     EntityType:
       type: string
+      enum: [connector, integration, identity, instance]
       example: connector
 
     EntityTags:
       type: object
       description: An object containing tags set on this entity
+      example:
+        tenant: tenant-525
+        customer: Sonicity
+
+    EntityVersion:
+      type: string
+      format: uuid
+
+    EntityExpires:
+      type: string
+      description: The time that the entity expires.
 
     OperationId:
       type: string
@@ -671,13 +703,25 @@ components:
           $ref: '#/components/schemas/EntityId'
         data:
           type: object
+          properties:
+            handler:
+              type: string
+              description: The npm package name used by this connector.
+              example: '@fusebit-int/oauth-connector'
+            configuration:
+              type: object
+              description:
+                The collection of configuration values used by this entity.
+            files:
+              type: object
+              description:
+                Additional files used by this entity.
         tags:
-          type: object
+          $ref: '#/components/schemas/EntityTags'
         version:
-          type: string
-          format: uuid
+          $ref: '#/components/schemas/EntityVersion'
         expires:
-          type: string
+          $ref: '#/components/schemas/EntityExpires'
 
     ConnectorList:
       type: object
@@ -701,17 +745,18 @@ components:
       type: object
       properties:
         id:
-          type: string
-          format: uuid
+          $ref: '#/components/schemas/IdentityId'
         data:
           type: object
+          description:
+            The data used by the creating connector to establish a relationship
+            with the remote service on behalf of a user.
         tags:
-          type: object
+          $ref: '#/components/schemas/EntityTags'
         version:
-          type: string
-          format: uuid
+          $ref: '#/components/schemas/EntityVersion'
         expires:
-          type: string
+          $ref: '#/components/schemas/EntityExpires'
 
     IdentityList:
       type: object
@@ -736,33 +781,80 @@ components:
       properties:
         handler:
           type: string
+          description:
+            The name of the file that is the entrypoint for this integration.
+          example: './integration'
         configuration:
           type: object
+          description:
+            An arbirary configuration object for parameters used by this
+            integration.
         files:
           type: object
+          description:
+            An array of files, keyed by filename, that are included in this
+            integration. This usually includes the file referenced by the
+            `handler` field.
         componentTags:
           type: object
+          description:
+            These tags are added to instances and identities created through
+            this integration.
         components:
           type: array
+          description:
+            Connectors and other configuration endpoints such as forms located
+            on this integration are itemized here, in order that the client will
+            encounter them.
           items:
             type: object
             properties:
               name:
                 type: string
+                description:
+                  An arbirary name used to reference this component from within
+                  integration code.
               entityType:
                 type: string
+                enum: [connector, integration]
+                description:
+                  Does this component reference a connector or an integration?
               entityId:
                 $ref: '#/components/schemas/EntityId'
               skip:
                 type: boolean
+                default: false
+                description:
+                  Some components are only used in special cases and as
+                  specified during session creation; if `skip` is true, then
+                  this component is not part of the normal client configuration
+                  process.
               path:
                 type: string
+                description:
+                  The location under the entity specified to pass the client to
+                  during a configuration process.
+                example:
+                  /api/authorize
+                  /api/channelSelectForm
               dependsOn:
                 type: array
+                description:
+                  Allows this component to make use of the credentials or
+                  configuration values created by prior components. For example,
+                  a form could use slack credentials created by a connector
+                  named `slack` to lookup channels by adding `slack` to this
+                  list.
                 items:
                   type: string
+                  description:
+                    The `name` of a component that occurs previously in the
+                    `components` array.
               package:
                 type: string
+                description:
+                  The utility package for a connector that provides a configured
+                  SDK for use by the integration.
 
     IntegrationEntity:
       type: object
@@ -772,12 +864,11 @@ components:
         data:
           $ref: '#/components/schemas/IntegrationData'
         tags:
-          type: object
+          $ref: '#/components/schemas/EntityTags'
         version:
-          type: string
-          format: uuid
+          $ref: '#/components/schemas/EntityVersion'
         expires:
-          type: string
+          $ref: '#/components/schemas/EntityExpires'
 
     IntegrationList:
       type: object
@@ -801,17 +892,33 @@ components:
       type: object
       properties:
         id:
-          type: string
-          format: uuid
+          $ref: '#/components/schemas/InstanceId'
         data:
           type: object
+          description:
+            A collection of configuration objects key'ed by the `name` in the
+            `components` object under the integration. A configuration object
+            that refers to a integration form will contain the configured value,
+            whereas a configuration object that refers to a connector will refer
+            to the identity object used by this instance.
+          example:
+            slack:
+              tags:
+                tenantId: client-15251
+              entityId: f31bc788-1a15-4d6d-b10e-bb754bbf555d
+              accountId: acc-12de369f2f0c4982
+              entityType: identity
+              parentEntityId: slack-connector
+              subscriptionId: sub-a477d980e09c1cfe
+              parentEntityType: connector
+            channelSelectForm:
+              channel: \#random
         tags:
-          type: object
+          $ref: '#/components/schemas/EntityTags'
         version:
-          type: string
-          format: uuid
+          $ref: '#/components/schemas/EntityVersion'
         expires:
-          type: string
+          $ref: '#/components/schemas/EntityExpires'
 
     InstanceList:
       type: object

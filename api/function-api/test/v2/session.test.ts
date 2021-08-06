@@ -12,7 +12,7 @@ beforeEach(() => {
 
 afterAll(async () => {
   await cleanupEntities(account);
-}, 30000);
+}, 180000);
 
 const demoRedirectUrl = 'http://monkey';
 

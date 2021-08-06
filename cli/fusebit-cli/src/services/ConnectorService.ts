@@ -12,10 +12,8 @@ interface IConnector extends IBaseComponentType {
 }
 
 export class ConnectorService extends BaseComponentService<IConnector> {
-  protected entityType: EntityType;
-
   private constructor(profileService: ProfileService, executeService: ExecuteService, input: IExecuteInput) {
-    super(profileService, executeService, input);
+    super(EntityType.connector, profileService, executeService, input);
     this.entityType = EntityType.connector;
   }
 
@@ -49,12 +47,11 @@ export class ConnectorService extends BaseComponentService<IConnector> {
         });
       }
 
-      // const itemList = Text.join(functions, Text.eol());
       await this.executeService.message(
         Text.bold(item.id),
         Text.create([
-          `Package: `,
-          Text.bold(item.data.configuration.package || ''),
+          `Handler: `,
+          Text.bold(item.data.handler || ''),
           Text.eol(),
           Text.eol(),
           ...tagSummary,

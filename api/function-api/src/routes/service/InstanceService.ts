@@ -48,6 +48,13 @@ class InstanceService extends BaseEntityService<Model.IInstance, Model.IInstance
       result: await this.dao.createEntity(entity),
     };
   };
+
+  public deleteEntity = async (entity: Model.IEntity) => {
+    return {
+      statusCode: 200,
+      result: await this.dao.deleteEntity(entity),
+    };
+  };
 }
 
 export default InstanceService;

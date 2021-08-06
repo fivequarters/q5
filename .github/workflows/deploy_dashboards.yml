@@ -1,7 +1,7 @@
 ###################################################################
 # Auto-created by the cicd-actions tool
 on: workflow_dispatch
-name: Deploy to us-west-2/stage and Test
+name: Deploy Dashboards
 jobs:
   deploy:
     name: Deploy
@@ -61,45 +61,29 @@ jobs:
         run: aws s3 ls
       - name: Qualify - npm works
         run: npm whoami
-      - name: Pre-Build Summary
-        run: |
-          echo function-api: ${VERSION_FUNCTION_API}
-          echo fusebit-cli: ${VERSION_FUSEBIT_CLI}
-          echo fusebit-ops-cli: ${VERSION_FUSEBIT_OPS_CLI}
-      - name: Build
-        run: ./tool/cicd/actions/scripts/build_tree.sh
-      - name: Qualify - fuse-ops works
-        run: node cli/fusebit-ops-cli/libc/index.js stack ls
-      - name: Qualify - fuse works
-        run: node cli/fusebit-cli/libc/index.js function ls
-      - name: Yarn - image
-        run: yarn image
-      - name: Publish - function-api
-        run: ./tool/cicd/actions/scripts/publish_function_api.sh
-      - name: Test - deploy exclusive to stage/us-west-2
+      - name: Install zsh
+        run: sudo apt-get install zsh -y
+      - name: Dashboard - us-west-2/stage
         env:
           REGION: us-west-2
-          DEPLOYMENT_NAME: stage
-        run: ./tool/cicd/actions/scripts/deploy_exclusive_function_api.sh
-      - name: Test - function-api
+          DASHBOARD_NAME: STAGE-US-WEST-2
+          DASHBOARD_REGION: us-west-2
+          DASHBOARD_DEPLOYMENT: stage
+          DASHBOARD: ./tool/monitoring/cloudwatch-dashboard-template.json
+        run: ./tool/cicd/actions/scripts/deploy_dashboard.sh
+      - name: Dashboard - us-west-1/api
         env:
-          SECRET_FUSEBIT_PROFILE: ${{secrets.FUSEBIT_STAGE_US_WEST_2}}
-        run: ./tool/cicd/actions/scripts/test_function_api.sh
-      - name: Notify slack success
-        if: success()
+          REGION: us-west-1
+          DASHBOARD_NAME: API-US-WEST-1
+          DASHBOARD_REGION: us-west-1
+          DASHBOARD_DEPLOYMENT: api
+          DASHBOARD: ./tool/monitoring/cloudwatch-dashboard-template.json
+        run: ./tool/cicd/actions/scripts/deploy_dashboard.sh
+      - name: Dashboard - us-east-1/api
         env:
-          SLACK_BOT_TOKEN: ${{ secrets.SLACK_NOTIFICATIONS_BOT_TOKEN }}
-        uses: voxmedia/github-action-slack-notify-build@v1
-        with:
-          channel: pr-review
-          status: SUCCESS
-          color: good
-      - name: Notify slack fail
-        if: failure()
-        env:
-          SLACK_BOT_TOKEN: ${{ secrets.SLACK_NOTIFICATIONS_BOT_TOKEN }}
-        uses: voxmedia/github-action-slack-notify-build@v1
-        with:
-          channel: pr-review
-          status: FAILED
-          color: danger
+          REGION: us-east-1
+          DASHBOARD_NAME: API-US-EAST-1
+          DASHBOARD_REGION: us-east-1
+          DASHBOARD_DEPLOYMENT: api
+          DASHBOARD: ./tool/monitoring/cloudwatch-dashboard-template.json
+        run: ./tool/cicd/actions/scripts/deploy_dashboard.sh
