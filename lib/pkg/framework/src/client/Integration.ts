@@ -11,7 +11,7 @@ class Service extends EntityBase.ServiceBase {
   getSdks = (ctx: Context, connectorNames: string[], instanceId: string) =>
     ctx.state.manager.connectors.getByNames(ctx, connectorNames, instanceId);
 }
-class Tenant extends EntityBase.TenantDefault {
+class Tenant {
   listTenants: (ctx: Context, tags: string) => Promise<any> = async (ctx: Context, tags: string) =>
     TenantService.createRequest(ctx.state.params).get(tags);
   listInstanceTenants: (ctx: Context, instanceId: string) => Promise<any> = async (ctx: Context, instanceId: string) =>

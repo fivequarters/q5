@@ -1,11 +1,9 @@
 import { Context, Next, Router } from '../Router';
 import * as Storage from '../Storage';
-import * as Tenant from '../Tenant';
 import { authorize } from '../middleware/index';
 
 abstract class EntityBase {
   abstract service: EntityBase.ServiceBase;
-  abstract tenant: EntityBase.TenantBase;
   abstract storage: EntityBase.StorageBase;
   abstract middleware: EntityBase.MiddlewareBase;
   abstract response: EntityBase.ResponseBase;
@@ -14,22 +12,8 @@ abstract class EntityBase {
 }
 
 namespace EntityBase {
-  export abstract class ServiceBase {
-    getSdk?: (ctx: Context, connectorName: string, tenantId: string) => unknown;
-    getSdks?: (ctx: Context, connectorName: string[], tenantId: string) => unknown;
-  }
-  export abstract class TenantBase {
-    listTenants: (ctx: Context, tags: string) => Promise<any> = async (ctx: Context, tags: string) =>
-      Tenant.createRequest(ctx.state.params).get(tags);
-    listInstanceTenants: (ctx: Context, instanceId: string) => Promise<any> = async (
-      ctx: Context,
-      instanceId: string
-    ) => Tenant.createRequest(ctx.state.params).getInstanceTenants(instanceId);
-    listTenantInstances: (ctx: Context, tenantId: string) => Promise<any> = async (ctx: Context, tenantId: string) =>
-      Tenant.createRequest(ctx.state.params).getTenantInstances(tenantId);
-    deleteTenant: (ctx: Context, tenantId: string) => Promise<any> = async (ctx: Context, tenantId: string) =>
-      Tenant.createRequest(ctx.state.params).delete(tenantId);
-  }
+  export abstract class ServiceBase {}
+
   export abstract class StorageBase {
     setData: (ctx: Context, dataKey: string, data: any) => Promise<any> = async (
       ctx: Context,
@@ -64,7 +48,6 @@ namespace EntityBase {
     createError: undefined; //TODO
   }
 
-  export class TenantDefault extends TenantBase {}
   export class ServiceDefault extends ServiceBase {}
   export class StorageDefault extends StorageBase {}
   export class MiddlewareDefault extends MiddlewareBase {}
