@@ -31,14 +31,11 @@ module Internal {
   export type Storage = typeof Storage;
   export type IntegrationActivator = typeof IntegrationActivator;
   export type Tenant = typeof Tenant;
+  export namespace Types {
+    export type Context = ContextType;
+    export type Next = NextType;
+    export interface IOnStartup extends IOnStartupInterface {}
+  }
 }
 
-module Types {
-  export type Context = ContextType;
-  export type Next = NextType;
-  export interface IOnStartup extends IOnStartupInterface {}
-  export interface IInstanceConnectorConfig extends IInstanceConnectorConfigInterface {}
-  export interface IStorage extends IStorageInterface {}
-}
-
-export { Connector, Integration, Internal, Types };
+export { Connector, Integration, Internal };

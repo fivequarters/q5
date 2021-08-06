@@ -1,8 +1,7 @@
 import { Context, Next, Router } from '../Router';
 import * as Storage from '../Storage';
 import { authorize } from '../middleware/index';
-import { IOnStartup as IOnStartupInterface, IStorage as IStorageInterface } from '../Manager';
-import { IInstanceConnectorConfig as IInstanceConnectorConfigInterface } from '../ConnectorManager';
+import { IOnStartup as IOnStartupInterface } from '../Manager';
 type ContextType = Context;
 type NextType = Next;
 
@@ -22,8 +21,6 @@ namespace EntityBase {
     export type Context = ContextType;
     export type Next = NextType;
     export interface IOnStartup extends IOnStartupInterface {}
-    export interface IInstanceConnectorConfig extends IInstanceConnectorConfigInterface {}
-    export interface IStorage extends IStorageInterface {}
   }
   export abstract class ServiceBase {}
 

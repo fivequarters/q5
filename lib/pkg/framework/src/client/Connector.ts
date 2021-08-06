@@ -11,8 +11,6 @@ namespace Connector {
     export type Context = EntityBase.Types.Context;
     export type Next = EntityBase.Types.Next;
     export interface IOnStartup extends EntityBase.Types.IOnStartup {}
-    export interface IInstanceConnectorConfig extends EntityBase.Types.IInstanceConnectorConfig {}
-    export interface IStorage extends EntityBase.Types.IStorage {}
   }
 }
 export default Connector;

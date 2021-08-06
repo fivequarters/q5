@@ -1,4 +1,4 @@
-import { Internal, Types } from '@fusebit-int/framework';
+import { Internal } from '@fusebit-int/framework';
 
 /*
  * An example class that pairs with the pkg-oauth-connector/OAuthConnector.  Many such classes may pair with
@@ -12,7 +12,7 @@ export default class OAuthIntegration extends Internal.IntegrationActivator<{ ac
    * Normally, this function would return an instantiated SDK object populated and enriched as appropriate.
    * For now, just return the accessToken for the caller to do with as they please.
    */
-  protected async instantiate(ctx: Types.Context, lookupKey: string): Promise<{ accessToken: string }> {
+  protected async instantiate(ctx: Internal.Types.Context, lookupKey: string): Promise<{ accessToken: string }> {
     const accessToken = await this.requestConnectorToken({ ctx, lookupKey });
     // Take the responding token, put it into the object below.
     return {
