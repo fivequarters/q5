@@ -118,11 +118,11 @@ class OAuthEngine {
   }
 
   /**
-   * Returns a valid access token to the vendor's system representing the vendor's user described by the Internal.Types.Context.
+   * Returns a valid access token to the vendor's system representing the vendor's user described by the Context.
    * For the vendor's system, if the currently stored access token is expired or nearing expiry, and a refresh
    * token is available, a new access token is obtained, stored for future use, and returned. If a current
    * access token cannot be returned, an exception is thrown.
-   * @param {*} Internal.Types.Context The vendor user Internal.Types.Context
+   * @param {*} Context The vendor user Context
    */
   public async ensureAccessToken(ctx: Internal.Types.Context, lookupKey: string, identity: boolean = true) {
     let token: IOAuthToken | undefined;
