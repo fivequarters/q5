@@ -337,7 +337,7 @@ describe('Workflow', () => {
     expect(response).toBeHttp({ statusCode: 200 });
     expect(response.data.access_token).toBe('original token');
 
-    // TODO: Modify the form page to query the connector with the contents of the session's 'uses' field, and
+    // TODO: Modify the form page to query the connector with the contents of the session's 'dependsOn' field, and
     //       related sessionId, and ensure that it gets back a valid token.
     //         Requires the connector to support looking up the contents by a sessionId instead of by a
     //         instanceId.

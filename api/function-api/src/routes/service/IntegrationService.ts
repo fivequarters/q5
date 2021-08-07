@@ -84,7 +84,7 @@ class IntegrationService extends SessionedEntityService<Model.IIntegration, Mode
       // Validate DAG of 'dependsOn' parameters.
       comp.dependsOn.forEach((dep: string) => {
         if (!dagList[dep]) {
-          throw http_error(400, `Ordering violation: 'uses' in '${comp.name}' for '${dep}' before declaration.`);
+          throw http_error(400, `Ordering violation: 'dependsOn' in '${comp.name}' for '${dep}' before declaration.`);
         }
       });
 
