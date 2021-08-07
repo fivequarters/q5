@@ -16,11 +16,13 @@ router.get('/api/health', async (ctx: Context, next: Next) => {
   // If no status has been set, respond with a basic one.
   if (ctx.status === 200 && ctx.state.manager.vendorError) {
     // TODO: The ctx.throw doesn't seem to support an optional parameter, or it gets stripped out later.
-    ctx.body = ctx.state.manager.vendorError
-      ? ctx.throw(501, `invalid code: ${ctx.state.manager.vendorError}`, {
-          backtrace: ctx.state.manager.vendorError.stack,
-        })
-      : { status: 'ok' };
+    ctx.body = ctx.throw(501, `invalid code: ${ctx.state.manager.vendorError}`, {
+      backtrace: ctx.state.manager.vendorError.stack,
+    });
+  } else {
+    ctx.body = {
+      status: 'ok',
+    };
   }
 });
 

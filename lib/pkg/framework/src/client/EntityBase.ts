@@ -1,10 +1,9 @@
 import { Context, Next, Router } from '../Router';
 import * as Storage from '../Storage';
-import { authorize } from '../middleware/index';
+import * as Middleware from '../middleware/authorize';
 import { IOnStartup as IOnStartupInterface } from '../Manager';
 type ContextType = Context;
 type NextType = Next;
-
 abstract class EntityBase {
   public readonly events = {};
 
@@ -45,7 +44,7 @@ namespace EntityBase {
     ) => Storage.createStorage(ctx.state.params).delete(dataKeyPrefix, true, true);
   }
   export abstract class MiddlewareBase {
-    authorizeUser = authorize;
+    authorizeUser = Middleware.authorize;
     loadTenant: (tags: string) => (ctx: Context, next: Next) => Promise<any> = (tags: string) => {
       return async (ctx: Context, next: Next) => {
         return undefined; //Todo

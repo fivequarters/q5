@@ -58,7 +58,7 @@ export default abstract class BaseEntityService<E extends Model.IEntity, F exten
             `const config = ${JSON.stringify(config)};`,
             `let handler = '${functionConfig.handler}';`,
             "handler = handler[0] === '.' ? `${__dirname}/${handler}`: handler;",
-            `module.exports = require('@fusebit-int/framework').Handler(handler, config);`,
+            `module.exports = require('@fusebit-int/framework').Internal.Handler(handler, config);`,
           ].join('\n'),
         },
       },
