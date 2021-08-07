@@ -1,4 +1,0 @@
-const config = {"handler":"@fusebit-int/slack-connector","configuration":{"scope":"chat:write","clientId":"457394426995.2278816147488","tokenUrl":"https://slack.com/api/oauth.v2.access","clientSecret":"a6bc9f55ceb49571d70a6382b21866d4","authorizationUrl":"https://slack.com/oauth/v2/authorize","refreshErrorLimit":100000,"refreshInitialBackoff":100000,"refreshWaitCountLimit":100000,"refreshBackoffIncrement":100000,"accessTokenExpirationBuffer":500},"mountUrl":"/v2/account/acc-21a4974efd574f87/subscription/sub-eeae7b111e9c4285/integration/slack-connector"};
-let handler = '@fusebit-int/slack-connector';
-handler = handler[0] === '.' ? `${__dirname}/${handler}`: handler;
-module.exports = require('@fusebit-int/framework').Internal.Handler(handler, config);
