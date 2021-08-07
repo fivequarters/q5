@@ -606,18 +606,18 @@ export const createPair = async (
       name: connName,
       entityType: Model.EntityType.connector,
       entityId: conId,
-      dependsOn: [],
-      package: '@fusebit-int/pkg-oauth-integration',
+      dependsOn: [] as string[],
+      provider: '@fusebit-int/oauth-provider',
     },
   ];
 
   for (let n = 1; n < numConnectors; n++) {
-    conns[`${connName}${n}`] = { package: '@fusebit-int/pkg-oauth-integration', connector: `${conId}${n}` };
+    conns[`${connName}${n}`] = { provider: '@fusebit-int/oauth-provider', connector: `${conId}${n}` };
     components.push({
       name: `${connName}${n}`,
       entityType: Model.EntityType.connector,
       entityId: `${conId}${n}`,
-      package: '@fusebit-int/pkg-oauth-integration',
+      provider: '@fusebit-int/oauth-provider',
       dependsOn: [],
       ...(n > 1 ? { dependsOn: [`${connName}${n - 1}`] } : {}),
     });

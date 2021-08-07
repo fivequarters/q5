@@ -24,7 +24,7 @@ type SampleEntityMap<T = any> = Record<TestableEntityTypes, (...entity: T[]) => 
 const sampleEntitiesWithData: SampleEntityMap = {
   [Model.EntityType.connector]: (): { id: string; tags: Model.ITags; data: Model.IConnectorData } => ({
     data: {
-      handler: '@fusebit-int/pkg-oauth-connector',
+      handler: '@fusebit-int/oauth-connector',
       files: {},
       configuration: {
         scope: 'test scope',

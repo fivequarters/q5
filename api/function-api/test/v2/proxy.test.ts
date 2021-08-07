@@ -119,7 +119,7 @@ describe('Proxy', () => {
     const response = await ApiRequestMap.connector.postAndWait(account, {
       id: boundaryId,
       data: {
-        handler: '@fusebit-int/pkg-oauth-connector',
+        handler: '@fusebit-int/oauth-connector',
         configuration: {
           scope: '',
           authorizationUrl: `${baseUrl}/connector/${boundaryId}/proxy/slack/oauth/authorize`,
@@ -172,7 +172,7 @@ describe('Proxy', () => {
       boundaryId,
       {},
       {
-        handler: '@fusebit-int/pkg-oauth-connector',
+        handler: '@fusebit-int/oauth-connector',
         configuration: {
           scope: '',
           authorizationUrl: `${baseUrl}/connector/${boundaryId}-con/proxy/slack/oauth/authorize`,
@@ -306,7 +306,7 @@ describe('Proxy', () => {
       boundaryId,
       {},
       {
-        handler: '@fusebit-int/pkg-oauth-connector',
+        handler: '@fusebit-int/oauth-connector',
         configuration: {
           scope: '',
           authorizationUrl: `${baseUrl}/connector/${boundaryId}/proxy/slack/oauth/authorize`,

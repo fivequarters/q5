@@ -79,7 +79,7 @@ const safePath = (filename: string): string => {
   if (parsed.dir.startsWith('..') || parsed.dir.startsWith('/')) {
     throw http_error(400, `Invalid filename path: ${filename}`);
   }
-  return parsed.dir === '' ? `${filename}` : `${parsed.dir}/${parsed.base}`;
+  return parsed.dir === '' ? `${parsed.base}` : `${parsed.dir}/${parsed.base}`;
 };
 
 const safePathMap = (files: { [key: string]: string }): { [key: string]: string } => {

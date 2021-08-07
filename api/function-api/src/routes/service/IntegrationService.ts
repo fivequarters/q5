@@ -5,7 +5,6 @@ import RDS, { Model } from '@5qtrs/db';
 
 import SessionedEntityService from './SessionedEntityService';
 import { defaultFrameworkSemver } from './BaseEntityService';
-const defaultIntegrationSemver = '^1.0.2';
 
 const defaultIntegrationJs = [
   "const { Integration } = require('@fusebit-int/framework');",
@@ -90,8 +89,8 @@ class IntegrationService extends SessionedEntityService<Model.IIntegration, Mode
       });
 
       // Make sure packages mentioned in the cfg.connectors block are also included.
-      if (comp.package) {
-        pkg.dependencies[comp.package] = pkg.dependencies[comp.package] || '*';
+      if (comp.provider) {
+        pkg.dependencies[comp.provider] = pkg.dependencies[comp.provider] || '*';
       }
 
       // Substitute the selfEntityIdReplacement for the current integration id.
