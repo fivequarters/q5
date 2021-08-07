@@ -4,6 +4,7 @@
   "description": "",
   "main": "libc/index.js",
   "files": ["libc/*.js", "libc/*.d.ts"],
+  "files": ["libc/**/*.js", "libc/**/*.d.ts", "libc/**/*.json"],
   "license": "SEE LICENSE IN LICENSE",
   "author": "Fusebit, Inc.",
   "scripts": {

@@ -3,7 +3,7 @@
   "version": "1.1.13",
   "description": "",
   "main": "libc/index.js",
-  "files": ["libc/*.js", "libc/*.d.ts", "libc/configure/*.js", "libc/configure/*.json", "libc/configure/*.js" ],
+  "files": ["libc/**/*.js", "libc/**/*.d.ts", "libc/**/*.json"],
   "license": "SEE LICENSE IN LICENSE",
   "author": "Fusebit, Inc.",
   "scripts": {

@@ -50,14 +50,6 @@ describe('Sessions', () => {
     });
   }, 180000);
 
-  test('Creating a session on an existing connector returns 200', async () => {
-    const { integrationId } = await createPair(account, boundaryId);
-    const response = await ApiRequestMap.integration.session.post(account, integrationId, {
-      redirectUrl: demoRedirectUrl,
-    });
-    expect(response).toBeHttp({ statusCode: 200 });
-  }, 180000);
-
   test('Creating a session with no redirectUrl fails', async () => {
     const { integrationId } = await createPair(account, boundaryId);
     const response = await ApiRequestMap.integration.session.post(account, integrationId, {});
@@ -552,7 +544,7 @@ describe('Sessions', () => {
     });
     expect(response).toBeHttp({
       statusCode: 400,
-      data: { message: "Ordering violation: 'uses' in 'conn4' for 'conn3' before declaration." },
+      data: { message: "Ordering violation: 'dependsOn' in 'conn4' for 'conn3' before declaration." },
     });
   }, 180000);
 
@@ -565,7 +557,7 @@ describe('Sessions', () => {
     });
     expect(response).toBeHttp({
       statusCode: 400,
-      data: { message: "Ordering violation: 'uses' in 'conn2' for 'conn1' before declaration." },
+      data: { message: "Ordering violation: 'dependsOn' in 'conn2' for 'conn1' before declaration." },
     });
   }, 180000);
 
