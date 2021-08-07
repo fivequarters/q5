@@ -219,7 +219,7 @@ describe('Sessions', () => {
           entityType: Model.EntityType.connector,
           entityId: `${boundaryId}-con`,
           dependsOn: [],
-          package: '@fusebit-int/pkg-oauth-integration',
+          provider: '@fusebit-int/oauth-provider',
           path: '/api/authorize',
         },
         {
@@ -343,7 +343,7 @@ describe('Sessions', () => {
           entityType: Model.EntityType.connector,
           entityId: `${boundaryId}-con`,
           dependsOn: [],
-          package: '@fusebit-int/pkg-oauth-integration',
+          provider: '@fusebit-int/oauth-provider',
           path: '/api/authorize',
         },
         {

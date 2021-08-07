@@ -90,8 +90,8 @@ class IntegrationService extends SessionedEntityService<Model.IIntegration, Mode
       });
 
       // Make sure packages mentioned in the cfg.connectors block are also included.
-      if (comp.package) {
-        pkg.dependencies[comp.package] = pkg.dependencies[comp.package] || '*';
+      if (comp.provider) {
+        pkg.dependencies[comp.provider] = pkg.dependencies[comp.provider] || '*';
       }
 
       // Substitute the selfEntityIdReplacement for the current integration id.

@@ -62,7 +62,7 @@ describe('Workflow', () => {
         components: [
           {
             name: 'conn1',
-            package: '@fusebit-int/pkg-oauth-integration',
+            provider: '@fusebit-int/oauth-provider',
             entityType: Model.EntityType.connector,
             entityId: `${boundaryId}-con`,
             dependsOn: [],
@@ -77,7 +77,7 @@ describe('Workflow', () => {
         ],
       },
       {
-        handler: '@fusebit-int/pkg-oauth-connector',
+        handler: '@fusebit-int/oauth-connector',
         configuration: {
           scope: '',
           authorizationUrl,

@@ -92,7 +92,7 @@ export interface IIntegrationComponent {
   skip?: boolean;
   path?: string;
   dependsOn: string[];
-  package?: string; // Great opportunity for a conditional type, in the future.
+  provider?: string; // Great opportunity for a conditional type, in the future.
 }
 
 export interface IIntegrationData {

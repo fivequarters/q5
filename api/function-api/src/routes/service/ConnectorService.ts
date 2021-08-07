@@ -6,15 +6,15 @@ import { defaultFrameworkSemver } from './BaseEntityService';
 const defaultPkgOAuthConnectorSemver = '^1.2.0';
 
 const defaultPackage = (entityId: string) => ({
-  scripts: { deploy: `"fuse connector deploy ${entityId} -d ."`, get: `"fuse connector get ${entityId} -d ."` },
+  scripts: { deploy: `fuse connector deploy ${entityId} -d .`, get: `fuse connector get ${entityId} -d .` },
   dependencies: {
-    '@fusebit-int/pkg-oauth-connector': defaultPkgOAuthConnectorSemver,
+    '@fusebit-int/oauth-connector': defaultPkgOAuthConnectorSemver,
     '@fusebit-int/framework': defaultFrameworkSemver,
   },
 });
 
 const defaultConnector: Model.IConnectorData = {
-  handler: '@fusebit-int/pkg-oauth-connector',
+  handler: '@fusebit-int/oauth-connector',
   configuration: {},
   files: {
     'package.json': JSON.stringify(defaultPackage('sampleConnector'), null, 2),
@@ -49,7 +49,7 @@ class ConnectorService extends SessionedEntityService<Model.IConnector, Model.II
     // Remove any leading . or ..'s from file paths.
     data.files = safePathMap(data.files);
 
-    data.handler = data.handler || '@fusebit-int/pkg-oauth-connector';
+    data.handler = data.handler || '@fusebit-int/oauth-connector';
     data.configuration = data.configuration || {};
 
     const pkg = {

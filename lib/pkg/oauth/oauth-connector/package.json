@@ -1,0 +1,26 @@
+{
+  "name": "@fusebit-int/oauth-connector",
+  "version": "1.2.2",
+  "description": "",
+  "main": "libc/index.js",
+  "files": ["libc/*.js", "libc/*.d.ts"],
+  "license": "SEE LICENSE IN LICENSE",
+  "author": "Fusebit, Inc.",
+  "scripts": {
+    "build": "tsc -b",
+    "test": "jest --colors",
+    "coverage": "jest --colors --coverage",
+    "lint": "tslint --fix -t stylish src/{,**/}*.ts{,x} test/{,**/}*.ts{,x}",
+    "clean": "rm -r -f libc; rm -r -f coverage"
+  },
+  "keywords": [],
+  "dependencies": {
+    "superagent": "6.1.0"
+  },
+  "peerDependencies": {
+    "@fusebit-int/framework": "^2.0.7"
+  },
+  "devDependencies": {
+    "superagent-mock": "^4.0.0"
+  }
+}
