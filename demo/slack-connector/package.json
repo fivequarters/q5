@@ -1,7 +1,7 @@
 {
   "scripts": {
-    "deploy": "\"fuse connector deploy sampleConnector -d .\"",
-    "get": "\"fuse connector get sampleConnector -d .\""
+    "deploy": "fuse connector deploy sampleConnector -d .",
+    "get": "fuse connector get sampleConnector -d ."
   },
   "dependencies": {
     "@fusebit-int/slack-connector": "^1.1.13",
