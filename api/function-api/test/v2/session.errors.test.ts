@@ -32,7 +32,7 @@ describe('Sessions', () => {
     const location = new URL(response.headers.location);
     const stepSessionId = location.searchParams.get('session');
 
-    // Test failure of this step
+    // Test failure of this step.
     response = await ApiRequestMap.connector.session.put(account, connectorId, stepSessionId, { error: 'bad_monkey' });
     expect(response).toBeHttp({ statusCode: 200 });
 
@@ -43,7 +43,8 @@ describe('Sessions', () => {
       headers: { location: `${demoRedirectUrl}/?session=${parentSessionId}` },
     });
 
-    // Post and check the session to see that the result is an error
+    // Post and check the session to see that the result is an error, generates "Missing child session id"
+    // warnings in function-api that probably need to be squelched at some point
     response = await ApiRequestMap.integration.session.postSession(account, integrationId, parentSessionId);
     expect(response).toBeHttp({ statusCode: 400 });
     expect(response.data.message).toMatch(/bad_monkey/);

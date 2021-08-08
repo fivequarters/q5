@@ -11,7 +11,7 @@ beforeEach(() => {
 });
 afterAll(async () => {
   await cleanupEntities(account);
-}, 30000);
+}, 180000);
 
 // Types
 type TestableEntityTypes = Extract<Model.EntityType, Model.EntityType.connector | Model.EntityType.integration>;
@@ -122,12 +122,33 @@ const setFiles = (entity: Model.ISdkEntity, newFiles: Record<string, string>, ha
 };
 
 const createEntity = async (testEntityType: TestableEntityTypes, entity: Model.ISdkEntity) => {
+  const basePath = `/v2/account/${account.accountId}/subscription/${account.subscriptionId}`;
   const createResponse = await ApiRequestMap[testEntityType].post(account, entity);
   expect(createResponse).toBeHttp({ statusCode: 202 });
+  expect(createResponse.data.target).toMatch(
+    new RegExp(`${basePath}/${testEntityType}\\?operation=${createResponse.data.operationId}$`)
+  );
+  expect(createResponse.data.statusOnly).toMatch(
+    new RegExp(`${basePath}/operation/${createResponse.data.operationId}$`)
+  );
+
+  let result = await ApiRequestMap[testEntityType].list(account, { operation: createResponse.data.operationId });
+  expect(result).toBeHttp({ statusCode: 202 });
+  expect(result.data).toStrictEqual({});
+
   const operation = await ApiRequestMap.operation.waitForCompletion(account, createResponse.data.operationId);
   expect(operation).toBeHttp({ statusCode: 200 });
+
+  // Check that the list action using an operation key produces the expected entity
+  result = await ApiRequestMap[testEntityType].list(account, { operation: createResponse.data.operationId });
+  expect(result).toBeHttp({ statusCode: 200, data: { total: 1 } });
+  expect(result.data.items.length).toBe(1);
+  expect(result.data.items[0]).toExtend(entity);
+  expect(result.data.items[0].version).toBeUUID();
+
+  // Check that the list operation with the specified prefix produces the expected entity
   const listResponse = await ApiRequestMap[testEntityType].list(account, getIdPrefix());
-  expect(listResponse).toBeHttp({ statusCode: 200 });
+  expect(listResponse).toBeHttp({ statusCode: 200, data: { total: 1 } });
   expect(listResponse.data).toBeDefined();
   expect(listResponse.data.items.length).toBe(1);
   expect(listResponse.data.items[0]).toExtend(entity);
@@ -157,6 +178,19 @@ const performTests = (testEntityType: TestableEntityTypes, sampleEntityMap: Samp
     const createResponseConflict = await ApiRequestMap[testEntityType].post(account, entity);
     const operation = await ApiRequestMap.operation.waitForCompletion(account, createResponseConflict.data.operationId);
     expect(operation).toBeHttp({ statusCode: 400 });
+  }, 180000);
+
+  test('Operation reports 400 on LIST endpoint', async () => {
+    let result;
+    const entity = sampleEntity();
+    await createEntityTest(entity);
+
+    const createResponseConflict = await ApiRequestMap[testEntityType].post(account, entity);
+    result = await ApiRequestMap.operation.waitForCompletion(account, createResponseConflict.data.operationId);
+    expect(result).toBeHttp({ statusCode: 400, data: { message: `Duplicate key value: ${entity.id}` } });
+
+    result = await ApiRequestMap[testEntityType].list(account, { operation: createResponseConflict.data.operationId });
+    expect(result).toBeHttp({ statusCode: 400, data: { message: `Duplicate key value: ${entity.id}` } });
   }, 180000);
 
   test('Update Entity', async () => {

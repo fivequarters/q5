@@ -252,8 +252,8 @@ describe('Sessions', () => {
 
     // get session results to verify current data matches data on instance/identity
     response = await ApiRequestMap.integration.session.getResult(account, integrationId, parentSessionId);
-    const identitySessionId = response.data.components[0].childSessionId;
-    const instanceSessionId = response.data.components[1].childSessionId;
+    const identitySessionId = Model.decomposeSubordinateId(response.data.components[0].childSessionId).entityId;
+    const instanceSessionId = Model.decomposeSubordinateId(response.data.components[1].childSessionId).entityId;
 
     // put new data to sessions
     const instanceData = { newData: 'for instance' };
@@ -310,7 +310,7 @@ describe('Sessions', () => {
 
     // get session results to verify current data matches data on instance/identity
     response = await ApiRequestMap.integration.session.getResult(account, integrationId, parentSessionId);
-    const formOneSessionId = response.data.components[0].childSessionId;
+    const formOneSessionId = Model.decomposeSubordinateId(response.data.components[0].childSessionId).entityId;
 
     // put new data to sessions
     const formOneNewData = { newData: 'form one is updated' };
@@ -385,8 +385,8 @@ describe('Sessions', () => {
 
     // get session results to verify current data matches data on instance/identity
     response = await ApiRequestMap.integration.session.getResult(account, integrationId, parentSessionId);
-    const identitySessionId = response.data.components[0].childSessionId;
-    const instanceSessionId = response.data.components[1].childSessionId;
+    const identitySessionId = Model.decomposeSubordinateId(response.data.components[0].childSessionId).entityId;
+    const instanceSessionId = Model.decomposeSubordinateId(response.data.components[1].childSessionId).entityId;
 
     const identitySessionResponse = await ApiRequestMap.connector.session.getResult(
       account,
@@ -398,8 +398,8 @@ describe('Sessions', () => {
       integrationId,
       instanceSessionId
     );
-    expect(identitySessionResponse).toBeHttp({ statusCode: 200, data: { output: identityTestData } });
-    expect(instanceSessionResponse).toBeHttp({ statusCode: 200, data: { output: instanceTestData } });
+    expect(identitySessionResponse.data).toMatchObject({ output: identityTestData });
+    expect(instanceSessionResponse.data).toMatchObject({ output: instanceTestData });
   }, 1800000);
 
   test('Full result session on a step includes output and no ids', async () => {
@@ -469,6 +469,7 @@ describe('Sessions', () => {
     // Post to finish
     response = await ApiRequestMap.integration.session.postSession(account, integrationId, parentSessionId);
     expect(response).toBeHttp({ statusCode: 200 });
+
     // Verify Operation Id
     const operationId = response.data.operationId;
     response = await ApiRequestMap.integration.session.getResult(account, integrationId, parentSessionId);
@@ -596,11 +597,11 @@ describe('Sessions', () => {
     response = await ApiRequestMap[loc.entityType].session.put(account, loc.entityId, loc.sessionId, {
       monkey: 'banana',
     });
-    expect(response).toBeHttp({ statusCode: 200, hasNot: ['output'] });
+    expect(response).toBeHttp({ statusCode: 200 });
 
-    // Getting a session with data in it doesn't return the output.
+    // Getting a session with data in it return the output.
     response = await ApiRequestMap[loc.entityType].session.get(account, loc.entityId, loc.sessionId);
-    expect(response).toBeHttp({ statusCode: 200, hasNot: ['output'] });
+    expect(response).toBeHttp({ statusCode: 200, data: { output: { monkey: 'banana' } } });
 
     // Finish the session
     response = await ApiRequestMap[loc.entityType].session.callback(account, loc.entityId, loc.sessionId);
@@ -613,7 +614,7 @@ describe('Sessions', () => {
     expect(response).toBeHttp({
       statusCode: 200,
       data: {
-        code: 200,
+        statusCode: 200,
         type: 'session',
         verb: 'creating',
         location: {
@@ -628,33 +629,30 @@ describe('Sessions', () => {
     expect(response).not.toHaveProperty('data.payload');
 
     response = await ApiRequestMap.integration.session.getResult(account, integrationId, parentSessionId);
-    expect(response).toBeHttp({
-      statusCode: 200,
-      data: {
-        id: parentSessionId,
-        output: {
-          tags: {
-            'session.master': parentSessionId,
-          },
-          accountId: account.accountId,
-          entityType: Model.EntityType.instance,
-          parentEntityId: integrationId,
-          parentEntityType: Model.EntityType.integration,
-          subscriptionId: account.subscriptionId,
+    expect(response.data).toMatchObject({
+      output: {
+        tags: {
+          'session.master': parentSessionId,
         },
-        components: [
-          {
-            name: 'conn',
-            path: '/api/authorize',
-            entityId: connectorId,
-            entityType: Model.EntityType.connector,
-          },
-        ],
+        accountId: account.accountId,
+        entityType: Model.EntityType.instance,
+        parentEntityId: integrationId,
+        parentEntityType: Model.EntityType.integration,
+        subscriptionId: account.subscriptionId,
       },
+      components: [
+        {
+          name: 'conn',
+          path: '/api/authorize',
+          entityId: connectorId,
+          entityType: Model.EntityType.connector,
+        },
+      ],
     });
     expect(response.data.output.entityId).toBeUUID();
 
-    expect(response.data.components[0].childSessionId).toBeUUID();
+    const childSessionId = Model.decomposeSubordinateId(response.data.components[0].childSessionId).entityId;
+    expect(childSessionId).toBeUUID();
     expect(response.data.components[0]).not.toHaveProperty('output');
 
     const instance = response.data.output;

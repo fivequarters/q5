@@ -11,7 +11,7 @@ import Validation from '../validation/component';
 
 import query from '../handlers/query';
 
-import { BaseEntityService } from '../service';
+import { BaseEntityService, operationService } from '../service';
 import CommonTagRouter from './common/tag';
 import CommonCrudRouter from './common/crud';
 
@@ -21,10 +21,6 @@ const subcomponentRouter = (
   parentEntityType: Model.EntityType
 ) => {
   const router = express.Router({ mergeParams: true });
-
-  const createPath = (endpoint: string = '') => {
-    return `/:${idParamNames[0]}/${service.entityType}/:${idParamNames[1]}${endpoint || ''}`;
-  };
 
   router.use(analytics.setModality(analytics.Modes.Administration));
   router
@@ -43,6 +39,20 @@ const subcomponentRouter = (
             subscriptionId: req.params.subscriptionId,
             id: req.params.entityId,
           });
+
+          if (req.query.operation) {
+            const status = await operationService.getInstanceByOperation(
+              req.params as { accountId: string; subscriptionId: string },
+              req.query.operation as string,
+              req.params.entityId
+            );
+
+            if (status.statusCode === 200 && typeof status.result === 'object') {
+              return res.json({ total: 1, items: [Model.entityToSdk(status.result)] });
+            }
+
+            return res.status(status.statusCode).json({ message: status.result });
+          }
 
           const response = await service.dao.listEntities(
             {
@@ -87,6 +97,10 @@ const subcomponentRouter = (
         }
       }
     );
+
+  const createPath = (endpoint: string = '') => {
+    return `/:${idParamNames[0]}/${service.entityType}/:${idParamNames[1]}${endpoint || ''}`;
+  };
 
   router.use(createPath('/tag'), CommonTagRouter(service, idParamNames));
   router.use(createPath(), CommonCrudRouter(service, idParamNames));

@@ -10,7 +10,7 @@ import query from '../../handlers/query';
 import body from '../../handlers/body';
 import pathParams from '../../handlers/pathParams';
 
-import { SessionedEntityService } from '../../service';
+import { SessionedEntityService, operationService } from '../../service';
 
 const router = (EntityService: SessionedEntityService<any, any>) => {
   const componentRouter = express.Router({ mergeParams: true });
@@ -45,6 +45,25 @@ const router = (EntityService: SessionedEntityService<any, any>) => {
               total: 1,
             });
           }
+
+          if (req.query.operation) {
+            const status = await operationService.getEntityByOperation(
+              req.params as { accountId: string; subscriptionId: string },
+              req.query.operation as string,
+              EntityService.entityType
+            );
+
+            if (status.statusCode === 200 && (typeof status.result === 'object' || status.result === undefined)) {
+              // On object deletion, the return result will be undefined but the operation will be a success.
+              return res.json({
+                total: status.result ? 1 : 0,
+                items: [...(status.result ? [Model.entityToSdk(status.result)] : [])],
+              });
+            }
+
+            return res.status(status.statusCode).json({ message: status.result });
+          }
+
           const response = await EntityService.dao.listEntities(
             {
               ...pathParams.accountAndSubscription(req),

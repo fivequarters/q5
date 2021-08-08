@@ -46,6 +46,7 @@ const EntityIdQuery = Joi.object().keys({
   next: Joi.string(),
   tag: Common.tagQuery,
   defaults: Joi.boolean(),
+  operation: Joi.string().guid(),
 });
 
 // Add validation that the filename can't start with leading '.'... how to make sure it's safe for windows,

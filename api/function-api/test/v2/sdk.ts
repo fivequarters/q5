@@ -1,7 +1,8 @@
 import { IAccount } from './accountResolver';
 import { request } from '@5qtrs/request';
-import { Model } from '@5qtrs/db';
+import RDS, { Model } from '@5qtrs/db';
 import * as querystring from 'querystring';
+import { OperationVerbs } from '../../src/routes/service/OperationService';
 
 import { getEnv } from '../v1/setup';
 
@@ -14,6 +15,7 @@ export interface IRequestOptions {
   contentType?: string;
   body?: string | object;
   authz?: string;
+  rawUrl?: boolean;
 }
 
 export interface IDispatchOptions {
@@ -53,11 +55,71 @@ export const v2Request = async (account: IAccount, options: IRequestOptions) => 
       'user-agent': account.userAgent,
       ...(options.contentType ? { 'content-type': options.contentType } : {}),
     },
-    url: `${account.baseUrl}/v2/account/${account.accountId}/subscription/${account.subscriptionId}${options.uri}`,
+    url: options.rawUrl
+      ? options.uri
+      : `${account.baseUrl}/v2/account/${account.accountId}/subscription/${account.subscriptionId}${options.uri}`,
     method: options.method,
     data: options.body,
     maxRedirects: options.maxRedirects,
   });
+};
+
+export const validateOperation = (
+  account: IAccount,
+  opRequest: any,
+  entityType: Model.EntityType,
+  entityId?: string
+) => {
+  const basePath = `/v2/account/${account.accountId}/subscription/${account.subscriptionId}`;
+  let targetPath = `${basePath}`;
+  if (entityId) {
+    // Only sessions supply this right now
+    expect(entityType).toBe(Model.EntityType.integration);
+    expect(entityId).not.toBeUndefined();
+    targetPath += `/${entityType}/${entityId}/instance\\?operation=${opRequest.data.operationId}$`;
+  } else {
+    targetPath += `/${entityType}\\?operation=${opRequest.data.operationId}$`;
+  }
+
+  expect(opRequest.data.target).toMatch(new RegExp(targetPath));
+  expect(opRequest.data.statusOnly).toMatch(new RegExp(`${basePath}/operation/${opRequest.data.operationId}$`));
+};
+
+export const compareOperationTargets = async (account: IAccount, targets: { target: string; statusOnly: string }) => {
+  let listOp: any;
+  let opOp: any;
+
+  let tries = 3;
+  do {
+    tries = tries - 1;
+    // Check the targetUrl is now correctly updated
+    listOp = await v2Request(account, {
+      method: 'GET',
+      uri: targets.target,
+      rawUrl: true,
+    });
+
+    opOp = await v2Request(account, {
+      method: 'GET',
+      uri: targets.statusOnly,
+      rawUrl: true,
+    });
+
+    expect(tries).toBeGreaterThan(0);
+
+    // Race conditions; just making sure they eventually converge here.
+  } while (listOp.status !== opOp.status);
+
+  const isDeleting = opOp.data.verb === OperationVerbs.deleting;
+
+  expect(listOp).toBeHttp({ statusCode: opOp.status });
+  if (listOp.status === 200) {
+    expect(listOp.data.total).toBe(isDeleting ? 0 : 1);
+    expect(listOp.data.items.length).toBe(isDeleting ? 0 : 1);
+    if (!isDeleting && targets.target.match(/\/instance\//)) {
+      expect(listOp.data.items[0].id).toBeUUID();
+    }
+  }
 };
 
 export const ApiRequestMap: { [key: string]: any } = {
@@ -81,15 +143,11 @@ export const ApiRequestMap: { [key: string]: any } = {
         return response;
       },
       getResult: async (account: IAccount, entityId: string, sessionId: string, options?: IRequestOptions) => {
-        const response = await v2Request(account, {
-          method: 'GET',
-          uri: `/connector/${encodeURI(entityId)}/session/${sessionId}/result`,
-          ...options,
+        return RDS.DAO.session.getEntity({
+          accountId: account.accountId,
+          subscriptionId: account.subscriptionId,
+          id: Model.createSubordinateId(Model.EntityType.connector, entityId, sessionId),
         });
-        if (response.status < 300) {
-          expect(response.data.id).not.toMatch('/');
-        }
-        return response;
       },
       get: async (account: IAccount, entityId: string, sessionId: string, options?: IRequestOptions) => {
         const response = await v2Request(account, {
@@ -137,7 +195,13 @@ export const ApiRequestMap: { [key: string]: any } = {
 
     list: async (
       account: IAccount,
-      query?: { tag?: { tagKey: string; tagValue?: string }; limit?: number; next?: string; idPrefix?: string },
+      query?: {
+        tag?: { tagKey: string; tagValue?: string };
+        limit?: number;
+        next?: string;
+        idPrefix?: string;
+        operation?: string;
+      },
       options?: IRequestOptions
     ) => {
       const tagString = query?.tag?.tagValue ? `${query.tag.tagKey}=${query.tag.tagValue}` : query?.tag?.tagKey;
@@ -163,7 +227,19 @@ export const ApiRequestMap: { [key: string]: any } = {
     ) => {
       const op = await ApiRequestMap.connector.post(account, body);
       expect(op).toBeHttp({ statusCode: 202 });
-      return ApiRequestMap.operation.waitForCompletion(account, op.data.operationId, waitOptions, options);
+      validateOperation(account, op, Model.EntityType.connector);
+
+      await compareOperationTargets(account, op.data);
+
+      const completed = await ApiRequestMap.operation.waitForCompletion(
+        account,
+        op.data.operationId,
+        waitOptions,
+        options
+      );
+      await compareOperationTargets(account, op.data);
+
+      return completed;
     },
 
     put: async (account: IAccount, connectorId: string, body: Model.ISdkEntity, options?: IRequestOptions) =>
@@ -178,7 +254,18 @@ export const ApiRequestMap: { [key: string]: any } = {
     ) => {
       const op = await ApiRequestMap.connector.put(account, connectorId, body);
       expect(op).toBeHttp({ statusCode: 202 });
-      return ApiRequestMap.operation.waitForCompletion(account, op.data.operationId, waitOptions, options);
+      validateOperation(account, op, Model.EntityType.connector);
+
+      await compareOperationTargets(account, op.data);
+
+      const completed = await ApiRequestMap.operation.waitForCompletion(
+        account,
+        op.data.operationId,
+        waitOptions,
+        options
+      );
+      await compareOperationTargets(account, op.data);
+      return completed;
     },
 
     delete: async (account: IAccount, connectorId: string, options?: IRequestOptions) =>
@@ -194,13 +281,18 @@ export const ApiRequestMap: { [key: string]: any } = {
       do {
         const op = await ApiRequestMap.connector.delete(account, entityId);
         expect(op).toBeHttp({ statusCode: 202 });
+        validateOperation(account, op, Model.EntityType.connector);
+
+        await compareOperationTargets(account, op.data);
+
         wait = await ApiRequestMap.operation.waitForCompletion(
           account,
           op.data.operationId,
           { ...waitOptions, getAfter: false },
           options
         );
-      } while (wait.status === 428);
+        await compareOperationTargets(account, op.data);
+      } while (wait.status === 429);
 
       return wait;
     },
@@ -250,15 +342,11 @@ export const ApiRequestMap: { [key: string]: any } = {
         return response;
       },
       getResult: async (account: IAccount, entityId: string, sessionId: string, options?: IRequestOptions) => {
-        const response = await v2Request(account, {
-          method: 'GET',
-          uri: `/integration/${encodeURI(entityId)}/session/${sessionId}/result`,
-          ...options,
+        return RDS.DAO.session.getEntity({
+          accountId: account.accountId,
+          subscriptionId: account.subscriptionId,
+          id: Model.createSubordinateId(Model.EntityType.integration, entityId, sessionId),
         });
-        if (response.status < 300) {
-          expect(response.data.id).not.toMatch('/');
-        }
-        return response;
       },
       get: async (account: IAccount, entityId: string, sessionId: string, options?: IRequestOptions) => {
         const response = await v2Request(account, {
@@ -312,12 +400,20 @@ export const ApiRequestMap: { [key: string]: any } = {
           ...options,
         });
         expect(op).toBeHttp({ statusCode: 202 });
-        return ApiRequestMap.operation.waitForCompletion(
+        validateOperation(account, op, Model.EntityType.integration, entityId);
+
+        // Sessions complete too fast to be able to do `compareOperationTargets` here.
+
+        const completed = await ApiRequestMap.operation.waitForCompletion(
           account,
           op.data.operationId,
           { ...waitOptions, getAfter: false },
           options
         );
+
+        compareOperationTargets(account, op.data);
+
+        return completed;
       },
     },
 
@@ -327,7 +423,13 @@ export const ApiRequestMap: { [key: string]: any } = {
 
     list: async (
       account: IAccount,
-      query?: { tag?: { tagKey: string; tagValue?: string }; limit?: number; next?: string; idPrefix?: string },
+      query?: {
+        tag?: { tagKey: string; tagValue?: string };
+        limit?: number;
+        next?: string;
+        idPrefix?: string;
+        operation?: string;
+      },
       options?: IRequestOptions
     ) => {
       const tagString = query?.tag?.tagValue ? `${query.tag.tagKey}=${query.tag.tagValue}` : query?.tag?.tagKey;
@@ -357,7 +459,18 @@ export const ApiRequestMap: { [key: string]: any } = {
     ) => {
       const op = await ApiRequestMap.integration.post(account, body);
       expect(op).toBeHttp({ statusCode: 202 });
-      return ApiRequestMap.operation.waitForCompletion(account, op.data.operationId, waitOptions, options);
+      validateOperation(account, op, Model.EntityType.integration);
+
+      await compareOperationTargets(account, op.data);
+
+      const completed = await ApiRequestMap.operation.waitForCompletion(
+        account,
+        op.data.operationId,
+        waitOptions,
+        options
+      );
+      await compareOperationTargets(account, op.data);
+      return completed;
     },
 
     put: async (account: IAccount, integrationId: string, body: Model.ISdkEntity, options?: IRequestOptions) =>
@@ -371,7 +484,18 @@ export const ApiRequestMap: { [key: string]: any } = {
     ) => {
       const op = await ApiRequestMap.integration.put(account, integrationId, body);
       expect(op).toBeHttp({ statusCode: 202 });
-      return ApiRequestMap.operation.waitForCompletion(account, op.data.operationId, waitOptions, options);
+      validateOperation(account, op, Model.EntityType.integration);
+
+      await compareOperationTargets(account, op.data);
+
+      const completed = await ApiRequestMap.operation.waitForCompletion(
+        account,
+        op.data.operationId,
+        waitOptions,
+        options
+      );
+      await compareOperationTargets(account, op.data);
+      return completed;
     },
 
     delete: async (account: IAccount, integrationId: string, options?: IRequestOptions) =>
@@ -385,12 +509,18 @@ export const ApiRequestMap: { [key: string]: any } = {
     ) => {
       const op = await ApiRequestMap.integration.delete(account, entityId);
       expect(op).toBeHttp({ statusCode: 202 });
-      return ApiRequestMap.operation.waitForCompletion(
+      validateOperation(account, op, Model.EntityType.integration);
+
+      await compareOperationTargets(account, op.data);
+
+      const completed = await ApiRequestMap.operation.waitForCompletion(
         account,
         op.data.operationId,
         { ...waitOptions, getAfter: false },
         options
       );
+      await compareOperationTargets(account, op.data);
+      return completed;
     },
 
     dispatch: async (
