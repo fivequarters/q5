@@ -424,8 +424,27 @@ describe('Sessions', () => {
     response = await ApiRequestMap[loc.entityType].session.callback(account, loc.entityId, loc.sessionId);
     expect(response).toBeHttp({
       statusCode: 302,
-      headers: { location: `${demoRedirectUrl}?session=${parentSessionId}` },
+      headers: { location: `${demoRedirectUrl}/?session=${parentSessionId}` },
     });
+  }, 180000);
+
+  test('Final 302 redirect respects query parameters', async () => {
+    const { integrationId } = await createPair(account, boundaryId);
+    let response = await ApiRequestMap.integration.session.post(account, integrationId, {
+      redirectUrl: `${demoRedirectUrl}?fruit=mango&animal=ape`,
+    });
+    expect(response).toBeHttp({ statusCode: 200 });
+    const parentSessionId = response.data.id;
+
+    // Start the session to make sure it starts correctly.
+    response = await ApiRequestMap.integration.session.start(account, integrationId, response.data.id);
+    expect(response).toBeHttp({ statusCode: 302 });
+    const loc = getElementsFromUrl(response.headers.location);
+
+    // Call the callback
+    response = await ApiRequestMap[loc.entityType].session.callback(account, loc.entityId, loc.sessionId);
+    expect(response).toBeHttp({ statusCode: 302 });
+    expect(response.headers.location).toBe(`${demoRedirectUrl}/?fruit=mango&animal=ape&session=${parentSessionId}`);
   }, 180000);
 
   test('Finish a session and receive operationId, and session gains replacementTargetId', async () => {
@@ -501,7 +520,7 @@ describe('Sessions', () => {
     response = await ApiRequestMap[loc.entityType].session.callback(account, loc.entityId, loc.sessionId);
     expect(response).toBeHttp({
       statusCode: 302,
-      headers: { location: `${demoRedirectUrl}?session=${parentSessionId}` },
+      headers: { location: `${demoRedirectUrl}/?session=${parentSessionId}` },
     });
   }, 180000);
 
