@@ -68,7 +68,7 @@ NEW_STACK_ID=`echo ${STACK_ADD} | jq -r '.id'`
 echoerr "Promoting stack ${DEPLOYMENT_NAME}: ${NEW_STACK_ID}"
 ${FUSEOPS} stack promote ${DEPLOYMENT_NAME} ${NEW_STACK_ID} --region ${REGION} -c f 1>&2
 
-while [ 1 ]; do curl -s https://${DEPLOYMENT_NAME}.${REGION}.${DEPLOYMENT_DOMAIN}/v1/health | grep -v status 2> /dev/null; RET=$?; if [ ${RET} == 0 ]; then break; fi; sleep 0.1; done
+while [[ "$(curl -s -o /dev/null -w ''%{http_code}'' https://${DEPLOYMENT_NAME}.${REGION}.${DEPLOYMENT_DOMAIN}/v1/health)" != "200" ]]; do sleep 1; done
 
 echoerr "Completed successfully:"
 echo { \"deployment\": \"${DEPLOYMENT_NAME}\", \"id\": \"${NEW_STACK_ID}\" }
