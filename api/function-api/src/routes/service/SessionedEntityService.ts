@@ -302,26 +302,17 @@ export default abstract class SessionedEntityService<
       throw http_error(500, `Parent session is missing session id`);
     }
 
-    // Did the session error out, such that the sequence should be aborted and the browser sent to the final
-    // redirect?
-    if (session.data.output?.error) {
-      return {
-        statusCode: 302,
-        result: {
-          mode: 'url',
-          url: `${parentSession.data.redirectUrl}?session=${Model.decomposeSubordinateId(parentSession.id).entityId}`,
-        },
-      };
-    }
-
     const step = parentSession.data.components[stepIndex + 1];
-    if (!step) {
-      // If there's no further components, redirect to the redirectUrl.
+
+    // All done, or the session error'ed out and the browser should be sent back to the redirectUrl.
+    if (!step || session.data.output?.error) {
+      const redirectUrl = new URL(parentSession.data.redirectUrl);
+      redirectUrl.searchParams.set('session', Model.decomposeSubordinateId(parentSession.id).entityId);
       return {
         statusCode: 302,
         result: {
           mode: 'url',
-          url: `${parentSession.data.redirectUrl}?session=${Model.decomposeSubordinateId(parentSession.id).entityId}`,
+          url: redirectUrl.toString(),
         },
       };
     }

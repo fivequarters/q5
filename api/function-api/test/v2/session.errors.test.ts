@@ -40,7 +40,7 @@ describe('Sessions', () => {
     response = await ApiRequestMap.connector.session.callback(account, connectorId, stepSessionId);
     expect(response).toBeHttp({
       statusCode: 302,
-      headers: { location: `${demoRedirectUrl}?session=${parentSessionId}` },
+      headers: { location: `${demoRedirectUrl}/?session=${parentSessionId}` },
     });
 
     // Post and check the session to see that the result is an error
@@ -92,7 +92,7 @@ describe('Sessions', () => {
     response = await ApiRequestMap.integration.session.callback(account, integrationId, stepSessionId);
     expect(response).toBeHttp({
       statusCode: 302,
-      headers: { location: `${demoRedirectUrl}?session=${parentSessionId}` },
+      headers: { location: `${demoRedirectUrl}/?session=${parentSessionId}` },
     });
 
     // Post and check the session to see that the result is an error
