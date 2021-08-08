@@ -46,7 +46,8 @@ describe('Sessions', () => {
       headers: { location: `${demoRedirectUrl}/?error=bad_monkey&errorDescription=worst&session=${parentSessionId}` },
     });
 
-    // Post and check the session to see that the result is an error
+    // Post and check the session to see that the result is an error, generates "Missing child session id"
+    // warnings in function-api that probably need to be squelched at some point
     response = await ApiRequestMap.integration.session.postSession(account, integrationId, parentSessionId);
     expect(response).toBeHttp({ statusCode: 400 });
     expect(response.data.message).toMatch(/bad_monkey/);
