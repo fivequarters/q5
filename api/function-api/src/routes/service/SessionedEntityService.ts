@@ -4,7 +4,7 @@ import { v4 as uuidv4 } from 'uuid';
 import RDS, { Model } from '@5qtrs/db';
 
 import BaseEntityService, { IServiceResult } from './BaseEntityService';
-import { operationService } from './OperationService';
+import { operationService, OperationVerbs } from './OperationService';
 
 export default abstract class SessionedEntityService<
   E extends Model.IEntity,
@@ -165,7 +165,7 @@ export default abstract class SessionedEntityService<
         return acc;
       }, {});
 
-    let replacementTargetId: string | undefined = undefined;
+    let replacementTargetId: string | undefined;
     let previousOutput;
     if (!!parentSession.data.replacementTargetId && !!instance) {
       if (step.entityType === Model.EntityType.integration) {
@@ -273,6 +273,7 @@ export default abstract class SessionedEntityService<
 
     // Get instance if needed
     const instance = await this.getSessionInstance(parentSession);
+
     // Get the first step
     const step = parentSession.data.components[0];
 
@@ -341,8 +342,8 @@ export default abstract class SessionedEntityService<
     return operationService.inOperation(
       Model.EntityType.session,
       entity,
-      { verb: 'creating', type: Model.EntityType.session },
-      async (operationId) => {
+      { verb: OperationVerbs.creating, type: Model.EntityType.session },
+      async (operationId: string) => {
         const session = await this.sessionDao.getEntity(entity);
         this.ensureSessionTrunk(session, 'cannot post non-master session', 400);
         session.data.operationId = operationId;

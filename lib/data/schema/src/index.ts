@@ -124,7 +124,7 @@ export interface IOperation extends IEntity {
   data: {
     verb: 'creating' | 'updating' | 'deleting';
     type: EntityType;
-    code: number; // HTTP status codes
+    statusCode: number; // HTTP status codes
     message?: string;
     payload?: any;
     location: {
