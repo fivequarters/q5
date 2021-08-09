@@ -39,12 +39,22 @@ function addAwsCredentials() {
         if (e) throw new Error('Unable to obtain AWS session token: ' + e.message);
         Fs.writeFileSync(__dirname + '/.env.aws', JSON.stringify(d, null, 2), { encoding: 'utf8' });
         addCreds(d);
+        addSegmentKey(d);
         return addElasticsearchCredentials();
       }
     );
   } else {
     addCreds(creds);
+    addSegmentKey(creds);
     return addElasticsearchCredentials();
+  }
+}
+
+function addSegmentKey(creds) {
+  if (!process.env.SEGMENT_KEY) {
+    env = `${env}
+SEGMENT_KEY=${creds.segmentKey}
+`;
   }
 }
 

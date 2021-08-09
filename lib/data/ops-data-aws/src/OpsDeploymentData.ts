@@ -92,6 +92,10 @@ export class OpsDeploymentData extends DataSource implements IOpsDeploymentData 
         deployment.dataWarehouseEnabled = existing.dataWarehouseEnabled;
       }
 
+      if (deployment.segmentKey == null) {
+        deployment.segmentKey = existing.segmentKey;
+      }
+
       if (deployment.elasticSearch == null) {
         deployment.elasticSearch = existing.elasticSearch;
       }
