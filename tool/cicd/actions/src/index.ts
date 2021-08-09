@@ -20,6 +20,7 @@ const publishAll = [
   'publish_fusebit_editor',
   'publish_fusebit_ops_cli',
   'publish_api_docs',
+  'publish_proxy_secrets',
 ];
 const fullBuild = ['setup_env', 'full_build'];
 

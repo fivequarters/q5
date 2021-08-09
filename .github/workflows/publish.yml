@@ -84,6 +84,8 @@ jobs:
         run: ./tool/cicd/actions/scripts/publish_fusebit_ops_cli.sh
       - name: Publish - API Docs
         run: ./tool/cicd/actions/scripts/publish_api_docs.sh
+      - name: Publish - Global Proxy Secrets
+        run: ./tool/cicd/actions/scripts/publish_proxy_secrets.sh
       - name: Notify slack success
         if: success()
         env:
