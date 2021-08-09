@@ -1,6 +1,7 @@
 import superagent from 'superagent';
+import { Context } from './Router';
 
-export interface ITenantRequestParams {
+interface ITenantRequestParams {
   baseUrl: string;
   accountId: string;
   subscriptionId: string;
@@ -9,53 +10,50 @@ export interface ITenantRequestParams {
   integrationId: string;
 }
 
-export interface ITenant {
-  [key: string]: string;
-}
-
-export interface IInstance {
-  id: string;
-  tags: ITenant;
-  data?: any;
-  expires?: string;
-  version?: string;
-}
-
-export interface IHttpResponse {
+interface IHttpResponse {
   status: number;
   body: any;
 }
 
-export interface ITenantRequest {
+interface ITenantRequest {
   getTenant(tenantId: string): Promise<IInstance>;
   deleteTenant(tenantId: string): Promise<IHttpResponse>;
 }
 
-export const createRequest = (params: ITenantRequestParams): ITenantRequest => {
-  const _getRequestUrl = (uri: string): string => {
-    const functionUrl = new URL(params.baseUrl);
-    const baseUrl = `${functionUrl.protocol}//${functionUrl.host}/v2/account/${params.accountId}/subscription/${params.subscriptionId}/integration/${params.integrationId}/instance/${uri}`;
-    return baseUrl;
-  };
-  const getTenant = async (tenantId: string): Promise<IInstance> => {
-    const response = await superagent
-      .get(_getRequestUrl(`?tag=tenant=${tenantId}`))
-      .set('Authorization', `Bearer ${params.accessToken}`)
-      .ok((res) => res.status < 300 || res.status === 404);
-    return response.status === 404 ? undefined : response.body?.data[0];
-  };
-  const deleteTenant = async (tenantId: string) => {
-    const tenantInstance = await getTenant(tenantId);
-    if (tenantInstance?.id) {
-      const response = await superagent
-        .delete(_getRequestUrl(tenantInstance.id))
-        .set('Authorization', `Bearer ${params.accessToken}`)
-        .ok((res) => res.status < 300 || res.status === 404);
-      return response.status === 404 ? undefined : response.body.data;
-    }
-  };
-  return {
-    getTenant,
-    deleteTenant,
-  };
+export interface IInstance {
+  id: string;
+  tags: { [key: string]: string };
+  data: any;
+  expires?: string;
+  version?: string;
+}
+
+export const TENANT_TAG_NAME = 'tenant';
+
+const _getRequestUrl = (ctx: Context, uri: string): string => {
+  const { baseUrl, accountId, subscriptionId, integrationId } = ctx.state.params;
+  const functionUrl = new URL(baseUrl);
+  const requestUrl = `${functionUrl.protocol}//${functionUrl.host}/v2/account/${accountId}/subscription/${subscriptionId}/integration/${integrationId}/instance/${uri}`;
+  return requestUrl;
 };
+
+const getTenant = async (ctx: Context, tenantId: string): Promise<IInstance> => {
+  const { accessToken } = ctx.state.params;
+  const response = await superagent
+    .get(_getRequestUrl(ctx, `?tag=${TENANT_TAG_NAME}=${tenantId}`))
+    .set('Authorization', `Bearer ${accessToken}`)
+    .ok((res) => res.status < 300);
+  return response.body?.data[0];
+};
+
+const deleteTenant = async (ctx: Context, tenantId: string) => {
+  const { accessToken } = ctx.state.params;
+  const tenantInstance = await getTenant(ctx, tenantId);
+  const response = await superagent
+    .delete(_getRequestUrl(ctx, tenantInstance.id))
+    .set('Authorization', `Bearer ${accessToken}`)
+    .ok((res) => res.status < 300);
+  return response.body?.data;
+};
+
+export { getTenant, deleteTenant };

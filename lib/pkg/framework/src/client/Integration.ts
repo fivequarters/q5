@@ -15,9 +15,9 @@ class Tenant {
   getTenant: (ctx: Context, tenantId: string) => Promise<TenantService.IInstance> = async (
     ctx: Context,
     tenantId: string
-  ) => TenantService.createRequest(ctx.state.params).getTenant(tenantId);
+  ) => TenantService.getTenant(ctx, tenantId);
   deleteTenant: (ctx: Context, tenantId: string) => Promise<any> = async (ctx: Context, tenantId: string) =>
-    TenantService.createRequest(ctx.state.params).deleteTenant(tenantId);
+    TenantService.deleteTenant(ctx, tenantId);
 }
 
 namespace Integration {
