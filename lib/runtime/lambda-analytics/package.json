@@ -16,6 +16,7 @@
   },
   "keywords": [],
   "dependencies": {
+    "analytics-node": "^5.0.0",
     "uuid": "^7.0.2"
   }
 }
