@@ -80,6 +80,11 @@ const specs = [
     inputs: ['checkout', 'setup_env', 'deploy_dashboard'],
     output: 'deploy_dashboards',
   },
+  {
+    name: 'Publish Proxy Secrets',
+    inputs: ['checkout', 'setup_env', 'publish_proxy_secrets'],
+    output: 'publish_proxy_secrets',
+  },
 ];
 
 function buildSpec(name: string, inputs: string[], output: string, options: any = {}) {
