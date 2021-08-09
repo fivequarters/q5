@@ -107,12 +107,18 @@ function saveEnv() {
 
   // Excise out secrets for safe pretty-print
   let splitEnv = env.split('\n');
-  ['AWS_ACCESS_KEY_ID', 'AWS_SECRET_ACCESS_KEY', 'AWS_SESSION_TOKEN', 'ES_USER', 'ES_HOST', 'ES_PASSWORD'].forEach(
-    (k) => {
-      const re = new RegExp(`^${k}=\(.*\)$`);
-      splitEnv = splitEnv.map((ln) => ln.replace(re, (_, p1) => `${k}=*x${p1.length}`));
-    }
-  );
+  [
+    'AWS_ACCESS_KEY_ID',
+    'AWS_SECRET_ACCESS_KEY',
+    'AWS_SESSION_TOKEN',
+    'ES_USER',
+    'ES_HOST',
+    'ES_PASSWORD',
+    'SEGMENT_KEY',
+  ].forEach((k) => {
+    const re = new RegExp(`^${k}=\(.*\)$`);
+    splitEnv = splitEnv.map((ln) => ln.replace(re, (_, p1) => `${k}=*x${p1.length}`));
+  });
 
   console.log(splitEnv.join('\n'));
 }
