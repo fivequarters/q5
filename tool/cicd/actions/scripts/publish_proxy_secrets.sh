@@ -1,5 +1,7 @@
 #!/usr/bin/env bash
 
+set -xe
+
 # Get package version
 VERSION_FUSEBIT_OPS_CLI=$(cat cli/fusebit-ops-cli/package.json | jq -r .version)
 
