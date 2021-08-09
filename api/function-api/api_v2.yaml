@@ -123,6 +123,143 @@ paths:
         - AccessToken: []
 
   #############################################################################
+  # Session
+  /v2/account/{accountId}/subscription/{subscriptionId}/{entityType}/{entityId}/session:
+    parameters:
+      - $ref: '#/components/parameters/Account'
+      - $ref: '#/components/parameters/Subscription'
+      - $ref: '#/components/parameters/EntityType'
+      - $ref: '#/components/parameters/EntityId'
+    post:
+      tags:
+        - Session
+      summary:
+        Create a new session
+      description:
+        Create a new session on behalf of a new user, or to allow an existing
+        user to reconfigure their integration.
+      operationId: createSession
+      requestBody:
+        $ref: '#/components/requestBodies/PostSessionBody'
+      responses:
+        200:
+          description: The created session
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Session'
+      security:
+        - AccessToken: []
+
+  /v2/account/{accountId}/subscription/{subscriptionId}/{entityType}/{entityId}/session/{sessionId}:
+    parameters:
+      - $ref: '#/components/parameters/Account'
+      - $ref: '#/components/parameters/Subscription'
+      - $ref: '#/components/parameters/EntityType'
+      - $ref: '#/components/parameters/EntityId'
+      - $ref: '#/components/parameters/SessionId'
+    get:
+      tags:
+        - Session
+      summary:
+        Get a session
+      description:
+        Get the inputs and outputs of an existing session.
+      operationId: getSession
+      responses:
+        200:
+          description: The session object with results from any operations
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SessionResult'
+      security:
+        - AccessToken: []
+
+    put:
+      tags:
+        - Session
+      summary:
+        Update a session's output
+      description:
+        Write the outputs of an configuration to a session. Primarily used in on
+        configuration form submission in an integration, or in a connector.
+      operationId: putSession
+      requestBody:
+        $ref: '#/components/requestBodies/PutSessionBody'
+      responses:
+        200:
+          description: The created session
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SessionResult'
+      security:
+        - AccessToken: []
+
+    post:
+      tags:
+        - Session
+      summary:
+        Commit a session
+      description:
+        Commit the session, creating the necessary instance and identity
+        objects, or updating the configuration of existing objects as necessary.
+      operationId: postSession
+      responses:
+        202:
+          description: The session is being created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/NewOperation'
+
+  /v2/account/{accountId}/subscription/{subscriptionId}/{entityType}/{entityId}/session/{sessionId}/start:
+    parameters:
+      - $ref: '#/components/parameters/Account'
+      - $ref: '#/components/parameters/Subscription'
+      - $ref: '#/components/parameters/EntityType'
+      - $ref: '#/components/parameters/EntityId'
+      - $ref: '#/components/parameters/SessionId'
+    get:
+      tags:
+        - Session
+      summary:
+        Start the browser
+      description:
+        Redirect the browser to this URL to start the session.
+      operationId: startSession
+      responses:
+        302:
+          description:
+            The configuration url of the first component in the session.
+      security:
+        - AccessToken: []
+
+  /v2/account/{accountId}/subscription/{subscriptionId}/{entityType}/{entityId}/session/{sessionId}/callback:
+    parameters:
+      - $ref: '#/components/parameters/Account'
+      - $ref: '#/components/parameters/Subscription'
+      - $ref: '#/components/parameters/EntityType'
+      - $ref: '#/components/parameters/EntityId'
+      - $ref: '#/components/parameters/SessionId'
+    get:
+      tags:
+        - Session
+      summary:
+        Browser finishes a session
+      description:
+        Used by the component to pass control back to the session, allowing the
+        browser to move on to the next step in the configuration process.
+      operationId: continueSession
+      responses:
+        302:
+          description:
+            The configuration url of the first component in the session.
+      security:
+        - AccessToken: []
+
+  #############################################################################
   # Connector
   /v2/account/{accountId}/subscription/{subscriptionId}/connector:
     parameters:
@@ -537,6 +674,28 @@ components:
       description: Subscription id
       schema:
         $ref: '#/components/schemas/SubscriptionId'
+    EntityType:
+      name: entityType
+      required: true
+      in: path
+      description: The type of the entity
+      schema:
+        $ref: '#/components/schemas/EntityType'
+    EntityId:
+      name: entityId
+      in: path
+      required: true
+      description: The id of the entity
+      schema:
+        $ref: '#/components/schemas/EntityId'
+    SessionId:
+      name: sessionId
+      in: path
+      required: true
+      description: The id of the session
+      schema:
+        $ref: '#/components/schemas/SessionId'
+
     SearchIdPrefix:
       name: idPrefix
       in: query
@@ -561,7 +720,7 @@ components:
       schema:
         type: string
     SearchOperation:
-      name: operation
+      name: operationId
       in: query
       description: Get the associated entity that this operation is creating
       schema:
@@ -595,6 +754,51 @@ components:
         application/json:
           schema:
             $ref: '#/components/schemas/InstanceEntity'
+
+    PostSessionBody:
+      description: Create a new session on an integration
+      content:
+        application/json:
+          schema:
+            type: object
+            required:
+              - redirectUrl
+            properties:
+              components:
+                type: array
+                description:
+                  A list of the desired components to configure. If not present,
+                  then all components specified in the integration are
+                  configured in this session.
+                items:
+                  type: string
+              tags:
+                $ref: '#/components/schemas/EntityTags'
+              extendTags:
+                description:
+                  Add tags here to be applied to each of the instances and
+                  identities created through this session.
+                allOf:
+                  - $ref: '#/components/schemas/EntityTags'
+              input:
+                $ref: '#/components/schemas/SessionInput'
+              redirectUrl:
+                type: string
+                description:
+                  The URL in your infrastructure that the user should return to
+                  after completing the session.
+              instanceId:
+                type: string
+                description:
+                  Used when reconfiguring an existing user. Specifies the
+                  instance associated with that user.
+
+    PutSessionBody:
+      description: The results of a configuration action, such as a form.
+      content:
+        application/json:
+          schema:
+            type: object
 
   schemas:
     AccountId:
@@ -676,6 +880,66 @@ components:
           $ref: '#/components/schemas/EntityLocation'
         operationId:
           $ref: '#/components/schemas/OperationId'
+
+    NewOperation:
+      type: object
+      required:
+        - operationId
+        - target
+        - statusOnly
+      properties:
+        operationId:
+          type: string
+          format: uuid
+        target:
+          type: string
+          format: url
+        statusOnly:
+          type: string
+          format: url
+
+    SessionId:
+      type: string
+      format: uuid
+      description: The id of the session
+
+    Session:
+      type: object
+      properties:
+        id:
+          $ref: '#/components/schemas/SessionId'
+
+    SessionResult:
+      type: object
+      properties:
+        id:
+          $ref: '#/components/schemas/SessionId'
+        input:
+          type: object
+        output:
+          type: object
+        dependsOn:
+          type: object
+
+    SessionInput:
+      type: object
+      example:
+        slack-integration:
+          useDemo: true
+      description:
+        A collection of input variables to make available to
+        components as they are configured. Each key must correspond
+        with an entry in the component array, and carries
+        configuration that will only be available to that component.
+
+    SessionOutput:
+      type: object
+      example:
+        slack-integration:
+          channel: "#general"
+      description:
+        A collection of output configuration elements created by the various
+        steps, and stored on the instance for use in the integration.
 
     EntityLocation:
       type: object
