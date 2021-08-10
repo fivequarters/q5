@@ -11,8 +11,8 @@ afterAll(async () => {
   await cleanupEntities(account);
 }, 180000);
 
-describe('Sessions', () => {
-  test('POSTing an error on a connector session is reported during commit', async () => {
+describe('Middleware Authorization Test', () => {
+  test('POSTing a connector with an improper JWT token to the connector configuration endpoint.', async () => {
     // Create an integration
     let pair = await createPair(account, boundaryId, undefined, {
       handler: '@fusebit-int/slack-connector',
