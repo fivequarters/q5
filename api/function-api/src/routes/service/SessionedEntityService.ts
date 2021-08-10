@@ -309,10 +309,10 @@ export default abstract class SessionedEntityService<
     // redirect with the error details as query parameters?
     if (!step || session.data.output?.error) {
       const url = new URL(parentSession.data.redirectUrl);
-      if (session.data.output.error) {
+      if (session.data.output?.error) {
         url.searchParams.set('error', session.data.output.error);
       }
-      if (session.data.output.errorDescription) {
+      if (session.data.output?.errorDescription) {
         url.searchParams.set('errorDescription', session.data.output.errorDescription);
       }
       url.searchParams.set('session', Model.decomposeSubordinateId(parentSession.id).entityId);
