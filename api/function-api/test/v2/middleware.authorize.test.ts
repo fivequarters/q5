@@ -26,12 +26,10 @@ describe('Sessions', () => {
     let response = await ApiRequestMap.connector.dispatch(account, pair.connectorId, 'GET', '/api/configure', {
       authz: '',
     });
-
-    let response2 = await ApiRequestMap.connector.dispatch(account, pair.connectorId, 'GET', '/api/configure', {
+    expect(response).toBeHttp({ statusCode: 403 });
+    response = await ApiRequestMap.connector.dispatch(account, pair.connectorId, 'GET', '/api/configure', {
       authz: 'gibberish',
     });
     expect(response).toBeHttp({ statusCode: 403 });
-    // Weird bug, invalid authz instead of no jwt returns 404 instead of 403.
-    expect(response2).toBeHttp({ statusCode: 403 });
   }, 180000);
 });
