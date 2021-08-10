@@ -71,7 +71,7 @@ const specs: ISpec[] = [
   },
   {
     name: 'Publish API Documentation to Readme.com',
-    inputs: ['checkout', 'publish_api_readme_com'],
+    inputs: ['checkout', 'publish_api_readme_com', 'publish_slack'],
     output: 'publish_api_docs',
     options: {
       base: 'fast_base',
