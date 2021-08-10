@@ -1,10 +1,11 @@
+import http_error from 'http-errors';
 import express from 'express';
 import ms from 'ms';
 
 import { v4 as uuidv4 } from 'uuid';
 
-import { v2Permissions } from '@5qtrs/constants';
-import RDS from '@5qtrs/db';
+import { isUuid, v2Permissions } from '@5qtrs/constants';
+import RDS, { Model } from '@5qtrs/db';
 
 import * as common from '../middleware/common';
 
@@ -55,7 +56,24 @@ router
           subscriptionId: req.params.subscriptionId,
           id: req.params.operationId,
         });
-        return res.status(operation.data.code).json({ ...operation.data, operationId: req.params.operationId });
+
+        // Clear the entityId if it's a composite
+        const isCompositeId = operation.data.location.entityId && operation.data.location.entityId.includes('/');
+        const entityId =
+          isCompositeId && operation.data.location.entityId
+            ? Model.decomposeSubordinateId(operation.data.location.entityId).parentEntityId
+            : operation.data.location.entityId;
+
+        if (entityId) {
+          // Is it a non-empty actual number? If so, it's probably a database id - don't use it. This continues the
+          // efforts of trying to avoid exposing session, identity, instance, and database id's out through these APIs.
+          if (isCompositeId && (!isNaN(+entityId) || !isNaN(parseFloat(entityId)) || isUuid(entityId))) {
+            throw http_error(500, 'Invalid entityId detected');
+          }
+        }
+        operation.data.location.entityId = entityId;
+
+        return res.status(operation.data.statusCode).json({ ...operation.data, operationId: req.params.operationId });
       } catch (error) {
         return next(error);
       }

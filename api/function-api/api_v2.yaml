@@ -138,6 +138,7 @@ paths:
         - $ref: '#/components/parameters/SearchCount'
         - $ref: '#/components/parameters/SearchNext'
         - $ref: '#/components/parameters/SearchTag'
+        - $ref: '#/components/parameters/SearchOperation'
       responses:
         200:
           description: A list of the objects found
@@ -166,7 +167,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/OperationIdResponse'
+                $ref: '#/components/schemas/OperationIdUrlResponse'
       security:
         - AccessToken: []
 
@@ -212,7 +213,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/OperationIdResponse'
+                $ref: '#/components/schemas/OperationIdUrlResponse'
       security:
         - AccessToken: []
     delete:
@@ -228,7 +229,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/OperationIdResponse'
+                $ref: '#/components/schemas/OperationIdUrlResponse'
       security:
         - AccessToken: []
 
@@ -333,6 +334,7 @@ paths:
         - $ref: '#/components/parameters/SearchCount'
         - $ref: '#/components/parameters/SearchNext'
         - $ref: '#/components/parameters/SearchTag'
+        - $ref: '#/components/parameters/SearchOperation'
       responses:
         200:
           description: A list of the objects found
@@ -401,7 +403,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/OperationIdResponse'
+                $ref: '#/components/schemas/OperationIdUrlResponse'
       security:
         - AccessToken: []
     delete:
@@ -417,7 +419,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/OperationIdResponse'
+                $ref: '#/components/schemas/OperationIdUrlResponse'
       security:
         - AccessToken: []
 
@@ -441,6 +443,7 @@ paths:
         - $ref: '#/components/parameters/SearchCount'
         - $ref: '#/components/parameters/SearchNext'
         - $ref: '#/components/parameters/SearchTag'
+        - $ref: '#/components/parameters/SearchOperation'
       responses:
         200:
           description: A list of the objects found
@@ -557,6 +560,12 @@ components:
       description: A tag or tag=value to search for
       schema:
         type: string
+    SearchOperation:
+      name: operation
+      in: query
+      description: Get the associated entity that this operation is creating
+      schema:
+        $ref: '#/components/schemas/OperationId'
 
   requestBodies:
     PostConnectorBody:
@@ -641,7 +650,7 @@ components:
       required:
         - verb
         - type
-        - code
+        - statusCode
       properties:
         verb:
           type: string
@@ -651,7 +660,7 @@ components:
           type: string
           description: The type of the object being worked upon
           example: connector
-        code:
+        statusCode:
           type: number
           description:
             An HTTP status code indicating the current status of the
@@ -695,6 +704,27 @@ components:
       properties:
         operationId:
           $ref: '#/components/schemas/OperationId'
+
+    OperationIdUrlResponse:
+      type: object
+      required:
+        - operationId
+      description: A valid operation id for this operation.
+      properties:
+        operationId:
+          $ref: '#/components/schemas/OperationId'
+        target:
+          type: string
+          description:
+            Query this URL to track the status of the operation and, when
+            complete, receive the resulting object in the format of a list
+            operation.
+        statusOnly:
+          type: string
+          description:
+            This URL is a public URL suitable to be passed to an untrusted
+            client such as a web browser to drive an in-progress spinner. The
+            URL is always a GET request for `../operation/{operationId}`.
 
     ConnectorEntity:
       type: object
