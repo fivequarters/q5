@@ -1,20 +1,15 @@
-import { request } from '@5qtrs/request';
-
-import { Model } from '@5qtrs/db';
 import { cleanupEntities, ApiRequestMap, createPair } from './sdk';
 
 import { getEnv } from '../v1/setup';
 
-let { account, boundaryId, function1Id, function2Id, function3Id, function4Id, function5Id } = getEnv();
+let { account, boundaryId } = getEnv();
 beforeEach(() => {
-  ({ account, boundaryId, function1Id, function2Id, function3Id, function4Id, function5Id } = getEnv());
+  ({ account, boundaryId } = getEnv());
 });
 
 afterAll(async () => {
   await cleanupEntities(account);
 }, 180000);
-
-const demoRedirectUrl = 'http://monkey';
 
 describe('Sessions', () => {
   test('POSTing an error on a connector session is reported during commit', async () => {
