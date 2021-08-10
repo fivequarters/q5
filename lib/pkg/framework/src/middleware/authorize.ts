@@ -50,7 +50,7 @@ function doesAccessEntryAuthorize(accessEntry: IAccessEntry, action: string, res
 export const authorize = (action: string) => {
   return async (ctx: Context, next: Next) => {
     const resource = normalizeResource(ctx.state.params.resourcePath);
-    const allowEntries = ctx.state.fusebit?.caller?.permissions.allow || [];
+    const allowEntries = ctx.state.fusebit?.caller?.permissions?.allow || [];
 
     for (const allow of allowEntries) {
       if (doesAccessEntryAuthorize(allow, action, resource)) {
