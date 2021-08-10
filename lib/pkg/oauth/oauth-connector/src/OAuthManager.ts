@@ -4,10 +4,16 @@ import { OAuthEngine, IOAuthConfig } from './OAuthEngine';
 import { callbackSuffixUrl } from './OAuthConstants';
 import IdentityClient from './IdentityClient';
 
+import { schema, uischema } from './configure';
+
 const connector = new Connector();
 const router = connector.router;
 
 let engine: OAuthEngine;
+
+const onSessionError = async (ctx: Connector.Types.Context, error: { error: string; errorDescription?: string }) => {
+  await ctx.state.identityClient?.saveErrorToSession({ ...error });
+};
 
 router.use(async (ctx: Connector.Types.Context, next: Connector.Types.Next) => {
   if (engine) {
@@ -30,11 +36,6 @@ router.on('startup', async ({ mgr, cfg, router: rtr }: Connector.Types.IOnStartu
 });
 
 // Internal Endpoints
-router.delete('/', async (ctx: Connector.Types.Context, next: Connector.Types.Next) => {
-  await ctx.state.manager.invoke('uninstall', {});
-  return next();
-});
-
 router.get('/api/:lookupKey/health', async (ctx: Connector.Types.Context) => {
   try {
     if (!(await engine.ensureAccessToken(ctx, ctx.params.lookupKey))) {
@@ -78,109 +79,47 @@ router.get('/api/authorize', async (ctx: Connector.Types.Context) => {
   ctx.redirect(await engine.getAuthorizationUrl(ctx.query.session));
 });
 
-router.get('/api/form', connector.middleware.authorizeUser('connector:put'), async (ctx: Connector.Types.Context) => {
-  ctx.body = {
-    data: ctx.state.manager.config.configuration,
-    schema: {
-      type: 'object',
-      properties: {
-        scope: {
-          title: 'Comma separated scopes to request from the OAuth server',
-          type: 'string',
-        },
-        clientId: {
-          title: 'The client ID issued by the OAuth server',
-          type: 'string',
-        },
-        tokenUrl: {
-          type: 'string',
-        },
-        clientSecret: {
-          type: 'string',
-        },
-        authorizationUrl: {
-          type: 'string',
-        },
-        refreshErrorLimit: {
-          type: 'integer',
-        },
-        refreshInitialBackoff: {
-          type: 'integer',
-        },
-        refreshWaitCountLimit: {
-          type: 'integer',
-        },
-        refreshBackoffIncrement: {
-          type: 'integer',
-        },
-        accessTokenExpirationBuffer: {
-          type: 'integer',
-        },
-      },
-      required: ['scope', 'clientId', 'clientSecret', 'tokenUrl', 'authorizationUrl'],
-    },
-    uischema: {
-      type: 'VerticalLayout',
-      elements: [
-        {
-          type: 'Control',
-          scope: '#/properties/scope',
-        },
-        {
-          type: 'Control',
-          scope: '#/properties/clientId',
-        },
-        {
-          type: 'Control',
-          scope: '#/properties/tokenUrl',
-        },
-        {
-          type: 'Control',
-          scope: '#/properties/clientSecret',
-        },
-        {
-          type: 'Control',
-          scope: '#/properties/authorizationUrl',
-        },
-        {
-          type: 'Control',
-          scope: '#/properties/refreshErrorLimit',
-        },
-        {
-          type: 'Control',
-          scope: '#/properties/refreshInitialBackoff',
-        },
-        {
-          type: 'Control',
-          scope: '#/properties/refreshWaitCountLimit',
-        },
-        {
-          type: 'Control',
-          scope: '#/properties/refreshBackoffIncrement',
-        },
-        {
-          type: 'Control',
-          scope: '#/properties/accessTokenExpirationBuffer',
-        },
-      ],
-    },
-  };
-});
+router.get(
+  '/api/configure',
+  connector.middleware.authorizeUser('connector:put'),
+  async (ctx: Connector.Types.Context) => {
+    ctx.body = {
+      data: ctx.state.manager.config.configuration,
+      schema,
+      uischema,
+    };
+  }
+);
 
 router.get(callbackSuffixUrl, async (ctx: Connector.Types.Context) => {
   const state = ctx.query.state;
+
+  if (!state) {
+    ctx.throw(400, 'Missing state');
+  }
+
+  if (ctx.query.error) {
+    // The OAuth exchange has errored out - send back to callback and pass those parameters along.
+    onSessionError(ctx, {
+      error: ctx.query.error,
+      errorDescription: ctx.query.error_description || ctx.query.errorDescription,
+    });
+    return engine.redirectToCallback(ctx);
+  }
+
   const code = ctx.query.code;
 
   if (!code) {
-    ctx.throw(400, 'Missing code query parameter');
+    onSessionError(ctx, { error: 'Missing code query parameter from OAuth server' });
+    return engine.redirectToCallback(ctx);
   }
 
   try {
     await engine.convertAccessCodeToToken(ctx, state, code);
-    return await engine.redirectToCallback(ctx);
   } catch (e) {
-    ctx.throw(e.status, `${e.response?.text} - ${e.stack}`);
+    onSessionError(ctx, { error: `Conversion error: ${e.response?.text} - ${e.stack}` });
   }
+  return engine.redirectToCallback(ctx);
 });
 
 export default connector;

@@ -16,7 +16,7 @@ interface IOAuthToken {
 const removeLeadingSlash = (s: string) => s.replace(/^\/(.+)$/, '$1');
 const removeTrailingSlash = (s: string) => s.replace(/^(.+)\/$/, '$1');
 
-interface Params {
+interface IParams {
   subscriptionId: string;
   accountId: string;
   baseUrl: string;
@@ -32,7 +32,7 @@ class IdentityClient {
   private readonly accessToken: string;
   private readonly connectorId: string;
 
-  constructor(params: Params) {
+  constructor(params: IParams) {
     this.params = params;
     this.functionUrl = new URL(params.baseUrl);
     this.connectorId = params.entityId;
@@ -101,6 +101,15 @@ class IdentityClient {
       }
     });
     const response = await superagent.get(this.baseUrl).query(query).set('Authorization', `Bearer ${this.accessToken}`);
+    return response.body;
+  };
+
+  public saveErrorToSession = async (error: { error: string; errorDescription?: string }, sessionId: string) => {
+    sessionId = this.cleanId(sessionId);
+    const response = await superagent
+      .put(`${this.connectorUrl}/session/${sessionId}`)
+      .set('Authorization', `Bearer ${this.accessToken}`)
+      .send(error);
     return response.body;
   };
 

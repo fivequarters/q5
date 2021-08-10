@@ -82,7 +82,7 @@ export default abstract class SessionedEntityService<
         // Validate DAG of 'dependsOn' parameters.
         step.dependsOn.forEach((s: string) => {
           if (!dagCheck[s]) {
-            throw http_error(400, `Ordering violation: 'uses' in '${step.name}' for '${s}' before declaration.`);
+            throw http_error(400, `Ordering violation: 'dependsOn' in '${step.name}' for '${s}' before declaration.`);
           }
         });
 
@@ -302,6 +302,24 @@ export default abstract class SessionedEntityService<
       throw http_error(500, `Parent session is missing session id`);
     }
 
+    // Did the session error out, such that the sequence should be aborted and the browser sent to the final
+    // redirect with the error details as query parameters?
+    if (session.data.output?.error) {
+      const url = new URL(parentSession.data.redirectUrl);
+      url.searchParams.set('error', session.data.output.error);
+      if (session.data.output.errorDescription) {
+        url.searchParams.set('errorDescription', session.data.output.errorDescription);
+      }
+      url.searchParams.set('session', Model.decomposeSubordinateId(parentSession.id).entityId);
+      return {
+        statusCode: 302,
+        result: {
+          mode: 'url',
+          url: url.toString(),
+        },
+      };
+    }
+
     const step = parentSession.data.components[stepIndex + 1];
     if (!step) {
       // If there's no further components, redirect to the redirectUrl.
@@ -356,7 +374,7 @@ export default abstract class SessionedEntityService<
 
     await RDS.inTransaction(async (daos) => {
       // Persist each session.
-      await (Promise as any).all(
+      const leafPromises = await (Promise as any).allSettled(
         Object.values(session.data.components).map(async (step: Model.IStep) => {
           try {
             if (!step.childSessionId) {
@@ -385,6 +403,21 @@ export default abstract class SessionedEntityService<
           }
         })
       );
+
+      // If a leaf specifically errored, report that first.
+      Object.entries(leafSessionResults).forEach(([name, result]: [string, any]) => {
+        if (result.error) {
+          // An error occurred
+          throw http_error(400, `Failed component '${name}': ${result.error} ${result.errorDescription || ''}`);
+        }
+      });
+
+      // Otherwise, make sure everything else succeeded
+      leafPromises.forEach((result: { status: string; message: string }) => {
+        if (result.status === 'rejected') {
+          throw http_error(500, result.message);
+        }
+      });
 
       // Create a new `instance` object.
       //
@@ -438,13 +471,15 @@ export default abstract class SessionedEntityService<
     masterSessionId: Model.ISubordinateId,
     parentEntityId: string
   ): Promise<IServiceResult> => {
-    if (session.data.entityType === Model.EntityType.integration) {
+    if (session.data.entityType === Model.EntityType.integration || session.data.output?.error) {
       // Form output is supplied directly to the master instance, since it will be used by the integration
       // directly.
       //
       // This must change if forms from other integrations require their own isolation boundaries, but that's
       // not yet supported.
-      return { statusCode: 200, result: session.data.output };
+      //
+      // If error is set on the output, it will cause a transaction failure.  The statusCode is ignored.
+      return { statusCode: 400, result: session.data.output };
     }
 
     const service = this.connectorService;

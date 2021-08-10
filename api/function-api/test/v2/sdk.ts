@@ -651,13 +651,22 @@ export const createPair = async (
   expect(response.data.id).not.toMatch('/');
   const integ = response.data;
 
+  response = await ApiRequestMap.integration.dispatch(account, response.data.id, 'GET', '/api/health');
+  expect(response).toBeHttp({ statusCode: 200 });
+
   response = await ApiRequestMap.connector.postAndWait(account, { id: conId, data: connConfig });
   expect(response).toBeHttp({ statusCode: 200 });
   expect(response.data.id).not.toMatch('/');
   const conn = response.data;
 
+  response = await ApiRequestMap.connector.dispatch(account, response.data.id, 'GET', '/api/health');
+  expect(response).toBeHttp({ statusCode: 200 });
+
   for (let n = 1; n < numConnectors; n++) {
     response = await ApiRequestMap.connector.postAndWait(account, { id: `${conId}${n}`, data: connConfig });
+    expect(response).toBeHttp({ statusCode: 200 });
+
+    response = await ApiRequestMap.connector.dispatch(account, response.data.id, 'GET', '/api/health');
     expect(response).toBeHttp({ statusCode: 200 });
   }
 
