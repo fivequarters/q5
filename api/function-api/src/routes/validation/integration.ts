@@ -23,7 +23,7 @@ const Data = Joi.alternatives().try(
             then: Joi.default('/api/authorize'),
             otherwise: Joi.required(),
           }),
-          package: Joi.string().when('entityType', {
+          provider: Joi.string().when('entityType', {
             is: 'integration',
             then: Joi.forbidden(),
             otherwise: Joi.required(),

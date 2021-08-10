@@ -14,8 +14,8 @@ interface IInstanceConnectorConfig {
   name: string;
   path: string;
 
-  /** Name of the managing npm package for this connector. */
-  package: string;
+  /** Name of the SDK-providing npm package for this connector. */
+  provider: string;
 
   /** The remote entity ID for this connector. */
   entityId: string;
@@ -70,10 +70,10 @@ class ConnectorManager {
    * Create an manager for this connector, and cache it locally.
    *
    * @param name Connector name
-   * @param cfg The configuration object used to initialize the managing package
+   * @param cfg The configuration object used to initialize the managing provider package
    */
   public loadConnector(name: string, cfg: IInstanceConnectorConfig) {
-    const Connector = require(cfg.package);
+    const Connector = require(cfg.provider);
     return (cfg.instance = new Connector({ name, ...cfg }));
   }
 

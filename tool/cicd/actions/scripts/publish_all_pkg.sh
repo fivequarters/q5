@@ -5,12 +5,17 @@ cd lib/pkg
 
 FUSE="node ../../cli/fusebit-cli/libc/index.js"
 ${FUSE} npm login
-for pkgPath in framework ./pkg-* ./slack-*; do
-  pkgName=$(basename $pkgPath)
-  cd ${pkgName};
+
+PACKAGE_FILES=`find . -name node_modules -prune -false -o -name package.json`;
+BASEDIR=`pwd`
+
+for pkgPath in ${PACKAGE_FILES}; do
+  dirName=$(dirname $pkgPath)
+  cd ${dirName};
+  echo BUILDING ${dirName}
   yarn build;
   npm publish;
-  cd ..
+  cd ${BASEDIR}
 done
 
 cd ../..

@@ -850,7 +850,7 @@ components:
                   description:
                     The `name` of a component that occurs previously in the
                     `components` array.
-              package:
+              provider:
                 type: string
                 description:
                   The utility package for a connector that provides a configured
