@@ -1,6 +1,27 @@
 import * as fs from 'fs';
 import * as yaml from 'js-yaml';
 
+interface ISpec {
+  name: string;
+
+  // The name of the yml files to include, in order
+  inputs: string[];
+
+  // The name of the output yml file in the .github/workflows directory
+  output: string;
+
+  options?: {
+    // Trigger options
+    on_trigger?: any;
+
+    // Replacement base
+    base?: string;
+
+    // Is the workflow supposed to run on self-hosted instances?
+    runner_type?: 'self-hosted';
+  };
+}
+
 const OUTPUT_DIR = '../../../.github/workflows';
 const INPUT_DIR = './yaml';
 const BASE_YML = 'base';
@@ -24,7 +45,7 @@ const publishAll = [
 ];
 const fullBuild = ['setup_env', 'full_build'];
 
-const specs = [
+const specs: ISpec[] = [
   { name: 'Checkout the project', inputs: ['checkout', 'publish_slack'], output: 'checkout' },
   { name: 'Full build', inputs: ['checkout', ...fullBuild, 'publish_slack'], output: 'full_build' },
   {
@@ -52,6 +73,9 @@ const specs = [
     name: 'Publish API Documentation to Readme.com',
     inputs: ['checkout', 'publish_api_readme_com'],
     output: 'publish_api_docs',
+    options: {
+      base: 'fast_base',
+    },
   },
   {
     name: 'Test Function-API',
@@ -82,12 +106,10 @@ const specs = [
   },
 ];
 
-function buildSpec(name: string, inputs: string[], output: string, options: any = {}) {
+function buildSpec(name: string, inputs: string[], output: string, options: ISpec['options'] = {}) {
   // Used when custom runners are used. Currently we only need self-hosted runners when used for automated tests.
-  const base: any =
-    options.runner_type === 'self-hosted'
-      ? yaml.load(fs.readFileSync(`${INPUT_DIR}/${LOCAL_BASE_YML}.yml`, 'utf8'))
-      : yaml.load(fs.readFileSync(`${INPUT_DIR}/${BASE_YML}.yml`, 'utf8'));
+  const baseName: string = options.runner_type === 'self-hosted' ? LOCAL_BASE_YML : options.base || BASE_YML;
+  const base: any = yaml.load(fs.readFileSync(`${INPUT_DIR}/${baseName}.yml`, 'utf8'));
   base.name = name;
   if (options.on_trigger) {
     base.on = options.on_trigger;
