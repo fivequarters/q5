@@ -89,6 +89,12 @@ jobs:
         run: ./tool/cicd/actions/scripts/publish_fusebit_ops_cli.sh
       - name: Publish - API Docs
         run: ./tool/cicd/actions/scripts/publish_api_docs.sh
+      - name: Publish the OpenAPI docs for v2 to Readme.Com
+        uses: readmeio/github-readme-sync@v2
+        with:
+          readme-oas-key: ${{secrets.README_COM_OAS_KEY}}
+          oas-file-path: ./api/function-api/api_v2.yaml
+          api-version: v1.0
       - name: Notify slack success
         if: success()
         env:
