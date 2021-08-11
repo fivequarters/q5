@@ -6,6 +6,8 @@ import IdentityClient from './IdentityClient';
 
 import { schema, uischema } from './configure';
 
+import { httpErrorHandling } from './Utilities';
+
 const connector = new Connector();
 const router = connector.router;
 
@@ -43,8 +45,7 @@ router.get('/api/:lookupKey/health', async (ctx: Connector.Types.Context) => {
     }
     ctx.status = 200;
   } catch (error) {
-    ctx.status = 500;
-    ctx.message = error.message;
+    httpErrorHandling(ctx, error);
   }
 });
 
@@ -52,13 +53,7 @@ router.get('/api/session/:lookupKey/token', async (ctx: Connector.Types.Context)
   try {
     ctx.body = await engine.ensureAccessToken(ctx, ctx.params.lookupKey, false);
   } catch (error) {
-    if (error.message === 'Forbidden') {
-      ctx.throw(403, error.message);
-    }
-    if (error.message === 'Not Found') {
-      ctx.throw(404, error.message);
-    }
-    ctx.throw(500, error.message);
+    httpErrorHandling(ctx, error);
   }
   if (!ctx.body) {
     ctx.throw(404);
@@ -69,7 +64,7 @@ router.get('/api/:lookupKey/token', async (ctx: Connector.Types.Context) => {
   try {
     ctx.body = await engine.ensureAccessToken(ctx, ctx.params.lookupKey);
   } catch (error) {
-    ctx.throw(500, error.message);
+    httpErrorHandling(ctx, error);
   }
   if (!ctx.body) {
     ctx.throw(404);
