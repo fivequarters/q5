@@ -17,11 +17,17 @@ All public releases of the Fusebit CLI are documented here, including notable ch
 <!-- 1. TOC
 {:toc} -->
 
+## Version 1.10.0
+
+_Released 08/11/21_
+
+- **Enhancement.** Using the tool without initialization will set up an OAuth device flow profile for the primary Fusebit deployment in the US, including provisioning a new Fusebit account during the authentication process.
+
 ## Version 1.9.17
 
 _Released 07/09/21_
 
-- **Bugfix** Fixed issue causing `fuse function serve` to not shut down tunnel on exit. 
+- **Bugfix** Fixed issue causing `fuse function serve` to not shut down tunnel on exit.
 
 ## Version 1.9.13
 

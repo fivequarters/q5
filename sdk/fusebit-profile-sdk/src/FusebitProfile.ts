@@ -72,7 +72,8 @@ function getProfileNameFromBaseUrl(baseUrl: string) {
 // -------------------
 
 export interface IFusebitProfileSettings {
-  [index: string]: string | undefined;
+  [index: string]: string | boolean | undefined;
+  synthetic?: boolean;
   account: string;
   subscription?: string;
   boundary?: string;

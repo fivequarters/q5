@@ -13,6 +13,18 @@ const publicKeyFileName = 'pub';
 const privateKeyFileName = 'pri';
 const credsCachePath = join('cache', 'creds');
 const credsFileName = 'creds.json';
+// TODO Update to production settings
+const created = new Date().toLocaleString();
+const defaultProfile = {
+  created,
+  updated: created,
+  synthetic: true,
+  account: 'NA',
+  baseUrl: 'https://stage.us-west-2.fusebit.io',
+  issuer: 'https://fusebit.auth0.com/oauth/device/code',
+  clientId: 'dimuls6VLYgXpD7UYCo6yPdKAXPXjQng',
+  tokenUrl: 'https://fusebit.auth0.com/oauth/token',
+};
 
 // ----------------
 // Exported Classes
@@ -42,7 +54,7 @@ export class FusebitDotConfig extends DotConfig {
 
   public async getDefaultProfileName(): Promise<string | undefined> {
     const settings = await this.readSettings();
-    return settings.defaults.profile || undefined;
+    return settings.defaults.profile || (process.env.FUSEBIT_FEATURE_DEFAULT_PROFILE && 'default') || undefined;
   }
 
   public async setDefaultProfileName(name: string): Promise<void> {
@@ -58,7 +70,11 @@ export class FusebitDotConfig extends DotConfig {
 
   public async getProfile(name: string): Promise<any> {
     const settings = await this.readSettings();
-    return settings.profiles[name] || undefined;
+    return (
+      settings.profiles[name] ||
+      (process.env.FUSEBIT_FEATURE_DEFAULT_PROFILE && name === 'default' && defaultProfile) ||
+      undefined
+    );
   }
 
   public async setProfile(name: string, profile: any): Promise<any> {
