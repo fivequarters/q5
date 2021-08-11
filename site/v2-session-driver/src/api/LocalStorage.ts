@@ -3,6 +3,8 @@ export interface ILocalStorage {
   integrationBaseUrl: string;
   tenantId: string;
   sessionId: string;
+  target?: string;
+  instanceId?: string;
 }
 
 export interface IAccount {

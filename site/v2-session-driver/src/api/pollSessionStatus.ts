@@ -1,9 +1,10 @@
-import { ILocalStorage } from './LocalStorage';
+import { getSession, ILocalStorage } from './LocalStorage';
 import superagent from 'superagent';
 
-export async function pollSessionStatus(session: ILocalStorage) {
+export async function pollSessionStatus(sessionId: string) {
   // Wait up to 10s for the creation of the integration instance to complete
 
+  const session = getSession(sessionId);
   let success = false;
   for (let n = 0; n < 10; n++) {
     const result = await superagent

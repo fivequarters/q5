@@ -1,7 +1,8 @@
-import { ILocalStorage } from './LocalStorage';
+import { getSession, ILocalStorage } from './LocalStorage';
 import superagent from 'superagent';
 
-export async function getInstance(session: ILocalStorage) {
+export async function getInstance(sessionId: string) {
+  const session = getSession(sessionId);
   // Instance creation completed, get the instance
   console.log('GETTING INSTANCE...');
   const result = await superagent
