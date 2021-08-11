@@ -14,9 +14,7 @@ afterAll(async () => {
 describe('Middleware Authorization Test', () => {
   test('POSTing a connector with an improper JWT token to the connector configuration endpoint.', async () => {
     // Create an integration
-    let pair = await createPair(account, boundaryId, undefined, {
-      handler: '@fusebit-int/slack-connector',
-    });
+    let pair = await createPair(account, boundaryId);
 
     let response = await ApiRequestMap.connector.dispatch(account, pair.connectorId, 'GET', '/api/configure', {
       authz: '',
@@ -26,5 +24,8 @@ describe('Middleware Authorization Test', () => {
       authz: 'gibberish',
     });
     expect(response).toBeHttp({ statusCode: 403 });
+
+    response = await ApiRequestMap.connector.dispatch(account, pair.connectorId, 'GET', '/api/configure');
+    expect(response).toBeHttp({ statusCode: 200 });
   }, 180000);
 });
