@@ -40,6 +40,3 @@ echo //registry.npmjs.org/:_authToken=${SECRET_NPM_TOKEN} > ~/.npmrc
 
 echoerr "Creating GC BQ Environment"
 echo FUSEBIT_GC_BQ_KEY_BASE64=${SECRET_GC_BQ_KEY_BASE64} > gc_bq.env
-
-npm i -g @fusebit/cli
-fuse profile ls
