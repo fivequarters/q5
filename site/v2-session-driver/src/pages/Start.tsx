@@ -1,5 +1,8 @@
 import React, { ReactElement } from 'react';
 // import { RedisClient } from '../../redis';
+import Sessions from '../components/Sessions';
+import CreateSessionForm from '../components/CreateSessionForm';
+import { ILocalStorage, listSessions } from '../api/LocalStorage';
 
 const sessionId = 'test-session';
 const startingSessionValue = 1;
@@ -19,12 +22,12 @@ export function Start(): ReactElement {
     console.log('clicked', event);
   };
   const handleSaveSession = async (event: React.MouseEvent) => {};
+  const sessions = listSessions() as ILocalStorage[];
   return (
     <div>
-      <button onClick={handleClick}> Start Session</button>
-      <input onChange={handleInput} />
-      <button onClick={handleSaveSession}> Save Session</button>
-      <p>{`current session data is ${JSON.stringify(session)}`}</p>
+      <CreateSessionForm />
+      {sessions && <p>There are not sessions</p>}
+      {sessions && <h3>Sessions</h3>}
     </div>
   );
 }

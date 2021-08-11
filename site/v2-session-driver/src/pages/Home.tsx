@@ -9,8 +9,8 @@ export function Home(): ReactElement {
         <Button>Account</Button>
       </Link>
       <br />
-      <Link to={'/integrations'}>
-        <Button>Integrations</Button>
+      <Link to={'/users'}>
+        <Button>Users</Button>
       </Link>
     </div>
   );
