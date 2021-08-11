@@ -4,9 +4,11 @@ set -xe
 
 # Get package version
 VERSION_FUSEBIT_OPS_CLI=$(cat cli/fusebit-ops-cli/package.json | jq -r .version)
+VERSION_FUSEBIT_CLI=$(cat cli/fusebit-cli/package.json | jq -r .version)
 
 # Install tools
 npm install -g https://cdn.fusebit.io/fusebit/cli/fusebit-ops-cli-v${VERSION_FUSEBIT_OPS_CLI}.tgz
+
 
 # 749
 fuse-ops profile default github-automation.749
