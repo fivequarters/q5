@@ -10,7 +10,7 @@ npm install -g https://cdn.fusebit.io/fusebit/cli/fusebit-ops-cli-v${VERSION_FUS
 
 # 749
 fuse-ops profile default github-automation.749
-fuse-ops deployment defaults set dev subscription '{\"proxy\":{\"accountId":\"acc-5e58f2ccd79444e4\",\"subscriptionId\":\"sub-9239585cf84c450a\"}}'
+fuse-ops deployment defaults set dev subscription '{\"proxy\":{\"accountId\":\"acc-5e58f2ccd79444e4\",\"subscriptionId\":\"sub-9239585cf84c450a\"}}'
 
 
 # 321
