@@ -1,6 +1,7 @@
 import express from 'express';
 const Joi = require('joi');
 
+import { IAgent } from '@5qtrs/account-data';
 import { v2Permissions, getAuthToken } from '@5qtrs/constants';
 
 import { Model } from '@5qtrs/db';
@@ -48,15 +49,19 @@ const router = (
         },
         authorize: { operation: v2Permissions[EntityService.entityType].put },
       }),
-      async (req: express.Request, res: express.Response, next: express.NextFunction) => {
+      async (req: express.Request & { resolvedAgent?: IAgent }, res: express.Response, next: express.NextFunction) => {
         try {
+          // Thanks Typescript :/
+          if (!req.resolvedAgent) {
+            throw new Error('missing agent');
+          }
           const entity = await requestToEntity(
             EntityService,
             paramIdNames,
             req,
             body.entity(req, EntityService.entityType)
           );
-          const { statusCode, result } = await EntityService.updateEntity(entity);
+          const { statusCode, result } = await EntityService.updateEntity(req.resolvedAgent, entity);
           res.status(statusCode).json(result);
         } catch (e) {
           next(e);

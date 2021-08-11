@@ -50,6 +50,14 @@ export enum Permissions {
   putRegistry = 'registry:put',
 }
 
+interface IPermissionSet {
+  get: string;
+  put: string;
+  delete: string;
+  putTag: string;
+  execute: string;
+}
+
 const makePermissionSet = (prefix: string) => ({
   [prefix]: {
     get: `${prefix}:get`,
