@@ -18,6 +18,15 @@ export const permFunctionPutExe = { allow: [reqFunctionPut, reqFunctionExe] };
 export const permFunctionExe = { allow: [reqFunctionExe] };
 export const permFunctionGetExe = { allow: [reqFunctionGet, reqFunctionExe] };
 
+export interface IPermission {
+  action: string;
+  resource: string;
+}
+
+export interface IPermissions {
+  allow: IPermission[];
+}
+
 export const permFunctionPutLimited = (perm: string, acc: IAccount, boundaryId: string) => ({
   allow: [
     {
@@ -31,7 +40,7 @@ export const permFunctionPutLimitedHigher = (perm: string, acc: IAccount) => ({
   allow: [{ action: perm, resource: `/account/${acc.accountId}/` }],
 });
 
-export const getTokenByPerm = async (perm: any) => {
+export const getTokenByPerm = async (perm: IPermissions) => {
   const profile = await FusebitProfile.create();
   const executionProfile = await profile.getPKIExecutionProfile(process.env.FUSE_PROFILE, true, perm);
   return executionProfile.accessToken;

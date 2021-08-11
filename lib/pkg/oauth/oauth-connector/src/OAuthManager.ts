@@ -36,43 +36,54 @@ router.on('startup', async ({ mgr, cfg, router: rtr }: Connector.Types.IOnStartu
 });
 
 // Internal Endpoints
-router.get('/api/:lookupKey/health', async (ctx: Connector.Types.Context) => {
-  try {
+router.get(
+  '/api/:lookupKey/health',
+  connector.middleware.authorizeUser('connector:execute'),
+  async (ctx: Connector.Types.Context) => {
     if (!(await engine.ensureAccessToken(ctx, ctx.params.lookupKey))) {
       ctx.throw(404);
     }
     ctx.status = 200;
-  } catch (error) {
-    ctx.status = 500;
-    ctx.message = error.message;
   }
-});
+);
 
-router.get('/api/session/:lookupKey/token', async (ctx: Connector.Types.Context) => {
-  try {
-    ctx.body = await engine.ensureAccessToken(ctx, ctx.params.lookupKey, false);
-  } catch (error) {
-    ctx.throw(500, error.message);
+router.get(
+  '/api/session/:lookupKey/token',
+  connector.middleware.authorizeUser('connector:execute'),
+  async (ctx: Connector.Types.Context) => {
+    try {
+      ctx.body = await engine.ensureAccessToken(ctx, ctx.params.lookupKey, false);
+    } catch (error) {
+      ctx.throw(500, error.message);
+    }
+    if (!ctx.body) {
+      ctx.throw(404);
+    }
   }
-  if (!ctx.body) {
-    ctx.throw(404);
-  }
-});
+);
 
-router.get('/api/:lookupKey/token', async (ctx: Connector.Types.Context) => {
-  try {
-    ctx.body = await engine.ensureAccessToken(ctx, ctx.params.lookupKey);
-  } catch (error) {
-    ctx.throw(500, error.message);
+router.get(
+  '/api/:lookupKey/token',
+  connector.middleware.authorizeUser('connector:execute'),
+  async (ctx: Connector.Types.Context) => {
+    try {
+      ctx.body = await engine.ensureAccessToken(ctx, ctx.params.lookupKey);
+    } catch (error) {
+      ctx.throw(500, error.message);
+    }
+    if (!ctx.body) {
+      ctx.throw(404);
+    }
   }
-  if (!ctx.body) {
-    ctx.throw(404);
-  }
-});
+);
 
-router.delete('/api/:lookupKey', async (ctx: Connector.Types.Context) => {
-  ctx.body = await engine.deleteUser(ctx, ctx.params.lookupKey);
-});
+router.delete(
+  '/api/:lookupKey',
+  connector.middleware.authorizeUser('connector:execute'),
+  async (ctx: Connector.Types.Context) => {
+    ctx.body = await engine.deleteUser(ctx, ctx.params.lookupKey);
+  }
+);
 
 // OAuth Flow Endpoints
 router.get('/api/authorize', async (ctx: Connector.Types.Context) => {

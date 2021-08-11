@@ -105,25 +105,40 @@ class IntegrationService extends SessionedEntityService<Model.IIntegration, Mode
     return entity;
   };
 
-  public getFunctionSecuritySpecification = () => ({
-    authentication: 'optional',
-    functionPermissions: {
-      allow: [
-        {
-          action: Permissions.allStorage,
-          resource: '/account/{{accountId}}/subscription/{{subscriptionId}}/storage/{{boundaryId}/{{functionId}}/',
-        },
-        {
-          action: v2Permissions.putSession,
-          resource: '/account/{{accountId}}/subscription/{{subscriptionId}}/{{boundaryId}/{{functionId}}/session/',
-        },
-        {
-          action: v2Permissions.getSession,
-          resource: '/account/{{accountId}}/subscription/{{subscriptionId}}/{{boundaryId}/{{functionId}}/session/',
-        },
-      ],
-    },
-  });
+  public getFunctionSecuritySpecification = (entity: Model.IEntity) => {
+    const integ = entity as Model.IIntegration;
+
+    const permissions = {
+      authentication: 'optional',
+      functionPermissions: {
+        allow: [
+          {
+            action: Permissions.allStorage,
+            resource: '/account/{{accountId}}/subscription/{{subscriptionId}}/storage/integration/{{functionId}}/',
+          },
+          {
+            action: v2Permissions.putSession,
+            resource: '/account/{{accountId}}/subscription/{{subscriptionId}}/integration/{{functionId}}/session/',
+          },
+          {
+            action: v2Permissions.getSession,
+            resource: '/account/{{accountId}}/subscription/{{subscriptionId}}/integration/{{functionId}}/session/',
+          },
+        ],
+      },
+    };
+
+    // Allow an integration to use connector:execute on it's associated connectors.
+    integ.data.components
+      .filter((component) => component.entityType === Model.EntityType.connector)
+      .forEach((component) => {
+        permissions.functionPermissions.allow.push({
+          action: v2Permissions.connector.execute,
+          resource: `/account/{{accountId}}/subscription/{{subscriptionId}}/connector/${component.entityId}/`,
+        });
+      });
+    return permissions;
+  };
 }
 
 export default IntegrationService;
