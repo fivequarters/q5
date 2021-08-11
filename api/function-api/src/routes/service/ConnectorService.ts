@@ -70,28 +70,24 @@ class ConnectorService extends SessionedEntityService<Model.IConnector, Model.II
     return entity;
   };
 
-  public getFunctionSecuritySpecification = () => ({
+  public getFunctionSecuritySpecification = (model: Model.IEntity) => ({
     authentication: 'optional',
     functionPermissions: {
       allow: [
         {
           action: Permissions.allStorage,
-          resource: '/account/{{accountId}}/subscription/{{subscriptionId}}/storage/{{boundaryId}/{{functionId}}/',
+          resource: '/account/{{accountId}}/subscription/{{subscriptionId}}/storage/connector/{{functionId}}/',
         },
         {
           action: v2Permissions.putSession,
-          resource: '/account/{{accountId}}/subscription/{{subscriptionId}}/{{boundaryId}/{{functionId}}/session/',
+          resource: '/account/{{accountId}}/subscription/{{subscriptionId}}/connector/{{functionId}}/session/',
         },
         {
           action: v2Permissions.getSession,
-          resource: '/account/{{accountId}}/subscription/{{subscriptionId}}/{{boundaryId}/{{functionId}}/session/',
+          resource: '/account/{{accountId}}/subscription/{{subscriptionId}}/connector/{{functionId}}/session/',
         },
         {
-          action: v2Permissions.identity.get,
-          resource: '/account/{{accountId}}/subscription/{{subscriptionId}}/connector/{{functionId}}/identity/',
-        },
-        {
-          action: v2Permissions.identity.put,
+          action: v2Permissions.identity.all,
           resource: '/account/{{accountId}}/subscription/{{subscriptionId}}/connector/{{functionId}}/identity/',
         },
       ],

@@ -2,6 +2,7 @@ import express from 'express';
 
 import { v4 as uuidv4 } from 'uuid';
 
+import { IAgent } from '@5qtrs/account-data';
 import { v2Permissions } from '@5qtrs/constants';
 import RDS, { Model } from '@5qtrs/db';
 
@@ -75,8 +76,12 @@ const subcomponentRouter = (
         validate: { params: Validation.EntityIdParams, body: Validation[service.entityType].Entity },
         authorize: { operation: v2Permissions[service.entityType].put },
       }),
-      async (req: express.Request, res: express.Response, next: express.NextFunction) => {
+      async (req: express.Request & { resolvedAgent?: IAgent }, res: express.Response, next: express.NextFunction) => {
         try {
+          // Thanks Typescript :/
+          if (!req.resolvedAgent) {
+            throw new Error('missing agent');
+          }
           // Fetch the parent, to filter for instances under this connector.
           const parentEntity = await RDS.DAO[parentEntityType].getEntity({
             accountId: req.params.accountId,
@@ -90,7 +95,7 @@ const subcomponentRouter = (
             data: req.body.data,
             tags: { ...req.body.tags },
           };
-          const { statusCode, result } = await service.createEntity(leafEntity);
+          const { statusCode, result } = await service.createEntity(req.resolvedAgent, leafEntity);
           res.status(statusCode).json(Model.entityToSdk(result));
         } catch (e) {
           next(e);
