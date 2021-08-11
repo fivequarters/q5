@@ -1,0 +1,10 @@
+{
+  "extends": "../../tsconfig.json",
+  "compilerOptions": { "rootDir": "src", "outDir": "libm" },
+  "include": ["src"],
+  "target": "es2020",
+  "module": "es2020",
+  "lib": [
+    "es2020",
+  ]
+}
