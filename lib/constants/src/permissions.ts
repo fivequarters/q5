@@ -50,20 +50,29 @@ export enum Permissions {
   putRegistry = 'registry:put',
 }
 
-const makePermissionSet = (prefix: string) => ({
-  [prefix]: {
-    get: `${prefix}:get`,
-    put: `${prefix}:put`,
-    delete: `${prefix}:delete`,
-    putTag: `${prefix}:put-tag`,
-  },
+interface IPermissionSet {
+  get: string;
+  put: string;
+  delete: string;
+  putTag: string;
+  execute: string;
+  all: string;
+}
+
+const makePermissionSet = (prefix: string): IPermissionSet => ({
+  get: `${prefix}:get`,
+  put: `${prefix}:put`,
+  delete: `${prefix}:delete`,
+  putTag: `${prefix}:put-tag`,
+  execute: `${prefix}:execute`,
+  all: `${prefix}:*`,
 });
 
-export const v2Permissions: Record<any, any> = {
-  ...makePermissionSet('integration'),
-  ...makePermissionSet('instance'),
-  ...makePermissionSet('connector'),
-  ...makePermissionSet('identity'),
+export const v2Permissions: any = {
+  integration: makePermissionSet('integration'),
+  instance: makePermissionSet('instance'),
+  connector: makePermissionSet('connector'),
+  identity: makePermissionSet('identity'),
   putOperation: 'operation:put',
   postSession: 'session:post',
   putSession: 'session:put',
