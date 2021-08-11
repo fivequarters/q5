@@ -32,3 +32,20 @@ export interface ISessionInput {
 6. We commit the session, and show a spinner while waiting for a success response from the api.
 
 7. We display the url that should be used to access a test endpoint on the new integration instance (this url should include tenant value, and should utilize the slack SDK)
+
+
+API Order for Auth Flow.
+
+1. Create Session
+
+2. Save Session
+
+3. Start Session
+
+- Callback occurs
+
+4.  Complete Session
+
+5. Poll Session
+
+6. Get Instance

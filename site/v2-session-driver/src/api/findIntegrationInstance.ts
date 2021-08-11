@@ -1,17 +1,14 @@
 import superagent from 'superagent';
+import { ILocalStorage } from './LocalStorage';
 
-export default async function findIntegrationInstance(
-  accessToken: string,
-  integrationBaseUrl: string,
-  tenantId: string
-) {
+export default async function findIntegrationInstance(session: ILocalStorage) {
   // Search for an integration instance that is tagged with the specified tenantId
   console.log('CHECKING FOR AN EXISTING INTEGRATION INSTANCE...');
   const response = await superagent
-    .get(`${integrationBaseUrl}/instance`)
-    .set('Authorization', `Bearer ${accessToken}`)
+    .get(`${session.integrationBaseUrl}/instance`)
+    .set('Authorization', `Bearer ${session.accessToken}`)
     .query({
-      tag: `fusebit.tenantId=${encodeURIComponent(tenantId)}`,
+      tag: `fusebit.tenantId=${encodeURIComponent(session.tenantId)}`,
     });
   const instance = response.body && response.body.items && response.body.items[0];
   console.log('CHECK RESULT', JSON.stringify(instance, null, 2));

@@ -5,13 +5,22 @@ export interface ILocalStorage {
   sessionId: string;
   operationId?: string;
 }
-const LocalStorageSessionKey = 'sessions';
+
+export interface IAccount {
+  accountId: string;
+  subscriptionId: string;
+}
+
+enum LocalStorageKeys {
+  sessions = 'sessions',
+  account = 'account',
+}
 
 export function getSession(sessionId: string): ILocalStorage {
   // Rehydrate local session
   console.log('REHYDRATING SESSION', sessionId);
 
-  const localSessions = JSON.parse(window.localStorage.getItem(LocalStorageSessionKey) || '');
+  const localSessions = JSON.parse(window.localStorage.getItem(LocalStorageKeys.sessions) || '{}');
   if (!localSessions) {
     throw new Error(`No sessions found`);
   }
@@ -25,23 +34,36 @@ export function getSession(sessionId: string): ILocalStorage {
 }
 
 export function saveSession(session: ILocalStorage) {
-  const localSessions = JSON.parse(window.localStorage.getItem(LocalStorageSessionKey) || '');
+  const localSessions = JSON.parse(window.localStorage.getItem(LocalStorageKeys.sessions) || '{}');
   localSessions[session.sessionId] = session;
   const sessionsString = JSON.stringify(localSessions);
-  window.localStorage.setItem(LocalStorageSessionKey, sessionsString);
+  window.localStorage.setItem(LocalStorageKeys.sessions, sessionsString);
 }
 
 export function listSessions() {
-  return Object.values(JSON.parse(window.localStorage.getItem(LocalStorageSessionKey) || ''));
+  return Object.values(JSON.parse(window.localStorage.getItem(LocalStorageKeys.sessions) || '{}'));
 }
 
 export function deleteSession(sessionId: number) {
-  const localSessions = JSON.parse(window.localStorage.getItem(LocalStorageSessionKey) || '');
+  const localSessions = JSON.parse(window.localStorage.getItem(LocalStorageKeys.sessions) || '{}');
   delete localSessions[sessionId];
   const sessionsString = JSON.stringify(localSessions);
-  window.localStorage.setItem(LocalStorageSessionKey, sessionsString);
+  window.localStorage.setItem(LocalStorageKeys.sessions, sessionsString);
 }
 
 export function clearSessions() {
-  window.localStorage.removeItem(LocalStorageSessionKey);
+  window.localStorage.removeItem(LocalStorageKeys.sessions);
+}
+
+export function setAccount(account: IAccount) {
+  window.localStorage.setItem(LocalStorageKeys.account, JSON.stringify(account));
+}
+
+export function getAccount() {
+  return JSON.parse(window.localStorage.getItem(LocalStorageKeys.account) || '{}');
+}
+
+export function getIntegrationBaseUrl(integration: string): string {
+  const account = getAccount();
+  return `http://localhost:3001/v2/account/${account.accountId}/subscription/${account.subscriptionId}/integration/${integration}`;
 }
