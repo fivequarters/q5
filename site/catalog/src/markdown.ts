@@ -3,7 +3,7 @@ import { join } from 'path';
 
 const importDir = 'markdown';
 
-const loadImports = async () => {
+export const loadImports = async () => {
   const files = await readDirectory(importDir, { filesOnly: true });
 
   const result: Record<string, string> = {};
@@ -15,12 +15,10 @@ const loadImports = async () => {
   return result;
 };
 
-export const generateMarkdown = async (input: string) => {
+export const generateMarkdown = (input: string, imports: Record<string, string>) => {
   const lines = input.split('\n');
 
   const output: string[] = [];
-
-  const imports = await loadImports();
 
   const cmdRe = new RegExp('^\\[//]: # \\(([A-Z]*): ([A-Z]*)\\)$');
 

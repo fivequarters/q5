@@ -8,5 +8,5 @@
     "superagent": "^6.1.0",
     "@fusebit-int/oauth-provider": "*"
   },
-  "files": ["./integration.js"]
+  "files": ["./integration.js", "README.md"]
 }

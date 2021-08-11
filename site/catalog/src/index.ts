@@ -3,7 +3,7 @@ import { join } from 'path';
 import { readFile } from '@5qtrs/file';
 import globby from 'globby';
 
-import { generateMarkdown } from './markdown';
+import { loadImports, generateMarkdown } from './markdown';
 
 const FusebitStateFile = '.fusebit-state';
 const FusebitMetadataFile = 'fusebit.json';
@@ -60,11 +60,13 @@ const loadDirectory = async (dirName: string, entitySpec: any) => {
 };
 
 const createCatalogEntry = async (dirName: string) => {
+  const imports = await loadImports();
   const catalog = JSON.parse(await readFile(join(dirName, 'catalog.json')));
 
   if (catalog.description[0] === '#') {
-    catalog.description = await generateMarkdown(
-      (await readFile(join(dirName, catalog.description.split('#')[1]))).toString()
+    catalog.description = generateMarkdown(
+      (await readFile(join(dirName, catalog.description.split('#')[1]))).toString(),
+      imports
     );
   }
 
@@ -79,6 +81,20 @@ const createCatalogEntry = async (dirName: string) => {
       }
     )
   );
+
+  // Parse any markdown in the entities
+  let name: string;
+  let entity: { data: { files: Record<string, string> } };
+
+  for ([name, entity] of Object.entries(
+    catalog.configuration.entities as Record<string, { data: { files: Record<string, string> } }>
+  )) {
+    for (const [fileName, file] of Object.entries(entity.data.files)) {
+      if (fileName.match(/\.md$/)) {
+        entity.data.files[fileName] = generateMarkdown(file, imports);
+      }
+    }
+  }
 
   // Load the schema, uischema, and data
   catalog.configuration.schema = JSON.parse((await readFile(join(dirName, catalog.configuration.schema))).toString());
