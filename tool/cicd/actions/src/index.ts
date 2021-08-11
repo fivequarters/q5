@@ -84,14 +84,6 @@ const specs = [
     name: 'Publish Proxy Secrets',
     inputs: ['checkout', 'setup_env', 'publish_proxy_secrets', 'publish_slack'],
     output: 'publish_proxy_secrets',
-    options: {
-      on_trigger: {
-        pull_request: {
-          branches: 'master',
-          types: ['ready_for_review', 'review_requested', 'synchronize'],
-        },
-      },
-    },
   },
 ];
 
