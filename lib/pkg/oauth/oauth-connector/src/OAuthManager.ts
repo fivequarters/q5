@@ -52,6 +52,12 @@ router.get('/api/session/:lookupKey/token', async (ctx: Connector.Types.Context)
   try {
     ctx.body = await engine.ensureAccessToken(ctx, ctx.params.lookupKey, false);
   } catch (error) {
+    if (error.message === 'Forbidden') {
+      ctx.throw(403, error.message);
+    }
+    if (error.message === 'Not Found') {
+      ctx.throw(404, error.message);
+    }
     ctx.throw(500, error.message);
   }
   if (!ctx.body) {
