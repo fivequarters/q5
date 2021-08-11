@@ -203,19 +203,26 @@ const checkAuthorization = async (
     return undefined;
   }
 
-  const resolvedAgent = await getResolvedAgent(accountId, authToken);
+  try {
+    const resolvedAgent = await getResolvedAgent(accountId, authToken);
 
-  if (operation) {
-    const resource = operation.path;
-    const action = operation.operation;
+    if (operation) {
+      const resource = operation.path;
+      const action = operation.operation;
 
-    await resolvedAgent.ensureAuthorized(action, resource);
+      await resolvedAgent.ensureAuthorized(action, resource);
+    }
+
+    const functionAuthz = Constants.getFunctionAuthorization(functionSummary);
+    await resolvedAgent.checkPermissionSubset({ allow: functionAuthz });
+
+    return resolvedAgent;
+  } catch (error) {
+    if (authentication === 'optional') {
+      return undefined;
+    }
+    throw Error(error);
   }
-
-  const functionAuthz = Constants.getFunctionAuthorization(functionSummary);
-  await resolvedAgent.checkPermissionSubset({ allow: functionAuthz });
-
-  return resolvedAgent;
 };
 
 /*
