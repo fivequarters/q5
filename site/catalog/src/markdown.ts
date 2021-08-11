@@ -15,7 +15,12 @@ export const loadImports = async () => {
   return result;
 };
 
-export const generateMarkdown = (input: string, imports: Record<string, string>) => {
+export const generateMarkdown = (
+  sourceFileName: string,
+  input: string,
+  includeMeta: boolean,
+  imports: Record<string, string>
+) => {
   const lines = input.split('\n');
 
   const output: string[] = [];
@@ -25,10 +30,18 @@ export const generateMarkdown = (input: string, imports: Record<string, string>)
   lines.forEach((line) => {
     const match = line.match(cmdRe);
 
-    if (match && match[1] === 'IMPORT' && imports[match[2]]) {
-      output.push('', `[//]: # (START: ${match[2]})`, '');
+    if (match && match[1] === 'IMPORT') {
+      if (!imports[match[2]]) {
+        console.error(`[WARN] ${sourceFileName}: Unknown import ${match[2]}; dropping line.`);
+        return;
+      }
+      if (includeMeta) {
+        output.push('', `[//]: # (START: ${match[2]})`, '');
+      }
       output.push(imports[match[2]]);
-      output.push('', `[//]: # (END: ${match[2]})`, '');
+      if (includeMeta) {
+        output.push('', `[//]: # (END: ${match[2]})`, '');
+      }
     } else {
       output.push(line);
     }
