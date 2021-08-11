@@ -68,12 +68,24 @@ const createCatalogEntry = async (dirName: string) => {
     );
   }
 
-  const newEntities = await Promise.all(
-    catalog.entities.map((entityDir: string) =>
-      loadDirectory(join(dirName, entityDir), { data: { configuration: {}, files: {} } })
+  // Load the entities
+  await Promise.all(
+    Object.entries(catalog.configuration.entities as Record<string, { entityType: string; path: string }>).map(
+      async ([entityName, entityDef]: [string, { entityType: string; path: string }]) => {
+        catalog.configuration.entities[entityName] = await loadDirectory(join(dirName, entityDef.path), {
+          entityType: entityDef.entityType,
+          data: { configuration: {}, files: {} },
+        });
+      }
     )
   );
-  catalog.entities = newEntities;
+
+  // Load the schema, uischema, and data
+  catalog.configuration.schema = JSON.parse((await readFile(join(dirName, catalog.configuration.schema))).toString());
+  catalog.configuration.uischema = JSON.parse(
+    (await readFile(join(dirName, catalog.configuration.uischema))).toString()
+  );
+  catalog.configuration.data = JSON.parse((await readFile(join(dirName, catalog.configuration.data))).toString());
 
   return catalog;
 };
