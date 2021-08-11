@@ -14,25 +14,22 @@ class Service extends EntityBase.ServiceBase {
     ctx.state.manager.connectors.getByNames(ctx, connectorNames, instanceId);
 }
 class Tenant {
-  getTenant: (ctx: Context, tenantId: string) => Promise<EntityBase.Types.IInstance> = async (
-    ctx: Context,
-    tenantId: string
-  ) => {
-    const { accessToken } = ctx.state.params;
-    const response = await superagent
-      .get(`${ctx.state.baseUrl}/instance?tag=${TENANT_TAG_NAME}=${tenantId}`)
-      .set('Authorization', `Bearer ${accessToken}`)
-      .ok((res) => res.status < 300);
-    return response.body?.data[0];
-  };
-  deleteTenant: (ctx: Context, tenantId: string) => Promise<any> = async (ctx: Context, tenantId: string) => {
-    const { accessToken } = ctx.state.params;
+  getTenant = async (ctx: Context, tenantId: string): Promise<EntityBase.Types.IInstance> =>
+    (
+      await superagent
+        .get(`${ctx.state.baseUrl}/instance?tag=${TENANT_TAG_NAME}=${tenantId}`)
+        .set('Authorization', `Bearer ${ctx.params.accessToken}`)
+        .ok((res) => res.status < 300)
+    ).body?.data[0];
+
+  deleteTenant = async (ctx: Context, tenantId: string) => {
     const tenantInstance = await this.getTenant(ctx, tenantId);
-    const response = await superagent
-      .delete(`${ctx.state.baseUrl}/instance/${tenantInstance.id}`)
-      .set('Authorization', `Bearer ${accessToken}`)
-      .ok((res) => res.status < 300);
-    return response.body?.data;
+    return (
+      await superagent
+        .delete(`${ctx.state.baseUrl}/instance/${tenantInstance.id}`)
+        .set('Authorization', `Bearer ${ctx.state.params.accessToken}`)
+        .ok((res) => res.status < 300)
+    ).body?.data;
   };
 }
 
