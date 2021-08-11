@@ -1,23 +1,21 @@
 {
   "type": "object",
   "properties": {
-    "integration": {
+    "slackIntegration": {
       "type": "object",
       "properties": {
-        "name": {
+        "id": {
           "type": "string",
-          "minLength": 3,
-          "description": "Please enter the integration's name"
+          "minLength": 3
         }
       }
     },
     "slackConnector": {
       "type": "object",
       "properties": {
-        "slackName": {
+        "id": {
           "type": "string",
-          "minLength": 3,
-          "description": "Please enter the name for the Slack connector"
+          "minLength": 3
         }
       }
     }
