@@ -1,4 +1,5 @@
 import superagent from 'superagent';
+import { saveSession } from './LocalStorage';
 
 export default async function createSession(accessToken: string, integrationBaseUrl: string, tenantId: string) {
   // Create new session
@@ -14,11 +15,9 @@ export default async function createSession(accessToken: string, integrationBase
     });
   const sessionId = response.body.id;
   console.log('SESSION ID CREATED:', sessionId);
-
-  return sessionId;
   //
   // // Store local session context
-  // window.localStorage.setItem(sessionId, JSON.stringify({ accessToken, integrationBaseUrl, tenantId }));
+  saveSession({ accessToken, integrationBaseUrl, tenantId, sessionId });
 
   // Start the configuration flow
   const configureUrl = `${integrationBaseUrl}/session/${sessionId}/start`;

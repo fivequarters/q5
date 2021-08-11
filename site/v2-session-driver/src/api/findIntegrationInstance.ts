@@ -1,6 +1,6 @@
 import superagent from 'superagent';
 
-export default async function FindIntegrationInstance(
+export default async function findIntegrationInstance(
   accessToken: string,
   integrationBaseUrl: string,
   tenantId: string
