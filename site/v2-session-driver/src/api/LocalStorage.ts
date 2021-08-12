@@ -19,10 +19,15 @@ export interface IInstance {
   integrationBaseUrl: string;
 }
 
+export interface IIntegration {
+  integrationId: string;
+}
+
 enum LocalStorageKeys {
   sessions = 'sessions',
   account = 'account',
   instance = 'instances',
+  integration = 'integration',
 }
 
 export function getSession(sessionId: string): ISession {
@@ -97,4 +102,38 @@ export function getInstance(tenantId: string): IInstance {
   const instance = localInstances[tenantId];
   console.log('fetching', instance);
   return instance;
+}
+
+export function listIntegrations(): IIntegration[] {
+  const localIntegrations = JSON.parse(window.localStorage.getItem(LocalStorageKeys.integration) || '[]');
+  return localIntegrations;
+}
+
+export function getIntegration(integrationId: string): IIntegration {
+  const localIntegrations = JSON.parse(window.localStorage.getItem(LocalStorageKeys.integration) || '[]');
+  const integration = localIntegrations.find(
+    (integration: IIntegration) => integration.integrationId === integrationId
+  );
+  return integration;
+}
+
+export function saveIntegration(integrationId: string): void {
+  console.log('saving', integrationId);
+  const localIntegrations = JSON.parse(window.localStorage.getItem(LocalStorageKeys.integration) || '[]');
+  localIntegrations.push({ integrationId });
+  const localIntegrationsString = JSON.stringify(localIntegrations);
+  window.localStorage.setItem(LocalStorageKeys.integration, localIntegrationsString);
+}
+
+export function removeIntegration(integrationId: string): void {
+  const integration = getIntegration(integrationId);
+  if (integration) {
+    const integrations = listIntegrations();
+    const integrationIndex = integrations.findIndex((integration) => integration.integrationId == integrationId);
+    if (integrationIndex !== -1) {
+      integrations.splice(integrationIndex, 1);
+      const localIntegrationsString = JSON.stringify(integrations);
+      window.localStorage.setItem(LocalStorageKeys.integration, localIntegrationsString);
+    }
+  }
 }

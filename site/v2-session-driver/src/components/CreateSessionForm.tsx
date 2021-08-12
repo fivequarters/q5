@@ -1,10 +1,9 @@
 import { Grid, TextField, Button, Box, makeStyles, Paper, styled } from '@material-ui/core';
 import { Alert } from '@material-ui/lab';
-import RotateLeftIcon from '@material-ui/icons/RotateLeft';
-import React from 'react';
-import { useState } from 'react';
+import React, { useState } from 'react';
 import createSession from '../api/createSession';
 import { startSession } from '../api/startSession';
+import IntegrationSelector from './IntegrationSelector';
 
 const useStyles = makeStyles((theme) => ({
   control: {
@@ -45,6 +44,13 @@ export default function CreateSessionForm({ term, onUserCreated }: CreateSession
     setSessionField({
       ...sessionFields,
       [name]: value,
+    });
+  };
+
+  const handleSelectedIntegration = (integrationId: string) => {
+    setSessionField({
+      ...sessionFields,
+      integrationId,
     });
   };
 
@@ -94,16 +100,7 @@ export default function CreateSessionForm({ term, onUserCreated }: CreateSession
           )}
           <Grid container className={style.control}>
             <Grid item xs={12}>
-              <TextField
-                name="integrationId"
-                variant="outlined"
-                label="Integration Id"
-                required={true}
-                disabled={loading}
-                className={style.input}
-                value={sessionFields.integrationId}
-                onChange={handleFieldChange}
-              />
+              <IntegrationSelector onSelectIntegration={handleSelectedIntegration} />
               <TextField
                 name="tenantId"
                 variant="outlined"
