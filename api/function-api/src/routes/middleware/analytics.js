@@ -45,6 +45,7 @@ exports.enterHandler = (modality) => {
       whitelistedReqFields.forEach((p) => (reqProps[p] = req[p]));
 
       let fusebit = {
+        accountId: reqProps.params.accountId,
         subscriptionId: reqProps.params.subscriptionId,
         boundaryId: reqProps.params.boundaryId,
         functionId: reqProps.params.functionId,
@@ -58,6 +59,7 @@ exports.enterHandler = (modality) => {
         ...reqProps.params,
       };
 
+      delete reqProps.params.accountId;
       delete reqProps.params.subscriptionId;
       delete reqProps.params.boundaryId;
       delete reqProps.params.functionId;
