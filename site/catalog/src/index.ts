@@ -138,6 +138,15 @@ const loadCatalog = async (dirName: string) => {
 };
 
 (async () => {
-  const entries = await loadCatalog('./inventory');
+  if (process.argv.length < 3) {
+    console.error(`ERROR: Missing feed directory.`);
+    console.error(``);
+    console.error(`Usage: ${process.argv[1]} <feed_integration | feed_connector>`);
+    console.error(`Outputs to stdout the processed contents of the specified feed directory.`);
+    console.error(``);
+    process.exit(-1);
+  }
+  const feedDirectory = process.argv[2];
+  const entries = await loadCatalog(feedDirectory);
   console.log(JSON.stringify(entries, null, 2));
 })();
