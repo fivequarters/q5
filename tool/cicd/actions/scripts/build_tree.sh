@@ -11,17 +11,17 @@ fuse profile set github-action-stage-us-west-2
 
 # -- Script --
 echoerr "Setting yarn version:"
-yarn set version 1.21.1
+#yarn set version 1.21.1
 
 echoerr "yarn setup:"
-yarn --frozen-lockfile setup
+#yarn --frozen-lockfile setup
 
 echoerr "yarn install:"
-yarn --frozen-lockfile install
+#yarn --frozen-lockfile install
 
 echoerr "yarn build:"
-yarn build
+#yarn build
 
 echoerr "Validate tests all build:"
-cd api/function-api
-EC2=1 LAMBDA_USER_FUNCTION_PERMISSIONLESS_ROLE=1 yarn test --no-cache --forceExit --testNamePattern=DoesNotMatchAnyTests
+#cd api/function-api
+#EC2=1 LAMBDA_USER_FUNCTION_PERMISSIONLESS_ROLE=1 yarn test --no-cache --forceExit --testNamePattern=DoesNotMatchAnyTests
