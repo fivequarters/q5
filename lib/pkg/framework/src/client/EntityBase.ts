@@ -45,10 +45,7 @@ namespace EntityBase {
   export abstract class ServiceBase {}
 
   export abstract class StorageBase {
-    constructor(service?: ServiceBase) {
-      this.service = service;
-    }
-    service?: ServiceBase;
+    constructor() {}
     setData: (ctx: Context, dataKey: string, data: any) => Promise<any> = async (
       ctx: Context,
       dataKey: string,
@@ -69,10 +66,6 @@ namespace EntityBase {
     ) => Storage.createStorage(ctx.state.params).delete(dataKeyPrefix, true, true);
   }
   export abstract class MiddlewareBase {
-    constructor(service?: ServiceBase) {
-      this.service = service;
-    }
-    service?: ServiceBase;
     authorizeUser = Middleware.authorize;
     loadTenant: (tags: string) => (ctx: Context, next: Next) => Promise<any> = (tags: string) => {
       return async (ctx: Context, next: Next) => {
@@ -82,19 +75,10 @@ namespace EntityBase {
     loadConnector?: (name: string) => (ctx: Context, next: Next) => Promise<any>;
   }
   export abstract class ResponseBase {
-    constructor(service?: ServiceBase) {
-      this.service = service;
-    }
-    service?: ServiceBase;
     createJsonForm: undefined; //TODO
     createError: undefined; //TODO
   }
-  export abstract class TenantBase {
-    constructor(service?: ServiceBase) {
-      this.service = service;
-    }
-    service?: ServiceBase;
-  }
+  export abstract class TenantBase {}
 
   export class ServiceDefault extends ServiceBase {}
   export class StorageDefault extends StorageBase {}

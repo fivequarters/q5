@@ -32,8 +32,6 @@ export async function pollSessionStatus(sessionId: string) {
     instanceId,
     tenantId: instance.tags['tenantId'],
   };
-  console.log('saving instance');
-  console.log(localInstance);
   saveInstance(localInstance);
 
   return localInstance;

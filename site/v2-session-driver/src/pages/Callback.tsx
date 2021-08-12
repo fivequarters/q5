@@ -15,10 +15,8 @@ export function Callback(): ReactElement {
 
   const handleCommit = async () => {
     const sessionId = getSessionId();
-    console.log(sessionId);
     await completeSession(sessionId);
     const instance = await pollSessionStatus(sessionId);
-    console.log(instance);
     setTenantId(instance.tenantId);
     setComplete(true);
   };

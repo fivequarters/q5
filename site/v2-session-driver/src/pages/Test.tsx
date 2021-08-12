@@ -14,10 +14,7 @@ const sendTestRequest = async (
 ) => {
   const account = getAccount();
   const instance = getInstance(tenantId);
-  console.log('tenantId', tenantId);
   const tenantEndpoint = endpoint.replace(':tenantId', tenantId);
-  console.log(account.accessToken);
-  console.log('endpoint', `${instance.integrationBaseUrl}${tenantEndpoint}`);
   return superagent[method](`${instance.integrationBaseUrl}${tenantEndpoint}`)
     .set('Authorization', `Bearer ${account.accessToken}`)
     .send(body);

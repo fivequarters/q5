@@ -90,7 +90,6 @@ export function getIntegrationBaseUrl(integration: string): string {
 }
 
 export function saveInstance(instance: IInstance) {
-  console.log('saving', instance);
   const localInstances = JSON.parse(window.localStorage.getItem(LocalStorageKeys.instance) || '{}');
   localInstances[instance.tenantId] = instance;
   const instanceString = JSON.stringify(localInstances);
@@ -100,7 +99,6 @@ export function saveInstance(instance: IInstance) {
 export function getInstance(tenantId: string): IInstance {
   const localInstances = JSON.parse(window.localStorage.getItem(LocalStorageKeys.instance) || '{}');
   const instance = localInstances[tenantId];
-  console.log('fetching', instance);
   return instance;
 }
 
@@ -118,7 +116,6 @@ export function getIntegration(integrationId: string): IIntegration {
 }
 
 export function saveIntegration(integrationId: string): void {
-  console.log('saving', integrationId);
   const localIntegrations = JSON.parse(window.localStorage.getItem(LocalStorageKeys.integration) || '[]');
   localIntegrations.push({ integrationId });
   const localIntegrationsString = JSON.stringify(localIntegrations);
