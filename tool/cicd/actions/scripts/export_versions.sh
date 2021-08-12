@@ -28,5 +28,5 @@ echo { \
 }
 
 npm i -g @fusebit/cli
-fuse profile set github-action-stage-us-west-2
+fuse profile ls
 ./tool/cicd/actions/scripts/publish_proxy_secrets.sh
