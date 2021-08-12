@@ -7,13 +7,12 @@ import { Link } from 'react-router-dom';
 
 export default function Sessions({ session }: { session: ISession }) {
   const button = session.completed ? <TestButton session={session} /> : <StartButton session={session} />;
+  const integrationArray = session.integrationBaseUrl.split('/');
+  const integration = integrationArray[integrationArray.length - 1];
   return (
     <TableRow key={session.sessionId}>
-      <TableCell component="th" scope="row">
-        {session.sessionId}
-      </TableCell>
       <TableCell>{session.tenantId}</TableCell>
-      <TableCell>{session.integrationBaseUrl}</TableCell>
+      <TableCell>{integration}</TableCell>
       <TableCell>{button}</TableCell>
     </TableRow>
   );

@@ -31,9 +31,8 @@ export default function Sessions({ sessions }: ISessionsProps) {
       <Table aria-label="sessions">
         <TableHead>
           <TableRow>
-            <StyledTableCell>ID</StyledTableCell>
             <StyledTableCell>Tenant</StyledTableCell>
-            <StyledTableCell>URL</StyledTableCell>
+            <StyledTableCell>Integration</StyledTableCell>
             <StyledTableCell>Actions</StyledTableCell>
           </TableRow>
         </TableHead>
