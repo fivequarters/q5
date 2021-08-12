@@ -36,14 +36,14 @@ function toItem(deployment: IOpsDeployment) {
   }
 
   // Support clearing the Segment Key parameter using an empty string.
-  if (deployment.segmentKey.length == 0) {
+  if (deployment.segmentKey.length === 0) {
     delete item.segmentKey;
   } else {
     item.segmentKey = { S: deployment.segmentKey };
   }
 
   // Support clearing the Elastic Search parameter using an empty string.
-  if (deployment.elasticSearch.length == 0) {
+  if (deployment.elasticSearch.length === 0) {
     delete item.elasticSearch;
   } else {
     item.elasticSearch = { S: deployment.elasticSearch };
