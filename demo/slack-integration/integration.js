@@ -16,7 +16,7 @@ router.post("/api/:tenantId/sendMessage", async (ctx) => {
   ctx.body = result;
 });
 
-router.get("/api/:tenantId/me", async (ctx) => {
+router.get("/api/:tenantId/users", async (ctx) => {
   console.log("hit path: " + ctx.params.tenantId);
   const slackClient = await integration.service.getSdk(
     ctx,

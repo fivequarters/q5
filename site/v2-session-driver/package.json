@@ -21,15 +21,17 @@
     "@material-ui/icons": "^4.11.2",
     "react": "^16.9.0",
     "react-dom": "^16.9.0",
-    "react-router-scroll-memory": "^2.0.3",
-    "react-router-dom": "^5.1.2"
+    "react-json-pretty": "^2.2.0",
+    "react-router-dom": "^5.1.2",
+    "react-router-scroll-memory": "^2.0.3"
   },
   "devDependencies": {
     "@types/react-dom": "^16.8.2",
     "@types/react-helmet": "^6.1.0",
     "@types/react-router": "^5.0.0",
     "@types/react-router-dom": "^5.1.2",
-    "@types/styled-components": "4.1.8"
+    "@types/styled-components": "4.1.8",
+    "@types/react-json-pretty": "^2.2.0"
   },
   "devServer": {
     "port": 9512

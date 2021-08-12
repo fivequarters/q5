@@ -76,7 +76,7 @@ class ConnectorService extends SessionedEntityService<Model.IConnector, Model.II
       allow: [
         {
           action: Permissions.allStorage,
-          resource: '/account/{{accountId}}/subscription/{{subscriptionId}}/storage/{{boundaryId}/{{functionId}}/',
+          resource: '/account/{{accountId}}/subscription/{{subscriptionId}}/storage/{{boundaryId}}/{{functionId}}/',
         },
         {
           action: v2Permissions.putSession,
@@ -87,11 +87,7 @@ class ConnectorService extends SessionedEntityService<Model.IConnector, Model.II
           resource: '/account/{{accountId}}/subscription/{{subscriptionId}}/{{boundaryId}/{{functionId}}/session/',
         },
         {
-          action: v2Permissions.identity.get,
-          resource: '/account/{{accountId}}/subscription/{{subscriptionId}}/connector/{{functionId}}/identity/',
-        },
-        {
-          action: v2Permissions.identity.put,
+          action: v2Permissions.identity.all,
           resource: '/account/{{accountId}}/subscription/{{subscriptionId}}/connector/{{functionId}}/identity/',
         },
       ],

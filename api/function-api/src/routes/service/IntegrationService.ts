@@ -111,15 +111,19 @@ class IntegrationService extends SessionedEntityService<Model.IIntegration, Mode
       allow: [
         {
           action: Permissions.allStorage,
-          resource: '/account/{{accountId}}/subscription/{{subscriptionId}}/storage/{{boundaryId}/{{functionId}}/',
+          resource: '/account/{{accountId}}/subscription/{{subscriptionId}}/storage/{{boundaryId}}/{{functionId}}/',
         },
         {
           action: v2Permissions.putSession,
-          resource: '/account/{{accountId}}/subscription/{{subscriptionId}}/{{boundaryId}/{{functionId}}/session/',
+          resource: '/account/{{accountId}}/subscription/{{subscriptionId}}/{{boundaryId}}/{{functionId}}/session/',
         },
         {
           action: v2Permissions.getSession,
-          resource: '/account/{{accountId}}/subscription/{{subscriptionId}}/{{boundaryId}/{{functionId}}/session/',
+          resource: '/account/{{accountId}}/subscription/{{subscriptionId}}/{{boundaryId}}/{{functionId}}/session/',
+        },
+        {
+          action: v2Permissions.instance.all,
+          resource: '/account/{{accountId}}/subscription/{{subscriptionId}}/{{boundaryId}}/{{functionId}}/instance/',
         },
       ],
     },

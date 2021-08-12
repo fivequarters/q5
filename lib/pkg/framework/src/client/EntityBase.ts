@@ -20,12 +20,25 @@ namespace EntityBase {
     export type Context = ContextType;
     export type Next = NextType;
     export interface IOnStartup extends IOnStartupInterface {}
+    export interface IInstanceResponse {
+      items: IInstance[];
+      total: number;
+    }
     export interface IInstance {
       id: string;
       tags: Record<string, string>;
-      data: any;
+      data: Record<string, IInstanceData>;
       expires?: string;
       version?: string;
+    }
+    export interface IInstanceData {
+      tags: Record<string, string>;
+      entityId: string;
+      entityType: string;
+      accountId: string;
+      subscriptionId: string;
+      parentEntityId: string;
+      parentEntityType: string;
     }
   }
   export abstract class ServiceBase {}

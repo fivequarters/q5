@@ -10,14 +10,14 @@ class Middleware extends EntityBase.MiddlewareBase {
 class Service extends EntityBase.ServiceBase {
   getSdk = async (ctx: Context, connectorName: string, tenantId: string) => {
     const instance = await this.getInstance(ctx, tenantId);
-    const identityId = instance.data[connectorName]?.entityId;
+    const identityId = instance.items[0].data[connectorName]?.entityId;
     return ctx.state.manager.connectors.getByName(ctx, connectorName, identityId);
   };
 
   getSdks = (ctx: Context, connectorNames: string[], tenantId: string) => {
     return connectorNames.map((connectorName) => this.getSdk(ctx, connectorName, tenantId));
   };
-  getInstance = async (ctx: Context, tenantId: string): Promise<EntityBase.Types.IInstance> => {
+  getInstance = async (ctx: Context, tenantId: string): Promise<EntityBase.Types.IInstanceResponse> => {
     const params = ctx.state.params;
     const response = await superagent
       .get(`${ctx.state.params.baseUrl}/instance?tag=${TENANT_TAG_NAME}=${tenantId}`)

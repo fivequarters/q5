@@ -1,15 +1,10 @@
 import React, { ReactElement } from 'react';
-import { Button } from '@material-ui/core';
+import { Button, TextField } from '@material-ui/core';
 import { getAccount, getInstance } from '../api/LocalStorage';
 import { useParams } from 'react-router-dom';
 import superagent from 'superagent';
-
-enum HttpMethod {
-  GET = 'get',
-  POST = 'post',
-  PUT = 'put',
-  DELETE = 'delete',
-}
+import HttpRadioButton, { HttpMethod } from '../components/HttpRadioButton';
+import JSONPretty from 'react-json-pretty';
 
 const sendTestRequest = async (
   tenantId: string,
@@ -31,12 +26,11 @@ const sendTestRequest = async (
 export function Test(): ReactElement {
   const { tenantId = '' } = useParams();
   const [response, setResponse] = React.useState(undefined);
+  const [endpoint, setEndpoint] = React.useState('/api/:tenantId/me');
+  const [method, setMethod] = React.useState(HttpMethod.GET);
 
   const testEndpoint = async () => {
-    console.log('Test.tsx, tenantId', tenantId);
-    const instance = getInstance(tenantId);
-    console.log(instance);
-    const result = await sendTestRequest(tenantId, '/api/:tenantId/me');
+    const result = await sendTestRequest(tenantId, endpoint, method);
     setResponse(result.body);
   };
 
@@ -45,16 +39,38 @@ export function Test(): ReactElement {
       return (
         <div>
           <p>Response Body:</p>
-          {JSON.stringify(response)}
+          <JSONPretty id="json-pretty" data={response}></JSONPretty>
         </div>
       );
     }
   };
 
+  const handleEndpointChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+    setEndpoint(event.target.value);
+  };
+  const handleMethodChange = (method: HttpMethod) => {
+    setMethod(method);
+  };
+
   return (
     <div>
-      {child()}
+      <TextField
+        name="integrationId"
+        variant="outlined"
+        label="Integration Id"
+        required={true}
+        value={endpoint}
+        onChange={handleEndpointChange}
+      />
+      <br />
+      <br />
+      <HttpRadioButton handleMethod={handleMethodChange} />
+      <br />
+      <br />
       <Button onClick={testEndpoint}> Test SDK Endpoint </Button>
+      <br />
+      <br />
+      {child()}
     </div>
   );
 }

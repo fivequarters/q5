@@ -56,6 +56,7 @@ const makePermissionSet = (prefix: string) => ({
     put: `${prefix}:put`,
     delete: `${prefix}:delete`,
     putTag: `${prefix}:put-tag`,
+    all: `${prefix}:*`,
   },
 });
 
