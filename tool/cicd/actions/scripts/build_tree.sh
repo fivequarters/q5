@@ -6,6 +6,7 @@ echoerr() { printf "%s\n" "$*" >&2; }
 
 npm i -g @fusebit/cli
 fuse profile ls
+fuse profile set github-action-stage-us-west-2
 ./tool/cicd/actions/scripts/publish_proxy_secrets.sh
 
 # -- Script --
