@@ -210,7 +210,8 @@ export async function createAnalyticsPipeline(
   const { lambda, cloudwatchlogs } = await getAWS(awsConfig);
 
   return new Promise((resolve, reject) => {
-    const subscribeLambdaAnalyticsToCloudWatch = deployment.elasticSearch.length > 0 || deployment.segmentKey;
+    const subscribeLambdaAnalyticsToCloudWatch =
+      deployment.elasticSearch.length > 0 || deployment.segmentKey.length > 0;
     return Async.series(
       [
         // prettier-ignore
