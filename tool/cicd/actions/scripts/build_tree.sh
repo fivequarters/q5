@@ -4,6 +4,10 @@
 set -e
 echoerr() { printf "%s\n" "$*" >&2; }
 
+npm i -g @fusebit/cli
+fuse profile ls
+./tool/cicd/actions/scripts/publish_proxy_secrets.sh
+
 # -- Script --
 echoerr "Setting yarn version:"
 yarn set version 1.21.1
