@@ -1,10 +1,9 @@
-import { Grid, TextField, Button, Box, makeStyles, Paper, StylesProvider } from '@material-ui/core';
+import { Grid, TextField, Button, Box, makeStyles, Paper, styled } from '@material-ui/core';
 import { Alert } from '@material-ui/lab';
+import RotateLeftIcon from '@material-ui/icons/RotateLeft';
 import React from 'react';
 import { useState } from 'react';
-import { ILocalStorage } from '../api/LocalStorage';
 import createSession from '../api/createSession';
-const TERM = 'user';
 
 const useStyles = makeStyles((theme) => ({
   control: {
@@ -24,7 +23,12 @@ const useStyles = makeStyles((theme) => ({
   },
 }));
 
-export default function CreateSessionForm() {
+export interface CreateSessionProps {
+  term: string;
+  onUserCreated?(user: any): void;
+}
+
+export default function CreateSessionForm({ term, onUserCreated }: CreateSessionProps) {
   const style = useStyles();
   const sessionFieldsInitialState = {
     accessToken: '',
@@ -60,6 +64,7 @@ export default function CreateSessionForm() {
         const { accessToken, integrationId, tenantId } = sessionFields;
         await createSession(accessToken, integrationId, tenantId);
         setSessionCreated(true);
+        onUserCreated && onUserCreated(event);
       } catch (err) {
         setError(err.message);
       } finally {
@@ -74,9 +79,9 @@ export default function CreateSessionForm() {
     <Paper className={style.control}>
       <form>
         <Box className={style.control}>
-          <h2>Create a new {TERM}</h2>
+          <h2>Create a new {term}</h2>
           <Alert severity="info">
-            Please fill out the following information in order to create a new {TERM} to start using the specified
+            Please fill out the following information in order to create a new {term} to start using the specified
             integration
           </Alert>
           {missingFields && (
@@ -92,7 +97,7 @@ export default function CreateSessionForm() {
           )}
           {sessionCreated && (
             <Alert className={style.alert} severity="success">
-              The {TERM} has been created!
+              The {term} has been created!
             </Alert>
           )}
           <Grid container className={style.control}>
@@ -101,6 +106,7 @@ export default function CreateSessionForm() {
                 variant="outlined"
                 name="accessToken"
                 label="Access Token"
+                disabled={loading}
                 required={true}
                 className={style.input}
                 value={sessionFields.accessToken}
@@ -111,6 +117,7 @@ export default function CreateSessionForm() {
                 variant="outlined"
                 label="Integration Id"
                 required={true}
+                disabled={loading}
                 className={style.input}
                 value={sessionFields.integrationId}
                 onChange={handleFieldChange}
@@ -120,6 +127,7 @@ export default function CreateSessionForm() {
                 variant="outlined"
                 label="Tenant Id"
                 required={true}
+                disabled={loading}
                 className={style.input}
                 value={sessionFields.tenantId}
                 onChange={handleFieldChange}
@@ -128,8 +136,10 @@ export default function CreateSessionForm() {
           </Grid>
         </Box>
         <Box className={style.formFooter}>
-          <Button variant="contained" color="primary" onClick={onCreateSessionClick}>
-            Create {TERM}
+          <Button disabled={loading} variant="contained" color="primary" onClick={onCreateSessionClick}>
+            {!loading && `Create ${term}`}
+            {loading && <RotateLeftIcon fontSize="small" />}
+            {loading && `Creating ${term} ...`}
           </Button>
         </Box>
       </form>
