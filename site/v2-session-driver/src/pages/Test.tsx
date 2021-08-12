@@ -10,7 +10,7 @@ export function Test(): ReactElement {
   const [response, setResponse] = React.useState(undefined);
   const session = getSession(sessionId);
   const testEndpoint = async (event: React.MouseEvent) => {
-    const result = await superagent.get(`${session.integrationBaseUrl}/instance/${session.instanceId}/api/test`);
+    const result = await superagent.get(`${session.integrationBaseUrl}/api/${session.instanceId}/test`);
     setResponse(result.body);
   };
 

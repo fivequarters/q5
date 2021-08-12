@@ -11,7 +11,6 @@ const App = () => {
     <BrowserRouter basename="/">
       <ScrollMemory />
       <Switch>
-        <Route path="/integrations" component={Integrations} />
         <Route path="/account" component={Account} />
         <Route path="/start" component={Start} />
         <Route path="/callback" component={Callback} />
