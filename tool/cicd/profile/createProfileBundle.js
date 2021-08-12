@@ -6,24 +6,18 @@ const path = require("path");
 const homedir = require("os").homedir();
 
 const userProfileRoot = `${homedir}/.fusebit`;
-const userProfileName = "github-action-stage-us-west-2";
+const userProfileName = "stage.us-west-2.internal";
 const opsProfileRoot = `${homedir}/.fusebit-ops`;
 const opsProfileNames = ["github-automation.321", "github-automation.749"];
 
 const renderUserProfile = () => {
-  const settings = JSON.parse(
-    fs.readFileSync(path.join(userProfileRoot, "settings.json"))
-  );
+  const settings = JSON.parse(fs.readFileSync(path.join(userProfileRoot, "settings.json")));
   const kid = settings.profiles[userProfileName].kid;
   const privateKey = fs
-    .readFileSync(
-      path.join(userProfileRoot, "keys", userProfileName, kid, "pri")
-    )
+    .readFileSync(path.join(userProfileRoot, "keys", userProfileName, kid, "pri"))
     .toString();
   const publicKey = fs
-    .readFileSync(
-      path.join(userProfileRoot, "keys", userProfileName, kid, "pub")
-    )
+    .readFileSync(path.join(userProfileRoot, "keys", userProfileName, kid, "pub"))
     .toString();
 
   const output = {
@@ -39,9 +33,7 @@ const renderUserProfile = () => {
 };
 
 const renderOpsProfile = () => {
-  const settings = JSON.parse(
-    fs.readFileSync(path.join(opsProfileRoot, "settings.json"))
-  );
+  const settings = JSON.parse(fs.readFileSync(path.join(opsProfileRoot, "settings.json")));
   const output = {
     settings: {
       profiles: {},
