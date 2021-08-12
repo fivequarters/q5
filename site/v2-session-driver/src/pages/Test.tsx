@@ -26,7 +26,7 @@ const sendTestRequest = async (
 export function Test(): ReactElement {
   const { tenantId = '' } = useParams();
   const [response, setResponse] = React.useState(undefined);
-  const [endpoint, setEndpoint] = React.useState('/api/:tenantId/me');
+  const [endpoint, setEndpoint] = React.useState('/api/:tenantId/users');
   const [method, setMethod] = React.useState(HttpMethod.GET);
 
   const testEndpoint = async () => {
