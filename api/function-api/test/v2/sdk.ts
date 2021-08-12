@@ -398,7 +398,7 @@ export const ApiRequestMap: { [key: string]: any } = {
       ) => {
         const op = await v2Request(account, {
           method: 'POST',
-          uri: `/integration/${encodeURI(entityId)}/session/${sessionId}`,
+          uri: `/integration/${encodeURI(entityId)}/session/${sessionId}/commit`,
           ...options,
         });
         expect(op).toBeHttp({ statusCode: 202 });
