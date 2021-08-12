@@ -8,9 +8,7 @@ class Middleware extends EntityBase.MiddlewareBase {
   loadConnector = (name: string) => async (ctx: Context, next: Next) => undefined; //TODO
 }
 class Service extends EntityBase.ServiceBase {
-  getSdk = async (ctx: Context, connectorName: string, tenantId: string) => {
-    const instance = await this.getInstance(ctx, tenantId);
-    const identityId = instance.items[0].data[connectorName]?.entityId;
+  getSdk = async (ctx: Context, connectorName: string, identityId: string) => {
     return ctx.state.manager.connectors.getByName(ctx, connectorName, identityId);
   };
 
@@ -26,7 +24,18 @@ class Service extends EntityBase.ServiceBase {
     return body;
   };
 }
-class Tenant {}
+class Tenant extends EntityBase.TenantBase {
+  constructor(service: Service) {
+    super();
+    this.service = service;
+  }
+  service: Service;
+  getSdkByTenant = async (ctx: Context, connectorName: string, tenantId: string) => {
+    const instance = await this.service.getInstance(ctx, tenantId);
+    const identityId = instance.items[0].data[connectorName]?.entityId;
+    return this.service.getSdk(ctx, connectorName, identityId);
+  };
+}
 
 namespace Integration {
   export namespace Types {
@@ -40,6 +49,6 @@ export default class Integration extends EntityBase {
   service = new Service();
   middleware = new Middleware();
   storage = new EntityBase.StorageDefault();
-  tenant = new Tenant();
+  tenant = new Tenant(this.service);
   response = new EntityBase.ResponseDefault();
 }

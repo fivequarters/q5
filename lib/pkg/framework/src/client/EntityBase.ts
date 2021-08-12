@@ -11,6 +11,7 @@ abstract class EntityBase {
   abstract storage: EntityBase.StorageBase;
   abstract middleware: EntityBase.MiddlewareBase;
   abstract response: EntityBase.ResponseBase;
+  abstract tenant: EntityBase.TenantBase;
 
   public readonly router: Router = new Router();
 }
@@ -44,6 +45,10 @@ namespace EntityBase {
   export abstract class ServiceBase {}
 
   export abstract class StorageBase {
+    constructor(service?: ServiceBase) {
+      this.service = service;
+    }
+    service?: ServiceBase;
     setData: (ctx: Context, dataKey: string, data: any) => Promise<any> = async (
       ctx: Context,
       dataKey: string,
@@ -64,6 +69,10 @@ namespace EntityBase {
     ) => Storage.createStorage(ctx.state.params).delete(dataKeyPrefix, true, true);
   }
   export abstract class MiddlewareBase {
+    constructor(service?: ServiceBase) {
+      this.service = service;
+    }
+    service?: ServiceBase;
     authorizeUser = Middleware.authorize;
     loadTenant: (tags: string) => (ctx: Context, next: Next) => Promise<any> = (tags: string) => {
       return async (ctx: Context, next: Next) => {
@@ -73,13 +82,24 @@ namespace EntityBase {
     loadConnector?: (name: string) => (ctx: Context, next: Next) => Promise<any>;
   }
   export abstract class ResponseBase {
+    constructor(service?: ServiceBase) {
+      this.service = service;
+    }
+    service?: ServiceBase;
     createJsonForm: undefined; //TODO
     createError: undefined; //TODO
+  }
+  export abstract class TenantBase {
+    constructor(service?: ServiceBase) {
+      this.service = service;
+    }
+    service?: ServiceBase;
   }
 
   export class ServiceDefault extends ServiceBase {}
   export class StorageDefault extends StorageBase {}
   export class MiddlewareDefault extends MiddlewareBase {}
   export class ResponseDefault extends ResponseBase {}
+  export class TenantDefault extends TenantBase {}
 }
 export default EntityBase;

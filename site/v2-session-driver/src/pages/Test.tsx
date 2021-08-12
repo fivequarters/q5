@@ -1,5 +1,5 @@
 import React, { ReactElement } from 'react';
-import { Button, TextField } from '@material-ui/core';
+import { Button, CircularProgress, TextField } from '@material-ui/core';
 import { getAccount, getInstance } from '../api/LocalStorage';
 import { useParams } from 'react-router-dom';
 import superagent from 'superagent';
@@ -25,21 +25,30 @@ const sendTestRequest = async (
 
 export function Test(): ReactElement {
   const { tenantId = '' } = useParams();
+  const [waiting, setWaiting] = React.useState(false);
   const [response, setResponse] = React.useState(undefined);
+  const [code, setCode] = React.useState(0);
   const [endpoint, setEndpoint] = React.useState('/api/:tenantId/users');
   const [method, setMethod] = React.useState(HttpMethod.GET);
 
   const testEndpoint = async () => {
+    setWaiting(true);
     const result = await sendTestRequest(tenantId, endpoint, method);
+    setWaiting(false);
     setResponse(result.body);
+    setCode(result.status);
   };
 
   const child = () => {
+    if (waiting) {
+      return <CircularProgress />;
+    }
     if (response) {
       return (
         <div>
+          <h3>Response Code: {code}</h3>
           <p>Response Body:</p>
-          <JSONPretty id="json-pretty" data={response}></JSONPretty>
+          <JSONPretty id="json-pretty" themeClassName="Adventure Time" data={response} />
         </div>
       );
     }
@@ -67,7 +76,10 @@ export function Test(): ReactElement {
       <HttpRadioButton handleMethod={handleMethodChange} />
       <br />
       <br />
-      <Button onClick={testEndpoint}> Test SDK Endpoint </Button>
+      <Button onClick={testEndpoint} variant="contained" disabled={waiting}>
+        {' '}
+        Test SDK Endpoint{' '}
+      </Button>
       <br />
       <br />
       {child()}
