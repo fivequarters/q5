@@ -26,7 +26,3 @@ echo { \
   \"fuse-cli\": \"${VERSION_FUSEBIT_CLI}\",      \
   \"fuse-ops\": \"${VERSION_FUSEBIT_OPS_CLI}\"   \
 }
-
-npm i -g @fusebit/cli
-fuse profile ls
-./tool/cicd/actions/scripts/publish_proxy_secrets.sh
