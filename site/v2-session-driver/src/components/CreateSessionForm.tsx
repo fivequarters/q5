@@ -2,12 +2,9 @@ import { Grid, TextField, Button, Box, makeStyles, Paper, StylesProvider } from 
 import { Alert } from '@material-ui/lab';
 import React from 'react';
 import { useState } from 'react';
-
 import { ILocalStorage } from '../api/LocalStorage';
 import createSession from '../api/createSession';
 const TERM = 'user';
-const INTEGRATION_BASE_URL =
-  'http://localhost:3001/v2/account/acc-24227e37c56e45b4/subscription/sub-525d8055053a4739/integration/';
 
 const useStyles = makeStyles((theme) => ({
   control: {
@@ -38,6 +35,7 @@ export default function CreateSessionForm() {
   const [loading, setIsLoading] = useState(false);
   const [missingFields, setMissingFields] = useState(false);
   const [error, setError] = useState();
+  const [sessionCreated, setSessionCreated] = useState(false);
 
   const handleFieldChange = (event: { target: { name: string; value: string } }) => {
     const { name, value } = event.target;
@@ -54,13 +52,14 @@ export default function CreateSessionForm() {
 
   const onCreateSessionClick = async (event: React.MouseEvent<HTMLElement>) => {
     setError(undefined);
+    setSessionCreated(false);
     if (areFieldsValid()) {
       setMissingFields(false);
       setIsLoading(true);
       try {
         const { accessToken, integrationId, tenantId } = sessionFields;
-        const integrationBaseUrl = `${INTEGRATION_BASE_URL}/${integrationId}`;
-        await createSession(accessToken, integrationBaseUrl, tenantId);
+        await createSession(accessToken, integrationId, tenantId);
+        setSessionCreated(true);
       } catch (err) {
         setError(err.message);
       } finally {
@@ -89,6 +88,11 @@ export default function CreateSessionForm() {
           {error && (
             <Alert className={style.alert} severity="error">
               {error}
+            </Alert>
+          )}
+          {sessionCreated && (
+            <Alert className={style.alert} severity="success">
+              The {TERM} has been created!
             </Alert>
           )}
           <Grid container className={style.control}>
