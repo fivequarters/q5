@@ -94,6 +94,12 @@ jobs:
           SLACK_PROXY_CLIENT_ID: ${{ secrets.SLACK_PROXY_CLIENT_ID }}
           SLACK_PROXY_CLIENT_SECRET: ${{ secrets.SLACK_PROXY_CLIENT_SECRET }}
         run: ./tool/cicd/actions/scripts/publish_proxy_secrets.sh
+      - name: Publish the OpenAPI docs for v2 to Readme.Com
+        uses: readmeio/github-readme-sync@v2
+        with:
+          readme-oas-key: ${{secrets.README_COM_OAS_KEY}}
+          oas-file-path: ./api/function-api/api_v2.yaml
+          api-version: v1.0
       - name: Notify slack success
         if: success()
         env:

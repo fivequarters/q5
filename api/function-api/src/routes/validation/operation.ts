@@ -5,7 +5,7 @@ import * as Common from './common';
 export const OperationEntry = Joi.object().keys({
   verb: Joi.string().required(),
   type: Joi.string().required(),
-  code: Joi.number().required(),
+  statusCode: Joi.number().required(),
   message: Joi.string().optional(),
   location: Joi.object()
     .keys({

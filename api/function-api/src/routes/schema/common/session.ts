@@ -39,45 +39,6 @@ const createSessionRouter = (SessionService: SessionedEntityService<any, any>) =
     }
   );
 
-  //  Get full value of session.
-  router.options('/:sessionId/result', common.cors());
-  router.route('/:sessionId/result').get(
-    common.management({
-      validate: { params: ValidationCommon.EntityIdParams },
-      authorize: { operation: v2Permissions.sessionResult },
-    }),
-    async (req: express.Request, res: express.Response, next: express.NextFunction) => {
-      try {
-        const session = await SessionService.getSession({
-          accountId: req.params.accountId,
-          subscriptionId: req.params.subscriptionId,
-          id: Model.createSubordinateId(SessionService.entityType, req.params.entityId, req.params.sessionId),
-        });
-        let result: any = {
-          id: req.params.sessionId,
-          input: session.result.data.input,
-          output: session.result.data.output,
-          components: session.result.data.components,
-          replacementTargetId: session.result.data.replacementTargetId,
-          operationId: session.result.data.operationId,
-        };
-
-        if (session.result.data.mode === 'leaf') {
-          result = {
-            ...result,
-            target: session.result.data.target,
-            name: session.result.data.stepName,
-            dependsOn: session.result.data.dependsOn,
-          };
-        }
-        res.status(session.statusCode).json(result);
-      } catch (error) {
-        console.log(error);
-        return next(error);
-      }
-    }
-  );
-
   router
     .route('/:sessionId')
     .options(common.cors())
@@ -97,6 +58,7 @@ const createSessionRouter = (SessionService: SessionedEntityService<any, any>) =
           const result = {
             id: req.params.sessionId,
             input: session.result.data.input,
+            output: session.result.data.output,
             dependsOn: session.result.data.dependsOn,
           };
           res.status(session.statusCode).json(result);
@@ -122,7 +84,12 @@ const createSessionRouter = (SessionService: SessionedEntityService<any, any>) =
             },
             req.body
           );
-          const result = { id: req.params.sessionId, input: session.result.input };
+          const result = {
+            id: req.params.sessionId,
+            input: session.result.input,
+            output: session.result.output,
+            dependsOn: session.result.dependsOn,
+          };
           res.status(session.statusCode).json(result);
         } catch (error) {
           console.log(error);

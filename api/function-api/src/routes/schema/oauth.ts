@@ -172,9 +172,8 @@ export const createProxyRouter = (name: string, subscriptionCache: SubscriptionC
 
         // Send the result back with the correct content type.
         res.status(response.status);
-        res.set('content-type', response.header['content-type']);
+        res.set('Content-Type', response.header['content-type']);
         res.send(response.body);
-        res.end();
       } catch (error) {
         return next(error);
       }

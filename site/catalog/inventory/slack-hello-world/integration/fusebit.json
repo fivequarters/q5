@@ -1,0 +1,18 @@
+{
+  "id": "<% this.id %>",
+  "tags": {},
+  "handler": "./integration",
+  "components": [
+    {
+      "name": "slackConnector",
+      "path": "/api/configure",
+      "skip": false,
+      "provider": "@fusebit-int/oauth-provider",
+      "entityId": "<% global.entities.slackConnector.id %>",
+      "dependsOn": [],
+      "entityType": "connector"
+    }
+  ],
+  "componentTags": {},
+  "configuration": {}
+}

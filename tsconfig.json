@@ -141,15 +141,14 @@
       "@5qtrs/runas": ["lib/server/runas/src"],
       "@5qtrs/cicd-actions": ["tool/cicd/actions/src"],
       "@fusebit-int/framework": ["lib/pkg/framework/src"],
-      "@fusebit-int/pkg-integration": ["lib/pkg/pkg-integration/src"],
-      "@fusebit-int/pkg-oauth-connector": ["lib/pkg/pkg-oauth-connector/src"],
-      "@fusebit-int/pkg-oauth-integration": ["lib/pkg/pkg-oauth-integration/src"],
+      "@fusebit-int/oauth-connector": ["lib/pkg/oauth/oauth-connector/src"],
+      "@fusebit-int/oauth-provider": ["lib/pkg/oauth/oauth-provider/src"],
       "@5qtrs/comps": ["lib/pkg/comps/src"],
       "@5qtrs/db": ["lib/data/db/src"],
       "@fusebit/schema": ["lib/data/schema/src"],
-      "@5qtrs/slack-connector": ["lib/pkg/slack-connector/src"],
-      "@5qtrs/slack-integration": ["lib/pkg/slack-integration/src"],
-      "@5qtrs/catalog": ["catalog/src"]
+      "@fusebit-int/slack-connector": ["lib/pkg/slack/slack-connector/src"],
+      "@fusebit-int/slack-provider": ["lib/pkg/slack/slack-provider/src"],
+      "@5qtrs/catalog": ["site/catalog/src"]
     }
   }
 }

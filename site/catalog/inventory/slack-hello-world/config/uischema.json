@@ -1,0 +1,21 @@
+{
+  "type": "Group",
+  "label": "Slack Connector Details",
+  "elements": [
+    {
+      "type": "VerticalLayout",
+      "elements": [
+        {
+          "type": "Control",
+          "scope": "#/properties/slackIntegration/properties/id",
+          "label": "Name"
+        },
+        {
+          "type": "Control",
+          "scope": "#/properties/slackConnector/properties/id",
+          "label": "Slack Connector name"
+        }
+      ]
+    }
+  ]
+}

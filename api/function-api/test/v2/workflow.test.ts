@@ -62,7 +62,7 @@ describe('Workflow', () => {
         components: [
           {
             name: 'conn1',
-            package: '@fusebit-int/pkg-oauth-integration',
+            provider: '@fusebit-int/oauth-provider',
             entityType: Model.EntityType.connector,
             entityId: `${boundaryId}-con`,
             dependsOn: [],
@@ -77,7 +77,7 @@ describe('Workflow', () => {
         ],
       },
       {
-        handler: '@fusebit-int/pkg-oauth-connector',
+        handler: '@fusebit-int/oauth-connector',
         configuration: {
           scope: '',
           authorizationUrl,
@@ -110,10 +110,7 @@ describe('Workflow', () => {
       "  let response = await superagent.put(`${ctx.state.params.baseUrl}/session/${ctx.query.session}`).set('Authorization', `Bearer ${ctx.state.params.functionAccessToken}`).send({ hello: 'world'});",
       '  const result = {};',
       "  response = await superagent.get(`${ctx.state.params.baseUrl}/session/${ctx.query.session}`).set('Authorization', `Bearer ${ctx.state.params.functionAccessToken}`);",
-      '  result.get = response.body;',
-      "  response = await superagent.get(`${ctx.state.params.baseUrl}/session/${ctx.query.session}/result`).set('Authorization', `Bearer ${ctx.state.params.functionAccessToken}`);",
-      '  result.getResult = response.body;',
-      '  ctx.body = result;',
+      '  ctx.body = response.body;',
       '});',
       "router.get('/api/getToken', async (ctx) => {",
       "  const response = await superagent.get(`${ctx.state.params.baseUrl}/session/${ctx.query.session}`).set('Authorization', `Bearer ${ctx.state.params.functionAccessToken}`);",
@@ -239,27 +236,12 @@ describe('Workflow', () => {
     expect(response).toBeHttp({
       statusCode: 200,
       data: {
-        get: {
-          id: formSessionId,
-          dependsOn: {
-            conn1: {
-              parentEntityType: 'connector',
-              parentEntityId: connectorId,
-              entityId: connectorSessionId,
-            },
-          },
-        },
-        getResult: {
-          id: formSessionId,
-          dependsOn: {
-            conn1: {
-              parentEntityType: 'connector',
-              parentEntityId: connectorId,
-              entityId: connectorSessionId,
-            },
-          },
-          output: {
-            hello: 'world',
+        id: formSessionId,
+        dependsOn: {
+          conn1: {
+            parentEntityType: 'connector',
+            parentEntityId: connectorId,
+            entityId: connectorSessionId,
           },
         },
       },
@@ -277,53 +259,48 @@ describe('Workflow', () => {
     response = await ApiRequestMap.integration.session.postSession(account, integrationId, parentSessionId);
     expect(response).toBeHttp({
       statusCode: 200,
-      data: { code: 200, type: 'session', verb: 'creating' },
+      data: { statusCode: 200, type: 'session', verb: 'creating' },
       hasNot: ['payload'],
     });
 
     // Get the completed session with the output details
     response = await ApiRequestMap.integration.session.getResult(account, integrationId, parentSessionId);
-    expect(response).toBeHttp({
-      statusCode: 200,
-      data: {
-        id: parentSessionId,
-        output: {
-          tags: {
-            'session.master': parentSessionId,
-          },
-          accountId: account.accountId,
-          entityType: Model.EntityType.instance,
-          parentEntityId: integrationId,
-          parentEntityType: Model.EntityType.integration,
-          subscriptionId: account.subscriptionId,
+    expect(response.data).toMatchObject({
+      output: {
+        tags: {
+          'session.master': parentSessionId,
         },
-        components: [
-          {
-            name: 'conn1',
-            path: '/api/authorize',
-            entityId: connectorId,
-            entityType: Model.EntityType.connector,
-          },
-          {
-            name: 'form',
-            dependsOn: ['conn1'],
-            path: '/api/aForm',
-            entityId: integrationId,
-            entityType: Model.EntityType.integration,
-          },
-        ],
+        accountId: account.accountId,
+        entityType: Model.EntityType.instance,
+        parentEntityId: integrationId,
+        parentEntityType: Model.EntityType.integration,
+        subscriptionId: account.subscriptionId,
       },
+      components: [
+        {
+          name: 'conn1',
+          path: '/api/authorize',
+          entityId: connectorId,
+          entityType: Model.EntityType.connector,
+        },
+        {
+          name: 'form',
+          dependsOn: ['conn1'],
+          path: '/api/aForm',
+          entityId: integrationId,
+          entityType: Model.EntityType.integration,
+        },
+      ],
     });
-    expect(response.data.components[0].childSessionId).toBeUUID();
-    expect(response.data.components[1].childSessionId).toBeUUID();
-
+    expect(Model.decomposeSubordinateId(response.data.components[0].childSessionId).entityId).toBeUUID();
+    expect(Model.decomposeSubordinateId(response.data.components[1].childSessionId).entityId).toBeUUID();
     expect(response.data.output.entityId).toBeUUID();
-    const instanceId = response.data.output.entityId;
 
+    const instanceId = response.data.output.entityId;
     response = await ApiRequestMap.instance.get(account, integrationId, instanceId);
 
     const identityId = response.data.data.conn1.entityId;
-    const identity = await ApiRequestMap.identity.get(account, connectorId, identityId);
+    const identity = await ApiRequestMap.identity.get(account, response.data.data.conn1.parentEntityId, identityId);
 
     // Validate that the resulting identity also includes the desired tags.
     expect(identity.data.tags.tenantId).toBe(tenantId);
@@ -337,7 +314,7 @@ describe('Workflow', () => {
     expect(response).toBeHttp({ statusCode: 200 });
     expect(response.data.access_token).toBe('original token');
 
-    // TODO: Modify the form page to query the connector with the contents of the session's 'uses' field, and
+    // TODO: Modify the form page to query the connector with the contents of the session's 'dependsOn' field, and
     //       related sessionId, and ensure that it gets back a valid token.
     //         Requires the connector to support looking up the contents by a sessionId instead of by a
     //         instanceId.
@@ -393,7 +370,7 @@ describe('Workflow', () => {
 
     // verify that new session is populated with token from previous session
     response = await ApiRequestMap.integration.session.getResult(account, integrationId, replacementParentSessionId);
-    const identitySessionId = response.data.components[0].childSessionId;
+    const identitySessionId = Model.decomposeSubordinateId(response.data.components[0].childSessionId).entityId;
     response = await ApiRequestMap.connector.session.getResult(account, connectorId, identitySessionId);
     expect(response.data.output.token.access_token).toBe('original token');
 
@@ -426,7 +403,6 @@ describe('Workflow', () => {
 
     // Get the completed session with the output details
     response = await ApiRequestMap.integration.session.getResult(account, integrationId, replacementParentSessionId);
-
     expect(response.data.output.entityId).toBe(instanceId);
 
     response = await ApiRequestMap.instance.get(account, integrationId, instanceId);

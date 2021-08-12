@@ -1,10 +1,10 @@
 import { IAgent } from '@5qtrs/account-data';
 import { Model } from '@5qtrs/db';
 
-import { operationService } from './OperationService';
+import { operationService, OperationVerbs } from './OperationService';
 import * as Function from '../functions';
 
-export const defaultFrameworkSemver = '^2.0.7';
+export const defaultFrameworkSemver = '^3.0.0';
 
 export interface IServiceResult {
   statusCode: number;
@@ -77,7 +77,7 @@ export default abstract class BaseEntityService<E extends Model.IEntity, F exten
     return operationService.inOperation(
       this.entityType,
       entity,
-      { verb: 'creating', type: this.entityType },
+      { verb: OperationVerbs.creating, type: this.entityType },
       async () => {
         entity = this.sanitizeEntity(entity);
         await this.createEntityOperation(entity);
@@ -109,7 +109,7 @@ export default abstract class BaseEntityService<E extends Model.IEntity, F exten
     return operationService.inOperation(
       this.entityType,
       entity,
-      { verb: 'updating', type: this.entityType },
+      { verb: OperationVerbs.updating, type: this.entityType },
       async () => {
         // Make sure the entity already exists.
         await this.dao.getEntity(entity);
@@ -129,7 +129,7 @@ export default abstract class BaseEntityService<E extends Model.IEntity, F exten
     return operationService.inOperation(
       this.entityType,
       entity,
-      { verb: 'deleting', type: this.entityType },
+      { verb: OperationVerbs.deleting, type: this.entityType },
       async () => {
         try {
           // Do delete things - create functions, collect their versions, and update the entity.data object
