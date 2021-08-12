@@ -96,27 +96,6 @@ const createSessionRouter = (SessionService: SessionedEntityService<any, any>) =
           return next(error);
         }
       }
-    )
-    // Commit the session, creating all of the appropriate artifacts
-    .post(
-      common.management({
-        validate: { params: ValidationCommon.EntityIdParams },
-        authorize: { operation: v2Permissions.sessionCommit },
-      }),
-      async (req: express.Request, res: express.Response, next: express.NextFunction) => {
-        try {
-          const operation = await SessionService.postSession({
-            accountId: req.params.accountId,
-            subscriptionId: req.params.subscriptionId,
-            // Sessions use the non-unique component name, but instances and identities use the database id.
-            id: Model.createSubordinateId(SessionService.entityType, req.params.entityId, req.params.sessionId),
-          });
-          res.status(operation.statusCode).json(operation.result);
-        } catch (error) {
-          console.log(error);
-          return next(error);
-        }
-      }
     );
 
   router.options('/:sessionId/start', common.cors());
@@ -172,6 +151,31 @@ const createSessionRouter = (SessionService: SessionedEntityService<any, any>) =
           // Send the browser to start the next session.
           const redirectUrl = `${process.env.API_SERVER}/v2/account/${result.accountId}/subscription/${result.subscriptionId}/${result.entityType}/${result.entityId}${result.path}?session=${result.sessionId}`;
           return res.redirect(redirectUrl);
+        } catch (error) {
+          console.log(error);
+          return next(error);
+        }
+      }
+    );
+
+  router
+    .route('/:sessionId/commit')
+    .options(common.cors())
+    // Commit the session, creating all of the appropriate artifacts
+    .post(
+      common.management({
+        validate: { params: ValidationCommon.EntityIdParams },
+        authorize: { operation: v2Permissions.sessionCommit },
+      }),
+      async (req: express.Request, res: express.Response, next: express.NextFunction) => {
+        try {
+          const operation = await SessionService.postSession({
+            accountId: req.params.accountId,
+            subscriptionId: req.params.subscriptionId,
+            // Sessions use the non-unique component name, but instances and identities use the database id.
+            id: Model.createSubordinateId(SessionService.entityType, req.params.entityId, req.params.sessionId),
+          });
+          res.status(operation.statusCode).json(operation.result);
         } catch (error) {
           console.log(error);
           return next(error);
