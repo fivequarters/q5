@@ -1,23 +1,26 @@
 import superagent from 'superagent';
-import { getIntegrationBaseUrl, saveSession } from './LocalStorage';
+import { getAccount, getIntegrationBaseUrl, saveSession } from './LocalStorage';
 
-export default async function createSession(accessToken: string, integrationId: string, tenantId: string) {
+export default async function createSession(integrationId: string, tenantId: string) {
+  const account = getAccount();
   // Create new session
   console.log('CREATING NEW SESSION...');
   const integrationBaseUrl = getIntegrationBaseUrl(integrationId);
 
   const response = await superagent
     .post(`${integrationBaseUrl}/session`)
-    .set('Authorization', `Bearer ${accessToken}`)
+    .set('Authorization', `Bearer ${account.accessToken}`)
     .send({
       redirectUrl: `${window.location.origin}/callback`,
       tags: {
-        'fusebit.tenantId': tenantId,
+        tenantId: tenantId,
       },
     });
   const sessionId = response.body.id;
   console.log('SESSION ID CREATED:', sessionId);
 
   // // Store local session context
-  saveSession({ accessToken, integrationBaseUrl, tenantId, sessionId });
+  const session = { integrationBaseUrl, tenantId, sessionId };
+  saveSession(session);
+  return session;
 }

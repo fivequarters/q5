@@ -88,7 +88,7 @@ class ConnectorManager {
    * @param instanceId A function that converts a Context into a unique string that the connector can use as a
    * key to look up identities.
    */
-  public getByName(ctx: Context, name: string, instanceId: string): any {
+  public getByName(ctx: Context, name: string, tenantId: string): any {
     const cfg = this.connectors[name];
     if (!cfg) {
       throw new Error(
@@ -99,7 +99,7 @@ class ConnectorManager {
     }
     const inst = cfg.instance ? cfg.instance : this.loadConnector(name, cfg);
 
-    return inst.instantiate(ctx, instanceId);
+    return inst.instantiate(ctx, tenantId);
   }
 
   public getByNames(ctx: Context, names: string[], instanceId: string): Record<string, any> {

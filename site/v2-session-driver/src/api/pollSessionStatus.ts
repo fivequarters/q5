@@ -1,15 +1,19 @@
-import { getSession, ILocalStorage } from './LocalStorage';
+import { getAccount, getSession, ISession, saveInstance } from './LocalStorage';
 import superagent from 'superagent';
+import { fetchInstance } from './fetchInstance';
 
 export async function pollSessionStatus(sessionId: string) {
   // Wait up to 10s for the creation of the integration instance to complete
 
   const session = getSession(sessionId);
-  let success = false;
+  const account = getAccount();
+  let result;
+  let success;
+  if (!session.target) {
+    throw new Error('Target not found');
+  }
   for (let n = 0; n < 10; n++) {
-    const result = await superagent
-      .get(`${session.integrationBaseUrl}/session/${session.sessionId}`)
-      .set('Authorization', `Bearer ${session.accessToken}`);
+    result = await superagent.get(session.target).set('Authorization', `Bearer ${account.accessToken}`);
     console.log('OPERATION GET', n, result.status, result.body);
     if (result.status === 200) {
       success = true;
@@ -20,5 +24,17 @@ export async function pollSessionStatus(sessionId: string) {
   if (!success) {
     throw new Error('Timed out waiting 10s for the integration instance to be initialized.');
   }
-  return true;
+
+  const instanceId = result?.body.items[0].id;
+  const instance = await fetchInstance(instanceId, session.integrationBaseUrl);
+  const localInstance = {
+    integrationBaseUrl: session.integrationBaseUrl,
+    instanceId,
+    tenantId: instance.tags['fusebit.tenantId'],
+  };
+  console.log('saving instance');
+  console.log(localInstance);
+  saveInstance(localInstance);
+
+  return localInstance;
 }

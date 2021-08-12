@@ -27,6 +27,7 @@ export function Account(): ReactElement {
   const styles = useStyles();
   const [accountId, setAccountId] = useState(account?.accountId);
   const [subscriptionId, setSubscriptionId] = useState(account?.subscriptionId);
+  const [accessToken, setAccessToken] = useState(account?.accessToken);
   const [error, setError] = useState(false);
   const handleAccountIdInput = (event: React.ChangeEvent<HTMLInputElement>) => {
     setAccountId(event.target.value);
@@ -34,10 +35,13 @@ export function Account(): ReactElement {
   const handleSubscriptionIdInput = (event: React.ChangeEvent<HTMLInputElement>) => {
     setSubscriptionId(event.target.value);
   };
+  const handleAccessTokenInput = (event: React.ChangeEvent<HTMLInputElement>) => {
+    setAccessToken(event.target.value);
+  };
   const handleSaveAccount = async (event: React.MouseEvent) => {
     if (accountId && subscriptionId) {
       setError(false);
-      setAccount({ accountId, subscriptionId });
+      setAccount({ accountId, subscriptionId, accessToken });
       window.location.href = '/users';
     } else {
       setError(true);
@@ -72,6 +76,15 @@ export function Account(): ReactElement {
               className={styles.input}
               value={subscriptionId}
               onChange={handleSubscriptionIdInput}
+            />
+            <TextField
+              variant="outlined"
+              name="accessToken"
+              label="Access Token"
+              required={true}
+              className={styles.input}
+              value={accessToken}
+              onChange={handleAccessTokenInput}
             />
           </Grid>
         </Grid>

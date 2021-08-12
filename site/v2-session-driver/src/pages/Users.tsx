@@ -3,16 +3,9 @@ import { Box, Button, makeStyles } from '@material-ui/core';
 import { Alert } from '@material-ui/lab';
 import Sessions from '../components/Sessions';
 import CreateSessionForm from '../components/CreateSessionForm';
-import { ILocalStorage, listSessions, getAccount } from '../api/LocalStorage';
+import { ISession, listSessions, getAccount } from '../api/LocalStorage';
 import { Link } from 'react-router-dom';
 const TERM = 'User';
-
-const sessionId = 'test-session';
-const startingSessionValue = 1;
-type SessionData = {
-  id: string;
-  data: number;
-};
 
 const useStyles = makeStyles((theme) => ({
   alert: {
@@ -22,11 +15,11 @@ const useStyles = makeStyles((theme) => ({
 
 export function Users(): ReactElement {
   const styles = useStyles();
-  const storedSessions = listSessions() as ILocalStorage[];
+  const storedSessions = listSessions() as ISession[];
   const account = getAccount();
-  const [sessions, setSessions] = useState<ILocalStorage[]>(storedSessions);
-  const onUserCreatedHandler = (user: any) => {
-    const newSessions = listSessions() as ILocalStorage[];
+  const [sessions, setSessions] = useState<ISession[]>(storedSessions);
+  const onUserCreatedHandler = () => {
+    const newSessions = listSessions() as ISession[];
     setSessions(newSessions);
   };
   return (

@@ -1,6 +1,6 @@
 import React from 'react';
-import LaunchIcon from '@material-ui/icons/Launch';
-import { ILocalStorage } from '../api/LocalStorage';
+import { ISession } from '../api/LocalStorage';
+import Session from './Session';
 import {
   Paper,
   Button,
@@ -14,7 +14,7 @@ import {
 } from '@material-ui/core';
 
 export interface ISessionsProps {
-  sessions: ILocalStorage[];
+  sessions: ISession[];
 }
 
 const StyledTableCell = withStyles((theme) => ({
@@ -38,21 +38,9 @@ export default function Sessions({ sessions }: ISessionsProps) {
           </TableRow>
         </TableHead>
         <TableBody>
-          {sessions?.map((sessionItem: ILocalStorage) => (
-            <TableRow key={sessionItem.sessionId}>
-              <TableCell component="th" scope="row">
-                {sessionItem.sessionId}
-              </TableCell>
-              <TableCell>{sessionItem.tenantId}</TableCell>
-              <TableCell>{sessionItem.integrationBaseUrl}</TableCell>
-              <TableCell>
-                <Button variant="contained" color="secondary">
-                  <LaunchIcon fontSize="small" />
-                  Navigate
-                </Button>
-              </TableCell>
-            </TableRow>
-          ))}
+          {sessions?.map((sessionItem: ISession) => {
+            return <Session session={sessionItem} />;
+          })}
         </TableBody>
       </Table>
     </TableContainer>

@@ -1,4 +1,3 @@
-export { Integrations } from './Integrations';
 export { Users } from './Users';
 export { Account } from './Account';
 export { Home } from './Home';

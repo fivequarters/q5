@@ -4,6 +4,7 @@ import RotateLeftIcon from '@material-ui/icons/RotateLeft';
 import React from 'react';
 import { useState } from 'react';
 import createSession from '../api/createSession';
+import { startSession } from '../api/startSession';
 
 const useStyles = makeStyles((theme) => ({
   control: {
@@ -31,7 +32,6 @@ export interface CreateSessionProps {
 export default function CreateSessionForm({ term, onUserCreated }: CreateSessionProps) {
   const style = useStyles();
   const sessionFieldsInitialState = {
-    accessToken: '',
     integrationId: '',
     tenantId: '',
   };
@@ -39,7 +39,6 @@ export default function CreateSessionForm({ term, onUserCreated }: CreateSession
   const [loading, setIsLoading] = useState(false);
   const [missingFields, setMissingFields] = useState(false);
   const [error, setError] = useState();
-  const [sessionCreated, setSessionCreated] = useState(false);
 
   const handleFieldChange = (event: { target: { name: string; value: string } }) => {
     const { name, value } = event.target;
@@ -50,21 +49,19 @@ export default function CreateSessionForm({ term, onUserCreated }: CreateSession
   };
 
   const areFieldsValid = () => {
-    const { accessToken, integrationId, tenantId } = sessionFields;
-    return accessToken && integrationId && tenantId;
+    const { integrationId, tenantId } = sessionFields;
+    return integrationId && tenantId;
   };
 
   const onCreateSessionClick = async (event: React.MouseEvent<HTMLElement>) => {
     setError(undefined);
-    setSessionCreated(false);
     if (areFieldsValid()) {
       setMissingFields(false);
       setIsLoading(true);
       try {
-        const { accessToken, integrationId, tenantId } = sessionFields;
-        await createSession(accessToken, integrationId, tenantId);
-        setSessionCreated(true);
-        onUserCreated && onUserCreated(event);
+        const { integrationId, tenantId } = sessionFields;
+        const session = await createSession(integrationId, tenantId);
+        return startSession(session);
       } catch (err) {
         setError(err.message);
       } finally {
@@ -95,23 +92,8 @@ export default function CreateSessionForm({ term, onUserCreated }: CreateSession
               {error}
             </Alert>
           )}
-          {sessionCreated && (
-            <Alert className={style.alert} severity="success">
-              The {term} has been created!
-            </Alert>
-          )}
           <Grid container className={style.control}>
             <Grid item xs={12}>
-              <TextField
-                variant="outlined"
-                name="accessToken"
-                label="Access Token"
-                disabled={loading}
-                required={true}
-                className={style.input}
-                value={sessionFields.accessToken}
-                onChange={handleFieldChange}
-              />
               <TextField
                 name="integrationId"
                 variant="outlined"
@@ -137,9 +119,7 @@ export default function CreateSessionForm({ term, onUserCreated }: CreateSession
         </Box>
         <Box className={style.formFooter}>
           <Button disabled={loading} variant="contained" color="primary" onClick={onCreateSessionClick}>
-            {!loading && `Create ${term}`}
-            {loading && <RotateLeftIcon fontSize="small" />}
-            {loading && `Creating ${term} ...`}
+            {!loading && `Authorize ${term}`}
           </Button>
         </Box>
       </form>

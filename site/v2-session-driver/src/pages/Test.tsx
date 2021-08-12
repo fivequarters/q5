@@ -1,16 +1,42 @@
 import React, { ReactElement } from 'react';
 import { Button } from '@material-ui/core';
-import { getSession } from '../api/LocalStorage';
-// @ts-ignore
+import { getAccount, getInstance } from '../api/LocalStorage';
 import { useParams } from 'react-router-dom';
 import superagent from 'superagent';
 
+enum HttpMethod {
+  GET = 'get',
+  POST = 'post',
+  PUT = 'put',
+  DELETE = 'delete',
+}
+
+const sendTestRequest = async (
+  tenantId: string,
+  endpoint: string,
+  method: HttpMethod = HttpMethod.GET,
+  body?: object
+) => {
+  const account = getAccount();
+  const instance = getInstance(tenantId);
+  console.log('tenantId', tenantId);
+  const tenantEndpoint = endpoint.replace(':tenantId', tenantId);
+  console.log(account.accessToken);
+  console.log('endpoint', `${instance.integrationBaseUrl}${tenantEndpoint}`);
+  return superagent[method](`${instance.integrationBaseUrl}${tenantEndpoint}`)
+    .set('Authorization', `Bearer ${account.accessToken}`)
+    .send(body);
+};
+
 export function Test(): ReactElement {
-  let { sessionId } = useParams();
+  const { tenantId = '' } = useParams();
   const [response, setResponse] = React.useState(undefined);
-  const session = getSession(sessionId);
-  const testEndpoint = async (event: React.MouseEvent) => {
-    const result = await superagent.get(`${session.integrationBaseUrl}/api/${session.instanceId}/test`);
+
+  const testEndpoint = async () => {
+    console.log('Test.tsx, tenantId', tenantId);
+    const instance = getInstance(tenantId);
+    console.log(instance);
+    const result = await sendTestRequest(tenantId, '/api/:tenantId/me');
     setResponse(result.body);
   };
 
@@ -27,7 +53,7 @@ export function Test(): ReactElement {
 
   return (
     <div>
-      {child}
+      {child()}
       <Button onClick={testEndpoint}> Test SDK Endpoint </Button>
     </div>
   );

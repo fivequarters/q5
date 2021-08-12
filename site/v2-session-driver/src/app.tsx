@@ -1,7 +1,7 @@
 import React from 'react';
 import ReactDOM from 'react-dom';
 import ScrollMemory from 'react-router-scroll-memory';
-import { Account, Callback, Home, Integrations, Users } from './pages';
+import { Account, Callback, Home, Users } from './pages';
 import { BrowserRouter, Route, Switch } from 'react-router-dom';
 import { Test } from './pages/Test';
 import TopMenu from './components/TopMenu';
@@ -17,11 +17,10 @@ const App = () => {
         <BrowserRouter basename="/">
           <ScrollMemory />
           <Switch>
-            <Route path="/integrations" component={Integrations} />
             <Route path="/account" component={Account} />
             <Route path="/users" component={Users} />
             <Route path="/callback" component={Callback} />
-            <Route path="/test/:sessionId" component={Test} />
+            <Route path="/test/:tenantId" component={Test} />
             <Route path="/" component={Home} />
           </Switch>
         </BrowserRouter>

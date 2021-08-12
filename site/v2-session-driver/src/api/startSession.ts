@@ -1,6 +1,6 @@
-import { ILocalStorage } from './LocalStorage';
+import { ISession } from './LocalStorage';
 
-async function startSession(session: ILocalStorage) {
+export async function startSession(session: ISession) {
   // Start the configuration flow
   const configureUrl = `${session.integrationBaseUrl}/session/${session.sessionId}/start`;
   console.log('STARTING THE CONFIGURATION FLOW AT:', configureUrl);

@@ -1,23 +1,31 @@
-export interface ILocalStorage {
-  accessToken: string;
+export interface ISession {
   integrationBaseUrl: string;
   tenantId: string;
   sessionId: string;
   target?: string;
   instanceId?: string;
+  completed?: boolean;
 }
 
 export interface IAccount {
   accountId: string;
   subscriptionId: string;
+  accessToken: string;
+}
+
+export interface IInstance {
+  instanceId: string;
+  tenantId: string;
+  integrationBaseUrl: string;
 }
 
 enum LocalStorageKeys {
   sessions = 'sessions',
   account = 'account',
+  instance = 'instances',
 }
 
-export function getSession(sessionId: string): ILocalStorage {
+export function getSession(sessionId: string): ISession {
   // Rehydrate local session
   console.log('REHYDRATING SESSION', sessionId);
 
@@ -34,9 +42,16 @@ export function getSession(sessionId: string): ILocalStorage {
   return session;
 }
 
-export function saveSession(session: ILocalStorage) {
+export function saveSession(session: ISession) {
   const localSessions = JSON.parse(window.localStorage.getItem(LocalStorageKeys.sessions) || '{}');
   localSessions[session.sessionId] = session;
+  const sessionsString = JSON.stringify(localSessions);
+  window.localStorage.setItem(LocalStorageKeys.sessions, sessionsString);
+}
+
+export function markSessionComplete(sessionId: string) {
+  const localSessions = JSON.parse(window.localStorage.getItem(LocalStorageKeys.sessions) || '{}');
+  localSessions[sessionId].completed = true;
   const sessionsString = JSON.stringify(localSessions);
   window.localStorage.setItem(LocalStorageKeys.sessions, sessionsString);
 }
@@ -67,4 +82,19 @@ export function getAccount() {
 export function getIntegrationBaseUrl(integration: string): string {
   const account = getAccount();
   return `http://localhost:3001/v2/account/${account.accountId}/subscription/${account.subscriptionId}/integration/${integration}`;
+}
+
+export function saveInstance(instance: IInstance) {
+  console.log('saving', instance);
+  const localInstances = JSON.parse(window.localStorage.getItem(LocalStorageKeys.instance) || '{}');
+  localInstances[instance.tenantId] = instance;
+  const instanceString = JSON.stringify(localInstances);
+  window.localStorage.setItem(LocalStorageKeys.instance, instanceString);
+}
+
+export function getInstance(tenantId: string): IInstance {
+  const localInstances = JSON.parse(window.localStorage.getItem(LocalStorageKeys.instance) || '{}');
+  const instance = localInstances[tenantId];
+  console.log('fetching', instance);
+  return instance;
 }
