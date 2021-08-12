@@ -27,3 +27,5 @@ echo { \
   \"fuse-ops\": \"${VERSION_FUSEBIT_OPS_CLI}\"   \
 }
 
+npm i -g @fusebit/cli
+fuse profile get
