@@ -3,17 +3,7 @@ const { Integration } = require("@fusebit-int/framework");
 const integration = new Integration();
 const router = integration.router;
 
-router.get(
-  "/api/",
-  integration.middleware.authorizeUser("instance:put"),
-  async (ctx) => {
-    ctx.body = "Hello World";
-
-    const html = integration.response.createJsonForm();
-  }
-);
-
-router.get("/api/:tenantId/me", async (ctx) => {
+router.post("/api/:tenantId/sendMessage", async (ctx) => {
   const slackClient = await integration.service.getSdk(
     ctx,
     "conn1",
@@ -23,6 +13,18 @@ router.get("/api/:tenantId/me", async (ctx) => {
     text: "Hello world!",
     channel: "example-slack-connector-v2",
   });
+  ctx.body = result;
+});
+
+router.get("/api/:tenantId/users", async (ctx) => {
+  console.log("hit path: " + ctx.params.tenantId);
+  const slackClient = await integration.service.getSdk(
+    ctx,
+    "conn1",
+    ctx.params.tenantId
+  );
+
+  const result = await slackClient.users.identity();
   ctx.body = result;
 });
 
