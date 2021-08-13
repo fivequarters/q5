@@ -11,6 +11,7 @@ abstract class EntityBase {
   abstract storage: EntityBase.StorageBase;
   abstract middleware: EntityBase.MiddlewareBase;
   abstract response: EntityBase.ResponseBase;
+  abstract tenant: EntityBase.TenantBase;
 
   public readonly router: Router = new Router();
 }
@@ -20,10 +21,31 @@ namespace EntityBase {
     export type Context = ContextType;
     export type Next = NextType;
     export interface IOnStartup extends IOnStartupInterface {}
+    export interface IInstanceResponse {
+      items: IInstance[];
+      total: number;
+    }
+    export interface IInstance {
+      id: string;
+      tags: Record<string, string>;
+      data: Record<string, IInstanceData>;
+      expires?: string;
+      version?: string;
+    }
+    export interface IInstanceData {
+      tags: Record<string, string>;
+      entityId: string;
+      entityType: string;
+      accountId: string;
+      subscriptionId: string;
+      parentEntityId: string;
+      parentEntityType: string;
+    }
   }
   export abstract class ServiceBase {}
 
   export abstract class StorageBase {
+    constructor() {}
     setData: (ctx: Context, dataKey: string, data: any) => Promise<any> = async (
       ctx: Context,
       dataKey: string,
@@ -56,10 +78,12 @@ namespace EntityBase {
     createJsonForm: undefined; //TODO
     createError: undefined; //TODO
   }
+  export abstract class TenantBase {}
 
   export class ServiceDefault extends ServiceBase {}
   export class StorageDefault extends StorageBase {}
   export class MiddlewareDefault extends MiddlewareBase {}
   export class ResponseDefault extends ResponseBase {}
+  export class TenantDefault extends TenantBase {}
 }
 export default EntityBase;
