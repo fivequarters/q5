@@ -87,11 +87,7 @@ class ConnectorService extends SessionedEntityService<Model.IConnector, Model.II
           resource: '/account/{{accountId}}/subscription/{{subscriptionId}}/connector/{{functionId}}/session/',
         },
         {
-          action: v2Permissions.identity.get,
-          resource: '/account/{{accountId}}/subscription/{{subscriptionId}}/connector/{{functionId}}/identity/',
-        },
-        {
-          action: v2Permissions.identity.put,
+          action: v2Permissions.identity.all,
           resource: '/account/{{accountId}}/subscription/{{subscriptionId}}/connector/{{functionId}}/identity/',
         },
       ],

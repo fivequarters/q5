@@ -5,6 +5,7 @@ class Connector extends EntityBase {
   middleware = new EntityBase.MiddlewareDefault();
   storage = new EntityBase.StorageDefault();
   response = new EntityBase.ResponseDefault();
+  tenant = new EntityBase.TenantDefault();
 }
 namespace Connector {
   export namespace Types {

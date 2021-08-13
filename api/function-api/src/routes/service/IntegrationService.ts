@@ -124,6 +124,10 @@ class IntegrationService extends SessionedEntityService<Model.IIntegration, Mode
             action: v2Permissions.getSession,
             resource: '/account/{{accountId}}/subscription/{{subscriptionId}}/integration/{{functionId}}/session/',
           },
+        {
+          action: v2Permissions.instance.all,
+          resource: '/account/{{accountId}}/subscription/{{subscriptionId}}/integration/{{functionId}}/instance/',
+        },
         ],
       },
     };

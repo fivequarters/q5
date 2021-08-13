@@ -64,6 +64,7 @@ const makePermissionSet = (prefix: string): IPermissionSet => ({
   delete: `${prefix}:delete`,
   putTag: `${prefix}:put-tag`,
   execute: `${prefix}:execute`,
+  all: `${prefix}:all`,
 });
 
 export const v2Permissions: any = {
