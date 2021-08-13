@@ -3,17 +3,17 @@
   "label": "Slack Connector Details",
   "elements": [
     {
-      "type": "VerticalLayout",
+      "type": "HorizontalLayout",
       "elements": [
         {
           "type": "Control",
-          "scope": "#/properties/slackIntegration/properties/id",
-          "label": "Name"
+          "scope": "#/properties/integration/name",
+          "label": "Name of the integration"
         },
         {
           "type": "Control",
-          "scope": "#/properties/slackConnector/properties/id",
-          "label": "Slack Connector name"
+          "scope": "#/properties/slackConnector/slackName",
+          "label": "Name of the connector for Slack"
         }
       ]
     }

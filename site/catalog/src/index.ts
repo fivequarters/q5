@@ -3,7 +3,7 @@ import { join } from 'path';
 import { readFile } from '@5qtrs/file';
 import globby from 'globby';
 
-import { loadImports, generateMarkdown } from './markdown';
+import { generateMarkdown } from './markdown';
 
 const FusebitStateFile = '.fusebit-state';
 const FusebitMetadataFile = 'fusebit.json';
@@ -60,50 +60,20 @@ const loadDirectory = async (dirName: string, entitySpec: any) => {
 };
 
 const createCatalogEntry = async (dirName: string) => {
-  const imports = await loadImports();
   const catalog = JSON.parse(await readFile(join(dirName, 'catalog.json')));
 
   if (catalog.description[0] === '#') {
-    catalog.description = generateMarkdown(
-      `${dirName}/catalog.json/${catalog.description.split('#')[1]}`,
-      (await readFile(join(dirName, catalog.description.split('#')[1]))).toString(),
-      false,
-      imports
+    catalog.description = await generateMarkdown(
+      (await readFile(join(dirName, catalog.description.split('#')[1]))).toString()
     );
   }
 
-  // Load the entities
-  await Promise.all(
-    Object.entries(catalog.configuration.entities as Record<string, { entityType: string; path: string }>).map(
-      async ([name, entityDef]: [string, { entityType: string; path: string }]) => {
-        catalog.configuration.entities[name] = await loadDirectory(join(dirName, entityDef.path), {
-          entityType: entityDef.entityType,
-          data: { configuration: {}, files: {} },
-        });
-      }
+  const newEntities = await Promise.all(
+    catalog.entities.map((entityDir: string) =>
+      loadDirectory(join(dirName, entityDir), { data: { configuration: {}, files: {} } })
     )
   );
-
-  // Parse any markdown in the entities
-  let entityName: string;
-  let entity: { data: { files: Record<string, string> } };
-
-  for ([entityName, entity] of Object.entries(
-    catalog.configuration.entities as Record<string, { data: { files: Record<string, string> } }>
-  )) {
-    for (const [fileName, file] of Object.entries(entity.data.files)) {
-      if (fileName.match(/\.md$/)) {
-        entity.data.files[fileName] = generateMarkdown(`${dirName}/${entityName}/${fileName}`, file, false, imports);
-      }
-    }
-  }
-
-  // Load the schema, uischema, and data
-  catalog.configuration.schema = JSON.parse((await readFile(join(dirName, catalog.configuration.schema))).toString());
-  catalog.configuration.uischema = JSON.parse(
-    (await readFile(join(dirName, catalog.configuration.uischema))).toString()
-  );
-  catalog.configuration.data = JSON.parse((await readFile(join(dirName, catalog.configuration.data))).toString());
+  catalog.entities = newEntities;
 
   return catalog;
 };

@@ -1,3 +1,2 @@
-Open up your browser to <% global.consts.endpoint %>/v2/account/<% global.consts.accountId %>/subscription/<%
-global.consts.subscriptionId %>/integration/<% global.consts.integrationId %>/api/startup to
+Open up your browser to <? global.fusebit.endpoint ?>/integration/<? global.integration.id ?>/api/startup to
 test the integration!

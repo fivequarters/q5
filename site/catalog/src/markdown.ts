@@ -3,7 +3,7 @@ import { join } from 'path';
 
 const importDir = 'markdown';
 
-export const loadImports = async () => {
+const loadImports = async () => {
   const files = await readDirectory(importDir, { filesOnly: true });
 
   const result: Record<string, string> = {};
@@ -15,33 +15,22 @@ export const loadImports = async () => {
   return result;
 };
 
-export const generateMarkdown = (
-  sourceFileName: string,
-  input: string,
-  includeMeta: boolean,
-  imports: Record<string, string>
-) => {
+export const generateMarkdown = async (input: string) => {
   const lines = input.split('\n');
 
   const output: string[] = [];
+
+  const imports = await loadImports();
 
   const cmdRe = new RegExp('^\\[//]: # \\(([A-Z]*): ([A-Z]*)\\)$');
 
   lines.forEach((line) => {
     const match = line.match(cmdRe);
 
-    if (match && match[1] === 'IMPORT') {
-      if (!imports[match[2]]) {
-        console.error(`[WARN] ${sourceFileName}: Unknown import ${match[2]}; dropping line.`);
-        return;
-      }
-      if (includeMeta) {
-        output.push('', `[//]: # (START: ${match[2]})`, '');
-      }
+    if (match && match[1] === 'IMPORT' && imports[match[2]]) {
+      output.push('', `[//]: # (START: ${match[2]})`, '');
       output.push(imports[match[2]]);
-      if (includeMeta) {
-        output.push('', `[//]: # (END: ${match[2]})`, '');
-      }
+      output.push('', `[//]: # (END: ${match[2]})`, '');
     } else {
       output.push(line);
     }

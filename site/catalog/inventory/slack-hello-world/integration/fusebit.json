@@ -4,11 +4,11 @@
   "handler": "./integration",
   "components": [
     {
-      "name": "slackConnector",
+      "name": "<% global.connector.name %>",
       "path": "/api/configure",
       "skip": false,
       "provider": "@fusebit-int/oauth-provider",
-      "entityId": "<% global.entities.slackConnector.id %>",
+      "entityId": "<% global.connector.id %>",
       "dependsOn": [],
       "entityType": "connector"
     }

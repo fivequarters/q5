@@ -41,8 +41,7 @@ const publishAll = [
   'publish_fusebit_editor',
   'publish_fusebit_ops_cli',
   'publish_api_docs',
-  'publish_proxy_secrets',
-  'publish_api_readme_com'
+  'publish_api_readme_com',
 ];
 const fullBuild = ['setup_env', 'full_build'];
 
@@ -104,11 +103,6 @@ const specs: ISpec[] = [
     name: 'Deploy Dashboards',
     inputs: ['checkout', 'setup_env', 'deploy_dashboard'],
     output: 'deploy_dashboards',
-  },
-  {
-    name: 'Publish Proxy Secrets',
-    inputs: ['checkout', 'setup_env', 'publish_proxy_secrets', 'publish_slack'],
-    output: 'publish_proxy_secrets',
   },
 ];
 

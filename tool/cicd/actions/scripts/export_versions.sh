@@ -26,3 +26,4 @@ echo { \
   \"fuse-cli\": \"${VERSION_FUSEBIT_CLI}\",      \
   \"fuse-ops\": \"${VERSION_FUSEBIT_OPS_CLI}\"   \
 }
+

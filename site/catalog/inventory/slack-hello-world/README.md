@@ -2,7 +2,7 @@
 
 [//]: # (IMPORT: DESCRIPTION)
 
-A simple <% global.consts.feed.name %> hello world example.
+A simple <% global.name %> hello world example.
 
 [//]: # (IMPORT: SIGNUP)
 
