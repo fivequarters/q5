@@ -8,8 +8,8 @@ const TOKEN_URL = 'https://slack.com/api/oauth.v2.access';
 const AUTHORIZATION_URL = 'https://slack.com/oauth/v2/authorize';
 
 router.on('startup', async ({ mgr, cfg }: Connector.Types.IOnStartup, next: Connector.Types.Next) => {
-  cfg.configuration.tokenUrl = TOKEN_URL;
-  cfg.configuration.authorizationUrl = AUTHORIZATION_URL;
+  cfg.configuration.tokenUrl = cfg.configuration.tokenUrl || TOKEN_URL;
+  cfg.configuration.authorizationUrl = cfg.configuration.authorizationUrl || AUTHORIZATION_URL;
   return next();
 });
 
@@ -18,7 +18,7 @@ router.get(
   connector.middleware.authorizeUser('connector:put'),
   async (ctx: Connector.Types.Context) => {
     ctx.body = {
-      data: ctx.state.manager.config.configuration,
+      data: { tokenUrl: TOKEN_URL, authorizationUrl: AUTHORIZATION_URL, ...ctx.state.manager.config.configuration },
       schema,
       uischema,
     };

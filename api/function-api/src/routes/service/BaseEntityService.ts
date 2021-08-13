@@ -4,7 +4,7 @@ import { Model } from '@5qtrs/db';
 import { operationService, OperationVerbs } from './OperationService';
 import * as Function from '../functions';
 
-export const defaultFrameworkSemver = '^3.0.0';
+export const defaultFrameworkSemver = '^3.0.2';
 
 export interface IServiceResult {
   statusCode: number;

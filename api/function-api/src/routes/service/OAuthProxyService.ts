@@ -109,6 +109,7 @@ export class OAuthProxyService implements IOAuthProxyService {
       ...reqBody,
       client_id: this.configuration.clientId,
       client_secret: this.configuration.clientSecret,
+      redirect_uri: process.env.API_SERVER + this.getProxyCallbackPath(),
     };
 
     if (body.code) {
