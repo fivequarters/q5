@@ -7,7 +7,7 @@ export async function completeSession(sessionId: string): Promise<number> {
   // Finalize creation of the integration instance
   console.log('CREATING INTEGRATION INSTANCE...');
   let result = await superagent
-    .post(`${session.integrationBaseUrl}/session/${session.sessionId}`)
+    .post(`${session.integrationBaseUrl}/session/${session.sessionId}/commit`)
     .set('Authorization', `Bearer ${account.accessToken}`)
     .send();
   console.log('STARTED COMMIT');
