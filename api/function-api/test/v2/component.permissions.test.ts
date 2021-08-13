@@ -25,7 +25,7 @@ describe('Integration to Connector Permissions', () => {
     const testSet = [
       {
         url: '/api/invalid_key/health',
-        codes: [403, 500],
+        codes: [403, 400],
       },
       {
         url: '/api/invalid_key/token',
