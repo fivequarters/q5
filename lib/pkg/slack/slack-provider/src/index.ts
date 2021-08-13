@@ -1,3 +1,3 @@
 import SlackProvider from './SlackProvider';
 
-module.exports = SlackProvider;
+export default SlackProvider;
