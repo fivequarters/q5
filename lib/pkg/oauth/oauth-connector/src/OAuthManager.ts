@@ -6,8 +6,6 @@ import IdentityClient from './IdentityClient';
 
 import { schema, uischema } from './configure';
 
-import { httpErrorHandling } from './Utilities';
-
 const connector = new Connector();
 const router = connector.router;
 
@@ -39,14 +37,10 @@ router.on('startup', async ({ mgr, cfg, router: rtr }: Connector.Types.IOnStartu
 
 // Internal Endpoints
 router.get('/api/:lookupKey/health', async (ctx: Connector.Types.Context) => {
-  try {
-    if (!(await engine.ensureAccessToken(ctx, ctx.params.lookupKey))) {
-      ctx.throw(404);
-    }
-    ctx.status = 200;
-  } catch (error) {
-    httpErrorHandling(ctx, error);
+  if (!(await engine.ensureAccessToken(ctx, ctx.params.lookupKey))) {
+    ctx.throw(404);
   }
+  ctx.status = 200;
 });
 
 router.get('/api/session/:lookupKey/token', async (ctx: Connector.Types.Context) => {
