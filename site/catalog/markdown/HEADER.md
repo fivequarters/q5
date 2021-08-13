@@ -1,3 +1,3 @@
-# Welcome to Fusebit!
+# Lorem Ipsum
 
-This is a Fusebit integration, to be used as part of the Fusebit service!
+Lorem ipsum dolor sit amet, id nec summo copiosae voluptaria, in per modo saperet accumsan.
