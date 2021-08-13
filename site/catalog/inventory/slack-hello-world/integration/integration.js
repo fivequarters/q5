@@ -24,4 +24,4 @@ router.get('/api/:tenantId/users', integration.middleware.authorizeUser('instanc
   ctx.body = result;
 });
 
-export default integration;
+module.exports = integration;

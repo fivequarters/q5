@@ -3,7 +3,7 @@
   "tags": {},
   "handler": "@fusebit-int/oauth-connector",
   "configuration": {
-    "scope": "",
+    "scope": "chat:write",
     "tokenUrl": "<%global.consts.endpoint%>/v2/account/<%global.consts.accountId%>/subscription/<%global.consts.subscriptionId%>/connector/<%this.id%>/proxy/slack/oauth/token",
     "authorizationUrl": "<%global.consts.endpoint%>/v2/account/<%global.consts.accountId%>/subscription/<%global.consts.subscriptionId%>/connector/<%this.id%>/proxy/slack/oauth/authorize",
     "clientId": "<%global.consts.random%>",
