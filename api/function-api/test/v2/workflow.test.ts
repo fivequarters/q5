@@ -112,9 +112,9 @@ describe('Workflow', () => {
       "  response = await superagent.get(`${ctx.state.params.baseUrl}/session/${ctx.query.session}`).set('Authorization', `Bearer ${ctx.state.params.functionAccessToken}`);",
       '  ctx.body = response.body;',
       '});',
-      "router.get('/api/getToken', async (ctx) => {",
-      "  const response = await superagent.get(`${ctx.state.params.baseUrl}/session/${ctx.query.session}`).set('Authorization', `Bearer ${ctx.state.params.functionAccessToken}`);",
-      '  ctx.body = response.body;',
+      "router.get('/api/:instanceId/getToken', async (ctx) => {",
+      "  const response = await integration.service.getSdk(ctx, 'conn1', ctx.params.instanceId);",
+      '  ctx.body = response;',
       '});',
       "router.get('/api/aForm', async (ctx) => {",
       "  const response = await superagent.get(`${ctx.state.params.baseUrl}/session/${ctx.query.session}`).set('Authorization', `Bearer ${ctx.state.params.functionAccessToken}`);",
@@ -345,6 +345,14 @@ describe('Workflow', () => {
       },
     });
     expect(response.data.data.conn1.entityId).toBeUUID();
+
+    response = await ApiRequestMap.integration.dispatch(account, integrationId, 'GET', `/api/${instanceId}/getToken`);
+    expect(response).toBeHttp({
+      statusCode: 200,
+      data: {
+        accessToken: 'original token',
+      },
+    });
 
     // REDO SESSION TO CHANGE EXISTING ENTRIES
 

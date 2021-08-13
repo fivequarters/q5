@@ -1,10 +1,11 @@
+/* tslint:disable no-namespace no-empty-interface max-classes-per-file */
 import EntityBase from './EntityBase';
 
 class Connector extends EntityBase {
-  service = new EntityBase.ServiceDefault();
-  middleware = new EntityBase.MiddlewareDefault();
-  storage = new EntityBase.StorageDefault();
-  response = new EntityBase.ResponseDefault();
+  public service = new EntityBase.ServiceDefault();
+  public middleware = new EntityBase.MiddlewareDefault();
+  public storage = new EntityBase.StorageDefault();
+  public response = new EntityBase.ResponseDefault();
 }
 namespace Connector {
   export namespace Types {

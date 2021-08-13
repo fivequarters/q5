@@ -7,13 +7,35 @@
       "elements": [
         {
           "type": "Control",
+          "label": "Advanced configuration...",
+          "scope": "#/properties/ui/properties/toggle",
+          "options": {
+            "toggle": true
+          }
+        },
+        {
+          "type": "Control",
           "scope": "#/properties/slackIntegration/properties/id",
-          "label": "Name"
+          "label": "Name",
+          "rule": {
+            "effect": "SHOW",
+            "condition": {
+              "scope": "#/properties/ui/properties/toggle",
+              "schema": { "const": true }
+            }
+          }
         },
         {
           "type": "Control",
           "scope": "#/properties/slackConnector/properties/id",
-          "label": "Slack Connector name"
+          "label": "Slack Connector name",
+          "rule": {
+            "effect": "SHOW",
+            "condition": {
+              "scope": "#/properties/ui/properties/toggle",
+              "schema": { "const": true }
+            }
+          }
         }
       ]
     }
