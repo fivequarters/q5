@@ -1,32 +1,27 @@
-const { Router } = require('@fusebit-int/framework');
-const superagent = require('superagent');
+const { Integration } = require('@fusebit-int/framework');
 
-const router = new Router();
+const integration = new Integration();
+const router = integration.router;
 
-router.get('/api/message/:identityId', async (ctx) => {
-  const identityId = ctx.params.identityId;
-  const connectorBaseUrl = ctx.state.params.baseUrl.replace(/integration/g, 'connector');
-
-  const connectorUrl = `${connectorBaseUrl}/api/${identityId}/token`;
-
-  const { access_token } = (await superagent.get(connectorUrl)).body;
-
-  ctx.status = 200;
-  ctx.body = access_token;
+/**
+ * Post a message to Slack
+ */
+router.post('/api/:tenantId/sendMessage', integration.middleware.authorizeUser('instance:put'), async (ctx) => {
+  const slackClient = await integration.tenant.getSdkByTenant(ctx, 'slackConnector', ctx.params.tenantId);
+  const result = await slackClient.chat.postMessage({
+    text: 'Hello world from Fusebit!',
+    channel: 'your-channel-name-here',
+  });
+  ctx.body = result;
 });
 
-router.get('/api/', async (ctx) => {
-  ctx.body =
-    [
-      ` ____  _   _  ____ ____ _____ ____ ____`,
-      `/ ___|| | | |/ ___/ ___| ____/ ___/ ___|`,
-      `\\___ \\| | | | |  | |   |  _| \\___ \\___ \\`,
-      ` ___) | |_| | |__| |___| |___ ___) |__) |`,
-      `|____/ \\___/ \\____\\____|_____|____/____/`,
-    ].join('\n') +
-    `\n\nSuccessfully completed the session initalization for ${ctx.query.session}\n\n` +
-    `At this point, the user would be redirected back to the backend url, which would perform an authenticated call\n` +
-    `to persist the configuration session to the database.`;
+/**
+ * List Slack users
+ */
+router.get('/api/:tenantId/users', integration.middleware.authorizeUser('instance:get'), async (ctx) => {
+  const slackClient = await integration.tenant.getSdkByTenant(ctx, 'slackConnector', ctx.params.tenantId);
+  const result = await slackClient.users.identity();
+  ctx.body = result;
 });
 
-module.exports = router;
+export default integration;

@@ -4,8 +4,8 @@
   "handler": "@fusebit-int/oauth-connector",
   "configuration": {
     "scope": "",
-    "tokenUrl": "<%global.fusebit.endpoint%>/connector/proxy/api/token",
-    "authorizationUrl": "<%global.fusebit.endpoint%>/connector/proxy/api/configure",
+    "tokenUrl": "<%global.consts.endpoint%>/v2/account/<%global.consts.accountId%>/subscription/<%global.consts.subscriptionId%>/connector/<%this.id%>/proxy/slack/oauth/token",
+    "authorizationUrl": "<%global.consts.endpoint%>/v2/account/<%global.consts.accountId%>/subscription/<%global.consts.subscriptionId%>/connector/<%this.id%>/proxy/slack/oauth/authorize",
     "clientId": "<%global.consts.random%>",
     "clientSecret": "<%global.consts.random%>",
     "refreshErrorLimit": 100000,

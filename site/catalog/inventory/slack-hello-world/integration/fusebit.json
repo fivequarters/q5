@@ -5,7 +5,6 @@
   "components": [
     {
       "name": "slackConnector",
-      "path": "/api/configure",
       "skip": false,
       "provider": "@fusebit-int/oauth-provider",
       "entityId": "<% global.entities.slackConnector.id %>",
