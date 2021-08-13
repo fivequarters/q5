@@ -26,7 +26,7 @@ export const set = async <OAuthConfig>(
     {
       accountId: params.accountId,
       subscriptionId: params.subscriptionId,
-      id: `/proxy/${name}/configuration`,
+      id: `proxy/${name}/configuration`,
       data: config,
     },
     { upsert: true }
