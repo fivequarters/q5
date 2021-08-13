@@ -24,12 +24,10 @@ class Tenant {
 
   deleteTenant = async (ctx: Context, tenantId: string) => {
     const tenantInstance = await this.getTenant(ctx, tenantId);
-    return (
-      await superagent
-        .delete(`${ctx.state.baseUrl}/instance/${tenantInstance.id}`)
-        .set('Authorization', `Bearer ${ctx.state.params.accessToken}`)
-        .ok((res) => res.status < 300)
-    ).body?.data;
+    return await superagent
+      .delete(`${ctx.state.baseUrl}/instance/${tenantInstance.id}`)
+      .set('Authorization', `Bearer ${ctx.state.params.accessToken}`)
+      .ok((res) => res.status < 300);
   };
 }
 
