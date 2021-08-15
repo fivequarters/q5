@@ -18,7 +18,7 @@ router.get(
   connector.middleware.authorizeUser('connector:put'),
   async (ctx: Connector.Types.Context) => {
     ctx.body = {
-      data: { tokenUrl: TOKEN_URL, authorizationUrl: AUTHORIZATION_URL, ...ctx.state.manager.config.configuration },
+      data: ctx.state.manager.config.configuration,
       schema,
       uischema,
     };
