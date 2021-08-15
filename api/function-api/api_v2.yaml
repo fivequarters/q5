@@ -1017,6 +1017,26 @@ components:
         expires:
           $ref: '#/components/schemas/EntityExpires'
 
+    ConnectorListEntity:
+      type: object
+      properties:
+        id:
+          $ref: '#/components/schemas/EntityId'
+        data:
+          type: object
+          properties:
+            handler:
+              type: string
+              description: The npm package name used by this connector.
+              example: '@fusebit-int/oauth-connector'
+        tags:
+          $ref: '#/components/schemas/EntityTags'
+        version:
+          $ref: '#/components/schemas/EntityVersion'
+        expires:
+          $ref: '#/components/schemas/EntityExpires'
+
+
     ConnectorList:
       type: object
       properties:
@@ -1025,7 +1045,7 @@ components:
           description:
             An array of the matching objects of this component type
           items:
-            $ref: '#/components/schemas/ConnectorEntity'
+            $ref: '#/components/schemas/ConnectorListEntity'
         next:
           type: string
           description:
@@ -1150,6 +1170,75 @@ components:
                   The utility package for a connector that provides a configured
                   SDK for use by the integration.
 
+    IntegrationListData:
+      type: object
+      properties:
+        handler:
+          type: string
+          description:
+            The name of the file that is the entrypoint for this integration.
+          example: './integration'
+        componentTags:
+          type: object
+          description:
+            These tags are added to instances and identities created through
+            this integration.
+        components:
+          type: array
+          description:
+            Connectors and other configuration endpoints such as forms located
+            on this integration are itemized here, in order that the client will
+            encounter them.
+          items:
+            type: object
+            properties:
+              name:
+                type: string
+                description:
+                  An arbirary name used to reference this component from within
+                  integration code.
+              entityType:
+                type: string
+                enum: [connector, integration]
+                description:
+                  Does this component reference a connector or an integration?
+              entityId:
+                $ref: '#/components/schemas/EntityId'
+              skip:
+                type: boolean
+                default: false
+                description:
+                  Some components are only used in special cases and as
+                  specified during session creation; if `skip` is true, then
+                  this component is not part of the normal client configuration
+                  process.
+              path:
+                type: string
+                description:
+                  The location under the entity specified to pass the client to
+                  during a configuration process.
+                example:
+                  /api/authorize
+                  /api/channelSelectForm
+              dependsOn:
+                type: array
+                description:
+                  Allows this component to make use of the credentials or
+                  configuration values created by prior components. For example,
+                  a form could use slack credentials created by a connector
+                  named `slack` to lookup channels by adding `slack` to this
+                  list.
+                items:
+                  type: string
+                  description:
+                    The `name` of a component that occurs previously in the
+                    `components` array.
+              provider:
+                type: string
+                description:
+                  The utility package for a connector that provides a configured
+                  SDK for use by the integration.
+
     IntegrationEntity:
       type: object
       properties:
@@ -1157,6 +1246,20 @@ components:
           $ref: '#/components/schemas/EntityId'
         data:
           $ref: '#/components/schemas/IntegrationData'
+        tags:
+          $ref: '#/components/schemas/EntityTags'
+        version:
+          $ref: '#/components/schemas/EntityVersion'
+        expires:
+          $ref: '#/components/schemas/EntityExpires'
+
+    IntegrationListEntity:
+      type: object
+      properties:
+        id:
+          $ref: '#/components/schemas/EntityId'
+        data:
+          $ref: '#/components/schemas/IntegrationListData'
         tags:
           $ref: '#/components/schemas/EntityTags'
         version:
@@ -1172,7 +1275,7 @@ components:
           description:
             An array of the matching objects of this component type
           items:
-            $ref: '#/components/schemas/IntegrationEntity'
+            $ref: '#/components/schemas/IntegrationListEntity'
         next:
           type: string
           description:
