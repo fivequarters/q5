@@ -15,7 +15,10 @@
     },
     {
       "type": "Control",
-      "scope": "#/properties/clientSecret"
+      "scope": "#/properties/clientSecret",
+      "options": {
+        "format": "password"
+      }
     },
     {
       "type": "Control",

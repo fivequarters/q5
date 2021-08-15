@@ -1,7 +1,7 @@
 {
   "id": "<%this.id%>",
   "tags": {},
-  "handler": "@fusebit-int/oauth-connector",
+  "handler": "@fusebit-int/slack-connector",
   "configuration": {
     "scope": "chat:write",
     "tokenUrl": "<%global.consts.endpoint%>/v2/account/<%global.consts.accountId%>/subscription/<%global.consts.subscriptionId%>/connector/<%this.id%>/proxy/slack/oauth/token",
