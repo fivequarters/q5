@@ -145,6 +145,7 @@ const createEntity = async (testEntityType: TestableEntityTypes, entity: Model.I
   expect(result.data.items.length).toBe(1);
   expect(result.data.items[0]).toExtend(entity);
   expect(result.data.items[0].version).toBeUUID();
+  const resultEntity = result.data.items[0];
 
   // Check that the list operation with the specified prefix produces the expected entity
   const listResponse = await ApiRequestMap[testEntityType].list(account, getIdPrefix());
@@ -153,7 +154,8 @@ const createEntity = async (testEntityType: TestableEntityTypes, entity: Model.I
   expect(listResponse.data.items.length).toBe(1);
   expect(listResponse.data.items[0]).toExtend(entity);
   expect(listResponse.data.items[0].version).toBeUUID();
-  return listResponse.data.items[0];
+
+  return resultEntity;
 };
 
 // Test Collections

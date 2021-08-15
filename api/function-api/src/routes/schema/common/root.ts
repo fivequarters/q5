@@ -75,7 +75,15 @@ const router = (EntityService: SessionedEntityService<any, any>) => {
               ...query.listPagination(req),
             }
           );
-          response.items = response.items.map((entity) => Model.entityToSdk(entity));
+          response.items = response.items.map((entity) => {
+            const item = Model.entityToSdk(entity);
+            // For general health, don't send back the configuration and the files on a list operation. While
+            // the list requires the same level of permissions as would allow access to the payload, that's
+            // not always going to be true.
+            delete item.data.configuration;
+            delete item.data.files;
+            return item;
+          });
           res.json(response);
         } catch (e) {
           next(e);
