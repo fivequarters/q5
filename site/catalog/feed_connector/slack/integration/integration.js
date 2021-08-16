@@ -6,7 +6,7 @@ const router = integration.router;
 /**
  * Post a message to Slack
  */
-router.post('/api/:tenantId/sendMessage', integration.middleware.authorizeUser('instance:put'), async (ctx) => {
+router.post('/api/tenant/:tenantId/test', integration.middleware.authorizeUser('instance:put'), async (ctx) => {
   const slackClient = await integration.tenant.getSdkByTenant(ctx, 'slackConnector', ctx.params.tenantId);
   const result = await slackClient.chat.postMessage({
     text: 'Hello world from Fusebit!',
@@ -18,7 +18,7 @@ router.post('/api/:tenantId/sendMessage', integration.middleware.authorizeUser('
 /**
  * List Slack users
  */
-router.get('/api/:tenantId/users', integration.middleware.authorizeUser('instance:get'), async (ctx) => {
+router.get('/api/tenant/:tenantId/users', integration.middleware.authorizeUser('instance:get'), async (ctx) => {
   const slackClient = await integration.tenant.getSdkByTenant(ctx, 'slackConnector', ctx.params.tenantId);
   const result = await slackClient.users.list();
   ctx.body = result;
