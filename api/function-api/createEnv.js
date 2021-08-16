@@ -51,7 +51,7 @@ function addAwsCredentials() {
 }
 
 function addSegmentKey(creds) {
-  if (!process.env.SEGMENT_KEY) {
+  if (!process.env.SEGMENT_KEY && creds && creds.segmentKey) {
     env = `${env}
 SEGMENT_KEY=${creds.segmentKey}
 `;
