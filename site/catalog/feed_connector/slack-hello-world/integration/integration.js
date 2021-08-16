@@ -20,7 +20,7 @@ router.post('/api/:tenantId/sendMessage', integration.middleware.authorizeUser('
  */
 router.get('/api/:tenantId/users', integration.middleware.authorizeUser('instance:get'), async (ctx) => {
   const slackClient = await integration.tenant.getSdkByTenant(ctx, 'slackConnector', ctx.params.tenantId);
-  const result = await slackClient.users.identity();
+  const result = await slackClient.users.list();
   ctx.body = result;
 });
 
