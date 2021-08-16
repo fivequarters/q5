@@ -60,6 +60,16 @@ class IdentityClient {
   };
 
   public saveTokenToSession = async (token: IOAuthToken, sessionId: string) => {
+    if (!token.access_token && !token.refresh_token) {
+      const error = (<{ error?: string }>token).error;
+      const message = (<{ message?: string }>token).message;
+      throw new Error(
+        `"${error || message}". Access token and Refresh token are both missing on object: ${JSON.stringify(
+          Object.keys(token)
+        )}`
+      );
+    }
+
     sessionId = this.cleanId(sessionId);
     const response = await superagent
       .put(`${this.connectorUrl}/session/${sessionId}`)

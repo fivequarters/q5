@@ -171,6 +171,16 @@ class OAuthEngine {
     ) {
       return token;
     }
+    if (!token.refresh_token) {
+      const error = (<{ error?: string }>token).error;
+      const message = (<{ message?: string }>token).message;
+      throw new Error(
+        `"${error || message}". Access token and Refresh token are both missing on object: ${JSON.stringify(
+          Object.keys(token)
+        )}`
+      );
+    }
+
     if (token.refresh_token) {
       token.status = 'refreshing';
       try {
