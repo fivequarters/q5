@@ -51,11 +51,7 @@ router.get(
   '/api/session/:lookupKey/token',
   connector.middleware.authorizeUser('connector:execute'),
   async (ctx: Connector.Types.Context) => {
-    try {
-      ctx.body = await engine.ensureAccessToken(ctx, ctx.params.lookupKey, false);
-    } catch (error) {
-      ctx.throw(500, error.message);
-    }
+    ctx.body = await engine.ensureAccessToken(ctx, ctx.params.lookupKey, false);
     if (!ctx.body) {
       ctx.throw(404);
     }
@@ -66,11 +62,7 @@ router.get(
   '/api/:lookupKey/token',
   connector.middleware.authorizeUser('connector:execute'),
   async (ctx: Connector.Types.Context) => {
-    try {
-      ctx.body = await engine.ensureAccessToken(ctx, ctx.params.lookupKey);
-    } catch (error) {
-      ctx.throw(500, error.message);
-    }
+    ctx.body = await engine.ensureAccessToken(ctx, ctx.params.lookupKey);
     if (!ctx.body) {
       ctx.throw(404);
     }
