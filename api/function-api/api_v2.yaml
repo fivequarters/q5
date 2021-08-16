@@ -197,6 +197,13 @@ paths:
       security:
         - AccessToken: []
 
+  /v2/account/{accountId}/subscription/{subscriptionId}/{entityType}/{entityId}/session/{sessionId}/commit:
+    parameters:
+      - $ref: '#/components/parameters/Account'
+      - $ref: '#/components/parameters/Subscription'
+      - $ref: '#/components/parameters/EntityType'
+      - $ref: '#/components/parameters/EntityId'
+      - $ref: '#/components/parameters/SessionId'
     post:
       tags:
         - Session
