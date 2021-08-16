@@ -4,20 +4,13 @@ import { Model } from '@5qtrs/db';
 import { operationService, OperationVerbs } from './OperationService';
 import * as Function from '../functions';
 
-export const defaultFrameworkSemver = '^3.0.0';
+export const defaultFrameworkSemver = '^3.0.2';
 
 export interface IServiceResult {
   statusCode: number;
   contentType?: string;
   result: any;
 }
-
-const rejectPermissionAgent = {
-  checkPermissionSubset: () => {
-    console.log(`XXX Temporary Grant-all on Permissions Until Finalized`);
-    return Promise.resolve();
-  },
-};
 
 export default abstract class BaseEntityService<E extends Model.IEntity, F extends Model.IEntity | E> {
   public abstract readonly entityType: Model.EntityType;
@@ -34,7 +27,7 @@ export default abstract class BaseEntityService<E extends Model.IEntity, F exten
   };
 
   public abstract sanitizeEntity(entity: Model.IEntity): Model.IEntity;
-  public abstract getFunctionSecuritySpecification(): any;
+  public abstract getFunctionSecuritySpecification(entity: Model.IEntity): any;
 
   public createFunctionSpecification = (entity: Model.IEntity): Function.IFunctionSpecification => {
     // Make a copy of data so the files can be removed.
@@ -62,7 +55,7 @@ export default abstract class BaseEntityService<E extends Model.IEntity, F exten
           ].join('\n'),
         },
       },
-      security: this.getFunctionSecuritySpecification(),
+      security: this.getFunctionSecuritySpecification(entity),
     };
 
     return spec;
@@ -73,20 +66,20 @@ export default abstract class BaseEntityService<E extends Model.IEntity, F exten
     result: await this.dao.getEntity(entity),
   });
 
-  public createEntity = async (entity: Model.IEntity): Promise<IServiceResult> => {
+  public createEntity = async (resolvedAgent: IAgent, entity: Model.IEntity): Promise<IServiceResult> => {
     return operationService.inOperation(
       this.entityType,
       entity,
       { verb: OperationVerbs.creating, type: this.entityType },
       async () => {
         entity = this.sanitizeEntity(entity);
-        await this.createEntityOperation(entity);
+        await this.createEntityOperation(resolvedAgent, entity);
         await this.dao.createEntity(entity);
       }
     );
   };
 
-  public createEntityOperation = async (entity: Model.IEntity) => {
+  public createEntityOperation = async (resolvedAgent: IAgent, entity: Model.IEntity) => {
     const params = {
       accountId: entity.accountId,
       subscriptionId: entity.subscriptionId,
@@ -94,18 +87,14 @@ export default abstract class BaseEntityService<E extends Model.IEntity, F exten
       functionId: entity.id,
     };
 
-    const result = await Function.createFunction(
-      params,
-      this.createFunctionSpecification(entity),
-      rejectPermissionAgent as IAgent
-    );
+    const result = await Function.createFunction(params, this.createFunctionSpecification(entity), resolvedAgent);
 
     if (result.code === 201 && result.buildId) {
       await Function.waitForFunctionBuild(params, result.buildId, 100000);
     }
   };
 
-  public updateEntity = async (entity: Model.IEntity): Promise<IServiceResult> => {
+  public updateEntity = async (resolvedAgent: IAgent, entity: Model.IEntity): Promise<IServiceResult> => {
     return operationService.inOperation(
       this.entityType,
       entity,
@@ -117,7 +106,7 @@ export default abstract class BaseEntityService<E extends Model.IEntity, F exten
         entity = this.sanitizeEntity(entity);
 
         // Delegate to the normal create code to recreate the function.
-        await this.createEntityOperation(entity);
+        await this.createEntityOperation(resolvedAgent, entity);
 
         // Update it.
         await this.dao.updateEntity(entity);

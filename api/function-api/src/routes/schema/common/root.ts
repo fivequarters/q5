@@ -1,5 +1,6 @@
 import express from 'express';
 
+import { IAgent } from '@5qtrs/account-data';
 import { Model } from '@5qtrs/db';
 import { v2Permissions } from '@5qtrs/constants';
 
@@ -74,7 +75,15 @@ const router = (EntityService: SessionedEntityService<any, any>) => {
               ...query.listPagination(req),
             }
           );
-          response.items = response.items.map((entity) => Model.entityToSdk(entity));
+          response.items = response.items.map((entity) => {
+            const item = Model.entityToSdk(entity);
+            // For general health, don't send back the configuration and the files on a list operation. While
+            // the list requires the same level of permissions as would allow access to the payload, that's
+            // not always going to be true.
+            delete item.data.configuration;
+            delete item.data.files;
+            return item;
+          });
           res.json(response);
         } catch (e) {
           next(e);
@@ -86,9 +95,13 @@ const router = (EntityService: SessionedEntityService<any, any>) => {
         validate: { params: Validation.EntityIdParams, body: Validation[EntityService.entityType].Entity },
         authorize: { operation: v2Permissions[EntityService.entityType].put },
       }),
-      async (req: express.Request, res: express.Response, next: express.NextFunction) => {
+      async (req: express.Request & { resolvedAgent?: IAgent }, res: express.Response, next: express.NextFunction) => {
         try {
-          const { statusCode, result } = await EntityService.createEntity({
+          // Thanks Typescript :/
+          if (!req.resolvedAgent) {
+            throw new Error('missing agent');
+          }
+          const { statusCode, result } = await EntityService.createEntity(req.resolvedAgent, {
             ...pathParams.accountAndSubscription(req),
             ...body.entity(req, EntityService.entityType),
           });

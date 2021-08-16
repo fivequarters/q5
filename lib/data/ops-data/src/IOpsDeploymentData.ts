@@ -16,6 +16,7 @@ export interface IOpsDeployment {
   networkName: string;
   domainName: string;
   size: number;
+  segmentKey: string;
   elasticSearch: string;
   fuseopsVersion: string;
   dataWarehouseEnabled: boolean;
@@ -28,6 +29,7 @@ export interface IOpsDeploymentParameters {
   networkName: string;
   domainName: string;
   size?: number;
+  segmentKey?: string;
   elasticSearch?: string;
   dataWarehouseEnabled?: boolean;
   featureUseDnsS3Bucket: boolean;

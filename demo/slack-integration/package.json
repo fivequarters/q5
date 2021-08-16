@@ -4,7 +4,7 @@
     "get": "fuse integration get sampleIntegration -d ."
   },
   "dependencies": {
-    "@fusebit-int/framework": "^2.0.7"
+    "@fusebit-int/framework": "^3.0.0"
   },
   "files": [
     "./integration.js"

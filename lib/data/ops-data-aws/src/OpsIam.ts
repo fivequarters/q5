@@ -144,16 +144,7 @@ export class OpsIam implements IDataSource {
         `${this.config.arnPrefix}:iam::aws:policy/AmazonESFullAccess`,
         `${this.config.arnPrefix}:iam::aws:policy/service-role/AWSLambdaVPCAccessExecutionRole`,
       ],
-      {
-        Version: '2012-10-17',
-        Statement: [
-          {
-            Effect: 'Allow',
-            Action: ['dynamodb:Scan'],
-            Resource: `${this.config.arnPrefix}:dynamodb:*:${awsConfig.account}:table/*.subscription`,
-          },
-        ],
-      },
+      undefined,
       undefined,
       this.config.iamPermissionsBoundary
     );

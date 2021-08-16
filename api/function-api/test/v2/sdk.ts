@@ -227,7 +227,7 @@ export const ApiRequestMap: { [key: string]: any } = {
       waitOptions: IWaitForCompletionParams = DefaultWaitForCompletionParams,
       options?: IRequestOptions
     ) => {
-      const op = await ApiRequestMap.connector.post(account, body);
+      const op = await ApiRequestMap.connector.post(account, body, options);
       expect(op).toBeHttp({ statusCode: 202 });
       validateOperation(account, op, Model.EntityType.connector);
 
@@ -398,7 +398,7 @@ export const ApiRequestMap: { [key: string]: any } = {
       ) => {
         const op = await v2Request(account, {
           method: 'POST',
-          uri: `/integration/${encodeURI(entityId)}/session/${sessionId}`,
+          uri: `/integration/${encodeURI(entityId)}/session/${sessionId}/commit`,
           ...options,
         });
         expect(op).toBeHttp({ statusCode: 202 });
@@ -459,7 +459,7 @@ export const ApiRequestMap: { [key: string]: any } = {
       waitOptions: IWaitForCompletionParams = DefaultWaitForCompletionParams,
       options?: IRequestOptions
     ) => {
-      const op = await ApiRequestMap.integration.post(account, body);
+      const op = await ApiRequestMap.integration.post(account, body, options);
       expect(op).toBeHttp({ statusCode: 202 });
       validateOperation(account, op, Model.EntityType.integration);
 
@@ -770,6 +770,7 @@ export const createPair = async (
           'const integration = new Integration();',
           'const router = integration.router;',
           "router.get('/api/', async (ctx) => { });",
+          "router.get('/api/token/', async (ctx) => { ctx.body = ctx.state.params.functionAccessToken; });",
           'module.exports = integration;',
         ].join('\n'),
       },

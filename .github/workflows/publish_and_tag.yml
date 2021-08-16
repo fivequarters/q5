@@ -89,6 +89,11 @@ jobs:
         run: ./tool/cicd/actions/scripts/publish_fusebit_ops_cli.sh
       - name: Publish - API Docs
         run: ./tool/cicd/actions/scripts/publish_api_docs.sh
+      - name: Publish - Global Proxy Secrets
+        env:
+          SLACK_PROXY_CLIENT_ID: ${{ secrets.SLACK_PROXY_CLIENT_ID }}
+          SLACK_PROXY_CLIENT_SECRET: ${{ secrets.SLACK_PROXY_CLIENT_SECRET }}
+        run: ./tool/cicd/actions/scripts/publish_proxy_secrets.sh
       - name: Publish the OpenAPI docs for v2 to Readme.Com
         uses: readmeio/github-readme-sync@v2
         with:

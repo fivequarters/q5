@@ -6,7 +6,6 @@ import { Form as Form_ } from './Form';
 import { Handler as Handler_ } from './Handler';
 import * as Middleware_ from './middleware';
 import ProviderActivator_ from './ProviderActivator';
-import * as Tenant_ from './Tenant';
 import { Connector, Integration } from './client/index';
 
 // Objects
@@ -19,7 +18,6 @@ const Internal = {
   Middleware: Middleware_,
   Storage: Storage_,
   ProviderActivator: ProviderActivator_,
-  Tenant: Tenant_,
 };
 // tslint:disable: ignore no-namespace no-internal-module no-empty-interface
 module Internal {
@@ -31,7 +29,6 @@ module Internal {
   export type Middleware = typeof Middleware_;
   export type Storage = typeof Storage_;
   export type ProviderActivator = typeof ProviderActivator_;
-  export type Tenant = typeof Tenant_;
   export namespace Types {
     export type Context = ContextType;
     export type Next = NextType;

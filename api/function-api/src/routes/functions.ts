@@ -194,28 +194,33 @@ const deleteFunction = async (params: IParams): Promise<any> => {
 
 const checkAuthorization = async (
   accountId: string,
-  functionSummary: string,
-  authToken?: string | undefined,
-  operation?: { operation: string; path: string }
-) => {
-  const authentication = Constants.getFunctionAuthentication(functionSummary);
+  authToken: string | undefined,
+  authentication: string | undefined,
+  subset?: { action: string; resource: string }[],
+  operation?: { action: string; resource: string }
+): Promise<IAgent | undefined> => {
   if (!authentication || authentication === 'none' || (authentication === 'optional' && !authToken)) {
     return undefined;
   }
 
-  const resolvedAgent = await getResolvedAgent(accountId, authToken);
+  try {
+    const resolvedAgent = await getResolvedAgent(accountId, authToken);
 
-  if (operation) {
-    const resource = operation.path;
-    const action = operation.operation;
+    if (operation) {
+      await resolvedAgent.ensureAuthorized(operation.action, operation.resource);
 
-    await resolvedAgent.ensureAuthorized(action, resource);
+      return resolvedAgent;
+    } else if (subset) {
+      await resolvedAgent.checkPermissionSubset({ allow: subset });
+    }
+
+    return resolvedAgent;
+  } catch (error) {
+    if (authentication === 'optional') {
+      return undefined;
+    }
+    throw error;
   }
-
-  const functionAuthz = Constants.getFunctionAuthorization(functionSummary);
-  await resolvedAgent.checkPermissionSubset({ allow: functionAuthz });
-
-  return resolvedAgent;
 };
 
 /*
@@ -237,13 +242,14 @@ const executeFunction = async (
 
   const functionSummary = await loadFunctionSummary(params);
   const functionAuthz = Constants.getFunctionAuthorization(functionSummary);
+  const functionAuthn = Constants.getFunctionAuthentication(functionSummary);
   const functionPerms = Constants.getFunctionPermissions(functionSummary);
 
   // Guarantee a release regardless of the exceptions that occur later by using a finally{} clause to call
   // the releaseRate function.
   const releaseRate = ratelimit.checkRateLimit(sub, params.subscriptionId);
   try {
-    const resolvedAgent = await checkAuthorization(params.accountId, functionSummary, options.token, undefined);
+    const resolvedAgent = await checkAuthorization(params.accountId, options.token, functionAuthn, functionAuthz);
 
     // execute
     const baseUrl = Constants.get_function_location({}, params.subscriptionId, params.boundaryId, params.functionId);
@@ -286,6 +292,7 @@ export {
   createFunction,
   deleteFunction,
   executeFunction,
+  checkAuthorization,
   waitForFunctionBuild,
   IFunctionSpecification,
   IExecuteFunction,

@@ -7,7 +7,7 @@
   "components": [
     {
       "name": "conn1",
-      "package": "@fusebit-int/slack-integration",
+      "provider": "@fusebit-int/slack-provider",
       "entityType": "connector",
       "entityId": "slack-connector",
       "dependsOn": []

@@ -224,6 +224,12 @@ describe('Proxy', () => {
     // Validate the request has the proxy's clientId
     url = new URL(response.headers.location);
     expect(url.searchParams.get('client_id')).toBe(proxyIdentity.clientId);
+    expect(url.searchParams.get('redirect_uri')).toMatch(
+      new RegExp(
+        `/v2/account/${account.accountId}/subscription/${account.subscriptionId}/connector/${connectorId}/proxy/slack/oauth/callback$`
+      )
+    );
+    const initialRedirectUrl = url.searchParams.get('redirect_uri');
 
     // Fake a response, bounce back to the proxy with a code
     response = await request({
@@ -238,6 +244,7 @@ describe('Proxy', () => {
 
     // Validate that it called the http endpoint with the appropriate parameters
     expect(httpLog.length).toBe(1);
+    expect(httpLog[0].req.body.redirect_uri).toBe(initialRedirectUrl);
 
     // Validate that storage includes what's expected compared to what's in the session
     const session = await ApiRequestMap.connector.session.getResult(account, connectorId, connectorSessionId);

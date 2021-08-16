@@ -1,4 +1,6 @@
 import { Context } from './Router';
+import { Service } from './client/Integration';
+import { EntityType } from './schema';
 
 interface IConnector {
   instantiate(lookupKey: string): any;
@@ -73,7 +75,7 @@ class ConnectorManager {
    * @param cfg The configuration object used to initialize the managing provider package
    */
   public loadConnector(name: string, cfg: IInstanceConnectorConfig) {
-    const Connector = require(cfg.provider);
+    const Connector = require(cfg.provider).default;
     return (cfg.instance = new Connector({ name, ...cfg }));
   }
 
@@ -88,7 +90,7 @@ class ConnectorManager {
    * @param instanceId A function that converts a Context into a unique string that the connector can use as a
    * key to look up identities.
    */
-  public getByName(ctx: Context, name: string, instanceId: string): any {
+  public async getByName(ctx: Context, name: string, instanceId: string): Promise<any> {
     const cfg = this.connectors[name];
     if (!cfg) {
       throw new Error(
@@ -99,16 +101,21 @@ class ConnectorManager {
     }
     const inst = cfg.instance ? cfg.instance : this.loadConnector(name, cfg);
 
-    return inst.instantiate(ctx, instanceId);
+    const service = new Service();
+    const instance = await service.getInstance(ctx, instanceId);
+
+    const identity = instance.data[name];
+    if (!identity || !identity.entityId || identity.entityType !== EntityType.identity) {
+      ctx.throw(404);
+    }
+    return inst.instantiate(ctx, identity.entityId);
   }
 
   public getByNames(ctx: Context, names: string[], instanceId: string): Record<string, any> {
-    return (ctx: Context) => {
-      return names.reduce<Record<string, any>>((acc, cur) => {
-        acc[name] = this.getByName(ctx, name, instanceId);
-        return acc;
-      }, {});
-    };
+    return names.reduce<Record<string, any>>((acc, cur) => {
+      acc[name] = this.getByName(ctx, cur, instanceId);
+      return acc;
+    }, {});
   }
 
   // Only used by test routines.

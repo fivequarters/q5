@@ -3,7 +3,7 @@ import { join } from 'path';
 import { readFile } from '@5qtrs/file';
 import globby from 'globby';
 
-import { generateMarkdown } from './markdown';
+import { loadImports, generateMarkdown } from './markdown';
 
 const FusebitStateFile = '.fusebit-state';
 const FusebitMetadataFile = 'fusebit.json';
@@ -60,20 +60,50 @@ const loadDirectory = async (dirName: string, entitySpec: any) => {
 };
 
 const createCatalogEntry = async (dirName: string) => {
+  const imports = await loadImports();
   const catalog = JSON.parse(await readFile(join(dirName, 'catalog.json')));
 
   if (catalog.description[0] === '#') {
-    catalog.description = await generateMarkdown(
-      (await readFile(join(dirName, catalog.description.split('#')[1]))).toString()
+    catalog.description = generateMarkdown(
+      `${dirName}/catalog.json/${catalog.description.split('#')[1]}`,
+      (await readFile(join(dirName, catalog.description.split('#')[1]))).toString(),
+      false,
+      imports
     );
   }
 
-  const newEntities = await Promise.all(
-    catalog.entities.map((entityDir: string) =>
-      loadDirectory(join(dirName, entityDir), { data: { configuration: {}, files: {} } })
+  // Load the entities
+  await Promise.all(
+    Object.entries(catalog.configuration.entities as Record<string, { entityType: string; path: string }>).map(
+      async ([name, entityDef]: [string, { entityType: string; path: string }]) => {
+        catalog.configuration.entities[name] = await loadDirectory(join(dirName, entityDef.path), {
+          entityType: entityDef.entityType,
+          data: { configuration: {}, files: {} },
+        });
+      }
     )
   );
-  catalog.entities = newEntities;
+
+  // Parse any markdown in the entities
+  let entityName: string;
+  let entity: { data: { files: Record<string, string> } };
+
+  for ([entityName, entity] of Object.entries(
+    catalog.configuration.entities as Record<string, { data: { files: Record<string, string> } }>
+  )) {
+    for (const [fileName, file] of Object.entries(entity.data.files)) {
+      if (fileName.match(/\.md$/)) {
+        entity.data.files[fileName] = generateMarkdown(`${dirName}/${entityName}/${fileName}`, file, false, imports);
+      }
+    }
+  }
+
+  // Load the schema, uischema, and data
+  catalog.configuration.schema = JSON.parse((await readFile(join(dirName, catalog.configuration.schema))).toString());
+  catalog.configuration.uischema = JSON.parse(
+    (await readFile(join(dirName, catalog.configuration.uischema))).toString()
+  );
+  catalog.configuration.data = JSON.parse((await readFile(join(dirName, catalog.configuration.data))).toString());
 
   return catalog;
 };
@@ -108,6 +138,15 @@ const loadCatalog = async (dirName: string) => {
 };
 
 (async () => {
-  const entries = await loadCatalog('./inventory');
+  if (process.argv.length < 3) {
+    console.error(`ERROR: Missing feed directory.`);
+    console.error(``);
+    console.error(`Usage: ${process.argv[1]} <feed_integration | feed_connector>`);
+    console.error(`Outputs to stdout the processed contents of the specified feed directory.`);
+    console.error(``);
+    process.exit(-1);
+  }
+  const feedDirectory = process.argv[2];
+  const entries = await loadCatalog(feedDirectory);
   console.log(JSON.stringify(entries, null, 2));
 })();
