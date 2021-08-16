@@ -12,8 +12,7 @@ servers:
         default: 'us-east-1'
 
 info:
-  description:
-    Fusebit HTTP API for the management and execution of Fusebit accounts,
+  description: Fusebit HTTP API for the management and execution of Fusebit accounts,
     users, functions and more
   version: '1.0.0'
   title: 'Fusebit HTTP API - v2'
@@ -89,8 +88,7 @@ paths:
         response code of the operation.
       responses:
         200:
-          description:
-            The contents of the operation.  The resposne code will vary as to
+          description: The contents of the operation.  The resposne code will vary as to
             the current status of the operation itself.
           content:
             application/json:
@@ -133,10 +131,8 @@ paths:
     post:
       tags:
         - Session
-      summary:
-        Create a new session
-      description:
-        Create a new session on behalf of a new user, or to allow an existing
+      summary: Create a new session
+      description: Create a new session on behalf of a new user, or to allow an existing
         user to reconfigure their integration.
       operationId: createSession
       requestBody:
@@ -161,10 +157,8 @@ paths:
     get:
       tags:
         - Session
-      summary:
-        Get a session
-      description:
-        Get the inputs and outputs of an existing session.
+      summary: Get a session
+      description: Get the inputs and outputs of an existing session.
       operationId: getSession
       responses:
         200:
@@ -179,10 +173,8 @@ paths:
     put:
       tags:
         - Session
-      summary:
-        Update a session's output
-      description:
-        Write the outputs of an configuration to a session. Primarily used in on
+      summary: Update a session's output
+      description: Write the outputs of an configuration to a session. Primarily used in on
         configuration form submission in an integration, or in a connector.
       operationId: putSession
       requestBody:
@@ -197,13 +189,18 @@ paths:
       security:
         - AccessToken: []
 
+  /v2/account/{accountId}/subscription/{subscriptionId}/{entityType}/{entityId}/session/{sessionId}/commit:
+    parameters:
+      - $ref: '#/components/parameters/Account'
+      - $ref: '#/components/parameters/Subscription'
+      - $ref: '#/components/parameters/EntityType'
+      - $ref: '#/components/parameters/EntityId'
+      - $ref: '#/components/parameters/SessionId'
     post:
       tags:
         - Session
-      summary:
-        Commit a session
-      description:
-        Commit the session, creating the necessary instance and identity
+      summary: Commit a session
+      description: Commit the session, creating the necessary instance and identity
         objects, or updating the configuration of existing objects as necessary.
       operationId: postSession
       responses:
@@ -224,15 +221,12 @@ paths:
     get:
       tags:
         - Session
-      summary:
-        Start the browser
-      description:
-        Redirect the browser to this URL to start the session.
+      summary: Start the browser
+      description: Redirect the browser to this URL to start the session.
       operationId: startSession
       responses:
         302:
-          description:
-            The configuration url of the first component in the session.
+          description: The configuration url of the first component in the session.
       security:
         - AccessToken: []
 
@@ -246,16 +240,13 @@ paths:
     get:
       tags:
         - Session
-      summary:
-        Browser finishes a session
-      description:
-        Used by the component to pass control back to the session, allowing the
+      summary: Browser finishes a session
+      description: Used by the component to pass control back to the session, allowing the
         browser to move on to the next step in the configuration process.
       operationId: continueSession
       responses:
         302:
-          description:
-            The configuration url of the first component in the session.
+          description: The configuration url of the first component in the session.
       security:
         - AccessToken: []
 
@@ -655,8 +646,7 @@ components:
       type: http
       scheme: bearer
       bearerFormat: JWT
-      description:
-        For a description of the access token format, see
+      description: For a description of the access token format, see
         [this doc](../../integrator-guide/authz-model).
 
   parameters:
@@ -766,8 +756,7 @@ components:
             properties:
               components:
                 type: array
-                description:
-                  A list of the desired components to configure. If not present,
+                description: A list of the desired components to configure. If not present,
                   then all components specified in the integration are
                   configured in this session.
                 items:
@@ -775,8 +764,7 @@ components:
               tags:
                 $ref: '#/components/schemas/EntityTags'
               extendTags:
-                description:
-                  Add tags here to be applied to each of the instances and
+                description: Add tags here to be applied to each of the instances and
                   identities created through this session.
                 allOf:
                   - $ref: '#/components/schemas/EntityTags'
@@ -784,13 +772,11 @@ components:
                 $ref: '#/components/schemas/SessionInput'
               redirectUrl:
                 type: string
-                description:
-                  The URL in your infrastructure that the user should return to
+                description: The URL in your infrastructure that the user should return to
                   after completing the session.
               instanceId:
                 type: string
-                description:
-                  Used when reconfiguring an existing user. Specifies the
+                description: Used when reconfiguring an existing user. Specifies the
                   instance associated with that user.
 
     PutSessionBody:
@@ -866,14 +852,12 @@ components:
           example: connector
         statusCode:
           type: number
-          description:
-            An HTTP status code indicating the current status of the
+          description: An HTTP status code indicating the current status of the
             operation
           example: 200
         message:
           type: string
-          description:
-            An arbitrary message to be passed on to the user concerning the
+          description: An arbitrary message to be passed on to the user concerning the
             state of the operation
           example: The operation completed successfully
         location:
@@ -926,8 +910,7 @@ components:
       example:
         slack-integration:
           useDemo: true
-      description:
-        A collection of input variables to make available to
+      description: A collection of input variables to make available to
         components as they are configured. Each key must correspond
         with an entry in the component array, and carries
         configuration that will only be available to that component.
@@ -936,9 +919,8 @@ components:
       type: object
       example:
         slack-integration:
-          channel: "#general"
-      description:
-        A collection of output configuration elements created by the various
+          channel: '#general'
+      description: A collection of output configuration elements created by the various
         steps, and stored on the instance for use in the integration.
 
     EntityLocation:
@@ -948,8 +930,7 @@ components:
         - subscriptionId
         - entityId
         - entityType
-      description:
-        The location of a particular object.
+      description: The location of a particular object.
       properties:
         accountId:
           $ref: '#/components/schemas/AccountId'
@@ -979,14 +960,12 @@ components:
           $ref: '#/components/schemas/OperationId'
         target:
           type: string
-          description:
-            Query this URL to track the status of the operation and, when
+          description: Query this URL to track the status of the operation and, when
             complete, receive the resulting object in the format of a list
             operation.
         statusOnly:
           type: string
-          description:
-            This URL is a public URL suitable to be passed to an untrusted
+          description: This URL is a public URL suitable to be passed to an untrusted
             client such as a web browser to drive an in-progress spinner. The
             URL is always a GET request for `../operation/{operationId}`.
 
@@ -1004,12 +983,10 @@ components:
               example: '@fusebit-int/oauth-connector'
             configuration:
               type: object
-              description:
-                The collection of configuration values used by this entity.
+              description: The collection of configuration values used by this entity.
             files:
               type: object
-              description:
-                Additional files used by this entity.
+              description: Additional files used by this entity.
         tags:
           $ref: '#/components/schemas/EntityTags'
         version:
@@ -1036,24 +1013,20 @@ components:
         expires:
           $ref: '#/components/schemas/EntityExpires'
 
-
     ConnectorList:
       type: object
       properties:
         items:
           type: array
-          description:
-            An array of the matching objects of this component type
+          description: An array of the matching objects of this component type
           items:
             $ref: '#/components/schemas/ConnectorListEntity'
         next:
           type: string
-          description:
-            The key to use when accessing the next block of entries
+          description: The key to use when accessing the next block of entries
         total:
           type: number
-          description:
-            The total number of entities of this type.
+          description: The total number of entities of this type.
 
     IdentityEntity:
       type: object
@@ -1062,8 +1035,7 @@ components:
           $ref: '#/components/schemas/IdentityId'
         data:
           type: object
-          description:
-            The data used by the creating connector to establish a relationship
+          description: The data used by the creating connector to establish a relationship
             with the remote service on behalf of a user.
         tags:
           $ref: '#/components/schemas/EntityTags'
@@ -1077,47 +1049,39 @@ components:
       properties:
         items:
           type: array
-          description:
-            An array of the matching objects of this component type
+          description: An array of the matching objects of this component type
           items:
             $ref: '#/components/schemas/IdentityEntity'
         next:
           type: string
-          description:
-            The key to use when accessing the next block of entries
+          description: The key to use when accessing the next block of entries
         total:
           type: number
-          description:
-            The total number of entities of this type.
+          description: The total number of entities of this type.
 
     IntegrationData:
       type: object
       properties:
         handler:
           type: string
-          description:
-            The name of the file that is the entrypoint for this integration.
+          description: The name of the file that is the entrypoint for this integration.
           example: './integration'
         configuration:
           type: object
-          description:
-            An arbirary configuration object for parameters used by this
+          description: An arbirary configuration object for parameters used by this
             integration.
         files:
           type: object
-          description:
-            An array of files, keyed by filename, that are included in this
+          description: An array of files, keyed by filename, that are included in this
             integration. This usually includes the file referenced by the
             `handler` field.
         componentTags:
           type: object
-          description:
-            These tags are added to instances and identities created through
+          description: These tags are added to instances and identities created through
             this integration.
         components:
           type: array
-          description:
-            Connectors and other configuration endpoints such as forms located
+          description: Connectors and other configuration endpoints such as forms located
             on this integration are itemized here, in order that the client will
             encounter them.
           items:
@@ -1125,49 +1089,41 @@ components:
             properties:
               name:
                 type: string
-                description:
-                  An arbirary name used to reference this component from within
+                description: An arbirary name used to reference this component from within
                   integration code.
               entityType:
                 type: string
                 enum: [connector, integration]
-                description:
-                  Does this component reference a connector or an integration?
+                description: Does this component reference a connector or an integration?
               entityId:
                 $ref: '#/components/schemas/EntityId'
               skip:
                 type: boolean
                 default: false
-                description:
-                  Some components are only used in special cases and as
+                description: Some components are only used in special cases and as
                   specified during session creation; if `skip` is true, then
                   this component is not part of the normal client configuration
                   process.
               path:
                 type: string
-                description:
-                  The location under the entity specified to pass the client to
+                description: The location under the entity specified to pass the client to
                   during a configuration process.
-                example:
-                  /api/authorize
+                example: /api/authorize
                   /api/channelSelectForm
               dependsOn:
                 type: array
-                description:
-                  Allows this component to make use of the credentials or
+                description: Allows this component to make use of the credentials or
                   configuration values created by prior components. For example,
                   a form could use slack credentials created by a connector
                   named `slack` to lookup channels by adding `slack` to this
                   list.
                 items:
                   type: string
-                  description:
-                    The `name` of a component that occurs previously in the
+                  description: The `name` of a component that occurs previously in the
                     `components` array.
               provider:
                 type: string
-                description:
-                  The utility package for a connector that provides a configured
+                description: The utility package for a connector that provides a configured
                   SDK for use by the integration.
 
     IntegrationListData:
@@ -1175,18 +1131,15 @@ components:
       properties:
         handler:
           type: string
-          description:
-            The name of the file that is the entrypoint for this integration.
+          description: The name of the file that is the entrypoint for this integration.
           example: './integration'
         componentTags:
           type: object
-          description:
-            These tags are added to instances and identities created through
+          description: These tags are added to instances and identities created through
             this integration.
         components:
           type: array
-          description:
-            Connectors and other configuration endpoints such as forms located
+          description: Connectors and other configuration endpoints such as forms located
             on this integration are itemized here, in order that the client will
             encounter them.
           items:
@@ -1194,49 +1147,41 @@ components:
             properties:
               name:
                 type: string
-                description:
-                  An arbirary name used to reference this component from within
+                description: An arbirary name used to reference this component from within
                   integration code.
               entityType:
                 type: string
                 enum: [connector, integration]
-                description:
-                  Does this component reference a connector or an integration?
+                description: Does this component reference a connector or an integration?
               entityId:
                 $ref: '#/components/schemas/EntityId'
               skip:
                 type: boolean
                 default: false
-                description:
-                  Some components are only used in special cases and as
+                description: Some components are only used in special cases and as
                   specified during session creation; if `skip` is true, then
                   this component is not part of the normal client configuration
                   process.
               path:
                 type: string
-                description:
-                  The location under the entity specified to pass the client to
+                description: The location under the entity specified to pass the client to
                   during a configuration process.
-                example:
-                  /api/authorize
+                example: /api/authorize
                   /api/channelSelectForm
               dependsOn:
                 type: array
-                description:
-                  Allows this component to make use of the credentials or
+                description: Allows this component to make use of the credentials or
                   configuration values created by prior components. For example,
                   a form could use slack credentials created by a connector
                   named `slack` to lookup channels by adding `slack` to this
                   list.
                 items:
                   type: string
-                  description:
-                    The `name` of a component that occurs previously in the
+                  description: The `name` of a component that occurs previously in the
                     `components` array.
               provider:
                 type: string
-                description:
-                  The utility package for a connector that provides a configured
+                description: The utility package for a connector that provides a configured
                   SDK for use by the integration.
 
     IntegrationEntity:
@@ -1272,18 +1217,15 @@ components:
       properties:
         items:
           type: array
-          description:
-            An array of the matching objects of this component type
+          description: An array of the matching objects of this component type
           items:
             $ref: '#/components/schemas/IntegrationListEntity'
         next:
           type: string
-          description:
-            The key to use when accessing the next block of entries
+          description: The key to use when accessing the next block of entries
         total:
           type: number
-          description:
-            The total number of entities of this type.
+          description: The total number of entities of this type.
 
     InstanceEntity:
       type: object
@@ -1292,8 +1234,7 @@ components:
           $ref: '#/components/schemas/InstanceId'
         data:
           type: object
-          description:
-            A collection of configuration objects key'ed by the `name` in the
+          description: A collection of configuration objects key'ed by the `name` in the
             `components` object under the integration. A configuration object
             that refers to a integration form will contain the configured value,
             whereas a configuration object that refers to a connector will refer
@@ -1322,15 +1263,12 @@ components:
       properties:
         items:
           type: array
-          description:
-            An array of the matching objects of this component type
+          description: An array of the matching objects of this component type
           items:
             $ref: '#/components/schemas/InstanceEntity'
         next:
           type: string
-          description:
-            The key to use when accessing the next block of entries
+          description: The key to use when accessing the next block of entries
         total:
           type: number
-          description:
-            The total number of entities of this type.
+          description: The total number of entities of this type.
