@@ -85,6 +85,7 @@ export class OpsStackData extends DataSource implements IOpsStackData {
     const awsConfig = await this.provider.getAwsConfigForDeployment(deploymentName, deployment.region);
 
     const size = newStack.size || deployment.size;
+    const segmentKey = deployment.segmentKey;
     const elasticSearch = deployment.elasticSearch;
     const id = await this.getNextStackId(newStack.deploymentName);
 
@@ -119,6 +120,7 @@ export class OpsStackData extends DataSource implements IOpsStackData {
         tag,
         id,
         amiId,
+        segmentKey,
         elasticSearch,
         newStack.env
       ),
@@ -299,6 +301,7 @@ systemctl start docker.fusebit`;
     tag: string,
     id: number,
     amiId: string,
+    segmentKey: string,
     elasticSearch: string,
     env?: string
   ) {
@@ -323,6 +326,12 @@ API_STACK_VERSION=${tag}
 API_STACK_ID=${id}
 API_STACK_AMI=${amiId}
 `;
+
+    if (segmentKey) {
+      r += `
+SEGMENT_KEY=${segmentKey}
+`;
+    }
 
     let esCreds = parseElasticSearchUrl(elasticSearch);
     if (esCreds) {

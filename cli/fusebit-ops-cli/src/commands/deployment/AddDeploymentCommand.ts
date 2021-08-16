@@ -37,6 +37,12 @@ const command = {
       // No default, to preserve the existing value when updating a deployment.
     },
     {
+      name: 'segmentKey',
+      description: 'The Write Key to use when offloading analytic data to Segment',
+      type: ArgType.string,
+      // No default, to preserve the existing value when updating a deployment.
+    },
+    {
       name: 'elasticSearch',
       description:
         'The Elastic Search endpoint for monitoring and analytics\n\n' +
@@ -88,6 +94,7 @@ export class AddDeploymentCommand extends Command {
     const [deploymentName, networkName, domainName] = input.arguments as string[];
     const region = input.options.region as string;
     const size = input.options.size as number | undefined;
+    const segmentKey = input.options.segmentKey as string | undefined;
     const elasticSearch = input.options.elasticSearch as string | undefined;
     const generateElasticSearchConfig = input.options.generateElasticSearchConfig as string | undefined;
     const confirm = input.options.confirm as boolean;
@@ -103,6 +110,7 @@ export class AddDeploymentCommand extends Command {
       networkName,
       domainName,
       size,
+      segmentKey,
       elasticSearch,
       dataWarehouseEnabled,
       region: network.region,

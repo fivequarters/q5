@@ -17,35 +17,41 @@ All public releases of the Fusebit HTTP API are documented here, including notab
 <!-- 1. TOC
 {:toc} -->
 
-# Version 1.20.28
+## Version 1.21.3
+
+_Released 08/16/21_
+
+- **Enhancement.** Analytic data now includes `account-id` information.
+
+## Version 1.20.28
 
 _Released 7/27/21_
 
-- **Enhancement** Subscriptions now support default values supplied via global configuration elements.
+- **Enhancement.** Subscriptions now support default values supplied via global configuration elements.
 
-# Version 1.20.27
+## Version 1.20.27
 
 _Released 7/26/21_
 
-- **Enhancement** OperationId corresponding to processing of session into instances and identities is now saved to sessions. 
+- **Enhancement** OperationId corresponding to processing of session into instances and identities is now saved to sessions.
 
 ## Version 1.20.26
 
 _Released 07/23/21_
 
-- **Enhancement** Restricts access to the static IP feature of Fusebit Functions to subscriptions that contain the `staticIp` flag set to `"true"`.
+- **Enhancement.** Restricts access to the static IP feature of Fusebit Functions to subscriptions that contain the `staticIp` flag set to `"true"`.
 
 ## Version 1.20.25
 
 _Released 07/20/21_
 
-- **Enhancement** Improves /v1/health to also check for the liveliness of RDS.
+- **Enhancement.** Improves /v1/health to also check for the liveliness of RDS.
 
 ## Version 1.20.24
 
 _Released 07/16/21_
 
-- **Enhancement** Integration Sessions can now be ran against an existing set of Instances and Identities in order to update their values.
+- **Enhancement.** Integration Sessions can now be ran against an existing set of Instances and Identities in order to update their values.
 
 ## Version 1.20.23
 
@@ -69,13 +75,13 @@ _Released 07/13/21_
 
 _Released 07/12/21_
 
-- **Bugfix** Fix an issue with multiple deployments using similar prefixes causing deployment failure.
+- **Bugfix.** Fix an issue with multiple deployments using similar prefixes causing deployment failure.
 
 ## Version 1.20.16
 
 _Released 07/09/21_
 
-- **Security** Update Axios for security patching against CVE-2020-28168.
+- **Security.** Update Axios for security patching against CVE-2020-28168.
 
 ## Version 1.20.15
 
@@ -87,7 +93,7 @@ _Release 06/16/21_
 
 _Released 07/07/21_
 
-- **Enhancement** Make Aurora error slightly less cryptic.
+- **Enhancement.** Make Aurora error slightly less cryptic.
 
 ## Version 1.20.5
 
