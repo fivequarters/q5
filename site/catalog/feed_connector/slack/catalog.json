@@ -1,8 +1,8 @@
 {
-  "id": "slack-hello-world",
-  "name": "Slack - Hello World",
+  "id": "slack",
+  "name": "Slack",
   "smallIcon": "/images/slack.svg",
-  "largeIcon": "http://some.icon/large.ico",
+  "largeIcon": "/images/slack.svg",
   "version": "1.0.0",
   "description": "#README.md",
   "tags": {
