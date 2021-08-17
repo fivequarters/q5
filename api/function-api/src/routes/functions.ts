@@ -261,7 +261,7 @@ const executeFunction = async (
     params = { ...params, baseUrl, version: Constants.getFunctionVersion(functionSummary) };
 
     params.functionAccessToken = await mintJwtForPermissions(keyStore, params, functionPerms);
-    params.logs = await createLoggingCtx(keyStore, params, 'https', Constants.API_PUBLIC_ENDPOINT);
+    params.logs = await createLoggingCtx(keyStore, params, 'https', Constants.API_PUBLIC_HOST);
 
     const req = {
       protocol: parsedUrl.protocol.replace(':', ''),
