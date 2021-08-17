@@ -312,7 +312,6 @@ export class BackupService {
     for (const i of results) {
       if (!region.includes((i.regionStackId.S as string).split('::')[0] as string)) {
         region.push((i.regionStackId.S as string).split('::')[0]);
-        console.log(i.regionStackId.S);
       }
     }
     if (!region.includes(config.region)) {
