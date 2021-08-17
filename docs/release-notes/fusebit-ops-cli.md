@@ -22,7 +22,7 @@ All public releases of the Fusebit Operations CLI are documented here, including
 
 _Released 08/16/21_
 
-- **Enhancement.** Fuse-ops backup now implements a 15 day retention policy for backups.
+- **Enhancement.** Fuse-ops backup now implements a 90 day retention policy for backups.
 
 ## Version 1.28.6
 
