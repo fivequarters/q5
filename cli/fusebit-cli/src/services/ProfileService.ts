@@ -119,6 +119,24 @@ export class ProfileService {
     });
   }
 
+  public async createDefaultProfile(name: string, defaultProfileId: string): Promise<IOAuthFusebitProfile> {
+    return await this.execute(async () => {
+      if (await this.profile.profileExists(name)) {
+        await this.profile.removeProfile(name);
+      }
+      let profile = await this.profile.createDefaultProfile(name, defaultProfileId);
+      try {
+        // Force the OAuth flow to determine the Fusebit account and subscription ID
+        await this.getOAuthAccessToken(profile);
+        profile = (this.getProfile(profile.name) as unknown) as IOAuthFusebitProfile;
+      } catch (e) {
+        await this.removeProfile(name || (await this.profile.getDefaultProfileName()) || defaultProfileId);
+        throw e;
+      }
+      return profile;
+    });
+  }
+
   public async copyProfile(name: string, copyTo: string): Promise<IFusebitProfile> {
     const profile = await this.execute(() => this.profile.copyProfile(name, copyTo, true));
     await this.executeService.result(

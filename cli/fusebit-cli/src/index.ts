@@ -4,9 +4,6 @@ export { FusebitCli } from './FusebitCli';
 import { CommandIO } from '@5qtrs/cli';
 import { FusebitCli } from './FusebitCli';
 
-// This turns the default profile feature globally for all CLI commands
-process.env.FUSEBIT_FEATURE_DEFAULT_PROFILE = '1';
-
 async function execute() {
   //@ts-ignore
   const major = +process.versions.node.match(/^(\d+)\./)[1];
