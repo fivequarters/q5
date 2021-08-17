@@ -16,10 +16,6 @@
       "slackConnector": {
         "entityType": "connector",
         "path": "connector/"
-      },
-      "slackIntegration": {
-        "entityType": "integration",
-        "path": "integration/"
       }
     }
   }
