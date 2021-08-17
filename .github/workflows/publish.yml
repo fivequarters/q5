@@ -73,7 +73,7 @@ jobs:
       - name: Qualify - fuse works
         run: node cli/fusebit-cli/libc/index.js function ls
       - name: Yarn - image
-        run: yarn image
+        run: ./tool/cicd/actions/scripts/build_image.sh
       - name: Publish - function-api
         run: ./tool/cicd/actions/scripts/publish_function_api.sh
       - name: Publish - fusebit-cli
