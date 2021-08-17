@@ -203,7 +203,9 @@ export class BackupService {
             RecoveryPointArn: backup.RecoveryPointArn as string,
           }).promise();
         }
-        if (!backupsToRemove.NextToken) break;
+        if (!backupsToRemove.NextToken) {
+          break;
+        }
       } while (true);
       await Backup.deleteBackupVault({
         BackupVaultName: backupPlanName as string,
