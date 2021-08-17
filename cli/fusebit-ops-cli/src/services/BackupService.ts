@@ -194,16 +194,16 @@ export class BackupService {
         BackupPlanId: BackupPlanIdIfExists as string,
       }).promise();
       do {
-        const backupsToRemoves = await Backup.listRecoveryPointsByBackupVault({
+        const backupsToRemove = await Backup.listRecoveryPointsByBackupVault({
           BackupVaultName: backupPlanName,
         }).promise();
-        for (const backup of backupsToRemoves.RecoveryPoints as AWS.Backup.RecoveryPointByBackupVaultList) {
+        for (const backup of backupsToRemove.RecoveryPoints as AWS.Backup.RecoveryPointByBackupVaultList) {
           await Backup.deleteRecoveryPoint({
             BackupVaultName: backupPlanName,
             RecoveryPointArn: backup.RecoveryPointArn as string,
           }).promise();
         }
-        if (!backupsToRemoves.NextToken) break;
+        if (!backupsToRemove.NextToken) break;
       } while (true);
       await Backup.deleteBackupVault({
         BackupVaultName: backupPlanName as string,
