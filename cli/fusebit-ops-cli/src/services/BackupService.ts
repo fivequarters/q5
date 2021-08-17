@@ -193,8 +193,8 @@ export class BackupService {
       await Backup.deleteBackupPlan({
         BackupPlanId: BackupPlanIdIfExists as string,
       }).promise();
-      let nextToken = 'xxx';
-      while (nextToken != '') {
+      let nextToken = '';
+      while (true) {
         const backupsToRemoves = await Backup.listRecoveryPointsByBackupVault({
           BackupVaultName: backupPlanName,
         }).promise();
@@ -204,7 +204,10 @@ export class BackupService {
             RecoveryPointArn: backup.RecoveryPointArn as string,
           }).promise();
         }
-        nextToken = backupsToRemoves.NextToken ? backupsToRemoves.NextToken : '';
+        if (!backupsToRemoves.NextToken) {
+          break;
+        }
+        nextToken = backupsToRemoves.NextToken;
       }
       await Backup.deleteBackupVault({
         BackupVaultName: backupPlanName as string,
