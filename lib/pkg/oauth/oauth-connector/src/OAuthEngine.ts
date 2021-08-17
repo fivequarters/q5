@@ -171,13 +171,10 @@ class OAuthEngine {
     ) {
       return token;
     }
-    if (!token.refresh_token) {
-      const error = (<{ error?: string }>token).error;
-      const message = (<{ message?: string }>token).message;
+    if (!token.refresh_token && !token.access_token) {
+      const error = (token as { error?: string }).error;
       throw new Error(
-        `"${error || message}". Access token and Refresh token are both missing on object: ${JSON.stringify(
-          Object.keys(token)
-        )}`
+        `"${error}". Access token and Refresh token are both missing on object: ${JSON.stringify(Object.keys(token))}`
       );
     }
 
