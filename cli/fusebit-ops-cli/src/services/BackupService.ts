@@ -113,7 +113,7 @@ export class BackupService {
                 TargetBackupVaultName: backupPlanName,
                 ScheduleExpression: `cron(${backupPlanSchedule})`,
                 Lifecycle: {
-                  DeleteAfterDays: 15,
+                  DeleteAfterDays: 90,
                 },
               },
             ],
