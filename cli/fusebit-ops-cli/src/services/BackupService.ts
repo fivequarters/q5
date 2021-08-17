@@ -206,13 +206,9 @@ export class BackupService {
         }
         nextToken = backupsToRemoves.NextToken ? backupsToRemoves.NextToken : '';
       }
-      try {
-        await Backup.deleteBackupVault({
-          BackupVaultName: backupPlanName as string,
-        }).promise();
-      } catch (e) {
-        this.input.io.writeLine('Vault still have backups, this will require manual intervention.');
-      }
+      await Backup.deleteBackupVault({
+        BackupVaultName: backupPlanName as string,
+      }).promise();
     }
   }
 
@@ -300,14 +296,14 @@ export class BackupService {
       apiVersion: '2012-08-10',
     });
     const scanParams = {
-      TableName: 'ops.deployment',
+      TableName: 'ops.stack',
     };
     const results = await dynamoScanTable(ddb, scanParams);
     if (!results) {
-      throw Error('can not find ops.deployment table');
+      throw Error('can not find ops.stack table');
     }
     if (!results) {
-      throw Error("can't find items in ops.deployment table");
+      throw Error("can't find items in ops.stack table");
     }
 
     if ((results.length as number) === 0) {
