@@ -13,6 +13,7 @@ import { ProfileUpdateCommand } from './ProfileUpdateCommand';
 // ------------------
 
 const command: ICommand = {
+  skipBuiltInProfile: true,
   name: 'Profiles',
   cmd: 'profile',
   summary: 'Manage profiles',

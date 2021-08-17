@@ -16,6 +16,7 @@ import { IOAuthFusebitProfile, IFusebitProfile, IFusebitKeyPair, FusebitProfile 
 // ------------------
 
 const command = {
+  skipBuiltInProfile: true,
   name: 'CLI Initialize',
   cmd: 'init',
   summary: 'Initialize the CLI',
@@ -67,6 +68,17 @@ export class InitCommand extends Command {
 
   public static async create() {
     return new InitCommand();
+  }
+
+  public static async createDefaultProfileIfNoneExists(input: IExecuteInput): Promise<void> {
+    let profileName = input.options.profile as string;
+    const profileService = await ProfileService.create(input);
+    await profileService.execute(async () => {
+      const profiles = await profileService.listProfiles();
+      if (profiles.length === 0) {
+        await profileService.createDefaultProfile(profileName, FusebitProfile.defaultProfileId);
+      }
+    });
   }
 
   protected async onExecute(input: IExecuteInput): Promise<number> {

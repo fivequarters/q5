@@ -70,6 +70,19 @@ export class FusebitCli extends Command {
     return new FusebitCli(cli);
   }
 
+  protected async onSubCommandExecuting(command: Command, input: IExecuteInput) {
+    let current = command;
+    let skipInit = current.skipBuiltInProfile;
+    while (!skipInit && current.parent) {
+      current = current.parent;
+      skipInit = current.skipBuiltInProfile;
+    }
+    if (!skipInit) {
+      await InitCommand.createDefaultProfileIfNoneExists(input);
+    }
+    return super.onSubCommandExecuting(command, input);
+  }
+
   protected async onSubCommandError(command: Command, input: IExecuteInput, error: Error) {
     const verbose = (input.options.verbose as boolean) || process.env.FUSEBIT_DEBUG;
     try {

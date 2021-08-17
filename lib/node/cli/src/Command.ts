@@ -147,6 +147,7 @@ export interface ICommand {
   delegate?: boolean;
   docsUrl?: string;
   cli?: string;
+  skipBuiltInProfile?: boolean;
 }
 
 export interface IOptionsSet {
@@ -180,7 +181,8 @@ export class Command implements ICommand {
   private modesProp: string[];
   private docsUrlProp: string;
   private cliProp: string;
-  private parent?: Command;
+  public parent?: Command;
+  public skipBuiltInProfile?: boolean;
 
   public constructor(command: ICommand) {
     this.nameProp = command.name;
@@ -200,6 +202,7 @@ export class Command implements ICommand {
     for (const subCommand of this.subCommands) {
       subCommand.parent = this;
     }
+    this.skipBuiltInProfile = command.skipBuiltInProfile || false;
   }
 
   public async execute(args: string[], io: ICommandIO): Promise<number> {

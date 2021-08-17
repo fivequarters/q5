@@ -19,7 +19,7 @@ All public releases of the Fusebit CLI are documented here, including notable ch
 
 ## Version 1.10.0
 
-_Released 08/11/21_
+_Released 08/17/21_
 
 - **Enhancement.** Using the tool without initialization will set up an OAuth device flow profile for the primary Fusebit deployment in the US, including provisioning a new Fusebit account during the authentication process.
 - **Enhancement.** Ability to specify custom resource names and custom actions when granting user and client permissions.

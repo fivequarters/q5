@@ -6,6 +6,7 @@ import { ExecuteService, VersionService } from '../services';
 // ------------------
 
 const command = {
+  skipBuiltInProfile: true,
   name: 'Version',
   cmd: 'version',
   summary: 'Returns the version of the Fusebit CLI',
