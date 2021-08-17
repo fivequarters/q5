@@ -112,6 +112,9 @@ export class BackupService {
                 RuleName: 'FusebitBackupPlan',
                 TargetBackupVaultName: backupPlanName,
                 ScheduleExpression: `cron(${backupPlanSchedule})`,
+                Lifecycle: {
+                  DeleteAfterDays: 15,
+                },
               },
             ],
           },
@@ -170,7 +173,7 @@ export class BackupService {
     const regions = await this.findAllRegionsWithDeployments(this.credentials, this.config);
     for (const region of regions) {
       const BackupPlanIdIfExists = await this.getBackupIdByName(this.credentials, region, backupPlanName);
-      if (BackupPlanIdIfExists === undefined) {
+      if (BackupPlanIdIfExists === '') {
         continue;
       }
       const Backup = await this.getAwsBackupClient(region);
@@ -190,6 +193,19 @@ export class BackupService {
       await Backup.deleteBackupPlan({
         BackupPlanId: BackupPlanIdIfExists as string,
       }).promise();
+      let nextToken = 'xxx';
+      while (nextToken != '') {
+        const backupsToRemoves = await Backup.listRecoveryPointsByBackupVault({
+          BackupVaultName: backupPlanName,
+        }).promise();
+        for (const backup of backupsToRemoves.RecoveryPoints as AWS.Backup.RecoveryPointByBackupVaultList) {
+          await Backup.deleteRecoveryPoint({
+            BackupVaultName: backupPlanName,
+            RecoveryPointArn: backup.RecoveryPointArn as string,
+          }).promise();
+        }
+        nextToken = backupsToRemoves.NextToken ? backupsToRemoves.NextToken : '';
+      }
       try {
         await Backup.deleteBackupVault({
           BackupVaultName: backupPlanName as string,
@@ -284,14 +300,14 @@ export class BackupService {
       apiVersion: '2012-08-10',
     });
     const scanParams = {
-      TableName: 'ops.stack',
+      TableName: 'ops.deployment',
     };
     const results = await dynamoScanTable(ddb, scanParams);
     if (!results) {
-      throw Error('can not find ops.stack table');
+      throw Error('can not find ops.deployment table');
     }
     if (!results) {
-      throw Error("can't find items in ops.stack table");
+      throw Error("can't find items in ops.deployment table");
     }
 
     if ((results.length as number) === 0) {
@@ -300,6 +316,7 @@ export class BackupService {
     for (const i of results) {
       if (!region.includes((i.regionStackId.S as string).split('::')[0] as string)) {
         region.push((i.regionStackId.S as string).split('::')[0]);
+        console.log(i.regionStackId.S);
       }
     }
     if (!region.includes(config.region)) {
