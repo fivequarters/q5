@@ -21,7 +21,7 @@ fuse-ops deployment defaults set stage subscription \{\"proxy\":\{\"accountId\":
 fuse-ops deployment defaults set api subscription \{\"proxy\":\{\"accountId\":\"acc-828c6c45cba94d93\",\"subscriptionId\":\"sub-b25bdcca338b4c32\"\}\} --region us-east-1
 fuse-ops deployment defaults set api subscription \{\"proxy\":\{\"accountId\":\"acc-49c6c6c2f60c4867\",\"subscriptionId\":\"sub-b7efb0965d2a42dc\"\}\} --region us-west-1
 
-SLACK_SECRET_PAYLOAD="{\"data\":{\"clientId\":\"457394426995.2306221278340\",\"clientSecret\":\"9c5c246865c03dd849d6c23b796380d3\",\"authorizationUrl\":\"https://slack.com/oauth/v2/authorize\",\"tokenUrl\":\"https://slack.com/api/oauth.v2.access\",\"revokeUrl\":\"https://slack.com/api/auth.revoke\"}}"
+SLACK_SECRET_PAYLOAD="{\"data\":{\"clientId\":\"${SLACK_PROXY_CLIENT_ID}\",\"clientSecret\":\"${SLACK_PROXY_CLIENT_SECRET}\",\"authorizationUrl\":\"https://slack.com/oauth/v2/authorize\",\"tokenUrl\":\"https://slack.com/api/oauth.v2.access\",\"revokeUrl\":\"https://slack.com/api/auth.revoke\"}}"
 
 # 321 stage
 curl -H "Authorization: Bearer `fuse token -o raw`" https://stage.us-west-2.fusebit.io/v1/account/acc-2ec6c8dba6134772/subscription/sub-2e2374b63eb040e9/storage/proxy/slack/configuration -XPUT -d ${SLACK_SECRET_PAYLOAD} -H "Content-Type: application/json"
