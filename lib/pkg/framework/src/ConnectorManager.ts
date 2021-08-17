@@ -54,7 +54,7 @@ class ConnectorManager {
     }
 
     cfg.forEach((connector: IInstanceConnectorConfig) => {
-      if (connector.entityType === 'connector') {
+      if (connector.entityType === EntityType.connector) {
         this.connectors[connector.name] = connector;
       }
     });

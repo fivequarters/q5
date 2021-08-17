@@ -1,5 +1,7 @@
 import superagent from 'superagent';
 import { ObjectEntries } from './Utilities';
+import { Internal } from '@fusebit-int/framework';
+import Context = Internal.Types.Context;
 
 interface IOAuthToken {
   access_token: string;
@@ -113,8 +115,11 @@ class IdentityClient {
     return response.body;
   };
 
-  public getCallbackUrl = async (sessionId: string): Promise<string> => {
-    return `${this.connectorUrl}/session/${sessionId}/callback`;
+  public getCallbackUrl = async (ctx: Context): Promise<string> => {
+    const url = new URL(`${this.connectorUrl}/session/${ctx.query.state}/callback`);
+    url.searchParams;
+    Object.entries<string>(ctx.request.query).forEach(([key, value]) => url.searchParams.append(key, value));
+    return url.href;
   };
 }
 

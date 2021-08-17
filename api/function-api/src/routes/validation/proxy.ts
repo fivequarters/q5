@@ -26,7 +26,8 @@ export const CallbackRequest = {
   query: Joi.object()
     .keys({
       state: Common.sessionId.required(),
-      code: Joi.string().required(),
+      code: Joi.string(),
+      error: Joi.string(),
     })
     .unknown(),
 };
