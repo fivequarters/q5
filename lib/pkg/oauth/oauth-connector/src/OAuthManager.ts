@@ -12,7 +12,7 @@ const router = connector.router;
 let engine: OAuthEngine;
 
 const onSessionError = async (ctx: Connector.Types.Context, error: { error: string; errorDescription?: string }) => {
-  await ctx.state.identityClient?.saveErrorToSession({ ...error });
+  await ctx.state.identityClient?.saveErrorToSession({ ...error }, ctx.query.state);
 };
 
 router.use(async (ctx: Connector.Types.Context, next: Connector.Types.Next) => {

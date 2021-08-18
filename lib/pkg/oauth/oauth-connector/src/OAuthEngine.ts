@@ -66,7 +66,7 @@ class OAuthEngine {
    * Fetches callback url from session that is managing the connector
    */
   public async redirectToCallback(ctx: Internal.Types.Context) {
-    const callbackUrl = await ctx.state.identityClient!.getCallbackUrl(ctx.query.state);
+    const callbackUrl = await ctx.state.identityClient!.getCallbackUrl(ctx);
     ctx.redirect(callbackUrl);
   }
 
