@@ -24,7 +24,7 @@ const API_PUBLIC_ENDPOINT = process.env.LOGS_HOST
   ? `https://${process.env.LOGS_HOST}`
   : (process.env.API_SERVER as string);
 
-const API_PUBLIC_HOST = new URL(API_PUBLIC_ENDPOINT).host;
+const API_PUBLIC_HOST = new URL(API_PUBLIC_ENDPOINT || 'http://localhost').host;
 
 let builderVersion: string = 'unknown';
 try {
