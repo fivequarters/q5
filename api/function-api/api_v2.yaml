@@ -65,6 +65,12 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/OperationIdResponse'
+        400:
+          $ref: '#/components/responses/400'
+        403:
+          $ref: '#/components/responses/403'
+        404:
+          $ref: '#/components/responses/404'
       security:
         - AccessToken: []
 
@@ -94,6 +100,12 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/Operation'
+        400:
+          $ref: '#/components/responses/400'
+        403:
+          $ref: '#/components/responses/403'
+        404:
+          $ref: '#/components/responses/404'
       security:
         - AccessToken: []
     put:
@@ -117,6 +129,12 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/Operation'
+        400:
+          $ref: '#/components/responses/400'
+        403:
+          $ref: '#/components/responses/403'
+        404:
+          $ref: '#/components/responses/404'
       security:
         - AccessToken: []
 
@@ -144,6 +162,12 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/Session'
+        400:
+          $ref: '#/components/responses/400'
+        403:
+          $ref: '#/components/responses/403'
+        404:
+          $ref: '#/components/responses/404'
       security:
         - AccessToken: []
 
@@ -167,6 +191,12 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/SessionResult'
+        400:
+          $ref: '#/components/responses/400'
+        403:
+          $ref: '#/components/responses/403'
+        404:
+          $ref: '#/components/responses/404'
       security:
         - AccessToken: []
 
@@ -186,6 +216,12 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/SessionResult'
+        400:
+          $ref: '#/components/responses/400'
+        403:
+          $ref: '#/components/responses/403'
+        404:
+          $ref: '#/components/responses/404'
       security:
         - AccessToken: []
 
@@ -210,6 +246,12 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/NewOperation'
+        400:
+          $ref: '#/components/responses/400'
+        403:
+          $ref: '#/components/responses/403'
+        404:
+          $ref: '#/components/responses/404'
 
   #############################################################################
   # Connector
@@ -235,6 +277,12 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/ConnectorList'
+        400:
+          $ref: '#/components/responses/400'
+        403:
+          $ref: '#/components/responses/403'
+        404:
+          $ref: '#/components/responses/404'
       security:
         - AccessToken: []
     post:
@@ -257,6 +305,12 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/OperationIdUrlResponse'
+        400:
+          $ref: '#/components/responses/400'
+        403:
+          $ref: '#/components/responses/403'
+        404:
+          $ref: '#/components/responses/404'
       security:
         - AccessToken: []
 
@@ -272,7 +326,7 @@ paths:
     get:
       tags:
         - Connector
-      summary: Get a component
+      summary: Get a connector
       operationId: getConnector
       responses:
         200:
@@ -281,12 +335,18 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/ConnectorEntity'
+        400:
+          $ref: '#/components/responses/400'
+        403:
+          $ref: '#/components/responses/403'
+        404:
+          $ref: '#/components/responses/404'
       security:
         - AccessToken: []
     put:
       tags:
         - Connector
-      summary: Update a component
+      summary: Update a connector
       operationId: putConnector
       requestBody:
         $ref: '#/components/requestBodies/PostConnectorBody'
@@ -303,12 +363,18 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/OperationIdUrlResponse'
+        400:
+          $ref: '#/components/responses/400'
+        403:
+          $ref: '#/components/responses/403'
+        404:
+          $ref: '#/components/responses/404'
       security:
         - AccessToken: []
     delete:
       tags:
         - Connector
-      summary: Delete a component
+      summary: Delete a connector
       operationId: deleteConnector
       responses:
         202:
@@ -317,6 +383,10 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/OperationIdUrlResponse'
+        400:
+          $ref: '#/components/responses/400'
+        403:
+          $ref: '#/components/responses/403'
       security:
         - AccessToken: []
 
@@ -347,6 +417,12 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/IdentityList'
+        400:
+          $ref: '#/components/responses/400'
+        403:
+          $ref: '#/components/responses/403'
+        404:
+          $ref: '#/components/responses/404'
       security:
         - AccessToken: []
 
@@ -376,12 +452,18 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/IdentityEntity'
+        400:
+          $ref: '#/components/responses/400'
+        403:
+          $ref: '#/components/responses/403'
+        404:
+          $ref: '#/components/responses/404'
       security:
         - AccessToken: []
     put:
       tags:
         - Identity
-      summary: Update a component
+      summary: Update an identity
       operationId: putIdentity
       requestBody:
         $ref: '#/components/requestBodies/PostIdentityBody'
@@ -392,6 +474,12 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/IdentityEntity'
+        400:
+          $ref: '#/components/responses/400'
+        403:
+          $ref: '#/components/responses/403'
+        404:
+          $ref: '#/components/responses/404'
       security:
         - AccessToken: []
     delete:
@@ -402,6 +490,12 @@ paths:
       responses:
         204:
           description: The entity deletion succeeded
+        400:
+          $ref: '#/components/responses/400'
+        403:
+          $ref: '#/components/responses/403'
+        404:
+          $ref: '#/components/responses/404'
       security:
         - AccessToken: []
 
@@ -429,6 +523,12 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/IntegrationList'
+        400:
+          $ref: '#/components/responses/400'
+        403:
+          $ref: '#/components/responses/403'
+        404:
+          $ref: '#/components/responses/404'
       security:
         - AccessToken: []
     post:
@@ -445,6 +545,12 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/IntegrationEntity'
+        400:
+          $ref: '#/components/responses/400'
+        403:
+          $ref: '#/components/responses/403'
+        404:
+          $ref: '#/components/responses/404'
       security:
         - AccessToken: []
 
@@ -460,7 +566,7 @@ paths:
     get:
       tags:
         - Integration
-      summary: Get a component
+      summary: Get an integration
       operationId: getIntegration
       responses:
         200:
@@ -469,12 +575,18 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/IntegrationEntity'
+        400:
+          $ref: '#/components/responses/400'
+        403:
+          $ref: '#/components/responses/403'
+        404:
+          $ref: '#/components/responses/404'
       security:
         - AccessToken: []
     put:
       tags:
         - Integration
-      summary: Update a component
+      summary: Update an integration
       operationId: putIntegration
       requestBody:
         $ref: '#/components/requestBodies/PostIntegrationBody'
@@ -491,12 +603,18 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/OperationIdUrlResponse'
+        400:
+          $ref: '#/components/responses/400'
+        403:
+          $ref: '#/components/responses/403'
+        404:
+          $ref: '#/components/responses/404'
       security:
         - AccessToken: []
     delete:
       tags:
         - Integration
-      summary: Delete a component
+      summary: Delete an integration
       operationId: deleteIntegration
       responses:
         202:
@@ -505,6 +623,10 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/OperationIdUrlResponse'
+        400:
+          $ref: '#/components/responses/400'
+        403:
+          $ref: '#/components/responses/403'
       security:
         - AccessToken: []
 
@@ -536,6 +658,12 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/InstanceList'
+        400:
+          $ref: '#/components/responses/400'
+        403:
+          $ref: '#/components/responses/403'
+        404:
+          $ref: '#/components/responses/404'
       security:
         - AccessToken: []
 
@@ -565,12 +693,18 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/InstanceEntity'
+        400:
+          $ref: '#/components/responses/400'
+        403:
+          $ref: '#/components/responses/403'
+        404:
+          $ref: '#/components/responses/404'
       security:
         - AccessToken: []
     put:
       tags:
         - Instance
-      summary: Update a component
+      summary: Update an instance
       operationId: putInstance
       requestBody:
         $ref: '#/components/requestBodies/PostInstanceBody'
@@ -581,6 +715,12 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/InstanceEntity'
+        400:
+          $ref: '#/components/responses/400'
+        403:
+          $ref: '#/components/responses/403'
+        404:
+          $ref: '#/components/responses/404'
       security:
         - AccessToken: []
     delete:
@@ -591,6 +731,10 @@ paths:
       responses:
         204:
           description: The entity deletion succeeded
+        400:
+          $ref: '#/components/responses/400'
+        403:
+          $ref: '#/components/responses/403'
       security:
         - AccessToken: []
 
@@ -747,6 +891,78 @@ components:
         application/json:
           schema:
             type: object
+
+  responses:
+    400:
+      description: The request submitted is invalid. Please, check the documentation and
+        fix the request before sending it again.
+      content:
+        application/json:
+          schema:
+            type: object
+            required:
+              - status
+              - statusCode
+              - message
+            properties:
+              status:
+                type: number
+                description: The HTTP status code
+                example: 400
+              statusCode:
+                type: number
+                description: The HTTP status code
+                example: 400
+              message:
+                type: string
+                description: A message with details regarding the error
+                example: Field redirectUrl is required.
+    403:
+      description: Access to the requested resource is forbidden.
+      content:
+        application/json:
+          schema:
+            type: object
+            required:
+              - status
+              - statusCode
+              - message
+            properties:
+              status:
+                type: number
+                description: The HTTP status code
+                example: 403
+              statusCode:
+                type: number
+                description: The HTTP status code
+                example: 403
+              message:
+                type: string
+                description: A message with details regarding the error
+                example: Unauthorized
+    404:
+      description: The specified resource was not found.
+      content:
+        application/json:
+          schema:
+            type: object
+            required:
+              - status
+              - statusCode
+              - message
+            properties:
+              status:
+                type: number
+                description: The HTTP status code
+                example: 404
+              statusCode:
+                type: number
+                description: The HTTP status code
+                example: 404
+              message:
+                type: string
+                description: A message with details regarding the error
+                example: Resource not found
 
   schemas:
     AccountId:
