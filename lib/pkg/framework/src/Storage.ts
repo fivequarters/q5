@@ -39,29 +39,29 @@ export const createStorage = (params: IStorageParam): IStorageClient => {
 
   const storageClient: IStorageClient = {
     accessToken: params.functionAccessToken,
-    get: async (storageSubId?: string, storageId?: string) => {
-      storageSubId = storageSubId ? removeTrailingSlash(removeLeadingSlash(storageSubId)) : '';
-      if (!storageSubId && !storageIdPrefix) {
+    get: async (storageId?: string) => {
+      storageId = storageId ? removeTrailingSlash(removeLeadingSlash(storageId)) : '';
+      if (!storageId && !storageIdPrefix) {
         return undefined;
       }
 
       const response = await superagent
-        .get(getUrl(storageSubId))
+        .get(getUrl(storageId))
         .set('Authorization', `Bearer ${storageClient.accessToken}`)
         .ok((res) => res.status < 300 || res.status === 404);
       return response.status === 404 ? undefined : response.body.data;
     },
-    put: async (data: any, storageSubId?: string) => {
-      storageSubId = storageSubId ? removeTrailingSlash(removeLeadingSlash(storageSubId)) : '';
-      if (!storageSubId && !storageIdPrefix) {
+    put: async (data: any, storageId?: string) => {
+      storageId = storageId ? removeTrailingSlash(removeLeadingSlash(storageId)) : '';
+      if (!storageId && !storageIdPrefix) {
         throw new Error(
           'Storage objects cannot be stored at the root of the hierarchy. Specify a storageSubId when calling the `put` method, or a storageIdPrefix when creating the storage client.'
         );
       }
       const response = await superagent
-        .put(getUrl(storageSubId))
+        .put(getUrl(storageId))
         .set('Authorization', `Bearer ${storageClient.accessToken}`)
-        .send(data);
+        .send({ data });
       return response.body;
     },
     delete: async (storageSubId?: string, recursive?: boolean, forceRecursive?: boolean) => {
