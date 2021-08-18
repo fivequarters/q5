@@ -1,12 +1,15 @@
 import { Request } from 'express';
 
 const tags = (req: Request) => {
-  const results: { [key: string]: string } = {};
   if (typeof req.query.tag === 'string' && req.query.tag.length) {
-    const [tagKey, tagValue] = req.query.tag.split('=');
-    results[tagKey] = tagValue;
+    const tags = req.query.tag.split(',');
+    return tags.reduce<Record<string, string>>((acc, cur) => {
+      const [tagKey, tagValue] = cur.split('=');
+      acc[tagKey] = tagValue;
+      return acc;
+    }, {});
   }
-  return { tags: results };
+  return { tags: {} };
 };
 
 const idPrefix = (req: Request): { idPrefix?: string } => {
