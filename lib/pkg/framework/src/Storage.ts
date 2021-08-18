@@ -21,7 +21,7 @@ export interface IStorageParam {
   baseUrl: string;
   accountId: string;
   subscriptionId: string;
-  accessToken: string;
+  functionAccessToken: string;
   storageIdPrefix?: string;
 }
 
@@ -38,7 +38,7 @@ export const createStorage = (params: IStorageParam): IStorageClient => {
   };
 
   const storageClient: IStorageClient = {
-    accessToken: params.accessToken,
+    accessToken: params.functionAccessToken,
     get: async (storageSubId?: string, storageId?: string) => {
       storageSubId = storageSubId ? removeTrailingSlash(removeLeadingSlash(storageSubId)) : '';
       if (!storageSubId && !storageIdPrefix) {
@@ -80,7 +80,7 @@ export const createStorage = (params: IStorageParam): IStorageClient => {
     list: async (storageSubId: string, { count, next }: IListOption = {}) => {
       const response = await superagent
         .get(`${getUrl(storageSubId)}/*`)
-        .query(count && isNaN(count) ? {} : { count: 5 })
+        .query(count && !isNaN(count) ? { count } : { count: 5 })
         .query(typeof next === 'string' ? { next } : {})
         .set('Authorization', `Bearer ${storageClient.accessToken}`);
       return response.body;
