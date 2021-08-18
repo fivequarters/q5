@@ -3,7 +3,7 @@ import EntityBase from './EntityBase';
 import { Context as RouterContext, Next as RouterNext } from '../Router';
 import superagent from 'superagent';
 
-const TENANT_TAG_NAME = 'fusebit.tenant';
+const TENANT_TAG_NAME = 'fusebit.tenantId';
 
 class Middleware extends EntityBase.MiddlewareBase {
   public loadConnector = (name: string) => async (ctx: RouterContext, next: RouterNext) => undefined; // TODO
@@ -41,11 +41,11 @@ class Tenant {
     const body = response.body;
 
     if (body.items.length === 0) {
-      ctx.throw(404, 'Instance not found');
+      ctx.throw(404, `Cannot find an Integration Instance associated with tenant ${tenantId}`);
     }
 
     if (body.items.length > 1) {
-      ctx.throw(400, 'Too many instances found');
+      ctx.throw(400, `Too many Integration Instances found with tenant ${tenantId}`);
     }
     return this.service.getSdk(ctx, connectorName, body.items[0].id);
   };
