@@ -17,7 +17,7 @@ export function Callback(): ReactElement {
     const sessionId = getSessionId();
     await completeSession(sessionId);
     const instance = await pollSessionStatus(sessionId);
-    setTenantId(instance.tenantId);
+    setTenantId(instance['fusebit.tenant']);
     setComplete(true);
   };
 

@@ -3,7 +3,7 @@ import EntityBase from './EntityBase';
 import { Context as RouterContext, Next as RouterNext } from '../Router';
 import superagent from 'superagent';
 
-const TENANT_TAG_NAME = 'tenantId';
+const TENANT_TAG_NAME = 'fusebit.tenant';
 
 class Middleware extends EntityBase.MiddlewareBase {
   public loadConnector = (name: string) => async (ctx: RouterContext, next: RouterNext) => undefined; // TODO

@@ -16,7 +16,7 @@ export interface IAccount {
 
 export interface IInstance {
   instanceId: string;
-  tenantId: string;
+  'fusebit.tenant': string;
   integrationBaseUrl: string;
 }
 
@@ -95,7 +95,7 @@ export function getIntegrationBaseUrl(integration: string): string {
 
 export function saveInstance(instance: IInstance) {
   const localInstances = JSON.parse(window.localStorage.getItem(LocalStorageKeys.instance) || '{}');
-  localInstances[instance.tenantId] = instance;
+  localInstances[instance['fusebit.tenant']] = instance;
   const instanceString = JSON.stringify(localInstances);
   window.localStorage.setItem(LocalStorageKeys.instance, instanceString);
 }
