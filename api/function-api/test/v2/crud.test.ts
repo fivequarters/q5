@@ -41,7 +41,7 @@ const sampleEntitiesWithData: SampleEntityMap = {
         ['package.json']: JSON.stringify({
           scripts: {},
           dependencies: {
-            ['@fusebit-int/framework']: '^2.0.7',
+            ['@fusebit-int/framework']: '^3.0.2',
           },
           files: ['./integrationTest.js'],
         }),
@@ -442,7 +442,7 @@ const performTests = (testEntityType: TestableEntityTypes, sampleEntityMap: Samp
         const TagKeyOnlyCount = Object.values(TagCountMap[tagKey]).reduce((acc, cur) => acc + cur, 0);
         const tagKeyOnlyResponse = await ApiRequestMap[testEntityType].list(account, {
           ...getIdPrefix(),
-          tags: [{ tagKey }],
+          tag: [{ tagKey }],
         });
         expect(tagKeyOnlyResponse).toBeHttp({ statusCode: 200 });
         expect(tagKeyOnlyResponse.data).toBeDefined();
@@ -453,7 +453,7 @@ const performTests = (testEntityType: TestableEntityTypes, sampleEntityMap: Samp
             const TagKeyValueCount = TagCountMap[tagKey][tagValue];
             const tagKeyValueResponse = await ApiRequestMap[testEntityType].list(account, {
               ...getIdPrefix(),
-              tags: [{ tagKey, tagValue }],
+              tag: [{ tagKey, tagValue }],
             });
             expect(tagKeyValueResponse).toBeHttp({ statusCode: 200 });
             expect(tagKeyValueResponse.data).toBeDefined();
@@ -464,7 +464,7 @@ const performTests = (testEntityType: TestableEntityTypes, sampleEntityMap: Samp
     );
     const multiTagEntity = await ApiRequestMap[testEntityType].list(account, {
       ...getIdPrefix(),
-      tags: [
+      tag: [
         { tagKey: 'tagOne', tagValue: 0 },
         { tagKey: 'tagTwo', tagValue: 0 },
         { tagKey: 'tagThree', tagValue: 0 },

@@ -1,18 +1,32 @@
 import { Request } from 'express';
+import assert from 'assert';
 
-const tags = (req: Request) => {
-  if (typeof req.query.tags === 'string' && req.query.tags.length) {
-    const tags = req.query.tags.split(',');
-    const tagObject = tags.reduce<Record<string, string>>((acc, cur) => {
-      const [tagKey, tagValue] = cur.split('=');
-      acc[tagKey] = tagValue;
-      return acc;
-    }, {});
-    return {
-      tags: tagObject,
-    };
+const tag = (req: Request) => {
+  const results: { tags?: { [key: string]: string } } = {};
+
+  if (!req.query.tag) {
+    return results;
   }
-  return { tags: {} };
+
+  let tagArray: string[];
+  if (Array.isArray(req.query.tag)) {
+    assertsStringArray(req.query.tag);
+    tagArray = req.query.tag;
+  } else {
+    assert(typeof req.query.tag === 'string');
+    tagArray = [req.query.tag];
+  }
+
+  results.tags = tagArray.reduce<Record<string, string>>((acc, cur) => {
+    const [tagKey, tagValue] = cur.split('=');
+    acc[tagKey] = tagValue;
+    return acc;
+  }, {});
+  return results;
+};
+
+const assertsStringArray: (array: any[]) => asserts array is string[] = (array) => {
+  array.forEach((item: any) => assert(typeof item === 'string'));
 };
 
 const idPrefix = (req: Request): { idPrefix?: string } => {
@@ -30,4 +44,4 @@ const version = (req: Request) => {
   return {};
 };
 
-export default { tags, idPrefix, listPagination, version };
+export default { tag, idPrefix, listPagination, version };

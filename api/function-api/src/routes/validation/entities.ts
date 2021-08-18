@@ -44,7 +44,7 @@ const EntityIdQuery = Joi.object().keys({
   idPrefix: Common.entityId.optional(),
   count: Joi.number(),
   next: Joi.string(),
-  tags: Common.tagQuery,
+  tag: Common.tagQuery,
   defaults: Joi.boolean(),
   operationId: Joi.string().guid(),
 });

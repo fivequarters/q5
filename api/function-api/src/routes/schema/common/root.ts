@@ -68,7 +68,7 @@ const router = (EntityService: SessionedEntityService<any, any>) => {
           const response = await EntityService.dao.listEntities(
             {
               ...pathParams.accountAndSubscription(req),
-              ...query.tags(req),
+              ...query.tag(req),
               ...query.idPrefix(req),
             },
             {
