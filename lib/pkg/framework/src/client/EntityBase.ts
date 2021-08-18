@@ -47,31 +47,30 @@ namespace EntityBase {
   export abstract class ServiceBase {}
 
   export abstract class StorageBase {
-    private createDataKey: (ctx: RouterContext, inputKey?: string) => string = (ctx, inputKey) =>
-      `integration/${ctx.state.params.entityId}/${inputKey || ''}`;
     public setData: (ctx: RouterContext, dataKey: string, data: any) => Promise<any> = async (
       ctx: RouterContext,
       dataKey: string,
-      data: any
-    ) => Storage.createStorage(ctx.state.params).put(data, this.createDataKey(ctx, dataKey));
+      data: any,
+      version?: string
+    ) => Storage.createStorage(ctx.state.params).put(data, dataKey, version);
     public getData: (ctx: RouterContext, dataKey: string) => Promise<any> = async (
       ctx: RouterContext,
       dataKey: string
-    ) => Storage.createStorage(ctx.state.params).get(this.createDataKey(ctx, dataKey));
+    ) => Storage.createStorage(ctx.state.params).get(dataKey);
     public listData: (
       ctx: RouterContext,
       dataKeyPrefix: string,
       options?: Storage.IListOption
     ) => Promise<any> = async (ctx: RouterContext, dataKeyPrefix: string, options?: Storage.IListOption) =>
-      Storage.createStorage(ctx.state.params).list(this.createDataKey(ctx, dataKeyPrefix), options);
+      Storage.createStorage(ctx.state.params).list(dataKeyPrefix, options);
     public deleteData: (ctx: RouterContext, dataKey: string) => Promise<any> = async (
       ctx: RouterContext,
       dataKey: string
-    ) => Storage.createStorage(ctx.state.params).delete(this.createDataKey(ctx, dataKey));
+    ) => Storage.createStorage(ctx.state.params).delete(dataKey);
     public deletePrefixedData: (ctx: RouterContext, dataKeyPrefix?: string) => Promise<any> = (
       ctx: RouterContext,
       dataKeyPrefix?: string
-    ) => Storage.createStorage(ctx.state.params).delete(this.createDataKey(ctx, dataKeyPrefix), true, true);
+    ) => Storage.createStorage(ctx.state.params).delete(dataKeyPrefix, true, true);
   }
   export abstract class MiddlewareBase {
     public authorizeUser = Middleware.authorize;

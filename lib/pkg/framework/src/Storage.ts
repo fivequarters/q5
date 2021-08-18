@@ -3,14 +3,24 @@ import superagent from 'superagent';
 const removeLeadingSlash = (s: string) => s.replace(/^\/(.+)$/, '$1');
 const removeTrailingSlash = (s: string) => s.replace(/^(.+)\/$/, '$1');
 
-export interface IStorageResponse {}
+export interface IStorageResponse {
+  data: any;
+  etag: string;
+  tags: Record<string, string>;
+}
+
+export interface IStorageVersionedResponse {
+  data: any;
+  version: string;
+  tags: Record<string, string>;
+}
 
 export interface IStorageClient {
   accessToken: string;
-  get: (storageSubId?: string) => Promise<string | undefined>;
-  put: (data: any, storageSubId?: string) => Promise<Response>;
-  delete: (storageSubId?: string, recursive?: boolean, forceRecursive?: boolean) => Promise<void>;
-  list: (storageSubId: string, { count, next }?: IListOption) => Promise<IStorageResponse>;
+  get: (storageSubId?: string) => Promise<IStorageVersionedResponse | undefined>;
+  put: (data: any, storageSubId?: string, version?: string) => Promise<IStorageVersionedResponse>;
+  delete: (storageSubId?: string, recursive?: boolean, forceRecursive?: boolean) => Promise<IStorageVersionedResponse>;
+  list: (storageSubId: string, options?: IListOption) => Promise<IStorageVersionedResponse>;
 }
 export interface IListOption {
   count?: number;
@@ -32,6 +42,15 @@ export const createStorage = (params: IStorageParam): IStorageClient => {
     params.subscriptionId
   }/storage${storageIdPrefix ? '/' + storageIdPrefix : ''}`;
 
+  const convertToVersion = (response: IStorageResponse) => {
+    const versionResponse: IStorageVersionedResponse = {
+      data: response.data,
+      tags: response.tags,
+      version: response.etag,
+    };
+    return versionResponse;
+  };
+
   const getUrl = (storageSubId: string) => {
     storageSubId = storageSubId ? removeTrailingSlash(removeLeadingSlash(storageSubId)) : '';
     return `${storageBaseUrl}${storageSubId ? '/' + storageSubId : ''}`;
@@ -49,20 +68,21 @@ export const createStorage = (params: IStorageParam): IStorageClient => {
         .get(getUrl(storageId))
         .set('Authorization', `Bearer ${storageClient.accessToken}`)
         .ok((res) => res.status < 300 || res.status === 404);
-      return response.status === 404 ? undefined : response.body.data;
+      return response.status === 404 ? undefined : convertToVersion(response.body);
     },
-    put: async (data: any, storageId?: string) => {
+    put: async (data: any, storageId?: string, version?: string) => {
       storageId = storageId ? removeTrailingSlash(removeLeadingSlash(storageId)) : '';
       if (!storageId && !storageIdPrefix) {
         throw new Error(
           'Storage objects cannot be stored at the root of the hierarchy. Specify a storageSubId when calling the `put` method, or a storageIdPrefix when creating the storage client.'
         );
       }
-      const response = await superagent
-        .put(getUrl(storageId))
-        .set('Authorization', `Bearer ${storageClient.accessToken}`)
-        .send({ data });
-      return response.body;
+      const request = superagent.put(getUrl(storageId)).set('Authorization', `Bearer ${storageClient.accessToken}`);
+      if (version) {
+        request.set('If-Match', version);
+      }
+      const response = await request.send({ data, etag: version });
+      return convertToVersion(response.body);
     },
     delete: async (storageSubId?: string, recursive?: boolean, forceRecursive?: boolean) => {
       storageSubId = storageSubId ? removeLeadingSlash(removeTrailingSlash(storageSubId)) : '';
@@ -75,7 +95,7 @@ export const createStorage = (params: IStorageParam): IStorageClient => {
         .delete(`${getUrl(storageSubId)}${recursive ? '/*' : ''}`)
         .set('Authorization', `Bearer ${storageClient.accessToken}`)
         .ok((res) => res.status === 404 || res.status === 204);
-      return response.body;
+      return convertToVersion(response.body);
     },
     list: async (storageSubId: string, { count, next }: IListOption = {}) => {
       const response = await superagent
@@ -83,7 +103,7 @@ export const createStorage = (params: IStorageParam): IStorageClient => {
         .query(count && !isNaN(count) ? { count } : { count: 5 })
         .query(typeof next === 'string' ? { next } : {})
         .set('Authorization', `Bearer ${storageClient.accessToken}`);
-      return response.body;
+      return convertToVersion(response.body);
     },
   };
 
