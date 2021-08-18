@@ -61,11 +61,12 @@ export class ConnectorService extends BaseComponentService<IConnector> {
           item.version || 'unknown',
           Text.eol(),
           Text.eol(),
-          'Base URL',
+          'Base URL is given below',
           Text.dim(': '),
-          this.getUrl(profile, item.id),
         ])
       );
+      await this.input.io.writeLineRaw(this.getUrl(profile, item.id));
+      await this.input.io.writeLine();
     }
   }
 }
