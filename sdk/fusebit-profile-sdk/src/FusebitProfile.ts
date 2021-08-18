@@ -72,7 +72,8 @@ function getProfileNameFromBaseUrl(baseUrl: string) {
 // -------------------
 
 export interface IFusebitProfileSettings {
-  [index: string]: string | undefined;
+  [index: string]: string | boolean | undefined;
+  synthetic?: boolean;
   account: string;
   subscription?: string;
   boundary?: string;
@@ -125,6 +126,27 @@ export interface IFusebitExecutionProfile extends IFusebitProfileSettings {
 // ----------------
 
 export class FusebitProfile {
+  public static defaultProfileId = 'api-us';
+
+  public static defaultProfiles: { [key: string]: any } = {
+    'stage-api-us': {
+      synthetic: true,
+      account: '',
+      baseUrl: 'https://stage.us-west-2.fusebit.io',
+      issuer: 'https://fusebit.auth0.com/oauth/device/code',
+      clientId: 'dimuls6VLYgXpD7UYCo6yPdKAXPXjQng',
+      tokenUrl: 'https://fusebit.auth0.com/oauth/token',
+    },
+    'api-us': {
+      synthetic: true,
+      account: '',
+      baseUrl: 'https://api.us-west-1.on.fusebit.io',
+      issuer: 'https://fusebit.auth0.com/oauth/device/code',
+      clientId: 'NIfqE4hpPOXuIhllkxndlafSKcKesEfc',
+      tokenUrl: 'https://fusebit.auth0.com/oauth/token',
+    },
+  };
+
   public static async create() {
     const dotConfig = await FusebitDotConfig.create();
     return new FusebitProfile(dotConfig);
@@ -276,6 +298,34 @@ export class FusebitProfile {
     const defaultProfileName = await this.getDefaultProfileName();
     if (!defaultProfileName) {
       await this.setDefaultProfileName(name);
+    }
+
+    return profile;
+  }
+
+  public async createDefaultProfile(name: string, defaultProfileId: string): Promise<IOAuthFusebitProfile> {
+    if (!FusebitProfile.defaultProfiles[defaultProfileId]) {
+      throw new Error(
+        `Unsupported built-in profile name '${defaultProfileId}'. Supported built-in profile names are: ${Object.keys(
+          FusebitProfile.defaultProfiles
+        ).join(', ')}.`
+      );
+    }
+    const created = new Date().toLocaleString();
+    const effectiveName = name || (await this.getDefaultProfileName()) || defaultProfileId;
+
+    const fullProfileToAdd = {
+      name: effectiveName,
+      created,
+      updated: created,
+      ...FusebitProfile.defaultProfiles[defaultProfileId],
+    };
+
+    const profile = await this.dotConfig.setProfile(effectiveName, fullProfileToAdd);
+
+    const defaultProfileName = await this.getDefaultProfileName();
+    if (!defaultProfileName) {
+      await this.setDefaultProfileName(effectiveName);
     }
 
     return profile;

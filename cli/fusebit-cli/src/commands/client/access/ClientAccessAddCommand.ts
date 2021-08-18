@@ -37,6 +37,11 @@ const command = {
       defaultText: 'profile value',
     },
     {
+      name: 'resource',
+      aliases: ['r'],
+      description: 'Low level setting. The fully specified resource to which access should be given to the client',
+    },
+    {
       name: 'quiet',
       aliases: ['q'],
       description: 'If set to true, does not prompt for confirmation',
@@ -67,6 +72,7 @@ export class ClientAccessAddCommand extends Command {
 
   protected async onExecute(input: IExecuteInput): Promise<number> {
     const [id, action] = input.arguments as string[];
+    let resource = input.options.resource as string;
 
     const clientService = await AgentService.create(input, false);
     const executeService = await ExecuteService.create(input);
@@ -74,7 +80,7 @@ export class ClientAccessAddCommand extends Command {
 
     await executeService.newLine();
 
-    if (UserPermissions.indexOf(action) === -1) {
+    if (!resource && UserPermissions.indexOf(action) === -1) {
       const text = ["The '", Text.bold('action'), "' options must be one of the following values:"];
       text.push(...UserPermissions.map((act) => Text.create(" '", Text.bold(act), "'")));
       await executeService.error('Invalid Options', Text.create(text));
@@ -84,29 +90,31 @@ export class ClientAccessAddCommand extends Command {
 
     const client = await clientService.getAgent(id);
 
-    const isFunctionPermission = isSpecialized(Permissions.allFunction, action);
-    const newAccess = {
-      action,
-      account: profile.account,
-      subscription: isFunctionPermission ? profile.subscription : undefined,
-      boundary: isFunctionPermission ? profile.boundary : undefined,
-      function: isFunctionPermission ? profile.function : undefined,
-    };
+    if (!resource) {
+      const isFunctionPermission = isSpecialized(Permissions.allFunction, action);
+      const newAccess = {
+        action,
+        account: profile.account,
+        subscription: isFunctionPermission ? profile.subscription : undefined,
+        boundary: isFunctionPermission ? profile.boundary : undefined,
+        function: isFunctionPermission ? profile.function : undefined,
+      };
 
-    const resourcePath = [`/account/${newAccess.account}/`];
-    if (isFunctionPermission) {
-      if (newAccess.subscription) {
-        resourcePath.push(`subscription/${newAccess.subscription}/`);
-        if (newAccess.boundary) {
-          resourcePath.push(`boundary/${newAccess.boundary}/`);
-          if (newAccess.function) {
-            resourcePath.push(`function/${newAccess.function}/`);
+      const resourcePath = [`/account/${newAccess.account}/`];
+      if (isFunctionPermission) {
+        if (newAccess.subscription) {
+          resourcePath.push(`subscription/${newAccess.subscription}/`);
+          if (newAccess.boundary) {
+            resourcePath.push(`boundary/${newAccess.boundary}/`);
+            if (newAccess.function) {
+              resourcePath.push(`function/${newAccess.function}/`);
+            }
           }
         }
       }
-    }
 
-    const resource = resourcePath.join('');
+      resource = resourcePath.join('');
+    }
 
     await clientService.confirmAddAgentAccess(client, { action, resource });
 

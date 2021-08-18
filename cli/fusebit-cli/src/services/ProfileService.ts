@@ -15,6 +15,7 @@ import {
 import { ExecuteService } from './ExecuteService';
 import { request } from '@5qtrs/request';
 const QR = require('qrcode-terminal');
+import { decodeJwt } from '@5qtrs/jwt';
 
 // ------------------
 // Internal Constants
@@ -115,6 +116,24 @@ export class ProfileService {
         await this.profile.removeProfile(name);
       }
       return await this.profile.createProfile(name, newProfile);
+    });
+  }
+
+  public async createDefaultProfile(name: string, defaultProfileId: string): Promise<IOAuthFusebitProfile> {
+    return await this.execute(async () => {
+      if (await this.profile.profileExists(name)) {
+        await this.profile.removeProfile(name);
+      }
+      let profile = await this.profile.createDefaultProfile(name, defaultProfileId);
+      try {
+        // Force the OAuth flow to determine the Fusebit account and subscription ID
+        await this.getOAuthAccessToken(profile);
+        profile = (this.getProfile(profile.name) as unknown) as IOAuthFusebitProfile;
+      } catch (e) {
+        await this.removeProfile(name || (await this.profile.getDefaultProfileName()) || defaultProfileId);
+        throw e;
+      }
+      return profile;
     });
   }
 
@@ -502,6 +521,22 @@ export class ProfileService {
       }
     } finally {
       this.input.io.spin(false);
+    }
+
+    // If the profile was created synthetically, save it to disk after adding
+    // the Fusebit account and subscription IDs extracted from the access token.
+    if (profile.synthetic) {
+      const jwt = decodeJwt(payload.access_token);
+      const { accountId, subscriptionId } = (jwt && jwt['https://fusebit.io/profile']) || {};
+      if (!accountId) {
+        throw new Error(`Unable to determine the Fusebit account ID based on the obtained access token.`);
+      }
+      delete profile.synthetic;
+      profile.account = accountId;
+      if (subscriptionId) {
+        profile.subscription = subscriptionId;
+      }
+      await this.updateProfile(profile.name, profile);
     }
 
     // Cache the token for later use

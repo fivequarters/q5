@@ -15,7 +15,7 @@ const command = {
   arguments: [
     {
       name: 'integration',
-      description: 'The id of the integration to deploy',
+      description: 'The id of the integration to get',
       required: true,
     },
   ],

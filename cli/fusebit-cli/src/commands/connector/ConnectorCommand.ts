@@ -36,7 +36,7 @@ const command: ICommand = {
 
 async function getSubCommands() {
   const subCommands = [];
-  subCommands.push(await ConnectorInitCommand.create());
+  // subCommands.push(await ConnectorInitCommand.create());
   subCommands.push(await ConnectorDeployCommand.create());
   subCommands.push(await ConnectorGetCommand.create());
   subCommands.push(await ConnectorListCommand.create());
