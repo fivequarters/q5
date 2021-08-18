@@ -42,7 +42,7 @@ const publishAll = [
   'publish_fusebit_ops_cli',
   'publish_api_docs',
   'publish_proxy_secrets',
-  'publish_api_readme_com'
+  'publish_api_readme_com',
 ];
 const fullBuild = ['setup_env', 'full_build'];
 
@@ -86,7 +86,7 @@ const specs: ISpec[] = [
       on_trigger: {
         pull_request: {
           branches: 'master',
-          types: ['ready_for_review', 'review_requested'],
+          types: ['ready_for_review'],
         },
       },
       runner_type: 'self-hosted',

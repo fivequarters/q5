@@ -58,7 +58,7 @@ const subcomponentRouter = (
           const response = await service.dao.listEntities(
             {
               ...{ accountId: req.params.accountId, subscriptionId: req.params.subscriptionId },
-              ...query.tags(req),
+              ...query.tag(req),
               ...{ idPrefix: `/${parentEntityType}/${parentEntity.__databaseId}/` },
             },
             {
