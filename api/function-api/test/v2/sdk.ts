@@ -198,7 +198,7 @@ export const ApiRequestMap: { [key: string]: any } = {
     list: async (
       account: IAccount,
       query?: {
-        tag?: { tagKey: string; tagValue?: string };
+        tags?: { tagKey: string; tagValue?: string }[];
         limit?: number;
         next?: string;
         idPrefix?: string;
@@ -206,8 +206,19 @@ export const ApiRequestMap: { [key: string]: any } = {
       },
       options?: IRequestOptions
     ) => {
-      const tagString = query?.tag?.tagValue ? `${query.tag.tagKey}=${query.tag.tagValue}` : query?.tag?.tagKey;
-      const queryParams: { [key: string]: any } = { ...query, tag: tagString };
+      const tagString = query?.tags?.length
+        ? query.tags
+            .reduce<string[]>((acc, cur) => {
+              if (cur.tagValue !== undefined) {
+                acc.push(`${cur.tagKey}=${cur.tagValue}`);
+              } else {
+                acc.push(cur.tagKey);
+              }
+              return acc;
+            }, [])
+            .join(',')
+        : undefined;
+      const queryParams: { [key: string]: any } = { ...query, tags: tagString };
       Object.keys(queryParams).forEach((key) => {
         if (queryParams[key] === undefined) {
           delete queryParams[key];
@@ -422,11 +433,10 @@ export const ApiRequestMap: { [key: string]: any } = {
     get: async (account: IAccount, integrationId: string, options?: IRequestOptions) => {
       return v2Request(account, { method: 'GET', uri: `/integration/${encodeURI(integrationId)}`, ...options });
     },
-
     list: async (
       account: IAccount,
       query?: {
-        tag?: { tagKey: string; tagValue?: string };
+        tags?: { tagKey: string; tagValue?: string }[];
         limit?: number;
         next?: string;
         idPrefix?: string;
@@ -434,8 +444,19 @@ export const ApiRequestMap: { [key: string]: any } = {
       },
       options?: IRequestOptions
     ) => {
-      const tagString = query?.tag?.tagValue ? `${query.tag.tagKey}=${query.tag.tagValue}` : query?.tag?.tagKey;
-      const queryParams: { [key: string]: any } = { ...query, tag: tagString };
+      const tagString = query?.tags?.length
+        ? query.tags
+            .reduce<string[]>((acc, cur) => {
+              if (cur.tagValue !== undefined) {
+                acc.push(`${cur.tagKey}=${cur.tagValue}`);
+              } else {
+                acc.push(cur.tagKey);
+              }
+              return acc;
+            }, [])
+            .join(',')
+        : undefined;
+      const queryParams: { [key: string]: any } = { ...query, tags: tagString };
       Object.keys(queryParams).forEach((key) => {
         if (queryParams[key] === undefined) {
           delete queryParams[key];

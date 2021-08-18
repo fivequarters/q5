@@ -1,13 +1,16 @@
 import { Request } from 'express';
 
 const tags = (req: Request) => {
-  if (typeof req.query.tag === 'string' && req.query.tag.length) {
-    const tags = req.query.tag.split(',');
-    return tags.reduce<Record<string, string>>((acc, cur) => {
+  if (typeof req.query.tags === 'string' && req.query.tags.length) {
+    const tags = req.query.tags.split(',');
+    const tagObject = tags.reduce<Record<string, string>>((acc, cur) => {
       const [tagKey, tagValue] = cur.split('=');
       acc[tagKey] = tagValue;
       return acc;
     }, {});
+    return {
+      tags: tagObject,
+    };
   }
   return { tags: {} };
 };
