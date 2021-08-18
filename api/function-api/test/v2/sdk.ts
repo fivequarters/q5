@@ -400,7 +400,7 @@ export const ApiRequestMap: { [key: string]: any } = {
           uri: `/integration/${encodeURI(entityId)}/session/${sessionId}/commit`,
           ...options,
         }),
-      postSession: async (
+      commitSessionAndWait: async (
         account: IAccount,
         entityId: string,
         sessionId: string,
