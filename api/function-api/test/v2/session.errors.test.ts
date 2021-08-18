@@ -1,4 +1,4 @@
-import { request } from '@5qtrs/request';
+import { IHttpResponse, request } from '@5qtrs/request';
 
 import { Model } from '@5qtrs/db';
 import { cleanupEntities, ApiRequestMap, createPair, getElementsFromUrl } from './sdk';
@@ -48,7 +48,7 @@ describe('Sessions', () => {
 
     // Post and check the session to see that the result is an error, generates "Missing child session id"
     // warnings in function-api that probably need to be squelched at some point
-    response = await ApiRequestMap.integration.session.postSession(account, integrationId, parentSessionId);
+    response = await ApiRequestMap.integration.session.commitSession(account, integrationId, parentSessionId);
     expect(response).toBeHttp({ statusCode: 400 });
     expect(response.data.message).toMatch(/bad_monkey/);
   }, 180000);
@@ -101,7 +101,7 @@ describe('Sessions', () => {
     });
 
     // Post and check the session to see that the result is an error
-    response = await ApiRequestMap.integration.session.postSession(account, integrationId, parentSessionId);
+    response = await ApiRequestMap.integration.session.commitSession(account, integrationId, parentSessionId);
     expect(response).toBeHttp({ statusCode: 400 });
     expect(response.data.message).toMatch(/bad_monkey/);
   }, 180000);

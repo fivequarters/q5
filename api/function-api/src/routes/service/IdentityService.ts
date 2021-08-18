@@ -52,7 +52,7 @@ class IdentityService extends BaseEntityService<Model.IIdentity, Model.IIdentity
 
   public deleteEntity = async (entity: Model.IEntity) => {
     return {
-      statusCode: 200,
+      statusCode: 204,
       result: await this.dao.deleteEntity(entity),
     };
   };

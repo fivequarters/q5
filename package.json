@@ -1,5 +1,5 @@
 {
-  "version": "1.22.0",
+  "version": "1.22.3",
   "private": true,
   "org": "5qtrs",
   "engines": {
@@ -35,7 +35,7 @@
     "publish:dev": "yarn-tool yarn publish:dev",
     "publish:prod": "yarn-tool yarn publish:prod",
     "image": "VERSION=$(cat package.json | grep version | head -1 | awk -F: '{ print $2 }' | sed 's/[\",]//g' | tr -d '[[:space:]]') && docker build . -t fusebit-mono:$VERSION --platform linux/amd64",
-    "prettier": "git ls-tree -r `git branch --show-current` --name-only | grep -E \"\\.[tj]?sx?$\" | grep -v assets | xargs -P 1 prettier --write"
+    "prettier": "git ls-tree -r `git branch --show-current` --name-only | grep -E \"\\.[tj]?sx?$|\\.yaml$\" | grep -v assets | xargs -P 1 prettier --write"
   },
   "devDependencies": {
     "@babel/core": "^7.3.3",

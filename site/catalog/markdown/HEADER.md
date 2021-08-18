@@ -1,3 +1,3 @@
-# Lorem Ipsum
+Thanks for trying out Fusebit and downloading your <% global.consts.feed.name %> Integration code.
 
-Lorem ipsum dolor sit amet, id nec summo copiosae voluptaria, in per modo saperet accumsan.
+Use your favorite tools to make any changes to the code in this folder.

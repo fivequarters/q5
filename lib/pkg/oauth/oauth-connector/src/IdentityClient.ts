@@ -1,5 +1,7 @@
 import superagent from 'superagent';
 import { ObjectEntries } from './Utilities';
+import { Internal } from '@fusebit-int/framework';
+import Context = Internal.Types.Context;
 
 interface IOAuthToken {
   access_token: string;
@@ -60,6 +62,16 @@ class IdentityClient {
   };
 
   public saveTokenToSession = async (token: IOAuthToken, sessionId: string) => {
+    if (!token.access_token && !token.refresh_token) {
+      const error = (token as { error?: string }).error;
+      const errorMessageString = error ? `"${error}". ` : '';
+      throw new Error(
+        `${errorMessageString}Access token and Refresh token are both missing on object: ${JSON.stringify(
+          Object.keys(token)
+        )}`
+      );
+    }
+
     sessionId = this.cleanId(sessionId);
     const response = await superagent
       .put(`${this.connectorUrl}/session/${sessionId}`)
@@ -113,8 +125,10 @@ class IdentityClient {
     return response.body;
   };
 
-  public getCallbackUrl = async (sessionId: string): Promise<string> => {
-    return `${this.connectorUrl}/session/${sessionId}/callback`;
+  public getCallbackUrl = async (ctx: Context): Promise<string> => {
+    const url = new URL(`${this.connectorUrl}/session/${ctx.query.state}/callback`);
+    Object.entries<string>(ctx.request.query).forEach(([key, value]) => url.searchParams.append(key, value));
+    return url.toString();
   };
 }
 

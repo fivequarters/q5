@@ -339,13 +339,29 @@ export default abstract class SessionedEntityService<
 
   public postSession = async (entity: Model.IEntity): Promise<IServiceResult> => {
     // Return an operation for creating all of the subsidiary objects.
+    const session = await this.sessionDao.getEntity(entity);
+    this.ensureSessionTrunk(session, 'cannot post non-master session', 400);
+    if (session.data.components) {
+      for (const component of session.data.components) {
+        if (!component.childSessionId) {
+          throw http_error(500, 'Missing child session id');
+        }
+        const componentSession = await this.sessionDao.getEntity({
+          accountId: session.accountId,
+          subscriptionId: session.subscriptionId,
+          id: component.childSessionId,
+        });
+        if (componentSession.data.output.error) {
+          throw http_error(400, componentSession.data.output.error);
+        }
+      }
+    }
+
     return operationService.inOperation(
       Model.EntityType.session,
       entity,
       { verb: OperationVerbs.creating, type: Model.EntityType.session },
       async (operationId: string) => {
-        const session = await this.sessionDao.getEntity(entity);
-        this.ensureSessionTrunk(session, 'cannot post non-master session', 400);
         session.data.operationId = operationId;
         await this.persistTrunkSession(session);
       }
