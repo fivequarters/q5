@@ -29,7 +29,7 @@ const tag = (req: Request) => {
   return results;
 };
 
-const assertsStringArray: (array: any[]) => asserts array is string[] = (array) => {
+const assertsStringArray = (array: any[]): asserts array is string[] => {
   array.forEach((item: any) => {
     if (typeof item !== 'string') {
       throw http_error(400, 'Incorrect query param value for "tag"');
