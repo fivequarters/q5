@@ -13,7 +13,7 @@ export default async function createSession(integrationId: string, tenantId: str
     .send({
       redirectUrl: `${window.location.origin}/callback`,
       tags: {
-        tenantId: tenantId,
+        'fusebit.tenantId': tenantId,
       },
     });
   const sessionId = response.body.id;

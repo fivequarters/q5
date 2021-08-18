@@ -30,7 +30,7 @@ export async function pollSessionStatus(sessionId: string) {
   const localInstance = {
     integrationBaseUrl: session.integrationBaseUrl,
     instanceId,
-    tenantId: instance.tags['tenantId'],
+    'fusebit.tenantId': instance.tags['fusebit.tenantId'],
   };
   saveInstance(localInstance);
 
