@@ -918,7 +918,7 @@ components:
                 description: A message with details regarding the error
                 example: Field redirectUrl is required.
     403:
-      description: The specified resource was not found.
+      description: Access to the requested resource is forbidden.
       content:
         application/json:
           schema:
