@@ -14,7 +14,6 @@ const tag = (req: Request) => {
     assertsStringArray(req.query.tag);
     tagArray = req.query.tag;
   } else {
-    assert(typeof req.query.tag === 'string');
     if (typeof req.query.tag !== 'string') {
       throw http_error(400, 'Incorrect query param value for "tag"');
     }
@@ -29,7 +28,7 @@ const tag = (req: Request) => {
   return results;
 };
 
-const assertsStringArray = (array: any[]): asserts array is string[] => {
+const assertsStringArray: (array: any[]) => asserts array is string[] = (array) => {
   array.forEach((item: any) => {
     if (typeof item !== 'string') {
       throw http_error(400, 'Incorrect query param value for "tag"');
