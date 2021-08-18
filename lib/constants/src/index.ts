@@ -24,6 +24,8 @@ const API_PUBLIC_ENDPOINT = process.env.LOGS_HOST
   ? `https://${process.env.LOGS_HOST}`
   : (process.env.API_SERVER as string);
 
+const API_PUBLIC_HOST = new URL(API_PUBLIC_ENDPOINT || 'http://localhost').host;
+
 let builderVersion: string = 'unknown';
 try {
   builderVersion = require(Path.join(__dirname, '..', '..', '..', 'package.json')).version;
@@ -310,6 +312,7 @@ export {
   REGISTRY_RESERVED_SCOPE_PREFIX,
   RUNAS_SYSTEM_ISSUER_SUFFIX,
   API_PUBLIC_ENDPOINT,
+  API_PUBLIC_HOST,
   MAX_CACHE_REFRESH_RATE,
   dynamoScanTable,
   expBackoff,
