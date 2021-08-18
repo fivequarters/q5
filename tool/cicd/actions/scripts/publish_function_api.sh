@@ -22,7 +22,7 @@ fi
 
 # -- Script --
 set -e
-for OPS_PROFILE in github-automation.321 github-automation.749; do
+for OPS_PROFILE in github-automation.321 github-automation.749 github-automation.763; do
   ${FUSEOPS} profile default ${OPS_PROFILE}
   ${FUSEOPS} image publish ${VERSION} 1>&2
 done
