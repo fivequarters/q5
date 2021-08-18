@@ -62,8 +62,11 @@ class IdentityClient {
   public saveTokenToSession = async (token: IOAuthToken, sessionId: string) => {
     if (!token.access_token && !token.refresh_token) {
       const error = (token as { error?: string }).error;
+      const errorMessageString = error ? `"${error}". ` : '';
       throw new Error(
-        `"${error}". Access token and Refresh token are both missing on object: ${JSON.stringify(Object.keys(token))}`
+        `${errorMessageString}Access token and Refresh token are both missing on object: ${JSON.stringify(
+          Object.keys(token)
+        )}`
       );
     }
 
