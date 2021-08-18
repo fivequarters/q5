@@ -437,12 +437,12 @@ const performTests = (testEntityType: TestableEntityTypes, sampleEntityMap: Samp
     expect(fullListResponse).toBeHttp({ statusCode: 200 });
     expect(fullListResponse.data.items).toHaveLength(entityCount);
 
-    await (Promise as any).allSettled(
+    await (Promise as any).all(
       Object.keys(TagCountMap).map(async (tagKey) => {
         const TagKeyOnlyCount = Object.values(TagCountMap[tagKey]).reduce((acc, cur) => acc + cur, 0);
         const tagKeyOnlyResponse = await ApiRequestMap[testEntityType].list(account, {
           ...getIdPrefix(),
-          tag: { tagKey },
+          tag: [{ tagKey }],
         });
         expect(tagKeyOnlyResponse).toBeHttp({ statusCode: 200 });
         expect(tagKeyOnlyResponse.data).toBeDefined();
@@ -453,7 +453,7 @@ const performTests = (testEntityType: TestableEntityTypes, sampleEntityMap: Samp
             const TagKeyValueCount = TagCountMap[tagKey][tagValue];
             const tagKeyValueResponse = await ApiRequestMap[testEntityType].list(account, {
               ...getIdPrefix(),
-              tag: { tagKey, tagValue },
+              tag: [{ tagKey, tagValue }],
             });
             expect(tagKeyValueResponse).toBeHttp({ statusCode: 200 });
             expect(tagKeyValueResponse.data).toBeDefined();
@@ -462,6 +462,17 @@ const performTests = (testEntityType: TestableEntityTypes, sampleEntityMap: Samp
         );
       })
     );
+    const multiTagEntity = await ApiRequestMap[testEntityType].list(account, {
+      ...getIdPrefix(),
+      tag: [
+        { tagKey: 'tagOne', tagValue: 0 },
+        { tagKey: 'tagTwo', tagValue: 0 },
+        { tagKey: 'tagThree', tagValue: 0 },
+      ],
+    });
+    expect(multiTagEntity).toBeHttp({ statusCode: 200 });
+    expect(multiTagEntity.data).toBeDefined();
+    expect(multiTagEntity.data.items).toHaveLength(1);
   }, 180000);
 
   test('Get Entity Tags', async () => {
