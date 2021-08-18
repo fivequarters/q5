@@ -389,6 +389,17 @@ export const ApiRequestMap: { [key: string]: any } = {
           ...options,
         });
       },
+      commitSession: async (
+        account: IAccount,
+        entityId: string,
+        sessionId: string,
+        options?: Partial<IRequestOptions>
+      ) =>
+        v2Request(account, {
+          method: 'POST',
+          uri: `/integration/${encodeURI(entityId)}/session/${sessionId}/commit`,
+          ...options,
+        }),
       postSession: async (
         account: IAccount,
         entityId: string,
@@ -448,7 +459,7 @@ export const ApiRequestMap: { [key: string]: any } = {
       });
     },
 
-    post: async (account: IAccount, body: Model.ISdkEntity, options?: IRequestOptions) => {
+    post: async (account: IAccount, body: Model.ISdkEntity, options?: Partial<IRequestOptions>) => {
       testEntitiesCreated.push({ entityType: Model.EntityType.integration, id: body.id });
       return v2Request(account, { method: 'POST', uri: '/integration', body, ...options });
     },
@@ -457,7 +468,7 @@ export const ApiRequestMap: { [key: string]: any } = {
       account: IAccount,
       body: Model.ISdkEntity,
       waitOptions: IWaitForCompletionParams = DefaultWaitForCompletionParams,
-      options?: IRequestOptions
+      options?: Partial<IRequestOptions>
     ) => {
       const op = await ApiRequestMap.integration.post(account, body, options);
       expect(op).toBeHttp({ statusCode: 202 });

@@ -342,21 +342,19 @@ export default abstract class SessionedEntityService<
     const session = await this.sessionDao.getEntity(entity);
     this.ensureSessionTrunk(session, 'cannot post non-master session', 400);
     if (session.data.components) {
-      await Promise.all(
-        Object.values(session.data.components).map(async (component) => {
-          if (!component.childSessionId) {
-            throw http_error(500, 'Missing child session id');
-          }
-          const componentSession = await this.sessionDao.getEntity({
-            accountId: session.accountId,
-            subscriptionId: session.subscriptionId,
-            id: component.childSessionId,
-          });
-          if (componentSession.data.output.error) {
-            throw http_error(400, componentSession.data.output.error.message);
-          }
-        })
-      );
+      for (const component of session.data.components) {
+        if (!component.childSessionId) {
+          throw http_error(500, 'Missing child session id');
+        }
+        const componentSession = await this.sessionDao.getEntity({
+          accountId: session.accountId,
+          subscriptionId: session.subscriptionId,
+          id: component.childSessionId,
+        });
+        if (componentSession.data.output.error) {
+          throw http_error(400, componentSession.data.output.error);
+        }
+      }
     }
 
     return operationService.inOperation(

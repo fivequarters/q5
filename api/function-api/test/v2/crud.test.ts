@@ -41,7 +41,7 @@ const sampleEntitiesWithData: SampleEntityMap = {
         ['package.json']: JSON.stringify({
           scripts: {},
           dependencies: {
-            ['@fusebit-int/framework']: '^2.0.7',
+            ['@fusebit-int/framework']: '^3.0.2',
           },
           files: ['./integrationTest.js'],
         }),
