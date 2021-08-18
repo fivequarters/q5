@@ -117,9 +117,8 @@ class IdentityClient {
 
   public getCallbackUrl = async (ctx: Context): Promise<string> => {
     const url = new URL(`${this.connectorUrl}/session/${ctx.query.state}/callback`);
-    url.searchParams;
     Object.entries<string>(ctx.request.query).forEach(([key, value]) => url.searchParams.append(key, value));
-    return url.href;
+    return url.toString();
   };
 }
 
