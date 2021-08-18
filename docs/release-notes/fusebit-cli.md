@@ -17,6 +17,12 @@ All public releases of the Fusebit CLI are documented here, including notable ch
 <!-- 1. TOC
 {:toc} -->
 
+## Version 1.10.1
+
+_Released 08/18/21_
+
+- **Bugfix.** Fix the rendering of the QR code for the OAuth Device Flow on Windows.
+
 ## Version 1.10.0
 
 _Released 08/17/21_

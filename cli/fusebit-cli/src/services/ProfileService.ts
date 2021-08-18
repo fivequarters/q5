@@ -476,10 +476,10 @@ export class ProfileService {
       Text.bold(oauthInitResponse.data.user_code),
       Text.eol(),
       Text.eol(),
-      qrcode,
     ];
 
     await this.executeService.info('Complete login...', Text.create(details));
+    console.log(qrcode);
 
     // Wait for user to complete the device flow login
 
