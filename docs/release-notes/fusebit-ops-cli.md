@@ -18,6 +18,12 @@ All public releases of the Fusebit Operations CLI are documented here, including
 {:toc}
 -->
 
+## Version 1.28.8
+
+_Released 08/18/21_
+
+- **Enhancement.** Lambda analytics now links unauthenticated requests to the subscription id before offloading to Segment.
+
 ## Version 1.28.7
 
 _Released 08/16/21_
