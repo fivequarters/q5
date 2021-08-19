@@ -1,9 +1,16 @@
-<html>
-
-<head>
+<!DOCTYPE html>
+<html lang="en">
+    <meta charset="utf-8" />
     <title>Fusebit integration test</title>
-    <link href='https://fonts.googleapis.com/css?family=Poppins' rel='stylesheet'>
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <link href="https://fonts.googleapis.com/css?family=Poppins" rel="stylesheet" />
     <script src="https://cdnjs.cloudflare.com/ajax/libs/superagent/4.1.0/superagent.min.js"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.2.0/styles/default.min.css" />
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/highlightjs-themes@1.0.0/solarized_dark.css" />
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.2.0/highlight.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.2.0/languages/node-repl.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.2.0/languages/bash.min.js"></script>
+  
     <style>
         body {
             display: flex;
@@ -38,6 +45,11 @@
             width: 100%;
             white-space: pre-wrap;
             word-break: break-all;
+        }
+
+        #curl .hljs-number,
+        #curl .hljs-built_in {
+            color: #839496;
         }
     </style>
 </head>
@@ -87,14 +99,17 @@
 
         function showInstructions(accessToken, integrationBaseUrl, tenantId, instanceId) {
             stopSpinner();
+            const curlElement = document.getElementById('curl');
+            const nodeElement = document.getElementById('node');
 
-            document.getElementById('curl').innerText =
+            curlElement.innerHTML =
                 [
                     `curl -X POST ${integrationBaseUrl}/api/tenant/${encodeURIComponent(tenantId)}/test \\\n`,
                     `\t-H 'Content-Type: application/json' \\\n`,
                     `\t-H "Authorization: Bearer \`fuse token -o raw\`"`
                 ].join('');
-            document.getElementById('node').innerText = [
+
+                nodeElement.innerHTML = [
                 `const superagent = require('superagent');`,
                 ``,
                 `const accessToken = '${accessToken}';`,
@@ -105,7 +120,9 @@
                 `    .set('Authorization', \`Bearer \${accessToken}\`);`,
                 `})();`
                 ].join('\n');
-
+            
+            hljs.highlightElement(curlElement, 'bash');
+            hljs.highlightElement(nodeElement, 'node-repl');
             document.getElementById('instructions').style.display = 'block';
         }
 
