@@ -63,14 +63,18 @@ namespace EntityBase {
       options?: Storage.IListOption
     ) => Promise<any> = async (ctx: RouterContext, dataKeyPrefix: string, options?: Storage.IListOption) =>
       Storage.createStorage(ctx.state.params).list(dataKeyPrefix, options);
-    public deleteData: (ctx: RouterContext, dataKey: string) => Promise<any> = async (
+    public deleteData: (ctx: RouterContext, dataKey: string, version?: string) => Promise<any> = async (
       ctx: RouterContext,
-      dataKey: string
-    ) => Storage.createStorage(ctx.state.params).delete(dataKey);
-    public deletePrefixedData: (ctx: RouterContext, dataKeyPrefix?: string) => Promise<any> = (
+      dataKey: string,
+      version?: string
+    ) => Storage.createStorage(ctx.state.params).delete(dataKey, version);
+    public deletePrefixedData: (ctx: RouterContext, dataKeyPrefix: string, version?: string) => Promise<any> = (
       ctx: RouterContext,
-      dataKeyPrefix?: string
-    ) => Storage.createStorage(ctx.state.params).delete(dataKeyPrefix, true, true);
+      dataKeyPrefix: string,
+      version?: string
+    ) => Storage.createStorage(ctx.state.params).deletePrefixed(dataKeyPrefix, version);
+    public deleteAllData: (ctx: RouterContext, forceDelete: boolean) => Promise<any> = (ctx, forceDelete) =>
+      Storage.createStorage(ctx.state.params).deleteAll(forceDelete);
   }
   export abstract class MiddlewareBase {
     public authorizeUser = Middleware.authorize;
