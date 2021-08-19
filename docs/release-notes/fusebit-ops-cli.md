@@ -18,6 +18,12 @@ All public releases of the Fusebit Operations CLI are documented here, including
 {:toc}
 -->
 
+## Version 1.28.9
+
+_Released 08/18/21_
+
+- **Enhancement.** Lambda analytics now supports self-issued JWTs, linking them to the subscription aimed by the client using these tokens.
+
 ## Version 1.28.8
 
 _Released 08/18/21_
