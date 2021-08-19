@@ -4,29 +4,44 @@ const removeLeadingSlash = (s: string) => s.replace(/^\/(.+)$/, '$1');
 const removeTrailingSlash = (s: string) => s.replace(/^(.+)\/$/, '$1');
 
 export interface IStorageResponse {
+  storageId: string;
   data: any;
   etag: string;
   tags: Record<string, string>;
 }
 
+export interface IStorageResponseList {
+  items: IStorageResponse[];
+  total: number;
+}
+
+export interface IStorageResponseDelete {}
+
 export interface IStorageVersionedResponse {
-  data: any;
-  version: string;
-  tags: Record<string, string>;
+  storageId: string;
+  data?: any;
+  version?: string;
+  tags?: Record<string, string>;
+  status: number;
 }
 
 export interface IStorageVersionedResponseList {
-  items: IStorageVersionedResponse[];
+  items: Omit<IStorageVersionedResponse, 'status'>[];
   total: number;
+  status: number;
+}
+
+export interface IStorageVersionedResponseDelete {
+  status: number;
 }
 
 export interface IStorageClient {
   accessToken: string;
-  get: (storageSubId?: string) => Promise<IStorageVersionedResponse | undefined>;
+  get: (storageSubId: string) => Promise<IStorageVersionedResponse>;
   put: (data: any, storageSubId?: string, version?: string) => Promise<IStorageVersionedResponse>;
-  deletePrefixed: (storageSubId: string, version?: string) => Promise<IStorageVersionedResponse>;
-  deleteAll: (forceRecursive: boolean) => Promise<IStorageVersionedResponseList>;
-  delete: (storageSubId: string, version?: string) => Promise<IStorageVersionedResponse>;
+  deletePrefixed: (storageSubId: string, version?: string) => Promise<IStorageVersionedResponseDelete>;
+  deleteAll: (forceRecursive: boolean) => Promise<IStorageVersionedResponseDelete>;
+  delete: (storageSubId: string, version?: string) => Promise<IStorageVersionedResponseDelete>;
   list: (storageSubId: string, options?: IListOption) => Promise<IStorageVersionedResponseList>;
 }
 export interface IListOption {
@@ -49,11 +64,27 @@ export const createStorage = (params: IStorageParam): IStorageClient => {
     params.subscriptionId
   }/storage${storageIdPrefix ? '/' + storageIdPrefix : ''}`;
 
-  const convertToVersion = (response: IStorageResponse) => {
+  const convertItemToVersion = (body: IStorageResponse, status: number) => {
     const versionResponse: IStorageVersionedResponse = {
-      data: response.data,
-      tags: response.tags,
-      version: response.etag,
+      storageId: body.storageId.split('/').slice(2).join('/'),
+      data: body.data,
+      tags: body.tags,
+      version: body.etag,
+      status,
+    };
+    return versionResponse;
+  };
+
+  const convertListToVersion = (body: IStorageResponseList, status: number) => {
+    const versionResponse: IStorageVersionedResponseList = {
+      items: body.items.map((item) => ({
+        data: item.data,
+        tags: item.tags,
+        version: item.etag,
+        storageId: item.storageId.split('/').slice(2).join('/'),
+      })),
+      total: body.total,
+      status,
     };
     return versionResponse;
   };
@@ -65,17 +96,13 @@ export const createStorage = (params: IStorageParam): IStorageClient => {
 
   const storageClient: IStorageClient = {
     accessToken: params.functionAccessToken,
-    get: async (storageSubId?: string) => {
+    get: async (storageSubId: string) => {
       storageSubId = storageSubId ? removeTrailingSlash(removeLeadingSlash(storageSubId)) : '';
-      if (!storageSubId && !storageIdPrefix) {
-        return undefined;
-      }
-
       const response = await superagent
         .get(getUrl(storageSubId))
         .set('Authorization', `Bearer ${storageClient.accessToken}`)
         .ok((res) => res.status < 300 || res.status === 404);
-      return response.status === 404 ? undefined : convertToVersion(response.body);
+      return convertItemToVersion(response.body, response.status);
     },
     put: async (data: any, storageSubId?: string, version?: string) => {
       storageSubId = storageSubId ? removeTrailingSlash(removeLeadingSlash(storageSubId)) : '';
@@ -89,7 +116,7 @@ export const createStorage = (params: IStorageParam): IStorageClient => {
         request.set('If-Match', version);
       }
       const response = await request.send({ data, etag: version });
-      return convertToVersion(response.body);
+      return convertItemToVersion(response.body, response.status);
     },
     deleteAll: async (forceRecursive?: boolean) => {
       if (!forceRecursive) {
@@ -101,8 +128,7 @@ export const createStorage = (params: IStorageParam): IStorageClient => {
         .delete(`${getUrl('')}/*`)
         .set('Authorization', `Bearer ${storageClient.accessToken}`)
         .ok((res) => res.status === 404 || res.status === 204);
-      response.body.items = response.body.items.map(convertToVersion);
-      return response.body;
+      return { status: response.status };
     },
     delete: async (storageSubId: string, version?: string) => {
       storageSubId = storageSubId ? removeLeadingSlash(removeTrailingSlash(storageSubId)) : '';
@@ -113,7 +139,7 @@ export const createStorage = (params: IStorageParam): IStorageClient => {
         request.set('If-Match', version);
       }
       const response = await request.ok((res) => res.status === 404 || res.status === 204);
-      return convertToVersion(response.body);
+      return { status: response.status };
     },
     deletePrefixed: async (storageSubId: string, version?: string) => {
       storageSubId = storageSubId ? removeLeadingSlash(removeTrailingSlash(storageSubId)) : '';
@@ -124,8 +150,7 @@ export const createStorage = (params: IStorageParam): IStorageClient => {
         request.set('If-Match', version);
       }
       const response = await request.ok((res) => res.status === 404 || res.status === 204);
-      response.body.items = response.body.items.map(convertToVersion);
-      return response.body;
+      return { status: response.status };
     },
     list: async (storageSubId: string, { count, next }: IListOption = {}) => {
       const response = await superagent
@@ -133,8 +158,8 @@ export const createStorage = (params: IStorageParam): IStorageClient => {
         .query(count && !isNaN(count) ? { count } : { count: 5 })
         .query(typeof next === 'string' ? { next } : {})
         .set('Authorization', `Bearer ${storageClient.accessToken}`);
-      response.body.items = response.body.items.map(convertToVersion);
-      return response.body;
+      const result = convertListToVersion(response.body, response.status);
+      return result;
     },
   };
 
