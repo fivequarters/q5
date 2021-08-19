@@ -13,6 +13,7 @@ export interface IStorageResponse {
 export interface IStorageResponseList {
   items: IStorageResponse[];
   total: number;
+  next: string;
 }
 
 export interface IStorageResponseDelete {}
@@ -29,6 +30,7 @@ export interface IStorageVersionedResponseList {
   items: Omit<IStorageVersionedResponse, 'status'>[];
   total: number;
   status: number;
+  next: string;
 }
 
 export interface IStorageVersionedResponseDelete {
@@ -84,6 +86,7 @@ export const createStorage = (params: IStorageParam): IStorageClient => {
         storageId: item.storageId.split('/').slice(2).join('/'),
       })),
       total: body.total,
+      next: body.next,
       status,
     };
     return versionResponse;
