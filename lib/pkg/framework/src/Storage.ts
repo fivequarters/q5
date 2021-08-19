@@ -103,7 +103,8 @@ export const createStorage = (params: IStorageParam): IStorageClient => {
         .query(count && !isNaN(count) ? { count } : { count: 5 })
         .query(typeof next === 'string' ? { next } : {})
         .set('Authorization', `Bearer ${storageClient.accessToken}`);
-      return convertToVersion(response.body);
+      response.body.items = response.body.items.map(convertToVersion);
+      return response.body;
     },
   };
 
