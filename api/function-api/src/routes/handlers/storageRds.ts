@@ -11,10 +11,11 @@ interface IStorageResult {
   etag: string;
   tags: any;
   expires?: string;
+  storageId: string;
 }
 
 function normalize(e: Model.IEntity): IStorageResult {
-  return { data: e.data, etag: `${e.version}`, tags: e.tags, expires: e.expires };
+  return { data: e.data, etag: `${e.version}`, tags: e.tags, expires: e.expires, storageId: e.id };
 }
 
 const makeRequest = (req: Request, version?: string) => ({
@@ -61,6 +62,7 @@ function storageList() {
           tags: e.tags,
           expires: e.expires,
           etag: e.version as string,
+          data: e.data,
         })),
       };
     } catch (err) {

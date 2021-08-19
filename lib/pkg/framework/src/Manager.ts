@@ -231,6 +231,7 @@ class Manager {
       subscriptionId: fusebitCtx.subscriptionId,
       entityType: fusebitCtx.boundaryId,
       entityId: fusebitCtx.functionId,
+      storageIdPrefix: `/${fusebitCtx.boundaryId}/${fusebitCtx.functionId}`,
       ...(fusebitCtx.fusebit // Not present during initial startup events, for example.
         ? {
             endpoint: fusebitCtx.fusebit.endpoint,
