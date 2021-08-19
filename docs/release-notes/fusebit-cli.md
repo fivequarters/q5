@@ -17,6 +17,12 @@ All public releases of the Fusebit CLI are documented here, including notable ch
 <!-- 1. TOC
 {:toc} -->
 
+## Version 1.11.0
+
+_Released 08/18/21_
+
+- **Enhancement.** Add `fuse integration test` command to simplify testing an integration.
+
 ## Version 1.10.1
 
 _Released 08/18/21_

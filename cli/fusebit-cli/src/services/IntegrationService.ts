@@ -3,8 +3,8 @@ import { IExecuteInput } from '@5qtrs/cli';
 import { ProfileService } from './ProfileService';
 import { ExecuteService } from './ExecuteService';
 import { IBaseComponentType, BaseComponentService } from './BaseComponentService';
-
 import { IIntegrationData, EntityType } from '@fusebit/schema';
+import open from 'open';
 
 interface IIntegration extends IBaseComponentType {
   data: IIntegrationData;
@@ -71,5 +71,34 @@ export class IntegrationService extends BaseComponentService<IIntegration> {
       await this.input.io.writeLineRaw(this.getUrl(profile, item.id));
       await this.input.io.writeLine();
     }
+  }
+
+  public async openDemoApp(integrationId: string, tenantId: string) {
+    const profile = await this.profileService.getExecutionProfile(['account', 'subscription']);
+
+    const demoAppUrl = `https://cdn.fusebit.io/fusebit/app/index.html#accessToken=${
+      profile.accessToken
+    }&tenantId=${encodeURIComponent(tenantId)}&integrationBaseUrl=${profile.baseUrl}/v2/account/${
+      profile.account
+    }/subscription/${profile.subscription}/integration/${integrationId}`;
+
+    await this.executeService.result(
+      `Test ${integrationId}`,
+      Text.create(
+        "Testing the '",
+        Text.bold(`${integrationId}`),
+        `' integration for tenant ID '`,
+        Text.bold(`${tenantId}`),
+        `'.`,
+        Text.eol(),
+        Text.eol(),
+        'If the browser does not open up automatically, navigate to the URL shown below:'
+      )
+    );
+
+    console.log(demoAppUrl);
+    console.log();
+
+    open(demoAppUrl);
   }
 }
