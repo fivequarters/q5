@@ -1,9 +1,13 @@
 {
   "name": "@fusebit-int/oauth-connector",
-  "version": "2.0.1",
+  "version": "2.1.0",
   "description": "",
   "main": "libc/index.js",
-  "files": ["libc/**/*.js", "libc/**/*.d.ts", "libc/**/*.json"],
+  "files": [
+    "libc/**/*.js",
+    "libc/**/*.d.ts",
+    "libc/**/*.json"
+  ],
   "license": "SEE LICENSE IN LICENSE",
   "author": "Fusebit, Inc.",
   "scripts": {

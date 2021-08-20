@@ -1,9 +1,13 @@
 {
   "name": "@fusebit-int/slack-connector",
-  "version": "2.0.1",
+  "version": "2.1.0",
   "description": "",
   "main": "libc/index.js",
-  "files": ["libc/**/*.js", "libc/**/*.d.ts", "libc/**/*.json"],
+  "files": [
+    "libc/**/*.js",
+    "libc/**/*.d.ts",
+    "libc/**/*.json"
+  ],
   "license": "SEE LICENSE IN LICENSE",
   "author": "Fusebit, Inc.",
   "scripts": {
@@ -15,7 +19,7 @@
   },
   "keywords": [],
   "dependencies": {
-    "@fusebit-int/oauth-connector": "^2.0.0",
+    "@fusebit-int/oauth-connector": "^2.1.0",
     "@slack/web-api": "^6.3.0",
     "superagent": "6.1.0"
   },
