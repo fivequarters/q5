@@ -57,7 +57,7 @@ const crudValidation = async (entityType: Model.EntityType) => {
     const invalidCharacters = ['?', '!', '+', '"', '}', '{', `\'`, '<', '>'];
     await Promise.all(
       invalidCharacters.map((ch) =>
-        expect(ApiRequestMap[entityType].list(account, { tag: { tagKey: ch, tagValue: '1' } })).resolves.toBeHttp({
+        expect(ApiRequestMap[entityType].list(account, { tag: [{ tagKey: ch, tagValue: '1' }] })).resolves.toBeHttp({
           statusCode: 400,
         })
       )
