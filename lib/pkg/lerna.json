@@ -1,6 +1,6 @@
 {
   "packages": ["../pkg/**"],
-  "version": "fixed",
+  "version": "independent",
   "npmClient": "yarn",
   "command": {
     "publish": {
