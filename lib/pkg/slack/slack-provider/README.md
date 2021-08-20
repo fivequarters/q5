@@ -1,0 +1,1 @@
+# @fusebit-int/slack-provider
