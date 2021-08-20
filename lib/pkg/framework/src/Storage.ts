@@ -89,6 +89,7 @@ export const createStorage = (params: IStorageParam): IStorageClient => {
       next: body.next,
       status,
     };
+    console.log('version response test');
     return versionResponse;
   };
 
