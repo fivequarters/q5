@@ -351,7 +351,7 @@ export default abstract class SessionedEntityService<
           subscriptionId: session.subscriptionId,
           id: component.childSessionId,
         });
-        if (componentSession.data.output.error) {
+        if (componentSession.data.output?.error) {
           throw http_error(400, componentSession.data.output.error);
         }
       }
