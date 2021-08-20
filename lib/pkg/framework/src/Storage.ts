@@ -89,6 +89,8 @@ export const createStorage = (params: IStorageParam): IStorageClient => {
       next: body.next,
       status,
     };
+    console.log('version response');
+    console.log('it works from lerna');
     return versionResponse;
   };
 
