@@ -1,0 +1,3 @@
+steps:
+  - name: Build
+    run: ./tool/cicd/actions/scripts/clean_test_env.sh

@@ -41,6 +41,8 @@ jobs:
         env:
           FUSE_PROFILE: cicd
         run: ./tool/cicd/actions/scripts/publish_all_pkg.sh
+      - name: Build
+        run: ./tool/cicd/actions/scripts/clean_test_env.sh
       - name: Publish - function-api - 749 Only
         run: ./tool/cicd/actions/scripts/publish_function_api_dev.sh
       - name: Test - deploy exclusive to cicd/us-east-2
