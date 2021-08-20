@@ -1,6 +1,6 @@
 {
   "name": "@fusebit-int/slack-provider",
-  "version": "2.1.0",
+  "version": "2.1.1",
   "description": "",
   "main": "libc/index.js",
   "files": [
