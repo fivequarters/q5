@@ -7,6 +7,7 @@ export default class SlackProvider extends Internal.ProviderActivator<WebClient>
    */
   protected async instantiate(ctx: Internal.Types.Context, lookupKey: string): Promise<WebClient> {
     const token = await this.requestConnectorToken({ ctx, lookupKey });
+    console.log('it works');
     return new WebClient(token);
   }
 }
