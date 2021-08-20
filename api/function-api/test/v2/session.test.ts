@@ -485,7 +485,7 @@ describe('Sessions', () => {
     response = await ApiRequestMap.operation.get(account, operationId);
     expect(response).toBeHttp({ statusCode: 200 });
 
-    // New call to `postSession` results in new operationId, but new operation
+    // New call to `commitSessionAndWait` results in new operationId, but new operation
     // does an update on the same instance with contents of session
     await ApiRequestMap.integration.session.commitSessionAndWait(account, integrationId, parentSessionId);
     response = await ApiRequestMap.integration.session.getResult(account, integrationId, parentSessionId);
