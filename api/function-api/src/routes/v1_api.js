@@ -684,7 +684,7 @@ router.put(
   cors(corsManagementOptions),
   validate_schema({ params: require('./validation/api_params') }),
   authorize({ operation: StorageActions.putStorage }),
-  express.json(),
+  express.json({ limit: 500 * 1024 }),
   validate_schema({ body: require('./validation/storage') }),
   storage.storagePut(),
   analytics.finished

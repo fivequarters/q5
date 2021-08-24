@@ -1,7 +1,5 @@
-import { random } from '@5qtrs/random';
-
 import { getMalformedAccount, getNonExistingAccount } from './accountResolver';
-import { setStorage, getStorage, cleanUpStorage, INVALID_UUID } from './sdk';
+import { setStorage, cleanUpStorage, INVALID_UUID } from './sdk';
 
 import { getEnv } from './setup';
 
@@ -17,7 +15,7 @@ afterEach(async () => {
 describe('Storage Set', () => {
   describe('Set', () => {
     test('Setting storage with no etag and no storage path should work', async () => {
-      const storageId = `test-${random()}`;
+      const storageId = `test-${boundaryId}`;
       const storageData = { data: 'hello world' };
       const storage = await setStorage(account, storageId, storageData);
       expect(storage).toBeHttp({ statusCode: 200 });
@@ -26,7 +24,7 @@ describe('Storage Set', () => {
     }, 180000);
 
     test('Setting storage with hierarchy should work', async () => {
-      const storageId = `test-${random()}/foo/bar/baz`;
+      const storageId = `test-${boundaryId}/foo/bar/baz`;
       const storageData = { data: 'hello world' };
       const storage = await setStorage(account, storageId, storageData);
       expect(storage).toBeHttp({ statusCode: 200 });
@@ -35,14 +33,14 @@ describe('Storage Set', () => {
     }, 180000);
 
     test('Setting storage with hierarchy without leading slash should fail', async () => {
-      const storageId = `test-${random()}/foo/bar/baz`;
+      const storageId = `test-${boundaryId}/foo/bar/baz`;
       const storageData = { data: 'hello world' };
       const storage = await setStorage(account, storageId, storageData, undefined, true);
       expect(storage).toBeHttp({ statusCode: 404 });
     }, 180000);
 
     test('Setting storage with hierarchy and funky characters should work', async () => {
-      const storageId = `test-${random()}/:$()!@/b12+/ba_^`;
+      const storageId = `test-${boundaryId}/:$()!@/b12+/ba_^`;
       const storageData = { data: 'hello world' };
       const storage = await setStorage(account, storageId, storageData);
       expect(storage).toBeHttp({ statusCode: 200 });
@@ -50,15 +48,25 @@ describe('Storage Set', () => {
       expect(storage.data.etag).toBeUUID();
     }, 180000);
 
+    test('Setting storage with near the maximum size should work', async () => {
+      const storageId = `test-${boundaryId}`;
+      const payload = new Array(450 * 1024).join('A');
+      const storageData = { data: payload };
+      const storage = await setStorage(account, storageId, storageData);
+      expect(storage).toBeHttp({ statusCode: 200 });
+      expect(storage.data.data).toEqual(payload);
+      expect(storage.data.etag).toBeUUID();
+    }, 180000);
+
     test('Setting storage with hierarchy and star character in storageId should fail', async () => {
-      const storageId = `test-${random()}/foo/b*r/baz`;
+      const storageId = `test-${boundaryId}/foo/b*r/baz`;
       const storageData = { data: 'hello world' };
       const storage = await setStorage(account, storageId, storageData);
       expect(storage).toBeHttp({ statusCode: 400 });
     }, 180000);
 
     test('Setting storage with a valid etag in the body and no storage path should work', async () => {
-      const storageId = `test-${random()}`;
+      const storageId = `test-${boundaryId}`;
       const storageData = { data: 'hello world' };
       const storage = await setStorage(account, storageId, storageData);
       expect(storage).toBeHttp({ statusCode: 200 });
@@ -73,7 +81,7 @@ describe('Storage Set', () => {
     }, 180000);
 
     test('Setting storage with a valid etag in the header and no storage path should work', async () => {
-      const storageId = `test-${random()}`;
+      const storageId = `test-${boundaryId}`;
       const storageData = { data: 'hello world' };
       const storage = await setStorage(account, storageId, storageData);
       expect(storage).toBeHttp({ statusCode: 200 });
@@ -90,7 +98,7 @@ describe('Storage Set', () => {
     }, 180000);
 
     test('Setting storage with a valid etag in the header and body and no storage path should work', async () => {
-      const storageId = `test-${random()}`;
+      const storageId = `test-${boundaryId}`;
       const storageData = { data: 'hello world' };
       const storage = await setStorage(account, storageId, storageData);
       expect(storage).toBeHttp({ statusCode: 200 });
@@ -106,7 +114,7 @@ describe('Storage Set', () => {
     }, 180000);
 
     test('Setting storage with an invalid etag in the header and no storage path should error', async () => {
-      const storageId = `test-${random()}`;
+      const storageId = `test-${boundaryId}`;
       const storageData = { data: 'hello world' };
       const storage = await setStorage(account, storageId, storageData);
       expect(storage).toBeHttp({ statusCode: 200 });
@@ -120,7 +128,7 @@ describe('Storage Set', () => {
     }, 180000);
 
     test('Setting storage with an invalid etag in the body and no storage path should return an error', async () => {
-      const storageId = `test-${random()}`;
+      const storageId = `test-${boundaryId}`;
       const storageData = { data: 'hello world' };
       const storage = await setStorage(account, storageId, storageData);
       expect(storage).toBeHttp({ statusCode: 200 });
@@ -133,7 +141,7 @@ describe('Storage Set', () => {
     }, 180000);
 
     test('Setting storage with an etag mismatch in the header and body should return an error', async () => {
-      const storageId = `test-${random()}`;
+      const storageId = `test-${boundaryId}`;
       const storageData = { data: 'hello world' };
       const storage = await setStorage(account, storageId, storageData);
       expect(storage).toBeHttp({ statusCode: 200 });
@@ -149,7 +157,7 @@ describe('Storage Set', () => {
     }, 180000);
 
     test('Setting storage with no data should return an error', async () => {
-      const storageId = `test-${random()}`;
+      const storageId = `test-${boundaryId}`;
       const storageData = { data: '' };
       const storage = await setStorage(account, storageId, storageData);
       expect(storage).toBeHttpError(400, `No data was provided for '${storageId}'`);
