@@ -112,14 +112,15 @@ export class IntegrationService extends BaseComponentService<IIntegration> {
         'Invalid Integration',
         Text.create(
           'The directory you are deploying looks empty. ',
-          'Please, make sure you are using the correct one before before running this command again.'
+          'Please, make sure your integration has, at least, a package.json file, a fusebit.json file',
+          ', and a handler. For more information, please, check https://developer.fusebit.io/docs/.'
         )
       );
     }
 
     const integrationHandler = integrationSpec.data?.handler;
 
-    const isHandlerARealFile = Object.keys(files).find((file: string) => file.indexOf(`${integrationHandler}.js`) >= 0);
+    const isHandlerARealFile = Object.keys(files).some((file: string) => file.indexOf(`${integrationHandler}.js`) >= 0);
     if (!isHandlerARealFile) {
       await this.executeService.error(
         'Invalid Integration',
