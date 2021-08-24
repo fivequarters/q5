@@ -17,12 +17,17 @@ All public releases of the Fusebit HTTP API are documented here, including notab
 <!-- 1. TOC
 {:toc} -->
 
+## Version 1.22.6
+
+_Released 08/23/21_
+
+- **Enhancement.** Storage Id field added to GET requests for storage data.
 
 ## Version 1.22.5
 
 _Released 08/23/21_
 
-- **Enhancement.** Storage Id field added to GET requests for storage data.
+- **Enhancement.** Increase maximum storage payload size up to 400kb.
 
 ## Version 1.21.3
 
