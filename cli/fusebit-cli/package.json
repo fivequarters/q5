@@ -1,6 +1,6 @@
 {
   "name": "@5qtrs/fusebit-cli",
-  "version": "1.11.0",
+  "version": "1.11.1",
   "description": "",
   "main": "libc/index.js",
   "bin": {
@@ -35,18 +35,54 @@
     "@5qtrs/jwt": "^0.0.1",
     "@5qtrs/random": "^0.0.1",
     "@5qtrs/request": "^0.0.1",
+    "@fusebit/schema": "^1.0.0",
     "@fusebit/tunnel": "^3.2.5",
     "@types/open": "^6.0.0",
+    "axios": "^0.21.0",
+    "buffer-equal-constant-time": "1.0.1",
+    "ecdsa-sig-formatter": "1.0.11",
     "express": "^4.17.1",
+    "follow-redirects": "^1.10.0",
     "globby": "^11.0.3",
+    "jsonwebtoken": "^8.5.0",
+    "jwa": "^1.4.1",
+    "jws": "^3.2.2",
+    "lodash.includes": "^4.3.0",
+    "lodash.isboolean": "^3.0.3",
+    "lodash.isinteger": "^4.0.4",
+    "lodash.isnumber": "^3.0.3",
+    "lodash.isplainobject": "^4.0.6",
+    "lodash.isstring": "^4.0.1",
+    "lodash.once": "^4.0.0",
+    "ms": "^2.1.1",
     "open": "^6.0.0",
     "qrcode-terminal": "^0.12.0",
-    "@fusebit/schema": "^1.0.0"
+    "safe-buffer": "^5.0.1",
+    "semver": "^5.6.0",
+    "uuid": "^7.0.3"
   },
   "devDependencies": {
     "@types/opn": "^5.5.0"
   },
   "bundledDependencies": [
-    "@fusebit/schema"
+    "@fusebit/schema",
+    "semver",
+    "lodash.isstring",
+    "lodash.once",
+    "axios",
+    "lodash.isplainobject",
+    "ecdsa-sig-formatter",
+    "lodash.isboolean",
+    "jws",
+    "ms",
+    "buffer-equal-constant-time",
+    "jsonwebtoken",
+    "lodash.isnumber",
+    "jwa",
+    "follow-redirects",
+    "lodash.includes",
+    "safe-buffer",
+    "lodash.isinteger",
+    "uuid"
   ]
 }

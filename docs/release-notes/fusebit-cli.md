@@ -17,6 +17,12 @@ All public releases of the Fusebit CLI are documented here, including notable ch
 <!-- 1. TOC
 {:toc} -->
 
+## Version 1.11.1
+
+_Released 08/23/21_
+
+- **Bugfix.** Fix compatibility issues with npm 7.
+
 ## Version 1.11.0
 
 _Released 08/18/21_
