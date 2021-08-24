@@ -101,4 +101,37 @@ export class IntegrationService extends BaseComponentService<IIntegration> {
 
     open(demoAppUrl);
   }
+
+  public async loadDirectory(path: string): Promise<IIntegration> {
+    const integrationSpec = await super.loadDirectory(path);
+
+    const files = integrationSpec.data?.files || {};
+    const isFilesDefined = !!Object.keys(files).length;
+    if (!isFilesDefined) {
+      await this.executeService.error(
+        'Invalid Integration',
+        Text.create(
+          'The directory you are deploying looks empty. ',
+          'Please, make sure you are using the correct one before before running this command again.'
+        )
+      );
+    }
+
+    const integrationHandler = integrationSpec.data?.handler;
+
+    const isHandlerARealFile = Object.keys(files).find((file: string) => file.indexOf(`${integrationHandler}.js`) >= 0);
+    if (!isHandlerARealFile) {
+      await this.executeService.error(
+        'Invalid Integration',
+        Text.create(
+          "You have defined '",
+          Text.bold(integrationHandler),
+          "' as the integration handler, but this file does not exist. ",
+          'Please, make sure you define it before deploying the integration.'
+        )
+      );
+    }
+
+    return integrationSpec;
+  }
 }
