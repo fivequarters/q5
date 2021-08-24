@@ -22,7 +22,7 @@ All public releases of the Fusebit HTTP API are documented here, including notab
 
 _Released 08/23/21_
 
-- **Bugfix.** Removed data from storage list call to improve performance.
+- **Enhancement.** Storage Id field added to GET requests for storage data.
 
 ## Version 1.21.3
 
