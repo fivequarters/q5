@@ -73,6 +73,8 @@ const RUNAS_ISSUER = 'runas-system-issuer';
 
 const MAX_CACHE_REFRESH_RATE = 10 * 1000;
 
+const EPHEMERAL_ENTITY_EXPIRATION = '10h';
+
 // Changes to this variable will also require changing AgentTooltip.tsx in Portal.
 const RUNAS_SYSTEM_ISSUER_SUFFIX = 'system.fusebit.io';
 
@@ -299,6 +301,7 @@ export {
   getFunctionVersion,
   getFunctionAuthorization,
   getFunctionAuthentication,
+  EPHEMERAL_ENTITY_EXPIRATION,
   REGISTRY_CATEGORY,
   REGISTRY_CATEGORY_CONFIG,
   REGISTRY_DEFAULT,
