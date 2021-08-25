@@ -12,6 +12,17 @@ export enum EntityType {
   session = 'session',
 }
 
+export enum EntityState {
+  creating = 'creating',
+  invalid = 'invalid',
+  active = 'active',
+}
+
+export interface IOperationStatus {
+  statusCode: number;
+  message: string;
+}
+
 export interface ITags {
   [key: string]: string;
 }
@@ -41,12 +52,16 @@ export interface IEntityPrefix extends IEntitySelectAbstract {
   idPrefix?: string;
 }
 
-// Data needed for inserts
 export interface IEntity extends IEntityId {
   tags?: ITags;
   data?: any;
   expires?: string;
+  state?: EntityState;
+  operationStatus?: IOperationStatus;
+  dateAdded?: string;
+  dateModified?: string;
 }
+
 export interface IEntityKeyTagSet extends IEntityId {
   tagKey: string;
   tagValue?: string;
@@ -71,6 +86,10 @@ export interface ISdkEntity {
   data?: any;
   expires?: string;
   version?: string;
+  state?: EntityState;
+  operationStatus?: IOperationStatus;
+  dateAdded?: string;
+  dateModified?: string;
 }
 
 export interface ISubordinateId {

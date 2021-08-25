@@ -91,6 +91,10 @@ export const entityToSdk = (entity: Schema.IEntity): Schema.ISdkEntity => {
     tags: entity.tags,
     expires: entity.expires,
     version: entity.version,
+    state: entity.state,
+    operationStatus: entity.operationStatus,
+    dateAdded: entity.dateAdded,
+    dateModified: entity.dateModified,
   };
 };
 

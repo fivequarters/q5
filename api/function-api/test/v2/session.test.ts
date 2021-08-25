@@ -262,7 +262,7 @@ describe('Sessions', () => {
     await ApiRequestMap.connector.session.put(account, connectorId, identitySessionId, identityData);
 
     // finalize session to write session data to entities
-    await ApiRequestMap.integration.session.commitSessionAndWait(account, integrationId, parentSessionId);
+    await ApiRequestMap.integration.session.commitSession(account, integrationId, parentSessionId);
 
     // verify that pre-existing identity and instance have been updated
     response = await ApiRequestMap.instance.get(account, integrationId, instanceId);
@@ -317,7 +317,7 @@ describe('Sessions', () => {
     response = await ApiRequestMap.integration.session.put(account, integrationId, formOneSessionId, formOneNewData);
 
     // finalize session
-    response = await ApiRequestMap.integration.session.commitSessionAndWait(account, integrationId, parentSessionId);
+    response = await ApiRequestMap.integration.session.commitSession(account, integrationId, parentSessionId);
 
     // verify that pre-existing instance has been updated while preserving skipped formTwo data
     response = await ApiRequestMap.instance.get(account, integrationId, instanceId);
@@ -467,7 +467,7 @@ describe('Sessions', () => {
     response = await ApiRequestMap[loc.entityType].session.callback(account, loc.entityId, loc.sessionId);
 
     // Post to finish
-    response = await ApiRequestMap.integration.session.commitSessionAndWait(account, integrationId, parentSessionId);
+    response = await ApiRequestMap.integration.session.commitSession(account, integrationId, parentSessionId);
     expect(response).toBeHttp({ statusCode: 200 });
 
     // Verify Operation Id
@@ -485,9 +485,9 @@ describe('Sessions', () => {
     response = await ApiRequestMap.operation.get(account, operationId);
     expect(response).toBeHttp({ statusCode: 200 });
 
-    // New call to `commitSessionAndWait` results in new operationId, but new operation
+    // New call to `commitSession` results in new operationId, but new operation
     // does an update on the same instance with contents of session
-    await ApiRequestMap.integration.session.commitSessionAndWait(account, integrationId, parentSessionId);
+    await ApiRequestMap.integration.session.commitSession(account, integrationId, parentSessionId);
     response = await ApiRequestMap.integration.session.getResult(account, integrationId, parentSessionId);
     const idempotentReplacementTargetId = response.data.replacementTargetId;
     const idempotentInstanceId = response.data.output.entityId;
@@ -608,7 +608,7 @@ describe('Sessions', () => {
     expect(response).toBeHttp({ statusCode: 302 });
 
     // POST the parent session
-    response = await ApiRequestMap.integration.session.commitSessionAndWait(account, integrationId, parentSessionId);
+    response = await ApiRequestMap.integration.session.commitSession(account, integrationId, parentSessionId);
 
     // Returns the identity and instance id's.
     expect(response).toBeHttp({
@@ -738,7 +738,7 @@ describe('Sessions', () => {
     response = await ApiRequestMap[loc.entityType].session.callback(account, loc.entityId, loc.sessionId);
 
     // Post to finish
-    response = await ApiRequestMap.integration.session.commitSessionAndWait(account, integrationId, parentSessionId);
+    response = await ApiRequestMap.integration.session.commitSession(account, integrationId, parentSessionId);
     expect(response).toBeHttp({ statusCode: 200 });
 
     // Verify Operation Id
@@ -772,7 +772,7 @@ describe('Sessions', () => {
     response = await ApiRequestMap[loc.entityType].session.callback(account, loc.entityId, loc.sessionId);
 
     // Post to finish
-    response = await ApiRequestMap.integration.session.commitSessionAndWait(account, integrationId, parentSessionId);
+    response = await ApiRequestMap.integration.session.commitSession(account, integrationId, parentSessionId);
     expect(response).toBeHttp({ statusCode: 200 });
 
     // Verify Operation Id

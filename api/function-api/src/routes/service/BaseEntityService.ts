@@ -1,7 +1,6 @@
 import { IAgent } from '@5qtrs/account-data';
 import { Model } from '@5qtrs/db';
 
-import { operationService, OperationVerbs } from './OperationService';
 import * as Function from '../functions';
 
 export const defaultFrameworkSemver = '^3.0.2';
@@ -69,16 +68,37 @@ export default abstract class BaseEntityService<E extends Model.IEntity, F exten
   });
 
   public createEntity = async (resolvedAgent: IAgent, entity: Model.IEntity): Promise<IServiceResult> => {
-    return operationService.inOperation(
-      this.entityType,
-      entity,
-      { verb: OperationVerbs.creating, type: this.entityType },
-      async () => {
-        entity = this.sanitizeEntity(entity);
+    try {
+      // Create the entity
+      entity = this.sanitizeEntity(entity);
+    } catch (err) {
+      return { statusCode: 400, result: err.message };
+    }
+    entity.state = Model.EntityState.creating;
+    entity.operationStatus = { statusCode: 202, message: 'creating' };
+    entity = await this.dao.createEntity(entity);
+
+    setImmediate(async () => {
+      try {
         await this.createEntityOperation(resolvedAgent, entity);
-        await this.dao.createEntity(entity);
+
+        // Update the operationStatus and state appropriately
+        entity.state = Model.EntityState.active;
+        entity.operationStatus = { statusCode: 200, message: 'created' };
+        entity = await this.dao.updateEntity(entity);
+      } catch (err) {
+        console.log(`WARNING: Failed to update ${entity.id}: `, err);
+        entity.operationStatus = { statusCode: err.status || 500, message: err.message || 'Failed to apply update' };
+        try {
+          await this.dao.updateEntity(entity);
+        } catch (e) {
+          // Unable to do anything useful here...
+        }
       }
-    );
+    });
+
+    // Return the entity as created with an operationStatus: 202
+    return { statusCode: 202, result: entity };
   };
 
   public createEntityOperation = async (resolvedAgent: IAgent, entity: Model.IEntity) => {
@@ -97,50 +117,83 @@ export default abstract class BaseEntityService<E extends Model.IEntity, F exten
   };
 
   public updateEntity = async (resolvedAgent: IAgent, entity: Model.IEntity): Promise<IServiceResult> => {
-    return operationService.inOperation(
-      this.entityType,
-      entity,
-      { verb: OperationVerbs.updating, type: this.entityType },
-      async () => {
-        // Make sure the entity already exists.
-        await this.dao.getEntity(entity);
+    // Make sure the entity already exists.
+    const preEntity = await this.dao.getEntity(entity);
 
-        entity = this.sanitizeEntity(entity);
+    // Make sure the sanitize passes
+    entity = this.sanitizeEntity(entity);
 
+    preEntity.operationStatus = { statusCode: 202, message: 'updating' };
+    await this.dao.updateEntity(preEntity);
+
+    setImmediate(async () => {
+      try {
         // Delegate to the normal create code to recreate the function.
         await this.createEntityOperation(resolvedAgent, entity);
+        entity.operationStatus = { statusCode: 200, message: 'finished' };
 
-        // Update it.
         await this.dao.updateEntity(entity);
+      } catch (err) {
+        console.log(`WARNING: Failed to update ${entity.id}: `, err);
+        preEntity.operationStatus = { statusCode: err.status || 500, message: err.message || 'Failed to apply update' };
+        try {
+          await this.dao.updateEntity(preEntity);
+        } catch (e) {
+          // Unable to do anything useful here...
+        }
       }
-    );
+    });
+
+    return { statusCode: 200, result: preEntity };
   };
 
   public deleteEntity = async (entity: Model.IEntity): Promise<IServiceResult> => {
-    return operationService.inOperation(
-      this.entityType,
-      entity,
-      { verb: OperationVerbs.deleting, type: this.entityType },
-      async () => {
-        try {
-          // Do delete things - create functions, collect their versions, and update the entity.data object
-          // appropriately.
-          await Function.deleteFunction({
-            accountId: entity.accountId,
-            subscriptionId: entity.subscriptionId,
-            boundaryId: this.entityType,
-            functionId: entity.id,
-          });
-        } catch (err) {
-          if (err.status !== 404) {
-            throw err;
-          }
-        }
+    try {
+      const preEntity = await this.dao.getEntity(entity);
+      preEntity.state = Model.EntityState.invalid;
+      preEntity.operationStatus = { statusCode: 202, message: 'updating' };
+      await this.dao.updateEntity(preEntity);
+    } catch (err) {
+      if (err.status !== 404) {
+        return { statusCode: err.status, result: err };
+      }
+    }
 
+    setImmediate(async () => {
+      try {
+        await this.deleteEntityOperation(entity);
+      } catch (err) {
+        // Silently eat errors on function delete challenges.
+        console.log(`WARNING: Deleting function for ${entity.id} failed with error: ${err.message}`);
+      }
+
+      try {
         // Delete it.
         await this.dao.deleteEntity(entity);
+      } catch (err) {
+        // Silently eat errors on removing entities from the database.
+        console.log(`WARNING: Deleting ${entity.id} failed with error: ${err.message}`);
       }
-    );
+    });
+
+    return { statusCode: 204, result: {} };
+  };
+
+  public deleteEntityOperation = async (entity: Model.IEntity) => {
+    try {
+      // Do delete things - create functions, collect their versions, and update the entity.data object
+      // appropriately.
+      await Function.deleteFunction({
+        accountId: entity.accountId,
+        subscriptionId: entity.subscriptionId,
+        boundaryId: this.entityType,
+        functionId: entity.id,
+      });
+    } catch (err) {
+      if (err.status !== 404) {
+        throw err;
+      }
+    }
   };
 
   public getEntityTags = async (entity: Model.IEntity): Promise<IServiceResult> => ({

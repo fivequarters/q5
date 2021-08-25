@@ -256,12 +256,10 @@ describe('Workflow', () => {
     expect(url.searchParams.get('session')).toBe(parentSessionId);
 
     // POST to the session to instantiate the instances/identities.
-    response = await ApiRequestMap.integration.session.commitSessionAndWait(account, integrationId, parentSessionId);
-    expect(response).toBeHttp({
-      statusCode: 200,
-      data: { statusCode: 200, type: 'session', verb: 'creating' },
-      hasNot: ['payload'],
-    });
+    response = await ApiRequestMap.integration.session.commitSession(account, integrationId, parentSessionId);
+    expect(response).toBeHttp({ statusCode: 200 });
+    const instanceId = response.data.instanceId;
+    expect(instanceId).toBeUUID();
 
     // Get the completed session with the output details
     response = await ApiRequestMap.integration.session.getResult(account, integrationId, parentSessionId);
@@ -295,8 +293,8 @@ describe('Workflow', () => {
     expect(Model.decomposeSubordinateId(response.data.components[0].childSessionId).entityId).toBeUUID();
     expect(Model.decomposeSubordinateId(response.data.components[1].childSessionId).entityId).toBeUUID();
     expect(response.data.output.entityId).toBeUUID();
+    expect(response.data.output.entityId).toBe(instanceId);
 
-    const instanceId = response.data.output.entityId;
     response = await ApiRequestMap.instance.get(account, integrationId, instanceId);
 
     const identityId = response.data.data.conn1.entityId;
@@ -407,7 +405,7 @@ describe('Workflow', () => {
     await nextSessionStep(nextUrl);
 
     // POST to the session to instantiate the instances/identities.
-    await ApiRequestMap.integration.session.commitSessionAndWait(account, integrationId, replacementParentSessionId);
+    await ApiRequestMap.integration.session.commitSession(account, integrationId, replacementParentSessionId);
 
     // Get the completed session with the output details
     response = await ApiRequestMap.integration.session.getResult(account, integrationId, replacementParentSessionId);

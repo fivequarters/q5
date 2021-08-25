@@ -2,6 +2,8 @@ const Joi = require('joi');
 
 import * as Common from './common';
 
+const stateEnum = Joi.string().valid('creating', 'invalid', 'active').optional();
+
 // id is required but data is optional
 const validateEntity = (data: any) =>
   Joi.object().keys({
@@ -10,6 +12,10 @@ const validateEntity = (data: any) =>
     tags: Common.tags,
     version: Joi.string().guid(),
     expires: Joi.date().iso(),
+    state: stateEnum.strip(),
+    operationStatus: Joi.object().strip(),
+    dateAdded: Joi.date().iso(),
+    dateModified: Joi.date().iso(),
   });
 
 // id is optional, but data is required.
@@ -20,6 +26,10 @@ const validatePostEntity = (data: any) =>
     tags: Common.tags,
     version: Joi.string().guid(),
     expires: Joi.date().iso(),
+    state: stateEnum.strip(),
+    operationStatus: Joi.object().strip(),
+    dateAdded: Joi.date().iso(),
+    dateModified: Joi.date().iso(),
   });
 
 const EntityIdParams = Joi.object().keys({
@@ -28,7 +38,6 @@ const EntityIdParams = Joi.object().keys({
   entityId: Common.entityId,
   instanceId: Joi.string().guid(),
   identityId: Joi.string().guid(),
-  operationId: Joi.string().guid(),
   sessionId: Joi.string().guid(),
   tagKey: Common.tagValue,
   tagValue: Common.tagValue,
@@ -46,7 +55,6 @@ const EntityIdQuery = Joi.object().keys({
   next: Joi.string(),
   tag: Common.tagQuery,
   defaults: Joi.boolean(),
-  operationId: Joi.string().guid(),
 });
 
 // Add validation that the filename can't start with leading '.'... how to make sure it's safe for windows,

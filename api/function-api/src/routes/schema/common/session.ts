@@ -169,13 +169,13 @@ const createSessionRouter = (SessionService: SessionedEntityService<any, any>) =
       }),
       async (req: express.Request, res: express.Response, next: express.NextFunction) => {
         try {
-          const operation = await SessionService.postSession({
+          const result = await SessionService.postSession({
             accountId: req.params.accountId,
             subscriptionId: req.params.subscriptionId,
             // Sessions use the non-unique component name, but instances and identities use the database id.
             id: Model.createSubordinateId(SessionService.entityType, req.params.entityId, req.params.sessionId),
           });
-          res.status(operation.statusCode).json(operation.result);
+          res.status(result.statusCode).json(result.result);
         } catch (error) {
           console.log(error);
           return next(error);
