@@ -8,7 +8,6 @@ import { pem2jwk } from 'pem-jwk';
 import { nextBoundary } from './setup';
 
 import * as Constants from '@5qtrs/constants';
-import ms from 'ms';
 import { IAccount as IAccountAPI } from '@5qtrs/account-data';
 
 export const INVALID_UUID = '00000000-0000-4000-8000-000000000000';
@@ -1017,19 +1016,22 @@ export async function getStatistics(
   }
   url = url + `/statistics/${statisticsKey}`;
 
+  const fiveMin = 5 * 60 * 1000;
+  const fifteenMin = 3 * fiveMin;
+
   if (!params) {
     params = {
-      to: new Date(Date.now() + ms('5m')),
-      from: new Date(Date.now() - ms('15m')),
+      to: new Date(Date.now() + fiveMin),
+      from: new Date(Date.now() - fifteenMin),
       code: 200,
     };
   } else {
     if (params.to === undefined) {
-      params.to = new Date(Date.now() + ms('5m'));
+      params.to = new Date(Date.now() + fiveMin);
     }
 
     if (params.from === undefined) {
-      params.from = new Date(Date.now() - ms('15m'));
+      params.from = new Date(Date.now() - fifteenMin);
     }
   }
 

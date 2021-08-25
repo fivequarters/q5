@@ -1,18 +1,15 @@
 import http_error from 'http-errors';
 import express from 'express';
-import ms from 'ms';
 
 import { v4 as uuidv4 } from 'uuid';
 
-import { isUuid, v2Permissions } from '@5qtrs/constants';
+import { isUuid, v2Permissions, EPHEMERAL_ENTITY_EXPIRATION } from '@5qtrs/constants';
 import RDS, { Model } from '@5qtrs/db';
 
 import * as common from '../middleware/common';
 
 import Validation from '../validation/component';
 import * as OperationValidation from '../validation/operation';
-
-const DefaultOperationExpiration = '10h';
 
 const router = express.Router({ mergeParams: true });
 
@@ -32,7 +29,7 @@ router
           subscriptionId: req.params.subscriptionId,
           id: operationId,
           data: req.body,
-          expires: new Date(Date.now() + ms(DefaultOperationExpiration)).toISOString(),
+          expires: new Date(Date.now() + EPHEMERAL_ENTITY_EXPIRATION).toISOString(),
         });
         return res.json({ operationId });
       } catch (error) {
