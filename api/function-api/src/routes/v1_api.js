@@ -74,12 +74,12 @@ RDS.updateHealth();
 // Health and Private Interfaces
 router.get(
   '/health',
-  health.getHealth(
-    async () => keyStore.healthCheck(),
-    async () => subscriptionCache.healthCheck(),
-    async () => RDS.ensureConnection(),
-    async () => RDS.ensureRDSLiveliness()
-  )
+  health.getHealth([
+    { check: async () => keyStore.healthCheck(), name: 'KeyStore' },
+    { check: async () => subscriptionCache.healthCheck(), name: 'Subscription cache' },
+    { check: async () => RDS.ensureConnection(), name: 'RDS Connection' },
+    { check: async () => RDS.ensureRDSLiveliness(), name: 'RDS Execution' },
+  ])
 );
 
 router.get('/metrics', (req, res) => res.json({ rateLimits: ratelimit.getMetrics() }).send());
