@@ -75,10 +75,10 @@ RDS.updateHealth();
 router.get(
   '/health',
   health.getHealth([
-    { check: async () => keyStore.healthCheck(), name: 'KeyStore' },
+    { check: async () => keyStore.healthCheck(), name: 'Keystore' },
     { check: async () => subscriptionCache.healthCheck(), name: 'Subscription cache' },
-    { check: async () => RDS.ensureConnection(), name: 'RDS Connection' },
-    { check: async () => RDS.ensureRDSLiveliness(), name: 'RDS Execution' },
+    { check: async () => RDS.ensureConnection(), name: 'RDS connection' },
+    { check: async () => RDS.ensureRDSLiveliness(), name: 'RDS execution' },
   ])
 );
 
