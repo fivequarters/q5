@@ -84,9 +84,8 @@ const specs: ISpec[] = [
     output: 'test_function_api',
     options: {
       on_trigger: {
-        pull_request: {
-          branches: 'master',
-          types: ['ready_for_review'],
+        pull_request_review: {
+          types: ['submitted'],
         },
       },
       runner_type: 'self-hosted',
