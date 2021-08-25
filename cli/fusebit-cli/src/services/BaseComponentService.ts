@@ -98,9 +98,9 @@ export abstract class BaseComponentService<IComponentType extends IBaseComponent
 
     if (packageJsonBuffer.length === 0 || fusebitJsonBuffer.length === 0) {
       await this.executeService.error(
-        'Invalid Integration',
+        `Invalid ${this.entityTypeName}`,
         Text.create(
-          "Integrations must have at least two files: 'package.json' and 'fusebit.json'. ",
+          `${this.entityTypeName} must have at least two files: 'package.json' and 'fusebit.json'. `,
           'Please, before trying to deploy again, make sure you have those files properly defined. ',
           'For more information, check https://developer.fusebit.io/.'
         )
@@ -114,7 +114,14 @@ export abstract class BaseComponentService<IComponentType extends IBaseComponent
       pack = JSON.parse(packageJsonBuffer.toString());
       entitySpec.data.files['package.json'] = packageJsonBuffer.toString();
     } catch (error) {
-      // do nothing
+      await this.executeService.error(
+        `Invalid package.json file`,
+        Text.create(
+          "We were unable to parse the contents of the 'package.json' file. ",
+          'Please, check this file before proceeding again.'
+        ),
+        error
+      );
     }
 
     // Load files in package.files, if any, into the entitySpec.
@@ -143,7 +150,14 @@ export abstract class BaseComponentService<IComponentType extends IBaseComponent
       // Blind copy the rest into data.
       Object.assign(entitySpec.data, config);
     } catch (error) {
-      // do nothing
+      await this.executeService.error(
+        `Invalid fusebit.json file`,
+        Text.create(
+          "We were unable to parse the contents of the 'fusebit.json' file. ",
+          'Please, check this file before proceeding again.'
+        ),
+        error
+      );
     }
 
     return entitySpec;
