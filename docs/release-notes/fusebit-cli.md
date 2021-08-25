@@ -21,7 +21,7 @@ All public releases of the Fusebit CLI are documented here, including notable ch
 
 _Released 08/24/21_
 
-- **Enhancement.** Add a check to help preventing the deployment of invalid integrations.
+- **Enhancement.** Add a check to help preventing the deployment of invalid integrations and connectors.
 
 ## Version 1.11.1
 
