@@ -32,6 +32,7 @@ export default abstract class BaseEntityService<E extends Model.IEntity, F exten
   public createFunctionSpecification = (entity: Model.IEntity): Function.IFunctionSpecification => {
     // Make a copy of data so the files can be removed.
     const functionConfig = { ...entity.data };
+    const pkg = JSON.parse(functionConfig.files['package.json']);
     delete functionConfig.files;
 
     // Add the baseUrl to the configuration.
@@ -43,6 +44,7 @@ export default abstract class BaseEntityService<E extends Model.IEntity, F exten
     const spec = {
       id: entity.id,
       nodejs: {
+        ...(pkg.engines?.node ? { engines: { node: pkg.engines.node } } : {}),
         files: {
           ...entity.data.files,
 
