@@ -1241,7 +1241,7 @@ export async function getSubscription(account: IAccount, subscriptionId?: string
   });
 }
 
-export async function refreshSubscriptionCache(account: IAccount) {
+async function refreshInstanceCache(account: IAccount) {
   const MAX_TEST_DELAY = Constants.MAX_CACHE_REFRESH_RATE * 5;
   const startTime = Date.now();
   do {
@@ -1261,4 +1261,10 @@ export async function refreshSubscriptionCache(account: IAccount) {
   } while (Date.now() < startTime + MAX_TEST_DELAY);
 
   throw new Error(`ERROR: Unable to refresh the subscription: ${account.subscriptionId}. Tests will fail.`);
+}
+
+export async function refreshSubscriptionCache(account: IAccount) {
+  const workAroundNumberOfInstances = 10;
+  const refreshCalls = Array.from(Array(workAroundNumberOfInstances).keys()).map(() => refreshInstanceCache(account));
+  return Promise.all(refreshCalls);
 }
