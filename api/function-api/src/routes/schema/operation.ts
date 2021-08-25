@@ -1,6 +1,5 @@
 import http_error from 'http-errors';
 import express from 'express';
-import ms from 'ms';
 
 import { v4 as uuidv4 } from 'uuid';
 
@@ -30,7 +29,7 @@ router
           subscriptionId: req.params.subscriptionId,
           id: operationId,
           data: req.body,
-          expires: new Date(Date.now() + ms(EPHEMERAL_ENTITY_EXPIRATION)).toISOString(),
+          expires: new Date(Date.now() + EPHEMERAL_ENTITY_EXPIRATION).toISOString(),
         });
         return res.json({ operationId });
       } catch (error) {
