@@ -17,6 +17,12 @@ All public releases of the Fusebit HTTP API are documented here, including notab
 <!-- 1. TOC
 {:toc} -->
 
+## Version 1.22.8
+
+_Released 08/25/21_
+
+- **Enhancement.** Making sessions expire after 10 hours.
+
 ## Version 1.22.6
 
 _Released 08/23/21_

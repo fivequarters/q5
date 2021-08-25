@@ -4,4 +4,4 @@
 set -e
 
 cd api/function-api
-EC2=1 yarn test test/v2/session.test.ts
+EC2=1 yarn test -i
