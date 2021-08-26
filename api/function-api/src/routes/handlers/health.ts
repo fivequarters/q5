@@ -34,7 +34,6 @@ function getHealth(targets: IHealthCheckTarget[]) {
         )
       );
     } catch (e) {
-      console.log(e);
       return next(create_error(500, e));
     }
 
