@@ -1,6 +1,6 @@
 {
   "name": "@fusebit-int/hubspot-connector",
-  "version": "0.0.4",
+  "version": "1.0.0",
   "description": "",
   "main": "libc/index.js",
   "files": [

@@ -3,28 +3,28 @@
   "properties": {
     "scope": {
       "title": "Scope",
-      "description": "Comma separated scopes to request from your Slack app",
+      "description": "Comma separated scopes to request from your Hubspot app",
       "type": "string"
     },
     "tokenUrl": {
-      "title": "OAuth Token URL",
+      "title": "Hubspot Token URL",
       "description": "The authentication URL to use when exchanging tokens, as per the OAuth protocol",
       "type": "string"
     },
     "authorizationUrl": {
-      "title": "OAuth Authorization URL",
+      "title": "Hubspot Authorization URL",
       "description": "The authorization URL to use when generating authorization codes, as per the OAuth protocol",
       "type": "string"
     },
     "clientId": {
       "title": "Client ID",
-      "description": "The Client ID from your Slack app",
+      "description": "The Client ID from your Hubspot app",
       "type": "string"
     },
     "clientSecret": {
       "title": "Client Secret",
       "type": "string",
-      "description": "The Client Secret from your Slack app"
+      "description": "The Client Secret from your Hubspot app"
     },
     "refreshErrorLimit": {
       "type": "integer"
