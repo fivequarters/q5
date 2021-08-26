@@ -131,7 +131,7 @@ class RDS implements IRds {
   public async ensureRDSLiveliness() {
     const timeDifference = Date.now() - this.lastHealthExecution;
     if (!this.lastHealth || !this.lastHealthExecution || timeDifference > this.RDS_HEALTH_MAX_ACCEPTABLE_TTL) {
-      throw new Error(this.healthError);
+      throw this.healthError;
     }
   }
 
