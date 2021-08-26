@@ -20,13 +20,18 @@ function getHealth(targets: IHealthCheckTarget[]) {
 
     try {
       await Promise.all(
-        targets.map((target) => {
-          try {
-            return target.check();
-          } catch (e) {
-            throw new Error(`${target.name} check failed: ${e.message}.`);
-          }
-        })
+        targets.map(
+          (target) =>
+            new Promise(async (res, rej) => {
+              try {
+                await target.check();
+              } catch (e) {
+                if (e && e.message) {
+                  rej(`${target.name} check failed: ${e.message}.`);
+                }
+              }
+            })
+        )
       );
     } catch (e) {
       console.log(e);
