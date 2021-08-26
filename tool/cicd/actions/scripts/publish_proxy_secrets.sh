@@ -27,10 +27,16 @@ fuse-ops deployment defaults set api subscription \{\"proxy\":\{\"accountId\":\"
 
 SLACK_SECRET_PAYLOAD="{\"data\":{\"clientId\":\"${SLACK_PROXY_CLIENT_ID}\",\"clientSecret\":\"${SLACK_PROXY_CLIENT_SECRET}\",\"authorizationUrl\":\"https://slack.com/oauth/v2/authorize\",\"tokenUrl\":\"https://slack.com/api/oauth.v2.access\",\"revokeUrl\":\"https://slack.com/api/auth.revoke\"}}"
 
+HUBSPOT_SECRET_PAYLOAD="{\"data\":{\"clientId\":\"${HUBSPOT_PROXY_CLIENT_ID}\",\"clientSecret\":\"${HUBSPOT_PROXY_CLIENT_SECRET}\",\"authorizationUrl\":\"https://app.hubspot.com/oauth/authorize\",\"tokenUrl\":\"https://api.hubapi.com/oauth/v1/token\",\"revokeUrl\":\"https://api.hubapi.com/oauth/v1/refresh-tokens/:token\"}}"
+
 # 321 stage
 fuse profile set stage.us-west-2.internal
 curl -H "Authorization: Bearer `fuse token -o raw`" https://stage.us-west-2.fusebit.io/v1/account/acc-2ec6c8dba6134772/subscription/sub-2e2374b63eb040e9/storage/proxy/slack/configuration -XPUT -d ${SLACK_SECRET_PAYLOAD} -H "Content-Type: application/json"
 
+curl -H "Authorization: Bearer `fuse token -o raw`" https://stage.us-west-2.fusebit.io/v1/account/acc-2ec6c8dba6134772/subscription/sub-2e2374b63eb040e9/storage/proxy/hubspot/configuration -XPUT -d ${HUBSPOT_SECRET_PAYLOAD} -H "Content-Type: application/json"
+
 # 763 api
 fuse profile set selfservice.api.us-west-1.internal
 curl -H "Authorization: Bearer `fuse token -o raw`" https://api.us-west-1.on.fusebit.io/v1/account/acc-124a0b2e6a1043d4/subscription/sub-5da267cb8f284af4/storage/proxy/slack/configuration -XPUT -d ${SLACK_SECRET_PAYLOAD} -H "Content-Type: application/json"
+
+curl -H "Authorization: Bearer `fuse token -o raw`" https://api.us-west-1.on.fusebit.io/v1/account/acc-124a0b2e6a1043d4/subscription/sub-5da267cb8f284af4/storage/proxy/hubspot/configuration -XPUT -d ${HUBSPOT_SECRET_PAYLOAD} -H "Content-Type: application/json"
