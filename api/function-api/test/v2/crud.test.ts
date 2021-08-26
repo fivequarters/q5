@@ -8,6 +8,8 @@ import {
   DefaultWaitForCompletionParams,
 } from './sdk';
 import { callFunction, getFunctionLocation, INVALID_UUID } from '../v1/sdk';
+import { v2Permissions } from '@5qtrs/constants';
+import * as AuthZ from '../v1/authz';
 
 import { getEnv } from '../v1/setup';
 
@@ -440,6 +442,58 @@ const performTests = (testEntityType: TestableEntityTypes, sampleEntityMap: Samp
     expect(multiTagEntity).toBeHttp({ statusCode: 200 });
     expect(multiTagEntity.data).toBeDefined();
     expect(multiTagEntity.data.items).toHaveLength(1);
+  }, 180000);
+
+  test.only('List Entities by State', async () => {
+    const numValid = 7;
+    const numInvalid = 3;
+    const validEntitys = Array(numValid)
+      .fill(undefined)
+      .map(() => {
+        return {
+          ...sampleEntity(),
+          id: newId('State-List'),
+        };
+      });
+    const invalidEntitys = Array(numInvalid)
+      .fill(undefined)
+      .map(() => {
+        return {
+          ...sampleEntity(),
+          id: newId('State-List'),
+        };
+      });
+
+    const basicPutToken = await AuthZ.getTokenByPerm({
+      allow: [
+        { action: v2Permissions[testEntityType].put, resource: '/' },
+        { action: v2Permissions[testEntityType].get, resource: '/' },
+      ],
+    });
+
+    await Promise.all([
+      ...validEntitys.map(async (entity) => ApiRequestMap[testEntityType].postAndWait(account, entity.id, entity)),
+      ...invalidEntitys.map(async (entity) => {
+        const result = await ApiRequestMap[testEntityType].postAndWait(account, entity.id, entity, undefined, {
+          authz: basicPutToken,
+        });
+        expect(result).toBeHttp({ statusCode: 400 });
+        return result;
+      }),
+    ]);
+    let listResponse = await ApiRequestMap[testEntityType].list(account, {
+      state: Model.EntityState.active,
+      idPrefix: boundaryId,
+    });
+    expect(listResponse).toBeHttp({ statusCode: 200 });
+    expect(listResponse.data.items).toHaveLength(numValid);
+
+    listResponse = await ApiRequestMap[testEntityType].list(account, {
+      state: Model.EntityState.invalid,
+      idPrefix: boundaryId,
+    });
+    expect(listResponse).toBeHttp({ statusCode: 200 });
+    expect(listResponse.data.items).toHaveLength(numInvalid);
   }, 180000);
 
   test('Get Entity Tags', async () => {

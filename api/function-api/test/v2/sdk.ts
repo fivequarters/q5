@@ -108,6 +108,7 @@ interface ISdkForEntity {
       next?: string;
       idPrefix?: string;
       operation?: string;
+      state?: Model.EntityState;
     },
     options?: IRequestOptions
   ) => Promise<IHttpResponse>;
@@ -208,6 +209,7 @@ const createSdk = (entityType: Model.EntityType): ISdkForEntity => ({
       next?: string;
       idPrefix?: string;
       operation?: string;
+      state?: Model.EntityState;
     },
     options?: IRequestOptions
   ) => {

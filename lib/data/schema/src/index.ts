@@ -50,6 +50,7 @@ export interface IEntityId extends IEntitySelectAbstract {
 export interface IEntityPrefix extends IEntitySelectAbstract {
   id?: string;
   idPrefix?: string;
+  state?: EntityState;
 }
 
 export interface IEntity extends IEntityId {

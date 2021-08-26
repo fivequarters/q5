@@ -21,7 +21,7 @@ const validateEntity = (data: any) =>
 // id is optional, but data is required.
 const validatePostEntity = (data: any) =>
   Joi.object().keys({
-    id: Common.entityId,
+    id: Common.entityId.optional(),
     data: data.required(),
     tags: Common.tags,
     version: Joi.string().guid(),
@@ -54,6 +54,7 @@ const EntityIdQuery = Joi.object().keys({
   count: Joi.number(),
   next: Joi.string(),
   tag: Common.tagQuery,
+  state: stateEnum,
   defaults: Joi.boolean(),
 });
 

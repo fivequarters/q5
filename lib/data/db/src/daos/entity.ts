@@ -128,7 +128,6 @@ export abstract class Entity<ET extends IEntity> implements IEntityDao<ET> {
     statementOptions: InputStatementOptions = {}
   ): { params: EKP; queryOptions: FinalQueryOptions; statementOptions: FinalStatementOptions } {
     // default params set here
-    // default params set here
     const paramsWithDefaults: EKP = {
       ...this.defaultParameterOptions,
       ...cleanObj(params),
@@ -223,6 +222,7 @@ export abstract class Entity<ET extends IEntity> implements IEntityDao<ET> {
       AND (NOT :prefixMatchId::boolean OR entityId LIKE FORMAT('%s%%',:entityIdPrefix::text))
       AND (:tagValues::text IS NULL OR tags @> :tagValues::jsonb)
       AND (:tagKeys::text IS NULL OR tags ??& :tagKeys::text[])
+      AND (:stateParam::entity_state IS NULL OR state = :stateParam::entity_state)
       AND (NOT :filterExpired::boolean OR expires IS NULL OR expires > NOW())`;
 
     const sqlTail = `
@@ -254,6 +254,7 @@ export abstract class Entity<ET extends IEntity> implements IEntityDao<ET> {
       filterExpired: queryOptions.filterExpired,
       offset,
       limit: queryOptions.listLimit,
+      stateParam: params.state,
     };
 
     const result = await this.RDS.executeStatement(sql, parameters, statementOptions);

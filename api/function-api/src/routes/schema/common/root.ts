@@ -52,6 +52,7 @@ const router = (EntityService: SessionedEntityService<any, any>) => {
               ...pathParams.accountAndSubscription(req),
               ...query.tag(req),
               ...query.idPrefix(req),
+              ...(req.query.state ? { state: req.query.state as Model.EntityState } : {}),
             },
             {
               ...query.listPagination(req),
