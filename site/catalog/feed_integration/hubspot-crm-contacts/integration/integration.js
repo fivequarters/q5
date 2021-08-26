@@ -4,10 +4,6 @@
 // shows you how easy it is to create your very own Fusebit Integration and use the official Hubspot
 // SDK - without any of the work!
 //
-// After reading through this integration, you will be able to create an integration, enable your
-// customers to approve it for use in their Hubspot account, and access their Hubspot CRM contacts.
-// You can use these valuable information to interact with your product.
-//
 // Learn more about Fusebit Integrations at:
 // https://developer.fusebit.io/docs/integration-programming-model
 
