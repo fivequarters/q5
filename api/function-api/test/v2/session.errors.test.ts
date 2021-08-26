@@ -30,7 +30,7 @@ describe('Sessions', () => {
     response = await ApiRequestMap.integration.session.start(account, integrationId, parentSessionId);
     expect(response).toBeHttp({ statusCode: 302 });
     const location = new URL(response.headers.location);
-    const stepSessionId = location.searchParams.get('session');
+    const stepSessionId = location.searchParams.get('session') as string;
 
     // Test failure of this step
     response = await ApiRequestMap.connector.session.put(account, connectorId, stepSessionId, {
@@ -54,7 +54,7 @@ describe('Sessions', () => {
   }, 180000);
 
   test('POSTing an error on an integration session is reported during commit', async () => {
-    const { integrationId, connectorId, steps } = await createPair(
+    const { integrationId } = await createPair(
       account,
       boundaryId,
       {
@@ -80,7 +80,7 @@ describe('Sessions', () => {
     // Start the session to make sure it starts correctly.
     response = await ApiRequestMap.integration.session.start(account, integrationId, parentSessionId);
     const location = new URL(response.headers.location);
-    const stepSessionId = location.searchParams.get('session');
+    const stepSessionId = location.searchParams.get('session') as string;
 
     // Validate that this is a form session
     response = await ApiRequestMap.integration.session.get(account, integrationId, stepSessionId);

@@ -2,7 +2,7 @@ import { request } from '@5qtrs/request';
 
 import { Model } from '@5qtrs/db';
 
-import { cleanupEntities, ApiRequestMap, createPair } from './sdk';
+import { cleanupEntities, ApiRequestMap, createPair, RequestMethod } from './sdk';
 
 import { startTunnel, startHttpServer } from '../v1/tunnel';
 
@@ -304,11 +304,23 @@ describe('Workflow', () => {
     expect(identity.data.tags.tenantId).toBe(tenantId);
 
     // verify identity is healthy
-    response = await ApiRequestMap.connector.dispatch(account, connectorId, 'GET', `/api/${identityId}/health`, {});
+    response = await ApiRequestMap.connector.dispatch(
+      account,
+      connectorId,
+      RequestMethod.get,
+      `/api/${identityId}/health`,
+      {}
+    );
     expect(response).toBeHttp({ statusCode: 200 });
 
     // check value of saved token
-    response = await ApiRequestMap.connector.dispatch(account, connectorId, 'GET', `/api/${identityId}/token`, {});
+    response = await ApiRequestMap.connector.dispatch(
+      account,
+      connectorId,
+      RequestMethod.get,
+      `/api/${identityId}/token`,
+      {}
+    );
     expect(response).toBeHttp({ statusCode: 200 });
     expect(response.data.access_token).toBe('original token');
 
@@ -344,7 +356,12 @@ describe('Workflow', () => {
     });
     expect(response.data.data.conn1.entityId).toBeUUID();
 
-    response = await ApiRequestMap.integration.dispatch(account, integrationId, 'GET', `/api/${instanceId}/getToken`);
+    response = await ApiRequestMap.integration.dispatch(
+      account,
+      integrationId,
+      RequestMethod.get,
+      `/api/${instanceId}/getToken`
+    );
     expect(response).toBeHttp({
       statusCode: 200,
       data: {
@@ -415,11 +432,23 @@ describe('Workflow', () => {
     expect(response.data.data.conn1.entityId).toBe(identityId);
 
     // verify identity is healthy
-    response = await ApiRequestMap.connector.dispatch(account, connectorId, 'GET', `/api/${identityId}/health`, {});
+    response = await ApiRequestMap.connector.dispatch(
+      account,
+      connectorId,
+      RequestMethod.get,
+      `/api/${identityId}/health`,
+      {}
+    );
     expect(response).toBeHttp({ statusCode: 200 });
 
     // verify identity is healthy
-    response = await ApiRequestMap.connector.dispatch(account, connectorId, 'GET', `/api/${identityId}/token`, {});
+    response = await ApiRequestMap.connector.dispatch(
+      account,
+      connectorId,
+      RequestMethod.get,
+      `/api/${identityId}/token`,
+      {}
+    );
     expect(response).toBeHttp({ statusCode: 200 });
     expect(response.data.access_token).toBe('replacement token');
   }, 180000000);

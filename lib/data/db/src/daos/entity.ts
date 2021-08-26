@@ -360,7 +360,7 @@ export abstract class Entity<ET extends IEntity> implements IEntityDao<ET> {
       tags: JSON.stringify(params.tags || {}),
       expires: params.expires,
       state: params.state || EntityState.active,
-      operationStatus: JSON.stringify(params.operationStatus || { statusCode: 200, message: '' }),
+      operationStatus: JSON.stringify(params.operationStatus || { statusCode: 200, message: 'created' }),
       version: params.version,
     };
     const selectedInsert = queryOptions.upsert ? sqlUpsert : sql;

@@ -6,7 +6,7 @@ CREATE TYPE entity_state AS ENUM('creating', 'invalid', 'active');
 
 -- Set all of the existing entities to 'active' with no outstanding operation.
 ALTER TABLE entity ADD COLUMN state entity_state NOT NULL DEFAULT 'active';
-ALTER TABLE entity ADD COLUMN operationStatus JSONB NOT NULL DEFAULT '{"statusCode":200, "message":""}';
+ALTER TABLE entity ADD COLUMN operationStatus JSONB NOT NULL DEFAULT '{"statusCode":200, "message":"created"}';
 
 -- Add dateAdded and dateModified timestamps, along with an update trigger
 ALTER TABLE entity ADD COLUMN dateAdded TIMESTAMPTZ DEFAULT now();

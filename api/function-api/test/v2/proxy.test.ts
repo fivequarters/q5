@@ -116,7 +116,7 @@ describe('Proxy', () => {
   };
 
   const createConnector = async () => {
-    const response = await ApiRequestMap.connector.postAndWait(account, {
+    const response = await ApiRequestMap.connector.postAndWait(account, boundaryId, {
       id: boundaryId,
       data: {
         handler: '@fusebit-int/oauth-connector',
@@ -204,7 +204,7 @@ describe('Proxy', () => {
 
     // Get the session for the connector
     const conUrl = new URL(response.headers.location);
-    const connectorSessionId = conUrl.searchParams.get('session');
+    const connectorSessionId = conUrl.searchParams.get('session') as string;
 
     // Load what the connector offers
     response = await request({ url: response.headers.location, maxRedirects: 0 });

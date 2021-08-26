@@ -314,7 +314,7 @@ export class StackService {
       stack.size.toString(),
       Text.eol(),
       Text.dim('Elastic Search: '),
-      deployment ? deployment.elasticSearch : '',
+      deployment && deployment.elasticSearch ? 'ENABLED' : 'DISABLED',
       Text.eol(),
       Text.dim('fuse-ops Version: '),
       stack.fuseopsVersion,

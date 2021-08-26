@@ -2,7 +2,7 @@ import { Model } from '@5qtrs/db';
 
 import { Permissions, v2Permissions } from '@5qtrs/constants';
 
-import { ApiRequestMap, cleanupEntities, createPair } from './sdk';
+import { ApiRequestMap, cleanupEntities, createPair, RequestMethod } from './sdk';
 import * as AuthZ from '../v1/authz';
 
 import { getEnv } from '../v1/setup';
@@ -29,7 +29,7 @@ const getSimpleIntegration = (): any => ({
 
     handler: './integration',
     files: {
-      ['integration.js']: '',
+      ['integration.js']: "module.exports = new (require('@fusebit-int/framework').Integration)();",
     },
   },
 });
@@ -43,7 +43,7 @@ describe('Integration Permissions', () => {
 
   test('Does the integration have the correct set of permissions', async () => {
     const { integrationId, connectorId } = await createPair(account, boundaryId);
-    const response = await ApiRequestMap.integration.dispatch(account, integrationId, 'GET', '/api/token/');
+    const response = await ApiRequestMap.integration.dispatch(account, integrationId, RequestMethod.get, '/api/token/');
     expect(response).toBeHttp({ statusCode: 200 });
     const token = response.data;
 
@@ -72,7 +72,7 @@ describe('Integration Permissions', () => {
     }
   }, 180000);
 
-  test('Low-privledge user cannot create an integration', async () => {
+  test('Low-privilege user cannot create an integration', async () => {
     const integEntity = getSimpleIntegration();
 
     // Create a token that has permissions to write integrations but nothing else.
@@ -84,10 +84,12 @@ describe('Integration Permissions', () => {
     });
 
     // Test with basic permissions, but not enough
-    const response = await ApiRequestMap.integration.postAndWait(account, integEntity, undefined, {
+    let response = await ApiRequestMap.integration.postAndWait(account, integEntity.id, integEntity, undefined, {
       authz: basicPutToken,
     });
-    expect(response).toBeHttp({ statusCode: 400 });
+    expect(response).toBeHttp({ statusCode: 400, data: { state: 'invalid', operationStatus: { statusCode: 400 } } });
+    response = await ApiRequestMap.integration.dispatch(account, integEntity.id, RequestMethod.get, '/api/health');
+    expect(response).toBeHttp({ statusCode: 404 });
   }, 180000);
 
   //
@@ -106,7 +108,7 @@ describe('Integration Permissions', () => {
     });
 
     // Test with enough permissions, but no execute - succeeds because no connectors
-    const response = await ApiRequestMap.integration.postAndWait(account, integEntity, undefined, {
+    const response = await ApiRequestMap.integration.postAndWait(account, integEntity.id, integEntity, undefined, {
       authz: simplePutToken,
     });
     expect(response).toBeHttp({ statusCode: 200 });
@@ -140,13 +142,21 @@ describe('Integration Permissions', () => {
     });
 
     // Test with no execute fails
-    let response = await ApiRequestMap.integration.postAndWait(account, integEntity, undefined, {
+    let response = await ApiRequestMap.integration.postAndWait(account, integEntity.id, integEntity, undefined, {
       authz: simplePutToken,
     });
-    expect(response).toBeHttp({ statusCode: 400 });
+    expect(response).toBeHttp({ statusCode: 400, data: { state: 'invalid', operationStatus: { statusCode: 400 } } });
+
+    response = await ApiRequestMap.integration.dispatch(account, integEntity.id, RequestMethod.get, '/api/health');
+    expect(response).toBeHttp({ statusCode: 404 });
 
     // Test with execute succeeds
-    response = await ApiRequestMap.integration.postAndWait(account, integEntity, undefined, { authz: executeToken });
+    response = await ApiRequestMap.integration.postAndWait(account, integEntity.id, integEntity, undefined, {
+      authz: executeToken,
+    });
+    expect(response).toBeHttp({ statusCode: 200 });
+
+    response = await ApiRequestMap.integration.dispatch(account, integEntity.id, RequestMethod.get, '/api/health');
     expect(response).toBeHttp({ statusCode: 200 });
   }, 180000);
 
@@ -154,7 +164,7 @@ describe('Integration Permissions', () => {
     const integEntity = getSimpleIntegration();
 
     // Test with no permissions
-    const response = await ApiRequestMap.integration.post(account, integEntity, { authz: '' });
+    const response = await ApiRequestMap.integration.post(account, integEntity.id, integEntity, { authz: '' });
     expect(response).toBeHttp({ statusCode: 403 });
   }, 180000);
 });

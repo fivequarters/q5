@@ -1,5 +1,5 @@
 import { IAccount } from './accountResolver';
-import { request } from '@5qtrs/request';
+import { request, IHttpResponse } from '@5qtrs/request';
 import RDS, { Model } from '@5qtrs/db';
 import * as querystring from 'querystring';
 
@@ -7,9 +7,17 @@ import { getEnv } from '../v1/setup';
 
 let { function5Id } = getEnv();
 
+export enum RequestMethod {
+  get = 'GET',
+  post = 'POST',
+  put = 'PUT',
+  patch = 'PATCH',
+  delete = 'DELETE',
+}
+
 export interface IRequestOptions {
-  uri: string;
-  method: 'GET' | 'POST' | 'PUT' | 'PATCH' | 'DELETE';
+  uri?: string;
+  method?: RequestMethod;
   maxRedirects?: number;
   contentType?: string;
   body?: string | object;
@@ -30,7 +38,7 @@ interface IWaitForCompletionParams {
   pollMs: number;
 }
 
-const DefaultWaitForCompletionParams: IWaitForCompletionParams = {
+export const DefaultWaitForCompletionParams: IWaitForCompletionParams = {
   getAfter: true,
   waitMs: 30000,
   pollMs: 100,
@@ -55,7 +63,7 @@ export const v2Request = async (account: IAccount, options: IRequestOptions) => 
       ...(options.contentType ? { 'content-type': options.contentType } : {}),
     },
     url: options.rawUrl
-      ? options.uri
+      ? (options.uri as string)
       : `${account.baseUrl}/v2/account/${account.accountId}/subscription/${account.subscriptionId}${options.uri}`,
     method: options.method,
     data: options.body,
@@ -78,16 +86,10 @@ export const waitForCompletion = async (
     response = subordinateId
       ? await ApiRequestMap[entityType].get(account, entityId, subordinateId, options)
       : await ApiRequestMap[entityType].get(account, entityId, options);
-    console.log(
-      `waitForCompletion: ${JSON.stringify({
-        status: response.status,
-        operationStatus: response.data.operationStatus,
-      })}`
-    );
     if (response.status === 200 && response.data.operationStatus.statusCode === 200) {
       break;
     }
-    if (response.status !== 202 && response.status !== 200 && response.data.operationStatus.statusCode !== 200) {
+    if (response.status > 299 || response.data.operationStatus.statusCode > 299) {
       break;
     }
     await new Promise((resolve) => setTimeout(resolve, waitOptions.pollMs));
@@ -96,16 +98,113 @@ export const waitForCompletion = async (
   return response;
 };
 
-const createSdk = (entityType: Model.EntityType) => ({
+interface ISdkForEntity {
+  get: (account: IAccount, entityId: string, options?: IRequestOptions) => Promise<IHttpResponse>;
+  list: (
+    account: IAccount,
+    query?: {
+      tag?: { tagKey: string; tagValue?: string }[];
+      count?: number;
+      next?: string;
+      idPrefix?: string;
+      operation?: string;
+    },
+    options?: IRequestOptions
+  ) => Promise<IHttpResponse>;
+  post: (
+    account: IAccount,
+    entityId: string,
+    body?: Model.ISdkEntity,
+    options?: IRequestOptions
+  ) => Promise<IHttpResponse>;
+  postAndWait: (
+    account: IAccount,
+    entityId: string,
+    body: Model.ISdkEntity,
+    waitOptions?: IWaitForCompletionParams,
+    options?: IRequestOptions
+  ) => Promise<IHttpResponse>;
+  put: (
+    account: IAccount,
+    entityId: string,
+    body: Model.ISdkEntity,
+    options?: IRequestOptions
+  ) => Promise<IHttpResponse>;
+  putAndWait: (
+    account: IAccount,
+    entityId: string,
+    body: Model.ISdkEntity,
+    waitOptions?: IWaitForCompletionParams,
+    options?: IRequestOptions
+  ) => Promise<IHttpResponse>;
+  delete: (account: IAccount, entityId: string, options?: IRequestOptions) => Promise<IHttpResponse>;
+  deleteAndWait: (
+    account: IAccount,
+    entityId: string,
+    waitOptions?: IWaitForCompletionParams,
+    options?: IRequestOptions
+  ) => Promise<IHttpResponse>;
+  dispatch: (
+    account: IAccount,
+    entityId: string,
+    method: RequestMethod,
+    path: string,
+    options?: IDispatchOptions
+  ) => Promise<IHttpResponse>;
+
+  tags: {
+    get: (account: IAccount, entityId: string, tagKey?: string, options?: IRequestOptions) => Promise<IHttpResponse>;
+    delete: (account: IAccount, entityId: string, tagKey?: string, options?: IRequestOptions) => Promise<IHttpResponse>;
+    put: (
+      account: IAccount,
+      entityId: string,
+      tagKey: string,
+      tagValue: string,
+      options?: IRequestOptions
+    ) => Promise<IHttpResponse>;
+  };
+  session: {
+    post: (account: IAccount, entityId: string, body: any, options?: IRequestOptions) => Promise<IHttpResponse>;
+    getResult: (account: IAccount, entityId: string, sessionId: string, options?: IRequestOptions) => Promise<any>;
+    get: (account: IAccount, entityId: string, sessionId: string, options?: IRequestOptions) => Promise<IHttpResponse>;
+    put: (
+      account: IAccount,
+      entityId: string,
+      sessionId: string,
+      body: any,
+      options?: IRequestOptions
+    ) => Promise<IHttpResponse>;
+    start: (
+      account: IAccount,
+      entityId: string,
+      sessionId: string,
+      options?: IRequestOptions
+    ) => Promise<IHttpResponse>;
+    callback: (
+      account: IAccount,
+      entityId: string,
+      sessionId: string,
+      options?: IRequestOptions
+    ) => Promise<IHttpResponse>;
+    commitSession: (
+      account: IAccount,
+      entityId: string,
+      sessionId: string,
+      options?: Partial<IRequestOptions>
+    ) => Promise<IHttpResponse>;
+  };
+}
+
+const createSdk = (entityType: Model.EntityType): ISdkForEntity => ({
   get: async (account: IAccount, entityId: string, options?: IRequestOptions) => {
-    return v2Request(account, { method: 'GET', uri: `/${entityType}/${encodeURI(entityId)}`, ...options });
+    return v2Request(account, { method: RequestMethod.get, uri: `/${entityType}/${encodeURI(entityId)}`, ...options });
   },
 
   list: async (
     account: IAccount,
     query?: {
       tag?: { tagKey: string; tagValue?: string }[];
-      limit?: number;
+      count?: number;
       next?: string;
       idPrefix?: string;
       operation?: string;
@@ -129,15 +228,15 @@ const createSdk = (entityType: Model.EntityType) => ({
       }
     });
     return v2Request(account, {
-      method: 'GET',
+      method: RequestMethod.get,
       uri: `/${entityType}?${querystring.stringify(queryParams)}`,
       ...options,
     });
   },
 
-  post: async (account: IAccount, entityId: string, body: Model.ISdkEntity, options?: IRequestOptions) => {
-    testEntitiesCreated.push({ entityType: entityType, id: body.id });
-    return v2Request(account, { method: 'POST', uri: `/${entityType}/${entityId}`, body, ...options });
+  post: async (account: IAccount, entityId: string, body?: Model.ISdkEntity, options?: IRequestOptions) => {
+    testEntitiesCreated.push({ entityType, id: entityId });
+    return v2Request(account, { method: RequestMethod.post, uri: `/${entityType}/${entityId}`, body, ...options });
   },
 
   postAndWait: async (
@@ -149,15 +248,14 @@ const createSdk = (entityType: Model.EntityType) => ({
   ) => {
     const op = await ApiRequestMap[entityType].post(account, entityId, body, options);
     expect(op).toBeHttp({
-      statusCode: 202,
-      data: { state: Model.EntityState.creating, operationStatus: { statusCode: 202 } },
+      statusCode: [202, 200],
+      data: { operationStatus: { statusCode: 202 } },
     });
-
     return waitForCompletion(account, entityType, entityId, undefined, waitOptions, options);
   },
 
   put: async (account: IAccount, entityId: string, body: Model.ISdkEntity, options?: IRequestOptions) =>
-    v2Request(account, { method: 'PUT', uri: `/${entityType}/${encodeURI(entityId)}`, body, ...options }),
+    v2Request(account, { method: RequestMethod.put, uri: `/${entityType}/${encodeURI(entityId)}`, body, ...options }),
 
   putAndWait: async (
     account: IAccount,
@@ -167,6 +265,10 @@ const createSdk = (entityType: Model.EntityType) => ({
     options?: IRequestOptions
   ) => {
     const op = await ApiRequestMap[entityType].put(account, entityId, body);
+    if (op.status !== 200) {
+      return op;
+    }
+
     expect(op).toBeHttp({
       statusCode: 200,
       data: { operationStatus: { statusCode: 202 } },
@@ -176,7 +278,7 @@ const createSdk = (entityType: Model.EntityType) => ({
   },
 
   delete: async (account: IAccount, entityId: string, options?: IRequestOptions) =>
-    v2Request(account, { method: 'DELETE', uri: `/${entityType}/${entityId}`, ...options }),
+    v2Request(account, { method: RequestMethod.delete, uri: `/${entityType}/${entityId}`, ...options }),
 
   deleteAndWait: async (
     account: IAccount,
@@ -187,8 +289,9 @@ const createSdk = (entityType: Model.EntityType) => ({
     let wait: any;
     do {
       const op = await ApiRequestMap[entityType].delete(account, entityId);
-      expect(op).toBeHttp({ statusCode: 204 });
-
+      if (op.status !== 204) {
+        return op;
+      }
       wait = waitForCompletion(account, entityType, entityId, undefined, waitOptions, options);
     } while (wait.status === 429);
 
@@ -198,20 +301,24 @@ const createSdk = (entityType: Model.EntityType) => ({
   dispatch: async (
     account: IAccount,
     entityId: string,
-    method: 'GET' | 'POST' | 'PUT' | 'PATCH' | 'DELETE',
+    method: RequestMethod,
     path: string,
-    options: IDispatchOptions
+    options?: IDispatchOptions
   ) => v2Request(account, { method, uri: `/${entityType}/${entityId}${path}`, ...options }),
 
   tags: {
     get: async (account: IAccount, entityId: string, tagKey: string = '', options?: IRequestOptions) =>
-      v2Request(account, { method: 'GET', uri: `/${entityType}/${entityId}/tag/${tagKey}`, ...options }),
+      v2Request(account, { method: RequestMethod.get, uri: `/${entityType}/${entityId}/tag/${tagKey}`, ...options }),
 
     delete: async (account: IAccount, entityId: string, tagKey: string = '', options?: IRequestOptions) =>
-      v2Request(account, { method: 'DELETE', uri: `/${entityType}/${entityId}/tag/${tagKey}`, ...options }),
+      v2Request(account, { method: RequestMethod.delete, uri: `/${entityType}/${entityId}/tag/${tagKey}`, ...options }),
 
     put: async (account: IAccount, entityId: string, tagKey: string, tagValue: string, options?: IRequestOptions) =>
-      v2Request(account, { method: 'PUT', uri: `/${entityType}/${entityId}/tag/${tagKey}/${tagValue}`, ...options }),
+      v2Request(account, {
+        method: RequestMethod.put,
+        uri: `/${entityType}/${entityId}/tag/${tagKey}/${tagValue}`,
+        ...options,
+      }),
   },
   session: {
     post: async (
@@ -221,7 +328,7 @@ const createSdk = (entityType: Model.EntityType) => ({
       options?: IRequestOptions
     ) => {
       const response = await v2Request(account, {
-        method: 'POST',
+        method: RequestMethod.post,
         uri: `/${entityType}/${encodeURI(entityId)}/session/`,
         body,
         ...options,
@@ -231,7 +338,7 @@ const createSdk = (entityType: Model.EntityType) => ({
       }
       return response;
     },
-    getResult: async (account: IAccount, entityId: string, sessionId: string, options?: IRequestOptions) => {
+    getResult: async (account: IAccount, entityId: string, sessionId: string) => {
       return RDS.DAO.session.getEntity({
         accountId: account.accountId,
         subscriptionId: account.subscriptionId,
@@ -240,7 +347,7 @@ const createSdk = (entityType: Model.EntityType) => ({
     },
     get: async (account: IAccount, entityId: string, sessionId: string, options?: IRequestOptions) => {
       const response = await v2Request(account, {
-        method: 'GET',
+        method: RequestMethod.get,
         uri: `/${entityType}/${encodeURI(entityId)}/session/${sessionId}`,
         ...options,
       });
@@ -251,7 +358,7 @@ const createSdk = (entityType: Model.EntityType) => ({
     },
     put: async (account: IAccount, entityId: string, sessionId: string, body: any, options?: IRequestOptions) => {
       const response = await v2Request(account, {
-        method: 'PUT',
+        method: RequestMethod.put,
         uri: `/${entityType}/${encodeURI(entityId)}/session/${sessionId}`,
         body,
         ...options,
@@ -263,7 +370,7 @@ const createSdk = (entityType: Model.EntityType) => ({
     },
     start: async (account: IAccount, entityId: string, sessionId: string, options?: IRequestOptions) => {
       return v2Request(account, {
-        method: 'GET',
+        method: RequestMethod.get,
         uri: `/${entityType}/${encodeURI(entityId)}/session/${sessionId}/start`,
         maxRedirects: 0,
         ...options,
@@ -271,37 +378,34 @@ const createSdk = (entityType: Model.EntityType) => ({
     },
     callback: async (account: IAccount, entityId: string, sessionId: string, options?: IRequestOptions) => {
       return v2Request(account, {
-        method: 'GET',
+        method: RequestMethod.get,
         uri: `/${entityType}/${encodeURI(entityId)}/session/${sessionId}/callback`,
         maxRedirects: 0,
         ...options,
       });
     },
-    ...(entityType === Model.EntityType.integration
-      ? {
-          commitSession: async (
-            account: IAccount,
-            entityId: string,
-            sessionId: string,
-            options?: Partial<IRequestOptions>
-          ) =>
-            v2Request(account, {
-              method: 'POST',
-              uri: `/${entityType}/${encodeURI(entityId)}/session/${sessionId}/commit`,
-              ...options,
-            }),
-        }
-      : {}),
+    commitSession: async (account: IAccount, entityId: string, sessionId: string, options?: Partial<IRequestOptions>) =>
+      v2Request(account, {
+        method: RequestMethod.post,
+        uri: `/${entityType}/${encodeURI(entityId)}/session/${sessionId}/commit`,
+        ...options,
+      }),
   },
 });
 
-export const ApiRequestMap: { [key: string]: any } = {
+export const ApiRequestMap: {
+  connector: ISdkForEntity;
+  integration: ISdkForEntity;
+  instance: any;
+  identity: any;
+  [key: string]: any;
+} = {
   connector: createSdk(Model.EntityType.connector),
   integration: createSdk(Model.EntityType.integration),
   instance: {
     get: async (account: IAccount, entityId: string, subordinateId: string, options?: IRequestOptions) => {
       const response = await v2Request(account, {
-        method: 'GET',
+        method: RequestMethod.get,
         uri: `/integration/${encodeURI(entityId)}/instance/${subordinateId}`,
         ...options,
       });
@@ -312,7 +416,7 @@ export const ApiRequestMap: { [key: string]: any } = {
     },
     delete: async (account: IAccount, entityId: string, subordinateId: string, options?: IRequestOptions) => {
       const response = await v2Request(account, {
-        method: 'DELETE',
+        method: RequestMethod.delete,
         uri: `/integration/${encodeURI(entityId)}/instance/${subordinateId}`,
         ...options,
       });
@@ -330,7 +434,7 @@ export const ApiRequestMap: { [key: string]: any } = {
       options?: IRequestOptions
     ) => {
       const response = await v2Request(account, {
-        method: 'POST',
+        method: RequestMethod.post,
         uri: `/integration/${encodeURI(entityId)}/instance/`,
         body,
         ...options,
@@ -342,7 +446,7 @@ export const ApiRequestMap: { [key: string]: any } = {
       entityId: string,
       query?: {
         tag?: { tagKey: string; tagValue?: string }[];
-        limit?: number;
+        count?: number;
         next?: string;
         idPrefix?: string;
         operation?: string;
@@ -366,7 +470,7 @@ export const ApiRequestMap: { [key: string]: any } = {
         }
       });
       return v2Request(account, {
-        method: 'GET',
+        method: RequestMethod.get,
         uri: `/integration/${entityId}/instance/?${querystring.stringify(queryParams)}`,
         ...options,
       });
@@ -375,7 +479,7 @@ export const ApiRequestMap: { [key: string]: any } = {
   identity: {
     get: async (account: IAccount, entityId: string, subordinateId: string, options?: IRequestOptions) => {
       const response = await v2Request(account, {
-        method: 'GET',
+        method: RequestMethod.get,
         uri: `/connector/${encodeURI(entityId)}/identity/${subordinateId}`,
         ...options,
       });
@@ -386,7 +490,7 @@ export const ApiRequestMap: { [key: string]: any } = {
     },
     delete: async (account: IAccount, entityId: string, subordinateId: string, options?: IRequestOptions) => {
       const response = await v2Request(account, {
-        method: 'DELETE',
+        method: RequestMethod.delete,
         uri: `/connector/${encodeURI(entityId)}/identity/${subordinateId}`,
         ...options,
       });
@@ -404,7 +508,7 @@ export const ApiRequestMap: { [key: string]: any } = {
       options?: IRequestOptions
     ) => {
       const response = await v2Request(account, {
-        method: 'POST',
+        method: RequestMethod.post,
         uri: `/connector/${encodeURI(entityId)}/identity/`,
         body,
         ...options,
@@ -416,7 +520,7 @@ export const ApiRequestMap: { [key: string]: any } = {
       entityId: string,
       query?: {
         tag?: { tagKey: string; tagValue?: string }[];
-        limit?: number;
+        count?: number;
         next?: string;
         idPrefix?: string;
         operation?: string;
@@ -440,7 +544,7 @@ export const ApiRequestMap: { [key: string]: any } = {
         }
       });
       return v2Request(account, {
-        method: 'GET',
+        method: RequestMethod.get,
         uri: `/connector/${entityId}/identity/?${querystring.stringify(queryParams)}`,
         ...options,
       });
@@ -524,7 +628,7 @@ export const createPair = async (
   expect(response.data.id).not.toMatch('/');
   const integ = response.data;
 
-  response = await ApiRequestMap.integration.dispatch(account, response.data.id, 'GET', '/api/health');
+  response = await ApiRequestMap.integration.dispatch(account, response.data.id, RequestMethod.get, '/api/health');
   expect(response).toBeHttp({ statusCode: 200 });
 
   response = await ApiRequestMap.connector.postAndWait(account, conId, { id: conId, data: connConfig });
@@ -532,7 +636,7 @@ export const createPair = async (
   expect(response.data.id).not.toMatch('/');
   const conn = response.data;
 
-  response = await ApiRequestMap.connector.dispatch(account, response.data.id, 'GET', '/api/health');
+  response = await ApiRequestMap.connector.dispatch(account, response.data.id, RequestMethod.get, '/api/health');
   expect(response).toBeHttp({ statusCode: 200 });
 
   for (let n = 1; n < numConnectors; n++) {
@@ -542,7 +646,7 @@ export const createPair = async (
     });
     expect(response).toBeHttp({ statusCode: 200 });
 
-    response = await ApiRequestMap.connector.dispatch(account, response.data.id, 'GET', '/api/health');
+    response = await ApiRequestMap.connector.dispatch(account, response.data.id, RequestMethod.get, '/api/health');
     expect(response).toBeHttp({ statusCode: 200 });
   }
 

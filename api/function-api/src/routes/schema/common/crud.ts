@@ -56,7 +56,21 @@ const router = (
         try {
           const entity = await requestToEntity(EntityService, paramIdNames, req);
           const { statusCode, result } = await EntityService.getEntity(entity);
-          res.status(result.state === Model.EntityState.creating ? 202 : statusCode).json(Model.entityToSdk(result));
+          let status;
+
+          switch (result.state) {
+            case Model.EntityState.creating:
+              status = 202;
+              break;
+            case Model.EntityState.invalid:
+              status = result.operationStatus.statusCode;
+              break;
+            default:
+              status = statusCode;
+              break;
+          }
+
+          res.status(status).json(Model.entityToSdk(result));
         } catch (e) {
           next(e);
         }
