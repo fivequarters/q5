@@ -1,0 +1,15 @@
+{
+  "id": "hubspot-connector",
+  "tags": {},
+  "handler": "@fusebit-int/hubspot-connector",
+  "configuration": {
+    "scope": "contacts",
+    "clientId": "<HUBSPOT_CLIENT_ID>",
+    "clientSecret": "<HUBSPOT_SECRET_KEY>",
+    "refreshErrorLimit": 100000,
+    "refreshInitialBackoff": 100000,
+    "refreshWaitCountLimit": 100000,
+    "refreshBackoffIncrement": 100000,
+    "accessTokenExpirationBuffer": 500
+  }
+}
