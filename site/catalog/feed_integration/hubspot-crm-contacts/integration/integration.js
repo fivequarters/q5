@@ -16,7 +16,7 @@ const router = integration.router;
 
 // Allow only authorized clients (such as your backend) to list all HubSpot CRM Contacts
 router.post('/api/tenant/:tenantId/test', integration.middleware.authorizeUser('instance:get'), async (ctx) => {
-  // Create an official Hubspot client instance, already authorized with the tenant's credentials
+  // Create an official HubSpot client instance, already authorized with the tenant's credentials
   const hubspotClient = await integration.tenant.getSdkByTenant(ctx, 'hubspotConnector', ctx.params.tenantId);
 
   const contacts = await hubspotClient.crm.contacts.getAll();

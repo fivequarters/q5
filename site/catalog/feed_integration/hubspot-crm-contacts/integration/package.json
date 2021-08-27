@@ -5,7 +5,6 @@
   },
   "dependencies": {
     "@fusebit-int/framework": "^3.0.2",
-    "superagent": "^6.1.0",
     "@fusebit-int/hubspot-provider": "^1.0.0"
   },
   "files": [
