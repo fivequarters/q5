@@ -17,7 +17,7 @@
     {
       "type": "Control",
       "scope": "#/properties/hubspotConnector/properties/id",
-      "label": "Hubspot Connector name",
+      "label": "HubSpot Connector name",
       "rule": {
         "effect": "SHOW",
         "condition": {

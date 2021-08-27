@@ -1,1 +1,1 @@
-This Connector facilitates authentication, authorization, and API calls between Fusebit and Hubspot on your behalf.
+This Connector facilitates authentication, authorization, and API calls between Fusebit and HubSpot on your behalf.

@@ -3,28 +3,28 @@
   "properties": {
     "scope": {
       "title": "Scope",
-      "description": "Comma separated scopes to request from your Hubspot app",
+      "description": "Comma separated scopes to request from your HubSpot app",
       "type": "string"
     },
     "tokenUrl": {
-      "title": "Hubspot Token URL",
+      "title": "HubSpot Token URL",
       "description": "The authentication URL to use when exchanging tokens, as per the OAuth protocol",
       "type": "string"
     },
     "authorizationUrl": {
-      "title": "Hubspot Authorization URL",
+      "title": "HubSpot Authorization URL",
       "description": "The authorization URL to use when generating authorization codes, as per the OAuth protocol",
       "type": "string"
     },
     "clientId": {
       "title": "Client ID",
-      "description": "The Client ID from your Hubspot app",
+      "description": "The Client ID from your HubSpot app",
       "type": "string"
     },
     "clientSecret": {
       "title": "Client Secret",
       "type": "string",
-      "description": "The Client Secret from your Hubspot app"
+      "description": "The Client Secret from your HubSpot app"
     },
     "refreshErrorLimit": {
       "type": "integer"
