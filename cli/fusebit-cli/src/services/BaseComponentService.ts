@@ -42,13 +42,15 @@ export interface IListOptions {
   count?: number;
 }
 
+const upperCase = (s: string) => s[0].toUpperCase() + s.substr(1);
+
 export abstract class BaseComponentService<IComponentType extends IBaseComponentType> {
   protected profileService: ProfileService;
   protected executeService: ExecuteService;
   protected input: IExecuteInput;
 
   protected entityType: EntityType;
-  protected entityTypeName: string;
+  public entityTypeName: string;
 
   constructor(
     entityType: EntityType,
@@ -172,7 +174,7 @@ export abstract class BaseComponentService<IComponentType extends IBaseComponent
   ): Promise<void> {
     if (!this.input.options.quiet) {
       const files = entitySpec.data.files || [];
-      if (files.length) {
+      if (Object.keys(files).length) {
         const confirmPrompt = await Confirm.create({
           header: 'Deploy?',
           message: Text.create(`Deploy the ${this.entityType} in the '`, Text.bold(path), "' directory?"),
@@ -226,7 +228,7 @@ export abstract class BaseComponentService<IComponentType extends IBaseComponent
     const profile = await this.profileService.getExecutionProfile(['account', 'subscription']);
 
     let method: string = 'POST';
-    let url: string = this.getUrl(profile);
+    let url: string = this.getUrl(profile, entityId);
 
     entitySpec.id = entityId;
 
@@ -320,10 +322,10 @@ export abstract class BaseComponentService<IComponentType extends IBaseComponent
     }
   }
 
-  public async removeEntity(entityId: string): Promise<{ operationId: string }> {
+  public async removeEntity(entityId: string): Promise<IHttpResponse> {
     const profile = await this.profileService.getExecutionProfile(['account', 'subscription']);
 
-    return this.executeService.executeRequest(
+    return this.executeService.executeSimpleRequest(
       {
         header: 'Remove Entity',
         message: Text.create(`Removing ${this.entityType} '`, Text.bold(entityId), "'..."),
@@ -487,5 +489,61 @@ export abstract class BaseComponentService<IComponentType extends IBaseComponent
   
   </html>  
   `;
+  }
+
+  public async waitForEntity(entityId: string): Promise<IHttpResponse> {
+    const profile = await this.profileService.getExecutionProfile(['account', 'subscription']);
+
+    let response = await this.getEntity(profile, entityId);
+    let entity = response.data;
+
+    if (
+      entity &&
+      entity.operationStatus &&
+      (entity.operationStatus.statusCode === 200 || entity.operationStatus.statusCode > 299)
+    ) {
+      await this.executeService.result(
+        `${this.entityTypeName} ${upperCase(entity.operationStatus.message)}:`,
+        Text.create(
+          `${this.entityTypeName} '`,
+          Text.bold(entityId),
+          `' ${entity.operationStatus.message}: ${entity.operationStatus.statusCode}`,
+          Text.eol()
+        )
+      );
+      return response;
+    }
+
+    if (response.status > 299) {
+      return response;
+    }
+
+    await this.executeService.execute(
+      {
+        header: `${this.entityTypeName} ${upperCase(entity.operationStatus.message)}:`,
+        message: Text.create(
+          "Waiting for '",
+          Text.bold(`${entityId}`),
+          `' to finish ${entity.operationStatus.message}...`,
+          Text.eol()
+        ),
+        errorHeader: `${this.entityTypeName} Error`,
+        errorMessage: Text.create(
+          `${this.entityTypeName} '`,
+          Text.bold(entityId),
+          `' completed with `,
+          `${entity.operationStatus.statusCode} ${entity.operationStatus.message}`
+        ),
+      },
+
+      async () => {
+        while (entity.operationStatus.statusCode !== 200 && entity.operationStatus.statusCode < 299) {
+          response = await this.getEntity(profile, entityId);
+          entity = response.data;
+          await new Promise((resolve) => setTimeout(resolve, 500));
+        }
+      }
+    );
+    return response;
   }
 }

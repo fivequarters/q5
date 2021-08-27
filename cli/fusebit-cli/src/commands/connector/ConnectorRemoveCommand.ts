@@ -1,3 +1,4 @@
+import { Text } from '@5qtrs/text';
 import { Command, ArgType, IExecuteInput } from '@5qtrs/cli';
 import { ConnectorService, ExecuteService } from '../../services';
 
@@ -48,16 +49,33 @@ export class ConnectorRemoveCommand extends Command {
   }
 
   protected async onExecute(input: IExecuteInput): Promise<number> {
-    const connectorId = input.arguments[0] as string;
+    const entityId = input.arguments[0] as string;
 
     const executeService = await ExecuteService.create(input);
     const connectorService = await ConnectorService.create(input);
 
     await executeService.newLine();
 
-    await connectorService.confirmRemove(connectorId);
+    await connectorService.confirmRemove(entityId);
 
-    await connectorService.removeEntity(connectorId);
+    let result;
+
+    result = await connectorService.removeEntity(entityId);
+
+    if (result.status !== 404) {
+      result = await connectorService.waitForEntity(entityId);
+    } else {
+      await executeService.result(
+        'Removed',
+        Text.create(`${connectorService.entityTypeName} '`, Text.bold(entityId), `' not found`)
+      );
+      return 0;
+    }
+
+    await executeService.result(
+      'Removed',
+      Text.create(`${connectorService.entityTypeName} '`, Text.bold(entityId), `' removal completed`)
+    );
 
     return 0;
   }

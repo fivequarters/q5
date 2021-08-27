@@ -1,6 +1,6 @@
 import { Text } from '@5qtrs/text';
 import { Command, ArgType, IExecuteInput } from '@5qtrs/cli';
-import { IntegrationService, OperationService, ExecuteService } from '../../services';
+import { IntegrationService, ExecuteService } from '../../services';
 
 // ------------------
 // Internal Constants
@@ -53,20 +53,29 @@ export class IntegrationRemoveCommand extends Command {
 
     const executeService = await ExecuteService.create(input);
     const integrationService = await IntegrationService.create(input);
-    const operationService = await OperationService.create(input);
 
     await executeService.newLine();
 
     await integrationService.confirmRemove(entityId);
 
-    const operation = await integrationService.removeEntity(entityId);
+    let result;
 
-    const result = await operationService.waitForCompletion(operation.operationId);
+    result = await integrationService.removeEntity(entityId);
+
+    if (result.status !== 404) {
+      result = await integrationService.waitForEntity(entityId);
+    } else {
+      await executeService.result(
+        'Removed',
+        Text.create(`${integrationService.entityTypeName} '`, Text.bold(entityId), `' not found`)
+      );
+      return 0;
+    }
+
     await executeService.result(
-      'Entity Removed',
-      Text.create("Entity '", Text.bold(entityId), `' removal completed: ${result.status}`)
+      'Removed',
+      Text.create(`${integrationService.entityTypeName} '`, Text.bold(entityId), `' removal completed`)
     );
-
     return 0;
   }
 }
