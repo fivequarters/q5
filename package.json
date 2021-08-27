@@ -207,7 +207,9 @@
       "lib/data/db",
       "lib/data/schema",
       "site/catalog",
-      "site/v2-session-driver"
+      "site/v2-session-driver",
+      "lib/pkg/hubspot/hubspot-provider",
+      "lib/pkg/hubspot/hubspot-connector"
     ]
   }
 }

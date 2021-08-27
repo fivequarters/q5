@@ -7,5 +7,6 @@
     "editor.defaultFormatter": "esbenp.prettier-vscode"
   },
   "typescript.disableAutomaticTypeAcquisition": true,
-  "typescript.tsdk": "node_modules/typescript/lib"
+  "typescript.tsdk": "node_modules/typescript/lib",
+  "editor.rulers": [100] // You can install rewrap plugin to work with text wrapping rules.
 }

@@ -1,0 +1,14 @@
+{
+  "scripts": {
+    "deploy": "fuse integration deploy <% this.id %> -d .",
+    "get": "fuse integration get <% this.id %> -d ."
+  },
+  "dependencies": {
+    "@fusebit-int/framework": "^3.0.2",
+    "@fusebit-int/hubspot-provider": "^1.0.0"
+  },
+  "files": [
+    "./integration.js",
+    "README.md"
+  ]
+}
