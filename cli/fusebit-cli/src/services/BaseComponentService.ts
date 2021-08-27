@@ -241,7 +241,7 @@ export abstract class BaseComponentService<IComponentType extends IBaseComponent
       },
       async () => {
         const response = await this.getEntity(profile, entityId);
-        if (response.status === 200) {
+        if (response.status < 299) {
           method = 'PUT';
           url = this.getUrl(profile, entityId);
           return;

@@ -80,7 +80,7 @@ export default abstract class BaseEntityService<E extends Model.IEntity, F exten
     try {
       entity = await this.dao.createEntity(sanitizedEntity);
     } catch (err) {
-      return this.updateEntity(resolvedAgent, entity);
+      return { statusCode: 400, result: err.message };
     }
 
     setImmediate(async () => {

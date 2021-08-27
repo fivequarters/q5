@@ -150,8 +150,9 @@ describe('Integration Permissions', () => {
     response = await ApiRequestMap.integration.dispatch(account, integEntity.id, RequestMethod.get, '/api/health');
     expect(response).toBeHttp({ statusCode: 404 });
 
-    // Test with execute succeeds
-    response = await ApiRequestMap.integration.postAndWait(account, integEntity.id, integEntity, undefined, {
+    // Test with execute succeeds; must do a PUT now because the previous POST will create an object in an
+    // invalid state.
+    response = await ApiRequestMap.integration.putAndWait(account, integEntity.id, integEntity, undefined, {
       authz: executeToken,
     });
     expect(response).toBeHttp({ statusCode: 200 });

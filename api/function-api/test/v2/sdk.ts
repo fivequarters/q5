@@ -253,6 +253,7 @@ const createSdk = (entityType: Model.EntityType): ISdkForEntity => ({
       statusCode: [202, 200],
       data: { operationStatus: { statusCode: 202 } },
     });
+
     return waitForCompletion(account, entityType, entityId, undefined, waitOptions, options);
   },
 
