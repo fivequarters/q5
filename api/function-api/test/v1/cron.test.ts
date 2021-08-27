@@ -107,8 +107,10 @@ describe('cron', () => {
       // sleep 15 minutes to make sure the scheduler is working, let the cron run
       const lastRuns: number[] = [];
       const runDelay = 15;
+      console.log('starting the delay');
       for (let n = 0; n < runDelay; n++) {
         await sleep(60 * 1000);
+        console.log('60 seconds passed');
         const runCount = (await getRuns()).length;
         lastRuns.push(runCount);
         if (n > 3) {
