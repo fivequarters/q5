@@ -154,13 +154,12 @@ const performTests = (testEntityType: TestableEntityTypes, sampleEntityMap: Samp
     await createEntityTest(sampleEntity());
   }, 180000);
 
-  test('Create Entity returns 200 on POST', async () => {
-    let result;
+  test('Create Entity returns 400 on conflict', async () => {
     const entity = sampleEntity();
     await createEntityTest(entity);
 
-    result = await ApiRequestMap[testEntityType].postAndWait(account, entity.id, entity);
-    expect(result).toBeHttp({ statusCode: 200 });
+    const result = await ApiRequestMap[testEntityType].post(account, entity.id, entity);
+    expect(result).toBeHttp({ statusCode: 400 });
   }, 180000);
 
   test('Update Entity', async () => {
@@ -444,7 +443,7 @@ const performTests = (testEntityType: TestableEntityTypes, sampleEntityMap: Samp
     expect(multiTagEntity.data.items).toHaveLength(1);
   }, 180000);
 
-  test.only('List Entities by State', async () => {
+  test('List Entities by State', async () => {
     const numValid = 7;
     const numInvalid = 3;
     const validEntitys = Array(numValid)
@@ -477,7 +476,17 @@ const performTests = (testEntityType: TestableEntityTypes, sampleEntityMap: Samp
         const result = await ApiRequestMap[testEntityType].postAndWait(account, entity.id, entity, undefined, {
           authz: basicPutToken,
         });
-        expect(result).toBeHttp({ statusCode: 400 });
+        expect(result).toBeHttp({
+          statusCode: 200,
+          data: {
+            state: Model.EntityState.invalid,
+            operationStatus: {
+              operation: Model.OperationType.creating,
+              status: Model.OperationStatus.failed,
+              errorCode: Model.OperationErrorCode.InvalidParameterValue,
+            },
+          },
+        });
         return result;
       }),
     ]);
@@ -714,7 +723,7 @@ const performIntegrationTest = (sampleEntitiesMap: SampleEntityMap) => {
     expect(invokeResponse).toBeHttp({ statusCode: 200, data: { hello: 'world' } });
   }, 180000);
 
-  test.only('Invoke Entity Event', async () => {
+  test('Invoke Entity Event', async () => {
     const entity = await createEntity(testEntityType, sampleEntity());
     const newFiles = {
       ...entity.data.files,

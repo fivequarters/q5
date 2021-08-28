@@ -14,7 +14,7 @@ import { IFusebitExecutionProfile } from '@5qtrs/fusebit-profile-sdk';
 
 import { FunctionService } from './FunctionService';
 
-import { EntityType, ISdkEntity, IIntegrationData, IConnectorData } from '@fusebit/schema';
+import { OperationStatus, EntityType, ISdkEntity, IIntegrationData, IConnectorData } from '@fusebit/schema';
 
 const FusebitStateFile = '.fusebit-state';
 const FusebitMetadataFile = 'fusebit.json';
@@ -209,9 +209,9 @@ export abstract class BaseComponentService<IComponentType extends IBaseComponent
     const profile = await this.profileService.getExecutionProfile(['account', 'subscription']);
     return this.executeService.executeRequest(
       {
-        header: 'Getting Entity',
+        header: `Getting ${this.entityTypeName}`,
         message: Text.create(`Getting existing ${this.entityType} '`, Text.bold(`${entityId}`), "'..."),
-        errorHeader: 'Get Entity Error',
+        errorHeader: `Get ${this.entityTypeName} Error`,
         errorMessage: Text.create(`Unable to get ${this.entityType} '`, Text.bold(`${entityId}`), "'"),
       },
       {
@@ -234,9 +234,9 @@ export abstract class BaseComponentService<IComponentType extends IBaseComponent
 
     await this.executeService.execute(
       {
-        header: 'Checking Entity',
+        header: `Checking ${this.entityTypeName}`,
         message: Text.create(`Checking existing ${this.entityType} '`, Text.bold(entityId), "'..."),
-        errorHeader: 'Check Entity Error',
+        errorHeader: `Check ${this.entityTypeName} Error`,
         errorMessage: Text.create(`Unable to check ${this.entityType} '`, Text.bold(entityId), "'"),
       },
       async () => {
@@ -254,7 +254,7 @@ export abstract class BaseComponentService<IComponentType extends IBaseComponent
 
     return this.executeService.executeRequest(
       {
-        header: 'Deploy Entity',
+        header: `Deploy ${this.entityTypeName}`,
         message: Text.create(`Deploying ${this.entityType} '`, Text.bold(entityId), "'..."),
         errorHeader: 'Deploy Integration Error',
         errorMessage: Text.create(`Unable to deploy ${this.entityType} '`, Text.bold(entityId), "'"),
@@ -285,7 +285,7 @@ export abstract class BaseComponentService<IComponentType extends IBaseComponent
       {
         header: 'List Entities',
         message: Text.create(`Listing ${this.entityType}s...`),
-        errorHeader: 'List Entity Error',
+        errorHeader: `List ${this.entityTypeName} Error`,
         errorMessage: Text.create(`Unable to list ${this.entityType}`),
       },
       {
@@ -327,9 +327,9 @@ export abstract class BaseComponentService<IComponentType extends IBaseComponent
 
     return this.executeService.executeSimpleRequest(
       {
-        header: 'Remove Entity',
+        header: `Remove ${this.entityTypeName}`,
         message: Text.create(`Removing ${this.entityType} '`, Text.bold(entityId), "'..."),
-        errorHeader: 'Remove Entity Error',
+        errorHeader: `Remove ${this.entityTypeName} Error`,
         errorMessage: Text.create(`Unable to remove ${this.entityType} '`, Text.bold(entityId), "'"),
       },
       {
@@ -496,20 +496,16 @@ export abstract class BaseComponentService<IComponentType extends IBaseComponent
 
     let response = await this.getEntity(profile, entityId);
     let entity = response.data;
+    let msg: string;
+    let os = entity.operationStatus;
 
-    if (
-      entity &&
-      entity.operationStatus &&
-      (entity.operationStatus.statusCode === 200 || entity.operationStatus.statusCode > 299)
-    ) {
+    if (entity && entity.operationStatus && entity.operationStatus.status !== OperationStatus.processing) {
+      os = entity.operationStatus;
+
+      msg = `${os.operation} ${os.errorCode || os.status}: ${os.errorDetails || os.message}`;
       await this.executeService.result(
         `${this.entityTypeName} ${upperCase(entity.operationStatus.message)}:`,
-        Text.create(
-          `${this.entityTypeName} '`,
-          Text.bold(entityId),
-          `' ${entity.operationStatus.message}: ${entity.operationStatus.statusCode}`,
-          Text.eol()
-        )
+        Text.create(`${this.entityTypeName} '`, Text.bold(entityId), `' ${msg}`, Text.eol())
       );
       return response;
     }
@@ -518,30 +514,27 @@ export abstract class BaseComponentService<IComponentType extends IBaseComponent
       return response;
     }
 
+    msg = `${os.operation} ${os.errorCode || os.status}: ${os.errorDetails || os.message}`;
+
     await this.executeService.execute(
       {
-        header: `${this.entityTypeName} ${upperCase(entity.operationStatus.message)}:`,
-        message: Text.create(
-          "Waiting for '",
-          Text.bold(`${entityId}`),
-          `' to finish ${entity.operationStatus.message}...`,
-          Text.eol()
-        ),
+        header: ` `,
+        message: Text.create("Processing '", Text.bold(`${entityId}`), `'...`, Text.eol()),
         errorHeader: `${this.entityTypeName} Error`,
-        errorMessage: Text.create(
-          `${this.entityTypeName} '`,
-          Text.bold(entityId),
-          `' completed with `,
-          `${entity.operationStatus.statusCode} ${entity.operationStatus.message}`
-        ),
+        errorMessage: Text.create(`${this.entityTypeName} '`, Text.bold(entityId), `' ${msg}`),
       },
 
       async () => {
-        while (entity.operationStatus.statusCode !== 200 && entity.operationStatus.statusCode < 299) {
+        while (entity.operationStatus && entity.operationStatus.status === OperationStatus.processing) {
+          await new Promise((resolve) => setTimeout(resolve, 500));
           response = await this.getEntity(profile, entityId);
           entity = response.data;
-          await new Promise((resolve) => setTimeout(resolve, 500));
         }
+        if (!entity.operationStatus) {
+          return;
+        }
+        os = entity.operationStatus;
+        msg = `${os.operation} ${os.errorCode || os.status}: ${os.errorDetails || os.message}`;
       }
     );
     return response;

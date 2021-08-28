@@ -18,7 +18,11 @@ export class IntegrationEditorContext extends BaseEditorContext<IIntegrationSpec
       throw new Error('The specification.data.files must be provided.');
     }
 
-    this.selectFile('./integration.js');
+    ['integration.js', './integration.js'].forEach((fileName: string) => {
+      if (this.fileExistsInSpecification(fileName)) {
+        this.selectFile(fileName);
+      }
+    });
   }
 
   public addFileToSpecification(fileName: string, content: string, overwrite: boolean): void {

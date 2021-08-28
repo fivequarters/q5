@@ -18,9 +18,33 @@ export enum EntityState {
   active = 'active',
 }
 
+export enum OperationType {
+  creating = 'creating',
+  updating = 'updating',
+  deleting = 'deleting',
+}
+
+export enum OperationStatus {
+  success = 'success',
+  failed = 'failed',
+  processing = 'processing',
+}
+
+export enum OperationErrorCode {
+  OK = 'OK',
+  InvalidParameterValue = 'InvalidParameterValue',
+  UnauthorizedOperation = 'UnauthorizedOperation',
+  VersionConflict = 'VersionConflict',
+  InternalError = 'InternalError',
+  RequestLimitExceeded = 'RequestLimitExceeded',
+}
+
 export interface IOperationStatus {
-  statusCode: number;
-  message: string;
+  operation: OperationType;
+  status: OperationStatus;
+  message?: string;
+  errorCode?: OperationErrorCode;
+  errorDetails?: any;
 }
 
 export interface ITags {

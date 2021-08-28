@@ -11,6 +11,67 @@ export interface IServiceResult {
   result: any;
 }
 
+const updateOperationStatus = (
+  entity: Model.IEntity,
+  state: Model.EntityState,
+  operation: Model.OperationType,
+  status: Model.OperationStatus,
+  message?: string,
+  errorCode?: Model.OperationErrorCode,
+  errorDetails?: any
+) => {
+  entity.state = state || entity.state;
+  entity.state = state;
+  if (!entity.operationStatus) {
+    entity.operationStatus = { operation, status, message, errorCode, errorDetails };
+    return;
+  }
+  entity.operationStatus.operation = operation || entity.operationStatus.operation;
+  entity.operationStatus.status = status || entity.operationStatus.status;
+  entity.operationStatus.message = message || entity.operationStatus.message;
+
+  if (errorCode) {
+    entity.operationStatus.errorCode = errorCode;
+  } else {
+    delete entity.operationStatus.errorCode;
+  }
+  if (errorDetails) {
+    entity.operationStatus.errorDetails = errorDetails;
+  } else {
+    delete entity.operationStatus.errorDetails;
+  }
+};
+
+const guessOperationErrorCode = (error: any) => {
+  if (!error) {
+    return undefined;
+  }
+
+  const status = error.code || error.status || error.statusCode;
+  if (!status) {
+    return Model.OperationErrorCode.InternalError;
+  }
+
+  switch (status) {
+    case 200:
+      return Model.OperationErrorCode.OK;
+    case 400:
+      return Model.OperationErrorCode.InvalidParameterValue;
+    case 409:
+      return Model.OperationErrorCode.VersionConflict;
+    case 403:
+      return Model.OperationErrorCode.UnauthorizedOperation;
+    case 429:
+      return Model.OperationErrorCode.RequestLimitExceeded;
+  }
+
+  return Model.OperationErrorCode.InternalError;
+};
+
+const errorToOperationErrorDetails = (error: any) => {
+  return error.message;
+};
+
 export default abstract class BaseEntityService<E extends Model.IEntity, F extends Model.IEntity | E> {
   public abstract readonly entityType: Model.EntityType;
   public readonly dao: Model.IEntityDao<E>;
@@ -75,8 +136,15 @@ export default abstract class BaseEntityService<E extends Model.IEntity, F exten
     } catch (err) {
       return { statusCode: 400, result: err.message };
     }
-    sanitizedEntity.state = Model.EntityState.creating;
-    sanitizedEntity.operationStatus = { statusCode: 202, message: 'creating' };
+
+    updateOperationStatus(
+      sanitizedEntity,
+      Model.EntityState.creating,
+      Model.OperationType.creating,
+      Model.OperationStatus.processing,
+      `Creation of ${this.entityType} ${entity.id} is in progress`
+    );
+
     try {
       entity = await this.dao.createEntity(sanitizedEntity);
     } catch (err) {
@@ -88,13 +156,26 @@ export default abstract class BaseEntityService<E extends Model.IEntity, F exten
         await this.createEntityOperation(resolvedAgent, entity);
 
         // Update the operationStatus and state appropriately
-        entity.state = Model.EntityState.active;
-        entity.operationStatus = { statusCode: 200, message: 'created' };
+        updateOperationStatus(
+          entity,
+          Model.EntityState.active,
+          Model.OperationType.creating,
+          Model.OperationStatus.success,
+          `Creation of ${this.entityType} ${entity.id} completed`
+        );
+
         entity = await this.dao.updateEntity(entity);
       } catch (err) {
-        console.log(`WARNING: Failed to update ${entity.id}: `, err);
-        entity.state = Model.EntityState.invalid;
-        entity.operationStatus = { statusCode: err.status || 500, message: err.message || 'Failed to apply update' };
+        console.log(`WARNING: Failed to create ${entity.id}: `, err);
+        updateOperationStatus(
+          entity,
+          Model.EntityState.invalid,
+          Model.OperationType.creating,
+          Model.OperationStatus.failed,
+          `Creation of ${this.entityType} ${entity.id} failed`,
+          guessOperationErrorCode(err),
+          errorToOperationErrorDetails(err)
+        );
         try {
           await this.dao.updateEntity(entity);
         } catch (e) {
@@ -135,7 +216,13 @@ export default abstract class BaseEntityService<E extends Model.IEntity, F exten
     // Make sure the sanitize passes
     entity = this.sanitizeEntity(entity);
 
-    preEntity.operationStatus = { statusCode: 202, message: 'updating' };
+    updateOperationStatus(
+      preEntity,
+      preEntity.state || Model.EntityState.active,
+      Model.OperationType.updating,
+      Model.OperationStatus.processing,
+      `Updating ${this.entityType} ${entity.id}`
+    );
     preEntity = await this.dao.updateEntity(preEntity);
 
     // Update the version to match the new version in the operationStatus
@@ -147,13 +234,25 @@ export default abstract class BaseEntityService<E extends Model.IEntity, F exten
       try {
         // Delegate to the normal create code to recreate the function.
         await this.createEntityOperation(resolvedAgent, entity);
-        entity.state = Model.EntityState.active;
-        entity.operationStatus = { statusCode: 200, message: 'finished' };
+        updateOperationStatus(
+          entity,
+          Model.EntityState.active,
+          Model.OperationType.updating,
+          Model.OperationStatus.success,
+          `Updated ${this.entityType} ${entity.id}`
+        );
 
         await this.dao.updateEntity(entity);
       } catch (err) {
-        console.log(`WARNING: Failed to update ${entity.id}: `, err);
-        preEntity.operationStatus = { statusCode: err.status || 500, message: err.message || 'Failed to apply update' };
+        updateOperationStatus(
+          preEntity,
+          preEntity.state || Model.EntityState.active,
+          Model.OperationType.updating,
+          Model.OperationStatus.failed,
+          `Updating of ${this.entityType} ${entity.id} failed`,
+          guessOperationErrorCode(err),
+          errorToOperationErrorDetails(err)
+        );
         try {
           await this.dao.updateEntity(preEntity);
         } catch (e) {
@@ -176,8 +275,14 @@ export default abstract class BaseEntityService<E extends Model.IEntity, F exten
         return { statusCode: 409, result: entity };
       }
 
-      preEntity.state = Model.EntityState.invalid;
-      preEntity.operationStatus = { statusCode: 202, message: 'deleting' };
+      updateOperationStatus(
+        preEntity,
+        preEntity.state || Model.EntityState.invalid,
+        Model.OperationType.deleting,
+        Model.OperationStatus.processing,
+        `Deleting ${this.entityType} ${entity.id}`
+      );
+
       preEntity = await this.dao.updateEntity(preEntity);
     } catch (err) {
       return { statusCode: err.status, result: err };

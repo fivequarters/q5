@@ -87,7 +87,17 @@ describe('Integration Permissions', () => {
     let response = await ApiRequestMap.integration.postAndWait(account, integEntity.id, integEntity, undefined, {
       authz: basicPutToken,
     });
-    expect(response).toBeHttp({ statusCode: 400, data: { state: 'invalid', operationStatus: { statusCode: 400 } } });
+    expect(response).toBeHttp({
+      statusCode: 200,
+      data: {
+        state: Model.EntityState.invalid,
+        operationStatus: {
+          operation: Model.OperationType.creating,
+          status: Model.OperationStatus.failed,
+          errorCode: Model.OperationErrorCode.InvalidParameterValue,
+        },
+      },
+    });
     response = await ApiRequestMap.integration.dispatch(account, integEntity.id, RequestMethod.get, '/api/health');
     expect(response).toBeHttp({ statusCode: 404 });
   }, 180000);
@@ -108,9 +118,21 @@ describe('Integration Permissions', () => {
     });
 
     // Test with enough permissions, but no execute - succeeds because no connectors
-    const response = await ApiRequestMap.integration.postAndWait(account, integEntity.id, integEntity, undefined, {
+    let response = await ApiRequestMap.integration.postAndWait(account, integEntity.id, integEntity, undefined, {
       authz: simplePutToken,
     });
+    expect(response).toBeHttp({
+      statusCode: 200,
+      data: {
+        state: Model.EntityState.active,
+        operationStatus: {
+          operation: Model.OperationType.creating,
+          status: Model.OperationStatus.success,
+        },
+      },
+    });
+
+    response = await ApiRequestMap.integration.dispatch(account, integEntity.id, RequestMethod.get, '/api/health');
     expect(response).toBeHttp({ statusCode: 200 });
   }, 180000);
 
@@ -145,7 +167,17 @@ describe('Integration Permissions', () => {
     let response = await ApiRequestMap.integration.postAndWait(account, integEntity.id, integEntity, undefined, {
       authz: simplePutToken,
     });
-    expect(response).toBeHttp({ statusCode: 400, data: { state: 'invalid', operationStatus: { statusCode: 400 } } });
+    expect(response).toBeHttp({
+      statusCode: 200,
+      data: {
+        state: Model.EntityState.invalid,
+        operationStatus: {
+          operation: Model.OperationType.creating,
+          status: Model.OperationStatus.failed,
+          errorCode: Model.OperationErrorCode.InvalidParameterValue,
+        },
+      },
+    });
 
     response = await ApiRequestMap.integration.dispatch(account, integEntity.id, RequestMethod.get, '/api/health');
     expect(response).toBeHttp({ statusCode: 404 });
@@ -155,7 +187,16 @@ describe('Integration Permissions', () => {
     response = await ApiRequestMap.integration.putAndWait(account, integEntity.id, integEntity, undefined, {
       authz: executeToken,
     });
-    expect(response).toBeHttp({ statusCode: 200 });
+    expect(response).toBeHttp({
+      statusCode: 200,
+      data: {
+        state: Model.EntityState.active,
+        operationStatus: {
+          operation: Model.OperationType.updating,
+          status: Model.OperationStatus.success,
+        },
+      },
+    });
 
     response = await ApiRequestMap.integration.dispatch(account, integEntity.id, RequestMethod.get, '/api/health');
     expect(response).toBeHttp({ statusCode: 200 });
