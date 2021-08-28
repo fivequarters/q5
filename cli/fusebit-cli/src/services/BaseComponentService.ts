@@ -95,15 +95,35 @@ export abstract class BaseComponentService<IComponentType extends IBaseComponent
       // do nothing
     }
 
+    const packageJsonBuffer = await readFile(join(cwd, 'package.json'));
+    const fusebitJsonBuffer = await readFile(join(cwd, FusebitMetadataFile));
+
+    if (packageJsonBuffer.length === 0 || fusebitJsonBuffer.length === 0) {
+      await this.executeService.error(
+        `Invalid ${this.entityTypeName}`,
+        Text.create(
+          `${this.entityTypeName} must have at least two files: 'package.json' and 'fusebit.json'. `,
+          'Please, before trying to deploy again, make sure you have those files properly defined. ',
+          'For more information, check https://developer.fusebit.io/.'
+        )
+      );
+    }
+
     // Load package.json, if any.  Only include the type for the files parameter, as that's all that's used
     // here.
     let pack: { files: string[] } | undefined;
     try {
-      const buffer = await readFile(join(cwd, 'package.json'));
-      pack = JSON.parse(buffer.toString());
-      entitySpec.data.files['package.json'] = buffer.toString();
+      pack = JSON.parse(packageJsonBuffer.toString());
+      entitySpec.data.files['package.json'] = packageJsonBuffer.toString();
     } catch (error) {
-      // do nothing
+      await this.executeService.error(
+        `Invalid package.json file`,
+        Text.create(
+          "We were unable to parse the contents of the 'package.json' file. ",
+          'Please, check this file before proceeding again.'
+        ),
+        error
+      );
     }
 
     // Load files in package.files, if any, into the entitySpec.
@@ -116,8 +136,7 @@ export abstract class BaseComponentService<IComponentType extends IBaseComponent
 
     // Load fusebit.json, if any.
     try {
-      const buffer = await readFile(join(cwd, FusebitMetadataFile));
-      const config = JSON.parse(buffer.toString());
+      const config = JSON.parse(fusebitJsonBuffer);
 
       // Copy over the metadata values
       entitySpec.id = config.id;
@@ -133,7 +152,14 @@ export abstract class BaseComponentService<IComponentType extends IBaseComponent
       // Blind copy the rest into data.
       Object.assign(entitySpec.data, config);
     } catch (error) {
-      // do nothing
+      await this.executeService.error(
+        `Invalid fusebit.json file`,
+        Text.create(
+          "We were unable to parse the contents of the 'fusebit.json' file. ",
+          'Please, check this file before proceeding again.'
+        ),
+        error
+      );
     }
 
     return entitySpec;

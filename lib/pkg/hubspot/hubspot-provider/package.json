@@ -1,0 +1,24 @@
+{
+  "name": "@fusebit-int/hubspot-provider",
+  "version": "1.0.0",
+  "description": "",
+  "main": "libc/index.js",
+  "files": [
+    "libc/*.js",
+    "libc/*.d.ts"
+  ],
+  "license": "SEE LICENSE IN LICENSE",
+  "author": "Fusebit, Inc.",
+  "scripts": {
+    "build": "tsc -b",
+    "test": "jest --colors",
+    "coverage": "jest --colors --coverage",
+    "lint": "tslint --fix -t stylish src/{,**/}*.ts{,x} test/{,**/}*.ts{,x}",
+    "clean": "rm -r -f libc; rm -r -f coverage"
+  },
+  "keywords": [],
+  "dependencies": {
+    "@fusebit-int/framework": "^3.0.2",
+    "@hubspot/api-client": "^4.1.0"
+  }
+}

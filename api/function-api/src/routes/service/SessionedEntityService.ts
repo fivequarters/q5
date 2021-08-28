@@ -1,6 +1,7 @@
 import http_error from 'http-errors';
-
 import { v4 as uuidv4 } from 'uuid';
+
+import { EPHEMERAL_ENTITY_EXPIRATION } from '@5qtrs/constants';
 import RDS, { Model } from '@5qtrs/db';
 
 import BaseEntityService, { IServiceResult } from './BaseEntityService';
@@ -121,6 +122,7 @@ export default abstract class SessionedEntityService<
         redirectUrl: sessionDetails.redirectUrl,
       },
       tags,
+      expires: new Date(Date.now() + EPHEMERAL_ENTITY_EXPIRATION).toISOString(),
     };
 
     // Write the session object.

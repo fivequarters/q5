@@ -148,7 +148,8 @@
       "@fusebit/schema": ["lib/data/schema/src"],
       "@fusebit-int/slack-connector": ["lib/pkg/slack/slack-connector/src"],
       "@fusebit-int/slack-provider": ["lib/pkg/slack/slack-provider/src"],
-      "@5qtrs/catalog": ["site/catalog/src"]
+      "@5qtrs/catalog": ["site/catalog/src"],
+      "@fusebit-int/hubspot-connector": ["lib/pkg/hubspot/hubspot-connector/src"]
     }
   }
 }
