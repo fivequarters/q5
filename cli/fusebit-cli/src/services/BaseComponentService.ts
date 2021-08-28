@@ -521,19 +521,20 @@ export abstract class BaseComponentService<IComponentType extends IBaseComponent
     const profile = await this.profileService.getExecutionProfile(['account', 'subscription']);
 
     let response = await this.getEntity(profile, entityId);
+
+    if (response.status > 299) {
+      return response;
+    }
+
     let entity = response.data;
     let os = entity.operationStatus;
-    let msg = `${os.operation} ${os.errorCode || os.status}: ${os.errorDetails || os.message}`;
+    let msg = os ? `${os.operation} ${os.errorCode || os.status}: ${os.errorDetails || os.message}` : '';
 
     if (entity && entity.operationStatus && entity.operationStatus.status !== OperationStatus.processing) {
       await this.executeService.result(
         `${this.entityTypeName} ${upperCase(entity.operationStatus.message)}:`,
         Text.create(`${this.entityTypeName} '`, Text.bold(entityId), `' ${msg}`, Text.eol())
       );
-      return response;
-    }
-
-    if (response.status > 299) {
       return response;
     }
 
