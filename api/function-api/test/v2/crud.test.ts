@@ -644,21 +644,45 @@ const performIntegrationTest = (sampleEntitiesMap: SampleEntityMap) => {
     const entity = await createEntity(testEntityType, sampleEntity());
     entity.data.files['../../passwords'] = 'invalid file';
     const updateResponse = await ApiRequestMap[testEntityType].put(account, entity.id, entity);
-    expect(updateResponse).toBeHttp({ statusCode: 400 });
+    expect(updateResponse).toBeHttp({
+      statusCode: 200,
+      data: {
+        operationStatus: {
+          status: Model.OperationStatus.failed,
+          errorCode: Model.OperationErrorCode.InvalidParameterValue,
+        },
+      },
+    });
   }, 180000);
 
   test('Invoke Entity GET with invalid absolute paths fails', async () => {
     const entity = await createEntity(testEntityType, sampleEntity());
     entity.data.files['/foo/bar/../../../passwords'] = 'invalid file';
     const updateResponse = await ApiRequestMap[testEntityType].put(account, entity.id, entity);
-    expect(updateResponse).toBeHttp({ statusCode: 400 });
+    expect(updateResponse).toBeHttp({
+      statusCode: 200,
+      data: {
+        operationStatus: {
+          status: Model.OperationStatus.failed,
+          errorCode: Model.OperationErrorCode.InvalidParameterValue,
+        },
+      },
+    });
   }, 180000);
 
   test('Invoke Entity GET with absolute paths fails', async () => {
     const entity = await createEntity(testEntityType, sampleEntity());
     entity.data.files['/foo/bar/passwords'] = 'invalid file';
     const updateResponse = await ApiRequestMap[testEntityType].put(account, entity.id, entity);
-    expect(updateResponse).toBeHttp({ statusCode: 400 });
+    expect(updateResponse).toBeHttp({
+      statusCode: 200,
+      data: {
+        operationStatus: {
+          status: Model.OperationStatus.failed,
+          errorCode: Model.OperationErrorCode.InvalidParameterValue,
+        },
+      },
+    });
   }, 180000);
 
   test('Update Entity and Dispatch', async () => {
