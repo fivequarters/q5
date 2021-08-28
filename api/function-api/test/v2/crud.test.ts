@@ -181,7 +181,11 @@ const performTests = (testEntityType: TestableEntityTypes, sampleEntityMap: Samp
       ...updateEntity(entityOne),
       id: 'invalid-id',
     };
-    const updateResponse = await ApiRequestMap[testEntityType].putAndWait(account, entityOne.id, entityOneUpdated);
+    const updateResponse = await ApiRequestMap[testEntityType].putAndWait(
+      account,
+      entityOneUpdated.id,
+      entityOneUpdated
+    );
     expect(updateResponse).toBeHttp({ statusCode: 404 });
   }, 180000);
 

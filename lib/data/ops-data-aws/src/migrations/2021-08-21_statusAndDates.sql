@@ -19,7 +19,7 @@ BEGIN
 END;
 $$ LANGUAGE PLPGSQL;
 
-CREATE TRIGGER trigger_update_date_modified AFTER UPDATE OF version ON entity
+CREATE TRIGGER trigger_update_date_modified BEFORE INSERT OR UPDATE OF version ON entity
   FOR EACH ROW EXECUTE PROCEDURE update_date_modified();
 
 -- Add some defensive default timeouts for transactions

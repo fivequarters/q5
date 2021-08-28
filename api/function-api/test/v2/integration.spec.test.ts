@@ -69,4 +69,47 @@ describe('Integration spec test suite', () => {
   test('Integration created with supported node.js version 10', async () => {
     await testSpec(getIntegrationEntity('10'), /^v10/);
   }, 180000);
+
+  test('Creating integration with an invalid spec returns 400', async () => {
+    const simpleBadInteg = {
+      id: boundaryId,
+      data: {
+        handler: './integration',
+        files: {
+          ['integration.js']: "module.exports = new (require('@fusebit-int/framework').Integration)();",
+          ['package.json']: 'XXXXXXX',
+        },
+      },
+    };
+    const response = await ApiRequestMap.integration.post(account, boundaryId, simpleBadInteg);
+    expect(response).toBeHttp({ statusCode: 400 });
+  }, 180000);
+
+  test('Updating integration with an invalid spec errors', async () => {
+    const simpleInteg = {
+      id: boundaryId,
+      data: {
+        handler: './integration',
+        files: {
+          ['integration.js']: "module.exports = new (require('@fusebit-int/framework').Integration)();",
+        },
+      },
+    };
+    let response = await ApiRequestMap.integration.postAndWait(account, boundaryId, simpleInteg);
+    expect(response).toBeHttp({ statusCode: 200 });
+
+    (simpleInteg.data.files as any)['package.json'] = 'XXX XXX';
+    response = await ApiRequestMap.integration.put(account, boundaryId, simpleInteg);
+    expect(response).toBeHttp({
+      statusCode: 200,
+      data: {
+        state: Model.EntityState.active,
+        operationStatus: {
+          operation: Model.OperationType.updating,
+          status: Model.OperationStatus.failed,
+          errorCode: Model.OperationErrorCode.InvalidParameterValue,
+        },
+      },
+    });
+  }, 180000);
 });

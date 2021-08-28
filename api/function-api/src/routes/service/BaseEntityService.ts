@@ -213,8 +213,22 @@ export default abstract class BaseEntityService<E extends Model.IEntity, F exten
       return { statusCode: 409, result: entity };
     }
 
-    // Make sure the sanitize passes
-    entity = this.sanitizeEntity(entity);
+    try {
+      // Make sure the sanitize passes
+      entity = this.sanitizeEntity(entity);
+    } catch (err) {
+      updateOperationStatus(
+        preEntity,
+        preEntity.state || Model.EntityState.active,
+        Model.OperationType.updating,
+        Model.OperationStatus.failed,
+        `Updating of ${this.entityType} ${entity.id} failed`,
+        Model.OperationErrorCode.InvalidParameterValue,
+        errorToOperationErrorDetails(err)
+      );
+      preEntity = await this.dao.updateEntity(preEntity);
+      return { statusCode: 200, result: preEntity };
+    }
 
     updateOperationStatus(
       preEntity,
