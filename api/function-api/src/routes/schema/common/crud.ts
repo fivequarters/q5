@@ -88,6 +88,9 @@ const router = (
             req,
             body.entity(req, EntityService.entityType)
           );
+
+          // Entity id is optional; reinforce it from the url parameter.
+          entity.id = req.params.entityId;
           const { statusCode, result } = await EntityService.updateEntity(req.resolvedAgent, entity);
           res.status(statusCode).json(result);
         } catch (e) {

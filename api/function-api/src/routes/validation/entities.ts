@@ -14,8 +14,8 @@ const validateEntity = (data: any) =>
     expires: Joi.date().iso(),
     state: stateEnum.strip(),
     operationStatus: Joi.object().strip(),
-    dateAdded: Joi.date().iso(),
-    dateModified: Joi.date().iso(),
+    dateAdded: Joi.date().iso().strip(),
+    dateModified: Joi.date().iso().strip(),
   });
 
 // id is optional, but data is required.
@@ -28,8 +28,8 @@ const validatePostEntity = (data: any) =>
     expires: Joi.date().iso(),
     state: stateEnum.strip(),
     operationStatus: Joi.object().strip(),
-    dateAdded: Joi.date().iso(),
-    dateModified: Joi.date().iso(),
+    dateAdded: Joi.date().iso().strip(),
+    dateModified: Joi.date().iso().strip(),
   });
 
 const EntityIdParams = Joi.object().keys({
