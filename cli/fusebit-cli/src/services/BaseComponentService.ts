@@ -522,13 +522,10 @@ export abstract class BaseComponentService<IComponentType extends IBaseComponent
 
     let response = await this.getEntity(profile, entityId);
     let entity = response.data;
-    let msg: string;
     let os = entity.operationStatus;
+    let msg = `${os.operation} ${os.errorCode || os.status}: ${os.errorDetails || os.message}`;
 
     if (entity && entity.operationStatus && entity.operationStatus.status !== OperationStatus.processing) {
-      os = entity.operationStatus;
-
-      msg = `${os.operation} ${os.errorCode || os.status}: ${os.errorDetails || os.message}`;
       await this.executeService.result(
         `${this.entityTypeName} ${upperCase(entity.operationStatus.message)}:`,
         Text.create(`${this.entityTypeName} '`, Text.bold(entityId), `' ${msg}`, Text.eol())
@@ -539,8 +536,6 @@ export abstract class BaseComponentService<IComponentType extends IBaseComponent
     if (response.status > 299) {
       return response;
     }
-
-    msg = `${os.operation} ${os.errorCode || os.status}: ${os.errorDetails || os.message}`;
 
     await this.executeService.execute(
       {

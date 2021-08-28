@@ -62,15 +62,15 @@ export class IntegrationRemoveCommand extends Command {
 
     result = await integrationService.removeEntity(entityId);
 
-    if (result.status !== 404) {
-      result = await integrationService.waitForEntity(entityId);
-    } else {
+    if (result.status === 404) {
       await executeService.result(
-        'Removed',
+        'Not Found',
         Text.create(`${integrationService.entityTypeName} '`, Text.bold(entityId), `' not found`)
       );
       return 0;
     }
+
+    result = await integrationService.waitForEntity(entityId);
 
     await executeService.result(
       'Removed',
