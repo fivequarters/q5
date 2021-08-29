@@ -1,0 +1,22 @@
+{
+  "id": "linear",
+  "name": "Linear",
+  "smallIcon": "/images/linear.svg",
+  "largeIcon": "/images/linear.svg",
+  "version": "1.0.0",
+  "description": "#README.md",
+  "tags": {
+    "catalog": "linear,intro,popular"
+  },
+  "configuration": {
+    "schema": "config/schema.json",
+    "uischema": "config/uischema.json",
+    "data": "config/defaults.json",
+    "entities": {
+      "linearConnector": {
+        "entityType": "connector",
+        "path": "connector/"
+      }
+    }
+  }
+}

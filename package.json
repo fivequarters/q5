@@ -209,7 +209,9 @@
       "site/catalog",
       "site/v2-session-driver",
       "lib/pkg/hubspot/hubspot-provider",
-      "lib/pkg/hubspot/hubspot-connector"
+      "lib/pkg/hubspot/hubspot-connector",
+      "lib/pkg/linear/linear-provider",
+      "lib/pkg/linear/linear-connector"
     ]
   }
 }

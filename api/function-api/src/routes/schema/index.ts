@@ -24,8 +24,8 @@ integrationService.addService(connectorService);
 router.use(analytics.setModality(analytics.Modes.Administration));
 
 router.use('/connector/:entityId/proxy/slack/oauth', createProxyRouter('slack', subscriptionCache));
-
 router.use('/connector/:entityId/proxy/hubspot/oauth', createProxyRouter('hubspot', subscriptionCache));
+router.use('/connector/:entityId/proxy/linear/oauth', createProxyRouter('linear', subscriptionCache));
 
 router.use(
   '/connector',

@@ -1,0 +1,17 @@
+{
+  "id": "<% this.id %>",
+  "tags": {},
+  "handler": "./integration",
+  "components": [
+    {
+      "name": "linearConnector",
+      "skip": false,
+      "provider": "@fusebit-int/linear-provider",
+      "entityId": "<% global.entities.linearConnector.id %>",
+      "dependsOn": [],
+      "entityType": "connector"
+    }
+  ],
+  "componentTags": {},
+  "configuration": {}
+}
