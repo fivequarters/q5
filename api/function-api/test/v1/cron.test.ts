@@ -37,7 +37,7 @@ describe('cron', () => {
   async function getRuns() {
     const res = await getStorage(account, boundaryId);
     expect(res).toBeHttp({ statusCode: 200 });
-    return res.data.data.timestamps.shift();
+    return res.data.data.timestamps;
   }
 
   async function getTimespansBetweenEachRunSorted(): Promise<number[]> {
@@ -47,6 +47,7 @@ describe('cron', () => {
 
     // Convert to spans
     const spans = actualRuns
+      .slice(1)
       .map((v: number, i: number) => {
         return i > 0 && v - actualRuns[i - 1];
       })
