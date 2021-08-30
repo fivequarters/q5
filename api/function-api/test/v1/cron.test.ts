@@ -65,9 +65,15 @@ describe('cron', () => {
 
     // sleep 15 minutes to make sure the scheduler is working, let the cron run
     let timestamps = [];
+    let cycles = 0;
     while (timestamps.length < expectedRuns) {
       await sleep(60 * 1000);
+      cycles++;
+      if (cycles === 1) {
+        continue;
+      }
       timestamps = await getRuns();
+      expect(timestamps.length >= cycles);
       console.log('Timestamps', timestamps);
     }
 
