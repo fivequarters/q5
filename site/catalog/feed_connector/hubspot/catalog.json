@@ -17,6 +17,16 @@
         "entityType": "connector",
         "path": "connector/"
       }
-    }
+    },
+    "components": [
+      {
+        "name": "<% this.id %>",
+        "skip": false,
+        "provider": "@fusebit-int/hubspot-provider",
+        "entityId": "<% this.id %>",
+        "dependsOn": [],
+        "entityType": "connector"
+      }
+    ]
   }
 }
