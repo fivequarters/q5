@@ -23,12 +23,12 @@ router.post('/api/tenant/:tenantId/test', integration.middleware.authorizeUser('
   const slackClient = await integration.tenant.getSdkByTenant(ctx, 'slackConnector', ctx.params.tenantId);
 
   // Send a message! Try replacing the text and the channel name with something different :)
-  const result = await slackClient.chat.postMessage({
-    text: 'Hello world from Fusebit!',
+  await slackClient.chat.postMessage({
+    text: '¡Hello world from Fusebit!',
     channel: 'general',
   });
 
-  ctx.body = result;
+  ctx.body = 'Message successfully sent to Slack';
 });
 
 // Instead of sending a message, list all of the active users and return that information to the caller.
