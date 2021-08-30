@@ -21,8 +21,6 @@ BASEDIR=`pwd`
 for pkgPath in ${PACKAGE_FILES}; do
   VERSION=`jq -rc ".version" ${pkgPath}`
   dirName=$(dirname $pkgPath)
-  cd ${dirName};
-  echo BUILDING ${dirName}
   pkgVersion=`jq -rc ".version" package.json`
   pkgName="$(basename -- $dirName)"
   git tag ${pkgName}-${pkgVersion} || true
