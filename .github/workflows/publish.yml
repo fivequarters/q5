@@ -51,6 +51,8 @@ jobs:
           echo "Versions: function_api/${{env.VERSION_FUNCTION_API}}
           fuse-cli/${{env.VERSION_FUSEBIT_CLI}}
           fuse-ops/${{env.VERSION_FUSEBIT_OPS_CLI}}"
+      - name: Publish - tags
+        run: ./tool/cicd/actions/scripts/publish_fusebit_tags.sh
       - name: Setup Environments and Profiles
         env:
           SECRET_FUSEBIT_PROFILE: ${{secrets.FUSEBIT_STAGE_US_WEST_2}}
