@@ -10,7 +10,7 @@ beforeEach(() => {
 });
 
 describe('cron', () => {
-  const runDelay = 30;
+  const runDelay = 15;
 
   test(
     'cron executes on schedule',
