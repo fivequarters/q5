@@ -42,6 +42,7 @@ const publishAll = [
   'publish_fusebit_ops_cli',
   'publish_api_docs',
   'publish_proxy_secrets',
+  'publish_all_pkg_versioned',
   'publish_api_readme_com',
 ];
 const fullBuild = ['setup_env', 'full_build'];
