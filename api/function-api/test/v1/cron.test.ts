@@ -10,7 +10,7 @@ beforeEach(() => {
 });
 
 describe('cron', () => {
-  const runDelay = 15;
+  const runDelay = 30;
 
   test(
     'cron executes on schedule',
@@ -64,12 +64,10 @@ describe('cron', () => {
 
     // sleep 15 minutes to make sure the scheduler is working, let the cron run
     let timestamps = [];
-    while (timestamps.length < 15) {
+    while (timestamps.length < runDelay) {
       await sleep(60 * 1000);
       timestamps = await getRuns();
-      console.log('--------------=========--------------');
-      console.log(timestamps);
-      console.log('--------------=========--------------');
+      console.log('Timestamps', timestamps);
     }
 
     const logResponse = await logsPromise;
@@ -104,6 +102,7 @@ describe('cron', () => {
             const superagent = require("superagent");
 
             module.exports = async (ctx) => {
+              const thisExecutionTimestamp = Date.now();
               const { accountId, subscriptionId, functionId, fusebit } = ctx;
               const storageUrl = \`${testAccount.baseUrl}/v1/account/${testAccount.accountId}/subscription/${testAccount.subscriptionId}/storage/${boundaryId}\`;
 
@@ -115,8 +114,7 @@ describe('cron', () => {
               const { data } = storageResponse.body;
 
               const timestamps = data ? data.timestamps : [];
-
-              const thisExecutionTimestamp = Date.now();
+              
               timestamps.push(thisExecutionTimestamp);
 
               await superagent
