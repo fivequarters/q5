@@ -105,6 +105,7 @@ class RDS implements IRds {
   }
 
   public updateHealth = async () => {
+    console.log(`Execution started at ${Date.now()}`);
     const entity = {
       accountId: this.RDS_HEALTH_TEST_ACC_ID,
       subscriptionId: this.RDS_HEALTH_TEST_SUB_ID,
@@ -125,6 +126,7 @@ class RDS implements IRds {
       this.healthError = e;
       this.lastHealth = false;
     }
+    console.log(`Execution Finished at ${Date.now()}`);
     return setTimeout(this.updateHealth, this.RDS_HEALTH_CHECK_TTL);
   };
 
