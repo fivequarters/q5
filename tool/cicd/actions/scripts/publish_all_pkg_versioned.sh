@@ -7,7 +7,7 @@ FUSE="node ../../cli/fusebit-cli/libc/index.js"
 
 PACKAGE_FILES=`find . -name node_modules -prune -false -o -name package.json`;
 BASEDIR=`pwd`
-for fuseProfile in selfservice.api.us-west-1.internal, stage.us-west-2.internal; do
+for fuseProfile in selfservice.api.us-west-1.internal stage.us-west-2.internal; do
   ${FUSE} profile set ${fuseProfile}
   for pkgPath in ${PACKAGE_FILES}; do
     ${FUSE} npm login

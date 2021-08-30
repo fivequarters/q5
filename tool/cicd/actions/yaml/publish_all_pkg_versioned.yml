@@ -1,5 +1,5 @@
 steps:
-  - name: Publish Everything in lib/pkg to 749 CICD.
+  - name: Publish Everything in lib/pkg to self service and stage.
     env:
       FUSE_PROFILE: cicd
     run: ./tool/cicd/actions/scripts/publish_all_pkg_versioned.sh
