@@ -87,7 +87,7 @@ router.delete(
 
 // OAuth Flow Endpoints
 router.get('/api/authorize', async (ctx: Connector.Types.Context) => {
-  ctx.redirect(await engine.getAuthorizationUrl(ctx.query.session));
+  ctx.redirect(await engine.getAuthorizationUrl(ctx));
 });
 
 router.get(

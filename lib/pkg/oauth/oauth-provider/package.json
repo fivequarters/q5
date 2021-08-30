@@ -1,9 +1,12 @@
 {
   "name": "@fusebit-int/oauth-provider",
-  "version": "2.0.0",
+  "version": "3.0.0",
   "description": "",
   "main": "libc/index.js",
-  "files": ["libc/*.js", "libc/*.d.ts"],
+  "files": [
+    "libc/*.js",
+    "libc/*.d.ts"
+  ],
   "license": "SEE LICENSE IN LICENSE",
   "author": "Fusebit, Inc.",
   "scripts": {
@@ -15,6 +18,6 @@
   },
   "keywords": [],
   "peerDependencies": {
-    "@fusebit-int/framework": "^3.0.0"
+    "@fusebit-int/framework": "^4.0.0"
   }
 }

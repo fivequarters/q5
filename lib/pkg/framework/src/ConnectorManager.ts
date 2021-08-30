@@ -108,12 +108,15 @@ class ConnectorManager {
     if (!identity || !identity.entityId || identity.entityType !== EntityType.identity) {
       ctx.throw(404);
     }
-    return inst.instantiate(ctx, identity.entityId);
+    const client = await inst.instantiate(ctx, identity.entityId);
+    client.fusebit = client.fusebit || {};
+    client.fusebit.identity = identity;
+    return client;
   }
 
   public getByNames(ctx: Context, names: string[], instanceId: string): Record<string, any> {
     return names.reduce<Record<string, any>>((acc, cur) => {
-      acc[name] = this.getByName(ctx, cur, instanceId);
+      acc[cur] = this.getByName(ctx, cur, instanceId);
       return acc;
     }, {});
   }
