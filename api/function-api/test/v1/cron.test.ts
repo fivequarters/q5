@@ -1,6 +1,6 @@
 import { request } from '@5qtrs/request';
 
-import { deleteFunction, putFunction, waitForBuild, sleep, getFunction, getLogs } from './sdk';
+import { deleteFunction, putFunction, waitForBuild, sleep, getFunction, getLogs, getStorage } from './sdk';
 
 import { getEnv } from './setup';
 
@@ -15,12 +15,11 @@ describe('cron', () => {
   test(
     'cron executes on schedule',
     async () => {
-      await createFunctionToStoreEachCallsTimestamp();
       await createCronFunction();
       await probeRunsWhileWaitingForCompletion();
       await deleteCronFunction();
 
-      const timespans = await getSortedTimespansBetweenEachRun();
+      const timespans = await getTimespansBetweenEachRunSorted();
 
       const totalTimespan = timespans.reduce((total, currentTimespan) => total + currentTimespan, 0);
       const avgTimespan = totalTimespan / timespans.length;
@@ -35,31 +34,13 @@ describe('cron', () => {
     16 * 60 * 1000
   );
 
-  async function createFunctionToStoreEachCallsTimestamp() {
-    // We use this function to bookkeep timestamps of when the cron function was triggered.
-    // The bookkeep artifact is the configuration.runs property below (which is an array). The other
-    // function, the cron one, will update this property, pushing a new timestamp, everytime it runs.
-    const runs = Buffer.from(JSON.stringify([]), 'utf8').toString('base64');
-    const response = await putFunction(account, boundaryId, function2Id, {
-      nodejs: {
-        files: {
-          'index.js': '.',
-        },
-      },
-      configuration: {
-        runs,
-      },
-    });
-    expect(response).toBeHttp({ statusCode: 200 });
-  }
-
   async function getRuns() {
-    const res = await getFunction(account, boundaryId, function2Id);
+    const res = await getStorage(account, boundaryId);
     expect(res).toBeHttp({ statusCode: 200 });
-    return JSON.parse(Buffer.from(res.data.configuration.runs, 'base64').toString('utf8'));
+    return res.data.data.timestamps;
   }
 
-  async function getSortedTimespansBetweenEachRun(): Promise<number[]> {
+  async function getTimespansBetweenEachRunSorted(): Promise<number[]> {
     // Retrieve the storage function to inspect the cron job that ran
     const actualRuns = await getRuns();
     expect(actualRuns.length).toBeGreaterThanOrEqual(runDelay - 1);
@@ -82,17 +63,13 @@ describe('cron', () => {
     const logsPromise = getLogs(account, boundaryId, function1Id, false, 15 * 60 * 1000);
 
     // sleep 15 minutes to make sure the scheduler is working, let the cron run
-    const lastRuns: number[] = [];
-    for (let n = 0; n < runDelay; n++) {
+    let timestamps = [];
+    while (timestamps.length < 15) {
       await sleep(60 * 1000);
-      const runCount = (await getRuns()).length;
-      lastRuns.push(runCount);
-      if (n > 3) {
-        console.log(`${JSON.stringify(lastRuns)}`);
-        expect(runCount).toBeGreaterThan(0); // Make sure the basic behavior is working.
-        expect(lastRuns.every((v) => v === lastRuns[0])).toBeFalsy(); // Make sure it's not stalled.
-        lastRuns.shift();
-      }
+      timestamps = await getRuns();
+      console.log('--------------=========--------------');
+      console.log(timestamps);
+      console.log('--------------=========--------------');
     }
 
     const logResponse = await logsPromise;
@@ -120,39 +97,38 @@ describe('cron', () => {
           : account.baseUrl,
     };
 
-    const function2Resource =
-      '/account/' +
-      testAccount.accountId +
-      '/subscription/' +
-      testAccount.subscriptionId +
-      '/boundary/' +
-      boundaryId +
-      '/function/' +
-      function2Id +
-      '/';
-    const functionUrl = `${testAccount.baseUrl}/v1/${function2Resource}`;
-
     let response = await putFunction(account, boundaryId, function1Id, {
       nodejs: {
         files: {
           'index.js': `
-            const Superagent = require('superagent');
-            module.exports = async (ctx) => {
-              const r = await Superagent.get("${functionUrl}")
-                .set('Authorization', 'Bearer ' + ctx.fusebit.functionAccessToken);
+            const superagent = require("superagent");
 
-              let runs = JSON.parse(Buffer.from(r.body.configuration.runs, 'base64').toString('utf8'));
-              console.log('Number of runs: ', runs.length);
-              runs.push(Date.now());
-              runs = Buffer.from(JSON.stringify(runs), 'utf8').toString('base64');
-              await Superagent.put("${functionUrl}")
-                    .set('Authorization', 'Bearer ' + ctx.fusebit.functionAccessToken)
-                    .send({ nodejs: r.body.nodejs, configuration: { runs } });
-            }
+            module.exports = async (ctx) => {
+              const { accountId, subscriptionId, functionId, fusebit } = ctx;
+              const storageUrl = \`${testAccount.baseUrl}/v1/account/${testAccount.accountId}/subscription/${testAccount.subscriptionId}/storage/${boundaryId}\`;
+
+              const storageResponse = await superagent
+                .get(storageUrl)
+                .set("authorization", \`bearer \$\{fusebit.functionAccessToken\}\`)
+                .ok((res) => res.status === 404 || res.status < 300);
+
+              const { data } = storageResponse.body;
+
+              const timestamps = data ? data.timestamps : [];
+
+              const thisExecutionTimestamp = Date.now();
+              timestamps.push(thisExecutionTimestamp);
+
+              await superagent
+                .put(storageUrl)
+                .set("authorization", \`bearer \$\{fusebit.functionAccessToken\}\`)
+                .set("content-type", "application/json")
+                .send({ data: { timestamps } });
+            };
           `,
           'package.json': {
             dependencies: {
-              superagent: '*',
+              superagent: '^6.1.0',
             },
           },
         },
@@ -162,7 +138,12 @@ describe('cron', () => {
       },
       security: {
         functionPermissions: {
-          allow: [{ action: 'function:*', resource: function2Resource }],
+          allow: [
+            {
+              action: 'storage:*',
+              resource: `/account/${testAccount.accountId}/subscription/${testAccount.subscriptionId}/storage/${boundaryId}/`,
+            },
+          ],
         },
       },
     });
