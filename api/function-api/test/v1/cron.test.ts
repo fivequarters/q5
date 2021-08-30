@@ -10,23 +10,23 @@ beforeEach(() => {
 });
 
 describe('cron', () => {
-  const runDelay = 15;
+  const expectedRuns = 15;
 
   test(
     'cron executes on schedule',
     async () => {
       await createCronFunction();
-      await probeRunsWhileWaitingForCompletion();
+      const timestamps = await probeRunsWhileWaitingForCompletion();
       await deleteCronFunction();
 
-      const timespans = await getTimespansBetweenEachRunSorted();
+      const timespansBetweenRuns = await getTimespansBetweenRunsSorted(timestamps);
 
-      const totalTimespan = timespans.reduce((total, currentTimespan) => total + currentTimespan, 0);
-      const avgTimespan = totalTimespan / timespans.length;
-      const minTimespan = timespans[0];
-      const maxTimespan = timespans[timespans.length - 1];
+      const totalTimespan = timespansBetweenRuns.reduce((total, currentTimespan) => total + currentTimespan, 0);
+      const avgTimespan = totalTimespan / timespansBetweenRuns.length;
+      const minTimespan = timespansBetweenRuns[0];
+      const maxTimespan = timespansBetweenRuns[timespansBetweenRuns.length - 1];
 
-      console.log('RESPONSES', timespans.length, avgTimespan, minTimespan, maxTimespan);
+      console.log('RESPONSES', timespansBetweenRuns.length, avgTimespan, minTimespan, maxTimespan);
       expect(avgTimespan).toBeGreaterThan(58000);
       expect(maxTimespan).toBeLessThan(70000);
       expect(minTimespan).toBeGreaterThan(50000);
@@ -40,19 +40,19 @@ describe('cron', () => {
     return res.data.data.timestamps;
   }
 
-  async function getTimespansBetweenEachRunSorted(): Promise<number[]> {
-    // Retrieve the storage function to inspect the cron job that ran
-    const actualRuns = await getRuns();
-    expect(actualRuns.length).toBeGreaterThanOrEqual(runDelay - 1);
+  function getTimespansBetweenRunsSorted(timestamps: number[]): number[] {
+    // first run usually takes longer to start and breaks test
+    const timestampsWithoutFirstEntry = timestamps.slice(1);
+
+    console.log('timestampsWithoutFirstEntry', timestampsWithoutFirstEntry);
 
     // Convert to spans
-    const spans = actualRuns
-      .slice(1)
-      .map((v: number, i: number) => {
-        return i > 0 && v - actualRuns[i - 1];
-      })
-      .slice(1)
-      .sort((a: number, b: number) => a - b);
+    const spans = timestampsWithoutFirstEntry
+      .map((timestamp, idx) => (idx > 0 ? timestamp - timestampsWithoutFirstEntry[idx - 1] : 0))
+      .sort((a, b) => a - b)
+      .slice(1);
+
+    console.log('spans', spans);
 
     return spans;
   }
@@ -61,11 +61,11 @@ describe('cron', () => {
     // Start logging for the first 10 minutes, to make sure both function-api triggered and cron-scheduler
     // triggered events are captured.  The timer is set to 15, but the connection is unlikely to stay open
     // that long due to internal configuration entities.
-    const logsPromise = getLogs(account, boundaryId, function1Id, false, 15 * 60 * 1000);
+    const logsPromise = getLogs(account, boundaryId, function1Id, false, expectedRuns * 60 * 1000);
 
     // sleep 15 minutes to make sure the scheduler is working, let the cron run
     let timestamps = [];
-    while (timestamps.length < runDelay) {
+    while (timestamps.length < expectedRuns) {
       await sleep(60 * 1000);
       timestamps = await getRuns();
       console.log('Timestamps', timestamps);
@@ -78,6 +78,8 @@ describe('cron', () => {
     // Make sure we got at least halfway through the number of events to maximize the chance we validate
     // both function-api scheduled events as well as cron-scheduler triggered events.
     expect(logResponse.data.indexOf('Number of runs:  8') > 0);
+
+    return timestamps;
   }
 
   async function deleteCronFunction() {
@@ -117,6 +119,7 @@ describe('cron', () => {
               const timestamps = data ? data.timestamps : [];
               
               timestamps.push(thisExecutionTimestamp);
+              console.log('Number of runs: ', timestamps.length);
 
               await superagent
                 .put(storageUrl)
