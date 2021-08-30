@@ -93,6 +93,8 @@ jobs:
         env:
           SLACK_PROXY_CLIENT_ID: ${{ secrets.SLACK_PROXY_CLIENT_ID }}
           SLACK_PROXY_CLIENT_SECRET: ${{ secrets.SLACK_PROXY_CLIENT_SECRET }}
+          HUBSPOT_PROXY_CLIENT_ID: ${{ secrets.HUBSPOT_PROXY_CLIENT_ID }}
+          HUBSPOT_PROXY_CLIENT_SECRET: ${{ secrets.HUBSPOT_PROXY_CLIENT_SECRET }}
         run: ./tool/cicd/actions/scripts/publish_proxy_secrets.sh
       - name: Publish the OpenAPI docs for v2 to Readme.Com
         uses: readmeio/github-readme-sync@v2
