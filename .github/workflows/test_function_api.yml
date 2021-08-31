@@ -27,9 +27,6 @@ jobs:
           echo "Versions: function_api/${{env.VERSION_FUNCTION_API}}
           fuse-cli/${{env.VERSION_FUSEBIT_CLI}}
           fuse-ops/${{env.VERSION_FUSEBIT_OPS_CLI}}"
-      - uses: n1hility/cancel-previous-runs@v2
-        with:
-          token: ${{ secrets.GH_TOKEN }}
       - name: Setup .env files
         run: >-
           ./tool/cicd/actions/scripts/create_function_api_env.cicd.us-east-2.749775346857.sh
