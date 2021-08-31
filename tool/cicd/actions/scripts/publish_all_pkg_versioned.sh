@@ -16,7 +16,6 @@ for fuseProfile in selfservice.api.us-west-1.internal stage.us-west-2.internal; 
     echo BUILDING ${dirName}
     VERSION=`jq -rc ".version" package.json`
     dirName=$(dirname $pkgPath)
-    pkgVersion=`jq -rc ".version" ${pkgPath}`
     pkgName="$(basename -- $dirName)"
 
     git tag --points-at HEAD | grep ${pkgName}-${VERSION} > /dev/null
@@ -26,7 +25,7 @@ for fuseProfile in selfservice.api.us-west-1.internal stage.us-west-2.internal; 
       git tag --points-at HEAD
       continue
     else
-      echoerr "Publishing ${VERSION}"
+        echoerr "Publishing ${VERSION}"
     fi
     yarn build;
     npm publish;
