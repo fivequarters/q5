@@ -170,12 +170,10 @@ export class ProfileService {
     resultMessage?: { message: IText; header: IText }
   ): Promise<IFusebitProfile> {
     const updatedProfile = await this.execute(() => this.profile.updateProfile(name, profile));
-    const defaultMessage: { message: IText; header: IText } = {
+    const message = resultMessage || {
       message: 'Profile Updated',
       header: Text.create("The '", Text.bold(name), "' profile was successfully updated"),
     };
-    const message = resultMessage || defaultMessage;
-
     await this.executeService.result(message.message, message.header);
 
     return updatedProfile;
