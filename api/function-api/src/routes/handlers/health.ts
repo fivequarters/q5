@@ -24,7 +24,7 @@ function getHealth(targets: IHealthCheckTarget[]) {
           try {
             await target.check();
           } catch (e) {
-            throw new Error(`${target.name} check failed: ${e.message}.`);
+            throw new Error(`${target.name} check failed: ${JSON.stringify(e)}.`);
           }
         })
       );
