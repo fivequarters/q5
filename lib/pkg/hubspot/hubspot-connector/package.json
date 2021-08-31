@@ -1,13 +1,9 @@
 {
   "name": "@fusebit-int/hubspot-connector",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "",
   "main": "libc/index.js",
-  "files": [
-    "libc/**/*.js",
-    "libc/**/*.d.ts",
-    "libc/**/*.json"
-  ],
+  "files": ["libc/**/*.js", "libc/**/*.d.ts", "libc/**/*.json"],
   "license": "SEE LICENSE IN LICENSE",
   "author": "Fusebit, Inc.",
   "scripts": {
@@ -19,7 +15,9 @@
   },
   "keywords": [],
   "dependencies": {
-    "@fusebit-int/framework": "^3.0.2",
     "@fusebit-int/oauth-connector": "^2.0.1"
+  },
+  "peerDependencies": {
+    "@fusebit-int/framework": "^3.0.3"
   }
 }
