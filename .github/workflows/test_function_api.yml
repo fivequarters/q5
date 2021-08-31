@@ -75,3 +75,4 @@ jobs:
           channel: pr-review
           status: FAILED
           color: danger
+    if: github.event.review.state == 'approved'
