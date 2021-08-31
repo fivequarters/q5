@@ -445,10 +445,10 @@ export class ProfileService {
       {
         header: 'Login',
         message: Text.create(
-          'Please log in to Fusebit using the same account you used to sign up.',
+          Text.bold('Please log in to Fusebit using the same account you used to sign up.'),
           Text.eol(),
           Text.eol(),
-          Text.bold('You can use your browser or mobile device')
+          'You can use your browser or mobile device'
         ),
         errorHeader: 'Login Error',
         errorMessage: Text.create("Unable to initiate authentication for '", Text.bold(profile.name), "' profile"),

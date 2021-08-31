@@ -180,10 +180,8 @@ export abstract class BaseComponentService<IComponentType extends IBaseComponent
     );
 
     const details = [
-      `The ${this.entityTypeName} was downloaded to directory `,
-      `${cwd}`,
-      Text.eol(),
-      'and the following files were written to disk:',
+      `The ${this.entityTypeName} was downloaded to the ${cwd} directory`,
+      ' and the following files were written to disk:',
       Text.eol(),
       Text.eol(),
     ];
