@@ -91,7 +91,7 @@ describe('Integration Permissions', () => {
       statusCode: 200,
       data: {
         state: Model.EntityState.invalid,
-        operationStatus: {
+        operationState: {
           operation: Model.OperationType.creating,
           status: Model.OperationStatus.failed,
           errorCode: Model.OperationErrorCode.InvalidParameterValue,
@@ -125,7 +125,7 @@ describe('Integration Permissions', () => {
       statusCode: 200,
       data: {
         state: Model.EntityState.active,
-        operationStatus: {
+        operationState: {
           operation: Model.OperationType.creating,
           status: Model.OperationStatus.success,
         },
@@ -171,7 +171,7 @@ describe('Integration Permissions', () => {
       statusCode: 200,
       data: {
         state: Model.EntityState.invalid,
-        operationStatus: {
+        operationState: {
           operation: Model.OperationType.creating,
           status: Model.OperationStatus.failed,
           errorCode: Model.OperationErrorCode.InvalidParameterValue,
@@ -191,7 +191,7 @@ describe('Integration Permissions', () => {
       statusCode: 200,
       data: {
         state: Model.EntityState.active,
-        operationStatus: {
+        operationState: {
           operation: Model.OperationType.updating,
           status: Model.OperationStatus.success,
         },

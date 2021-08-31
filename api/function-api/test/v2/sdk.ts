@@ -86,7 +86,7 @@ export const waitForCompletion = async (
     response = subordinateId
       ? await ApiRequestMap[entityType].get(account, entityId, subordinateId, options)
       : await ApiRequestMap[entityType].get(account, entityId, options);
-    if (!response.data.operationStatus || response.data.operationStatus.status !== Model.OperationStatus.processing) {
+    if (!response.data.operationState || response.data.operationState.status !== Model.OperationStatus.processing) {
       return response;
     }
     await new Promise((resolve) => setTimeout(resolve, waitOptions.pollMs));
@@ -250,7 +250,7 @@ const createSdk = (entityType: Model.EntityType): ISdkForEntity => ({
     const op = await ApiRequestMap[entityType].post(account, entityId, body, options);
     expect(op).toBeHttp({
       statusCode: [202, 200],
-      data: { operationStatus: { operation: Model.OperationType.creating, status: Model.OperationStatus.processing } },
+      data: { operationState: { operation: Model.OperationType.creating, status: Model.OperationStatus.processing } },
     });
 
     return waitForCompletion(account, entityType, entityId, undefined, waitOptions, options);
@@ -273,7 +273,7 @@ const createSdk = (entityType: Model.EntityType): ISdkForEntity => ({
 
     expect(op).toBeHttp({
       statusCode: 200,
-      data: { operationStatus: { operation: Model.OperationType.updating, status: Model.OperationStatus.processing } },
+      data: { operationState: { operation: Model.OperationType.updating, status: Model.OperationStatus.processing } },
     });
 
     return waitForCompletion(account, entityType, entityId, undefined, waitOptions, options);

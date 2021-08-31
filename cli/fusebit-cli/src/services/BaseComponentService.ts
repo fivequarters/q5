@@ -267,7 +267,7 @@ export abstract class BaseComponentService<IComponentType extends IBaseComponent
       },
       async () => {
         const response = await this.getEntity(profile, entityId);
-        if (response.status < 299) {
+        if (response.status <= 299) {
           method = 'PUT';
           url = this.getUrl(profile, entityId);
           return;
@@ -527,12 +527,12 @@ export abstract class BaseComponentService<IComponentType extends IBaseComponent
     }
 
     let entity = response.data;
-    let os = entity.operationStatus;
+    let os = entity.operationState;
     let msg = os ? `${os.operation} ${os.errorCode || os.status}: ${os.errorDetails || os.message}` : '';
 
-    if (entity && entity.operationStatus && entity.operationStatus.status !== OperationStatus.processing) {
+    if (entity.operationState && entity.operationState.status !== OperationStatus.processing) {
       await this.executeService.result(
-        `${this.entityTypeName} ${upperCase(entity.operationStatus.message)}:`,
+        `${this.entityTypeName} ${upperCase(entity.operationState.message)}:`,
         Text.create(`${this.entityTypeName} '`, Text.bold(entityId), `' ${msg}`, Text.eol())
       );
       return response;
@@ -547,15 +547,15 @@ export abstract class BaseComponentService<IComponentType extends IBaseComponent
       },
 
       async () => {
-        while (entity.operationStatus && entity.operationStatus.status === OperationStatus.processing) {
+        while (entity.operationState && entity.operationState.status === OperationStatus.processing) {
           await new Promise((resolve) => setTimeout(resolve, 500));
           response = await this.getEntity(profile, entityId);
           entity = response.data;
         }
-        if (!entity.operationStatus) {
+        if (!entity.operationState) {
           return;
         }
-        os = entity.operationStatus;
+        os = entity.operationState;
         msg = `${os.operation} ${os.errorCode || os.status}: ${os.errorDetails || os.message}`;
       }
     );

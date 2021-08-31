@@ -17,7 +17,7 @@ const cleanForStrict = (response: any) => {
   delete response.dateAdded;
   delete response.dateModified;
   delete response.state;
-  delete response.operationStatus;
+  delete response.operationState;
 };
 
 const createEntityTests = <T extends Model.IEntity>(DAO: Model.IEntityDao<T>, entityType: string) => {

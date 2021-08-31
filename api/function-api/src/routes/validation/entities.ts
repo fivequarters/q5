@@ -13,7 +13,7 @@ const validateEntity = (data: any) =>
     version: Joi.string().guid(),
     expires: Joi.date().iso(),
     state: stateEnum.strip(),
-    operationStatus: Joi.object().strip(),
+    operationState: Joi.object().strip(),
     dateAdded: Joi.date().iso().strip(),
     dateModified: Joi.date().iso().strip(),
   });
@@ -27,7 +27,7 @@ const validatePostEntity = (data: any) =>
     version: Joi.string().guid(),
     expires: Joi.date().iso(),
     state: stateEnum.strip(),
-    operationStatus: Joi.object().strip(),
+    operationState: Joi.object().strip(),
     dateAdded: Joi.date().iso().strip(),
     dateModified: Joi.date().iso().strip(),
   });

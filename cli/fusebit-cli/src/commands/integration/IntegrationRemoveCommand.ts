@@ -58,9 +58,7 @@ export class IntegrationRemoveCommand extends Command {
 
     await integrationService.confirmRemove(entityId);
 
-    let result;
-
-    result = await integrationService.removeEntity(entityId);
+    const result = await integrationService.removeEntity(entityId);
 
     if (result.status === 404) {
       await executeService.result(
@@ -70,7 +68,7 @@ export class IntegrationRemoveCommand extends Command {
       return 0;
     }
 
-    result = await integrationService.waitForEntity(entityId);
+    await integrationService.waitForEntity(entityId);
 
     await executeService.result(
       'Removed',

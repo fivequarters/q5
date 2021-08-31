@@ -484,7 +484,7 @@ const performTests = (testEntityType: TestableEntityTypes, sampleEntityMap: Samp
           statusCode: 200,
           data: {
             state: Model.EntityState.invalid,
-            operationStatus: {
+            operationState: {
               operation: Model.OperationType.creating,
               status: Model.OperationStatus.failed,
               errorCode: Model.OperationErrorCode.InvalidParameterValue,
@@ -647,7 +647,7 @@ const performIntegrationTest = (sampleEntitiesMap: SampleEntityMap) => {
     expect(updateResponse).toBeHttp({
       statusCode: 200,
       data: {
-        operationStatus: {
+        operationState: {
           status: Model.OperationStatus.failed,
           errorCode: Model.OperationErrorCode.InvalidParameterValue,
         },
@@ -662,7 +662,7 @@ const performIntegrationTest = (sampleEntitiesMap: SampleEntityMap) => {
     expect(updateResponse).toBeHttp({
       statusCode: 200,
       data: {
-        operationStatus: {
+        operationState: {
           status: Model.OperationStatus.failed,
           errorCode: Model.OperationErrorCode.InvalidParameterValue,
         },
@@ -677,7 +677,7 @@ const performIntegrationTest = (sampleEntitiesMap: SampleEntityMap) => {
     expect(updateResponse).toBeHttp({
       statusCode: 200,
       data: {
-        operationStatus: {
+        operationState: {
           status: Model.OperationStatus.failed,
           errorCode: Model.OperationErrorCode.InvalidParameterValue,
         },

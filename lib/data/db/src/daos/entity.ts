@@ -77,7 +77,7 @@ export abstract class Entity<ET extends IEntity> implements IEntityDao<ET> {
     entityid: 'id',
     entitytype: 'entityType',
     subscriptionid: 'subscriptionId',
-    operationstatus: 'operationStatus',
+    operationstate: 'operationState',
     dateadded: 'dateAdded',
     datemodified: 'dateModified',
     id: '__databaseId',
@@ -330,7 +330,7 @@ export abstract class Entity<ET extends IEntity> implements IEntityDao<ET> {
       inputStatementOptions
     );
     const sql = `INSERT INTO entity
-      (entityType, accountId, subscriptionId, entityId, data, tags, version, expires, state, operationStatus)
+      (entityType, accountId, subscriptionId, entityId, data, tags, version, expires, state, operationState)
       VALUES (
         :entityType::entity_type,
         :accountId,
@@ -341,7 +341,7 @@ export abstract class Entity<ET extends IEntity> implements IEntityDao<ET> {
         gen_random_uuid(),
         :expires::timestamptz,
         :state::entity_state,
-        :operationStatus::jsonb
+        :operationState::jsonb
       )
       RETURNING *, to_json(expires)#>>'{}' as expires;`;
 
@@ -350,7 +350,7 @@ export abstract class Entity<ET extends IEntity> implements IEntityDao<ET> {
           :entityType::entity_type, :accountId, :subscriptionId, :entityId,
           FALSE, FALSE, TRUE,
           :data::jsonb, :tags::jsonb, :expires::timestamptz, :state::entity_state,
-          :operationStatus::jsonb, :version);`;
+          :operationState::jsonb, :version);`;
 
     const parameters = {
       entityType: this.entityType,
@@ -361,7 +361,7 @@ export abstract class Entity<ET extends IEntity> implements IEntityDao<ET> {
       tags: JSON.stringify(params.tags || {}),
       expires: params.expires,
       state: params.state || EntityState.active,
-      operationStatus: JSON.stringify(params.operationStatus || { statusCode: 200, message: 'created' }),
+      operationState: JSON.stringify(params.operationState || { statusCode: 200, message: 'created' }),
       version: params.version,
     };
     const selectedInsert = queryOptions.upsert ? sqlUpsert : sql;
@@ -391,7 +391,7 @@ export abstract class Entity<ET extends IEntity> implements IEntityDao<ET> {
         :entityType::entity_type, :accountId, :subscriptionId, :entityId,
         :filterExpired::BOOLEAN, :prefixMatchId::BOOLEAN, FALSE,
         :data::jsonb, :tags::jsonb, :expires::timestamptz, :state::entity_state,
-        :operationStatus::jsonb, :version);
+        :operationState::jsonb, :version);
       `;
 
     const parameters = {
@@ -405,7 +405,7 @@ export abstract class Entity<ET extends IEntity> implements IEntityDao<ET> {
       tags: params.tags ? JSON.stringify(params.tags) : undefined,
       expires: params.expires,
       state: params.state,
-      operationStatus: params.operationStatus ? JSON.stringify(params.operationStatus) : undefined,
+      operationState: params.operationState ? JSON.stringify(params.operationState) : undefined,
       version: params.version,
     };
 

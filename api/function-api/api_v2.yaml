@@ -750,22 +750,22 @@ components:
 
   responses:
     Connector202:
-      description: The entity creation is in progress. While the `operationStatus.status` value is
-        `processing`, the entity is still being created. Once the `operationStatus.status` value is
+      description: The entity creation is in progress. While the `operationState.status` value is
+        `processing`, the entity is still being created. Once the `operationState.status` value is
         `success`, the entity is available for use.
 
-        On failure, `operationStatus.status` will be set to `failed` and `state` will be `invalid`.
+        On failure, `operationState.status` will be set to `failed` and `state` will be `invalid`.
       content:
         application/json:
           schema:
             $ref: '#/components/schemas/ConnectorEntity'
 
     Integration202:
-      description: The entity creation is in progress. While the `operationStatus.status` value is
-        `processing`, the entity is still being created. Once the `operationStatus.status` value is
+      description: The entity creation is in progress. While the `operationState.status` value is
+        `processing`, the entity is still being created. Once the `operationState.status` value is
         `success`, the entity is available for use.
 
-        On failure, `operationStatus.status` will be set to `failed` and `state` will be `invalid`.
+        On failure, `operationState.status` will be set to `failed` and `state` will be `invalid`.
       content:
         application/json:
           schema:
@@ -1033,7 +1033,7 @@ components:
           $ref: '#/components/schemas/DateModified'
         state:
           $ref: '#/components/schemas/EntityState'
-        operationStatus:
+        operationState:
           $ref: '#/components/schemas/OperationStatusObject'
 
     ConnectorPostEntity:
@@ -1053,7 +1053,7 @@ components:
           $ref: '#/components/schemas/DateModified'
         state:
           $ref: '#/components/schemas/EntityState'
-        operationStatus:
+        operationState:
           $ref: '#/components/schemas/OperationStatusObject'
 
     ConnectorListEntity:
@@ -1080,7 +1080,7 @@ components:
           $ref: '#/components/schemas/DateModified'
         state:
           $ref: '#/components/schemas/EntityState'
-        operationStatus:
+        operationState:
           $ref: '#/components/schemas/OperationStatusObject'
 
     ConnectorList:
@@ -1276,7 +1276,7 @@ components:
           $ref: '#/components/schemas/DateModified'
         state:
           $ref: '#/components/schemas/EntityState'
-        operationStatus:
+        operationState:
           $ref: '#/components/schemas/OperationStatusObject'
 
     IntegrationPostEntity:
@@ -1296,7 +1296,7 @@ components:
           $ref: '#/components/schemas/DateModified'
         state:
           $ref: '#/components/schemas/EntityState'
-        operationStatus:
+        operationState:
           $ref: '#/components/schemas/OperationStatusObject'
 
     IntegrationListEntity:
@@ -1318,7 +1318,7 @@ components:
           $ref: '#/components/schemas/DateModified'
         state:
           $ref: '#/components/schemas/EntityState'
-        operationStatus:
+        operationState:
           $ref: '#/components/schemas/OperationStatusObject'
 
     IntegrationList:

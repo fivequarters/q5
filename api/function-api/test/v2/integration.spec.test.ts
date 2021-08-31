@@ -104,7 +104,7 @@ describe('Integration spec test suite', () => {
       statusCode: 200,
       data: {
         state: Model.EntityState.active,
-        operationStatus: {
+        operationState: {
           operation: Model.OperationType.updating,
           status: Model.OperationStatus.failed,
           errorCode: Model.OperationErrorCode.InvalidParameterValue,

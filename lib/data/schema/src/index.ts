@@ -39,7 +39,7 @@ export enum OperationErrorCode {
   RequestLimitExceeded = 'RequestLimitExceeded',
 }
 
-export interface IOperationStatus {
+export interface IOperationState {
   operation: OperationType;
   status: OperationStatus;
   message?: string;
@@ -82,7 +82,7 @@ export interface IEntity extends IEntityId {
   data?: any;
   expires?: string;
   state?: EntityState;
-  operationStatus?: IOperationStatus;
+  operationState?: IOperationState;
   dateAdded?: string;
   dateModified?: string;
 }
@@ -112,7 +112,7 @@ export interface ISdkEntity {
   expires?: string;
   version?: string;
   state?: EntityState;
-  operationStatus?: IOperationStatus;
+  operationState?: IOperationState;
   dateAdded?: string;
   dateModified?: string;
 }

@@ -92,7 +92,7 @@ export const entityToSdk = (entity: Schema.IEntity): Schema.ISdkEntity => {
     expires: entity.expires,
     version: entity.version,
     state: entity.state,
-    operationStatus: entity.operationStatus,
+    operationState: entity.operationState,
     dateAdded: entity.dateAdded,
     dateModified: entity.dateModified,
   };

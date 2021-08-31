@@ -109,26 +109,27 @@ export class EntityServer extends BaseServer<IIntegrationSpecification> {
           );
         })
         .then((res) => {
-          if (res.body?.operationStatus?.status === 'success') {
+          if (res.body.operationState?.status === 'success') {
             // success
             build.status = 'completed';
             build.location = `${this.entityType}/${editorContext.functionId}`;
             editorContext.buildFinished(build);
             return build;
-          } else if (res.body?.operationStatus?.status === 'processing') {
+          } else if (res.body.operationState?.status === 'processing') {
             // wait some more
             return waitForBuild(build);
           } else {
             // failure
-            if (res.body.operationStatus) {
-              const errorMessage = {
-                message: `${res.body.operationStatus.errorCode}: ${res.body.operationStatus.errorDetails}`,
-              };
-              editorContext.buildError(errorMessage);
-              throw new BuildError({ ...build, status: res.body.operationStatus.status, error: errorMessage.message });
+            if (!res.body.operationState) {
+              editorContext.buildError({ message: `Unknown build failure: ${res.status}` });
+              throw new BuildError({ ...build, status: 'failure', error: res.status });
             }
-            editorContext.buildError({ message: `Unknown build failure: ${res.status}` });
-            throw new BuildError({ ...build, status: 'failure', error: res.status });
+
+            const errorMessage = {
+              message: `${res.body.operationState.errorCode}: ${res.body.operationState.errorDetails}`,
+            };
+            editorContext.buildError(errorMessage);
+            throw new BuildError({ ...build, status: res.body.operationState.status, error: errorMessage.message });
           }
         });
     };

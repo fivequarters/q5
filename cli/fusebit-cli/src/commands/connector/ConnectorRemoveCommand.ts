@@ -58,9 +58,7 @@ export class ConnectorRemoveCommand extends Command {
 
     await connectorService.confirmRemove(entityId);
 
-    let result;
-
-    result = await connectorService.removeEntity(entityId);
+    const result = await connectorService.removeEntity(entityId);
 
     if (result.status === 404) {
       await executeService.result(
@@ -70,7 +68,7 @@ export class ConnectorRemoveCommand extends Command {
       return 0;
     }
 
-    result = await connectorService.waitForEntity(entityId);
+    await connectorService.waitForEntity(entityId);
 
     await executeService.result(
       'Removed',
