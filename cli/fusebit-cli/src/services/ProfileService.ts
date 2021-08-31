@@ -164,12 +164,22 @@ export class ProfileService {
     return addedProfile;
   }
 
-  public async updateProfile(name: string, profile: IFusebitProfileSettings): Promise<IFusebitProfile> {
+  public async updateProfile(
+    name: string,
+    profile: IFusebitProfileSettings,
+    resultMessage?: { message: IText; header: IText }
+  ): Promise<IFusebitProfile> {
     const updatedProfile = await this.execute(() => this.profile.updateProfile(name, profile));
-    await this.executeService.result(
-      'Profile Updated',
-      Text.create("The '", Text.bold(name), "' profile was successfully updated")
-    );
+    let defaultMessage: { message: IText; header: IText } = {
+      message: 'Profile Updated',
+      header: Text.create("The '", Text.bold(name), "' profile was successfully updated"),
+    };
+
+    if (resultMessage) {
+      defaultMessage = resultMessage;
+    }
+
+    await this.executeService.result(defaultMessage.message, defaultMessage.header);
 
     return updatedProfile;
   }
@@ -437,7 +447,12 @@ export class ProfileService {
     const oauthInitResponse = await this.executeService.executeSimpleRequest(
       {
         header: 'Login',
-        message: Text.create("Initiating authentication for '", Text.bold(profile.name), "' profile..."),
+        message: Text.create(
+          'Please log in to Fusebit using the same account you used to sign up.',
+          Text.eol(),
+          Text.eol(),
+          Text.bold('You can use your browser or mobile device')
+        ),
         errorHeader: 'Login Error',
         errorMessage: Text.create("Unable to initiate authentication for '", Text.bold(profile.name), "' profile"),
       },
@@ -466,19 +481,26 @@ export class ProfileService {
     );
 
     const details = [
-      'Complete the login in your browser. Scan the QR code or navigate to the verification URL and confirm the user code provided below.',
+      'Navigate to the following URL and then log in with your identity provider',
       Text.eol(),
       Text.eol(),
-      Text.dim('Verification URL: '),
-      oauthInitResponse.data.verification_uri,
-      Text.eol(),
-      Text.dim('User code: '),
-      Text.bold(oauthInitResponse.data.user_code),
+      Text.dim(`${oauthInitResponse.data.verification_uri}?user_code=${oauthInitResponse.data.user_code}`),
       Text.eol(),
       Text.eol(),
     ];
 
-    await this.executeService.info('Complete login...', Text.create(details));
+    const mobileDeviceDetails = [
+      'Scan the following QR code with your mobile device camera and then log in with your identity provider',
+      Text.eol(),
+      Text.eol(),
+      'Verification code: ',
+      Text.dim(oauthInitResponse.data.user_code),
+      Text.eol(),
+      Text.eol(),
+    ];
+
+    await this.executeService.info('Using a Browser', Text.create(details));
+    await this.executeService.info('Using a Mobile Device', Text.create(mobileDeviceDetails));
     console.log(qrcode);
 
     // Wait for user to complete the device flow login
@@ -536,7 +558,10 @@ export class ProfileService {
       if (subscriptionId) {
         profile.subscription = subscriptionId;
       }
-      await this.updateProfile(profile.name, profile);
+      await this.updateProfile(profile.name, profile, {
+        message: 'Success',
+        header: Text.create(`You are now logged in. Profile '${profile.name}' created`),
+      });
     }
 
     // Cache the token for later use
