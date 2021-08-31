@@ -12,6 +12,41 @@ export enum EntityType {
   session = 'session',
 }
 
+export enum EntityState {
+  creating = 'creating',
+  invalid = 'invalid',
+  active = 'active',
+}
+
+export enum OperationType {
+  creating = 'creating',
+  updating = 'updating',
+  deleting = 'deleting',
+}
+
+export enum OperationStatus {
+  success = 'success',
+  failed = 'failed',
+  processing = 'processing',
+}
+
+export enum OperationErrorCode {
+  OK = 'OK',
+  InvalidParameterValue = 'InvalidParameterValue',
+  UnauthorizedOperation = 'UnauthorizedOperation',
+  VersionConflict = 'VersionConflict',
+  InternalError = 'InternalError',
+  RequestLimitExceeded = 'RequestLimitExceeded',
+}
+
+export interface IOperationState {
+  operation: OperationType;
+  status: OperationStatus;
+  message?: string;
+  errorCode?: OperationErrorCode;
+  errorDetails?: any;
+}
+
 export interface ITags {
   [key: string]: string;
 }
@@ -39,14 +74,19 @@ export interface IEntityId extends IEntitySelectAbstract {
 export interface IEntityPrefix extends IEntitySelectAbstract {
   id?: string;
   idPrefix?: string;
+  state?: EntityState;
 }
 
-// Data needed for inserts
 export interface IEntity extends IEntityId {
   tags?: ITags;
   data?: any;
   expires?: string;
+  state?: EntityState;
+  operationState?: IOperationState;
+  dateAdded?: string;
+  dateModified?: string;
 }
+
 export interface IEntityKeyTagSet extends IEntityId {
   tagKey: string;
   tagValue?: string;
@@ -71,6 +111,10 @@ export interface ISdkEntity {
   data?: any;
   expires?: string;
   version?: string;
+  state?: EntityState;
+  operationState?: IOperationState;
+  dateAdded?: string;
+  dateModified?: string;
 }
 
 export interface ISubordinateId {

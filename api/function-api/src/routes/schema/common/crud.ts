@@ -26,6 +26,27 @@ const router = (
   componentCrudRouter
     .route('/')
     .options(common.cors())
+    .post(
+      common.management({
+        validate: { params: Validation.EntityIdParams, body: Validation[EntityService.entityType].Entity },
+        authorize: { operation: v2Permissions[EntityService.entityType].put },
+      }),
+      async (req: express.Request & { resolvedAgent?: IAgent }, res: express.Response, next: express.NextFunction) => {
+        try {
+          // Thanks Typescript :/
+          if (!req.resolvedAgent) {
+            throw new Error('missing agent');
+          }
+          const { statusCode, result } = await EntityService.createEntity(req.resolvedAgent, {
+            ...pathParams.accountAndSubscription(req),
+            ...body.entity(req, EntityService.entityType),
+          });
+          res.status(statusCode).json(result);
+        } catch (e) {
+          next(e);
+        }
+      }
+    )
     .get(
       common.management({
         validate: { params: Validation.EntityIdParams },
@@ -35,7 +56,13 @@ const router = (
         try {
           const entity = await requestToEntity(EntityService, paramIdNames, req);
           const { statusCode, result } = await EntityService.getEntity(entity);
-          res.status(statusCode).json(Model.entityToSdk(result));
+          let status = 200;
+
+          if (result.state === Model.EntityState.creating) {
+            status = 202;
+          }
+
+          res.status(status).json(Model.entityToSdk(result));
         } catch (e) {
           next(e);
         }
@@ -61,6 +88,9 @@ const router = (
             req,
             body.entity(req, EntityService.entityType)
           );
+
+          // Entity id is optional; reinforce it from the url parameter.
+          entity.id = req.params.entityId;
           const { statusCode, result } = await EntityService.updateEntity(req.resolvedAgent, entity);
           res.status(statusCode).json(result);
         } catch (e) {

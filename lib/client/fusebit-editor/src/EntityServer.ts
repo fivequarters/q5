@@ -98,7 +98,7 @@ export class EntityServer extends BaseServer<IIntegrationSpecification> {
       return new Promise((resolve) => setTimeout(resolve, this.buildStatusCheckInterval))
         .then(() => {
           // @ts-ignore
-          const url = `${this.account.baseUrl}v2/account/${this.account.accountId}/subscription/${this.account.subscriptionId}/operation/${build.buildId}`;
+          const url = `${this.account.baseUrl}v2/account/${this.account.accountId}/subscription/${this.account.subscriptionId}/${build.boundaryId}/${build.functionId}`;
           return (
             Superagent.get(url)
               // @ts-ignore
@@ -109,19 +109,27 @@ export class EntityServer extends BaseServer<IIntegrationSpecification> {
           );
         })
         .then((res) => {
-          if (res.status === 200) {
+          if (res.body.operationState?.status === 'success') {
             // success
             build.status = 'completed';
             build.location = `${this.entityType}/${editorContext.functionId}`;
             editorContext.buildFinished(build);
             return build;
-          } else if (res.status === 201) {
+          } else if (res.body.operationState?.status === 'processing') {
             // wait some more
-            return waitForBuild(res.body);
+            return waitForBuild(build);
           } else {
             // failure
-            editorContext.buildError((res.body.error || res.body) as IError);
-            throw new BuildError(res.body.error || res.body);
+            if (!res.body.operationState) {
+              editorContext.buildError({ message: `Unknown build failure: ${res.status}` });
+              throw new BuildError({ ...build, status: 'failure', error: res.status });
+            }
+
+            const errorMessage = {
+              message: `${res.body.operationState.errorCode}: ${res.body.operationState.errorDetails}`,
+            };
+            editorContext.buildError(errorMessage);
+            throw new BuildError({ ...build, status: res.body.operationState.status, error: errorMessage.message });
           }
         });
     };
@@ -143,12 +151,18 @@ export class EntityServer extends BaseServer<IIntegrationSpecification> {
       })
       .then((res) => {
         const build: IBuildStatus = {
-          buildId: res.body.operationId,
+          buildId: editorContext.functionId,
           subscriptionId: this.account!.subscriptionId,
           boundaryId: this.entityType,
           functionId: editorContext.functionId,
           status: 'building',
         };
+
+        if (res.status > 299) {
+          editorContext.buildError({ message: `Unknown build failure: ${res.status}` });
+          throw new BuildError({ ...build, status: 'failed', error: `Failed: ${res.status}` });
+        }
+
         return waitForBuild(build);
       })
       .catch((err) => {

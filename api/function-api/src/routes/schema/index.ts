@@ -6,7 +6,6 @@ import { subscriptionCache } from '../globals';
 
 import common from './common';
 import { IdentityService, InstanceService, ConnectorService, IntegrationService } from '../service';
-import operation from './operation';
 import SubcomponentRouter from './subcomponent';
 
 import * as analytics from '../middleware/analytics';
@@ -38,7 +37,5 @@ router.use(
   common(integrationService),
   SubcomponentRouter(new InstanceService(), ['entityId', 'instanceId'], Model.EntityType.integration)
 );
-
-router.use('/operation', operation);
 
 export default router;
