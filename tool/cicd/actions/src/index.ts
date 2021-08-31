@@ -83,16 +83,21 @@ const specs: ISpec[] = [
   },
   {
     name: 'Test Function-API',
-    inputs: ['checkout', 'local_env_files', 'full_build_no_qualify', 'publish_all_pkg', 'deploy_test', 'publish_slack'],
+    inputs: [
+      'checkout',
+      'delete_previous_test_actions',
+      'local_env_files',
+      'full_build_no_qualify',
+      'publish_all_pkg',
+      'deploy_test',
+      'publish_slack',
+    ],
     output: 'test_function_api',
     options: {
       on_trigger: {
-        pull_request_review: {
-          types: ['submitted'],
-        },
+        pull_request: 'synchronize',
       },
       runner_type: 'self-hosted',
-      condition: "github.event.review.state == 'approved'",
     },
   },
   {
