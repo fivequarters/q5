@@ -1,7 +1,6 @@
 ###################################################################
 # Auto-created by the cicd-actions tool
-on:
-  pull_request: synchronize
+on: pull_request
 name: Test Function-API
 jobs:
   deploy:
@@ -30,7 +29,7 @@ jobs:
           fuse-ops/${{env.VERSION_FUSEBIT_OPS_CLI}}"
       - uses: n1hility/cancel-previous-runs@v2
         with:
-          token: ${{ secrets.GITHUB_TOKEN }}
+          token: ${{ secrets.GH_TOKEN }}
       - name: Setup .env files
         run: >-
           ./tool/cicd/actions/scripts/create_function_api_env.cicd.us-east-2.749775346857.sh

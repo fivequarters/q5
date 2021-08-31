@@ -94,9 +94,7 @@ const specs: ISpec[] = [
     ],
     output: 'test_function_api',
     options: {
-      on_trigger: {
-        pull_request: 'synchronize',
-      },
+      on_trigger: 'pull_request',
       runner_type: 'self-hosted',
     },
   },
