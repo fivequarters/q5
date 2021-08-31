@@ -165,24 +165,22 @@ export abstract class BaseComponentService<IComponentType extends IBaseComponent
     return entitySpec;
   }
 
-  public async writeDirectory(path: string, spec: IComponentType, entityName = 'Entity'): Promise<void> {
+  public async writeDirectory(path: string, spec: IComponentType): Promise<void> {
     const cwd = path || process.cwd();
 
     // Write the version, if present
     await writeFile(join(cwd, FusebitStateFile), JSON.stringify({ version: spec.version }));
     delete spec.version;
 
-    const filesDetails: string[] = [];
     // Write all of the files in the specification
     await Promise.all(
       Object.entries(spec.data.files).map(async ([filename, contents]: string[]) => {
-        filesDetails.push(filename);
         await writeFile(join(cwd, filename), contents);
       })
     );
 
     const details = [
-      `The ${entityName} was downloaded to directory `,
+      `The ${this.entityTypeName} was downloaded to directory `,
       `${cwd}`,
       Text.eol(),
       'and the following files were written to disk:',
@@ -193,7 +191,7 @@ export abstract class BaseComponentService<IComponentType extends IBaseComponent
     details.push(Text.dim(`• ${FusebitMetadataFile}`));
     details.push(Text.eol());
 
-    filesDetails.map((fileName) => {
+    Object.keys(spec.data.files).forEach((fileName) => {
       details.push(Text.dim(`• ${fileName}`));
       details.push(Text.eol());
     });
@@ -209,7 +207,7 @@ export abstract class BaseComponentService<IComponentType extends IBaseComponent
     };
 
     await writeFile(join(cwd, FusebitMetadataFile), JSON.stringify(config, null, 2));
-    await this.executeService.info(entityName, Text.create(details));
+    await this.executeService.info(this.entityTypeName, Text.create(details));
   }
 
   // Right now the entitySpec is left as mostly abstract to try to minimize the unnecessary breakage if
