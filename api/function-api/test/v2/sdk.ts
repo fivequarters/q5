@@ -337,7 +337,13 @@ const createSdk = (entityType: Model.EntityType): ISdkForEntity => ({
       });
       if (response.status < 300) {
         expect(response.data.id).not.toMatch('/');
+        expect(response.data.targetUrl).toMatch(
+          `/v2/account/${account.accountId}/subscription/${account.subscriptionId}/${entityType}/${encodeURI(
+            entityId
+          )}/session/${response.data.id}/start`
+        );
       }
+
       return response;
     },
     getResult: async (account: IAccount, entityId: string, sessionId: string) => {

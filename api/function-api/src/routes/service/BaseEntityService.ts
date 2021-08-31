@@ -11,36 +11,38 @@ export interface IServiceResult {
   result: any;
 }
 
+const updateOperationState = (entity: Model.IEntity, state: Model.EntityState) => state || entity.state;
+
 const updateOperationStatus = (
   entity: Model.IEntity,
-  state: Model.EntityState,
   operation: Model.OperationType,
   status: Model.OperationStatus,
   message?: string,
   errorCode?: Model.OperationErrorCode,
   errorDetails?: any
 ) => {
-  entity.state = state || entity.state;
-
   if (!entity.operationState) {
-    entity.operationState = { operation, status, message, errorCode, errorDetails };
-    return;
+    return { operation, status, message, errorCode, errorDetails };
   }
 
-  entity.operationState.operation = operation || entity.operationState.operation;
-  entity.operationState.status = status || entity.operationState.status;
-  entity.operationState.message = message || entity.operationState.message;
+  const operationState = { ...entity.operationState };
+
+  operationState.operation = operation || entity.operationState.operation;
+  operationState.status = status || entity.operationState.status;
+  operationState.message = message || entity.operationState.message;
 
   if (errorCode) {
-    entity.operationState.errorCode = errorCode;
+    operationState.errorCode = errorCode;
   } else {
-    delete entity.operationState.errorCode;
+    delete operationState.errorCode;
   }
   if (errorDetails) {
-    entity.operationState.errorDetails = errorDetails;
+    operationState.errorDetails = errorDetails;
   } else {
-    delete entity.operationState.errorDetails;
+    delete operationState.errorDetails;
   }
+
+  return operationState;
 };
 
 const guessOperationErrorCode = (error: any) => {
@@ -48,7 +50,7 @@ const guessOperationErrorCode = (error: any) => {
     return undefined;
   }
 
-  const status:number = error.code || error.status || error.statusCode;
+  const status: number = error.code || error.status || error.statusCode;
   if (!status) {
     return Model.OperationErrorCode.InternalError;
   }
@@ -133,9 +135,9 @@ export default abstract class BaseEntityService<E extends Model.IEntity, F exten
       return { statusCode: 400, result: err.message };
     }
 
-    updateOperationStatus(
+    sanitizedEntity.state = updateOperationState(sanitizedEntity, Model.EntityState.creating);
+    sanitizedEntity.operationState = updateOperationStatus(
       sanitizedEntity,
-      Model.EntityState.creating,
       Model.OperationType.creating,
       Model.OperationStatus.processing,
       `Creation of ${this.entityType} ${entity.id} is in progress`
@@ -152,18 +154,18 @@ export default abstract class BaseEntityService<E extends Model.IEntity, F exten
         await this.createEntityOperation(resolvedAgent, entity);
 
         // Update the operationState and state appropriately
-        updateOperationStatus(
+        entity.state = updateOperationState(entity, Model.EntityState.active);
+        entity.operationState = updateOperationStatus(
           entity,
-          Model.EntityState.active,
           Model.OperationType.creating,
           Model.OperationStatus.success,
           `Creation of ${this.entityType} ${entity.id} completed`
         );
       } catch (err) {
         console.log(`WARNING: Failed to create ${entity.id}: `, err);
-        updateOperationStatus(
+        entity.state = updateOperationState(entity, Model.EntityState.invalid);
+        entity.operationState = updateOperationStatus(
           entity,
-          Model.EntityState.invalid,
           Model.OperationType.creating,
           Model.OperationStatus.failed,
           `Creation of ${this.entityType} ${entity.id} failed`,
@@ -212,9 +214,9 @@ export default abstract class BaseEntityService<E extends Model.IEntity, F exten
       // Make sure the sanitize passes
       entity = this.sanitizeEntity(entity);
     } catch (err) {
-      updateOperationStatus(
+      existingEntity.state = updateOperationState(existingEntity, existingEntity.state || Model.EntityState.active);
+      existingEntity.operationState = updateOperationStatus(
         existingEntity,
-        existingEntity.state || Model.EntityState.active,
         Model.OperationType.updating,
         Model.OperationStatus.failed,
         `Updating of ${this.entityType} ${entity.id} failed`,
@@ -225,9 +227,9 @@ export default abstract class BaseEntityService<E extends Model.IEntity, F exten
       return { statusCode: 200, result: existingEntity };
     }
 
-    updateOperationStatus(
+    existingEntity.state = updateOperationState(existingEntity, existingEntity.state || Model.EntityState.active);
+    existingEntity.operationState = updateOperationStatus(
       existingEntity,
-      existingEntity.state || Model.EntityState.active,
       Model.OperationType.updating,
       Model.OperationStatus.processing,
       `Updating ${this.entityType} ${entity.id}`
@@ -244,18 +246,18 @@ export default abstract class BaseEntityService<E extends Model.IEntity, F exten
       try {
         // Delegate to the normal create code to recreate the function.
         await this.createEntityOperation(resolvedAgent, entity);
-        updateOperationStatus(
+        entity.state = updateOperationState(entity, Model.EntityState.active);
+        entity.operationState = updateOperationStatus(
           entity,
-          Model.EntityState.active,
           Model.OperationType.updating,
           Model.OperationStatus.success,
           `Updated ${this.entityType} ${entity.id}`
         );
         resultEntity = entity;
       } catch (err) {
-        updateOperationStatus(
+        existingEntity.state = updateOperationState(existingEntity, existingEntity.state || Model.EntityState.active);
+        existingEntity.operationState = updateOperationStatus(
           existingEntity,
-          existingEntity.state || Model.EntityState.active,
           Model.OperationType.updating,
           Model.OperationStatus.failed,
           `Updating of ${this.entityType} ${entity.id} failed`,
@@ -286,9 +288,9 @@ export default abstract class BaseEntityService<E extends Model.IEntity, F exten
         return { statusCode: 409, result: entity };
       }
 
-      updateOperationStatus(
+      existingEntity.state = updateOperationState(existingEntity, existingEntity.state || Model.EntityState.invalid);
+      existingEntity.operationState = updateOperationStatus(
         existingEntity,
-        existingEntity.state || Model.EntityState.invalid,
         Model.OperationType.deleting,
         Model.OperationStatus.processing,
         `Deleting ${this.entityType} ${entity.id}`

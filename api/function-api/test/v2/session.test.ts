@@ -1,5 +1,6 @@
 import { request } from '@5qtrs/request';
 
+import * as Constants from '@5qtrs/constants';
 import { Model } from '@5qtrs/db';
 import { cleanupEntities, ApiRequestMap, createPair, getElementsFromUrl } from './sdk';
 
@@ -163,7 +164,7 @@ describe('Sessions', () => {
     expect(response).toBeHttp({ statusCode: 302 });
     expect(
       response.headers.location.indexOf(
-        `${process.env.API_SERVER}/v2/account/${account.accountId}/subscription/${account.subscriptionId}/connector/${connectorId}/api/authorize?session=`
+        `${Constants.API_PUBLIC_ENDPOINT}/v2/account/${account.accountId}/subscription/${account.subscriptionId}/connector/${connectorId}/api/authorize?session=`
       )
     ).toBe(0);
     const location = new URL(response.headers.location);
@@ -182,7 +183,7 @@ describe('Sessions', () => {
     expect(response).toBeHttp({ statusCode: 302 });
     expect(
       response.headers.location.indexOf(
-        `${process.env.API_SERVER}/v2/account/${account.accountId}/subscription/${account.subscriptionId}/connector/${connectorId}/api/authorize?session=`
+        `${Constants.API_PUBLIC_ENDPOINT}/v2/account/${account.accountId}/subscription/${account.subscriptionId}/connector/${connectorId}/api/authorize?session=`
       )
     ).toBe(0);
     let location = new URL(response.headers.location);
@@ -652,7 +653,7 @@ describe('Sessions', () => {
     expect(response).toBeHttp({ statusCode: 302 });
     expect(
       response.headers.location.indexOf(
-        `${process.env.API_SERVER}/v2/account/${account.accountId}/subscription/${account.subscriptionId}/integration/${integrationId}/api/monkey?session=`
+        `${Constants.API_PUBLIC_ENDPOINT}/v2/account/${account.accountId}/subscription/${account.subscriptionId}/integration/${integrationId}/api/monkey?session=`
       )
     ).toBe(0);
   }, 180000);

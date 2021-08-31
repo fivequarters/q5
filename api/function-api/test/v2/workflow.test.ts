@@ -1,5 +1,6 @@
 import { request } from '@5qtrs/request';
 
+import * as Constants from '@5qtrs/constants';
 import { Model } from '@5qtrs/db';
 
 import { cleanupEntities, ApiRequestMap, createPair, RequestMethod } from './sdk';
@@ -45,7 +46,7 @@ describe('Workflow', () => {
     const authorizationUrl = `${redirectUrl}/authorize`;
     const tokenUrl = `${redirectUrl}/token`;
     const finalUrl = `${redirectUrl}/final`;
-    const baseUrl = `${process.env.API_SERVER}/v2/account/${account.accountId}/subscription/${account.subscriptionId}`;
+    const baseUrl = `${Constants.API_PUBLIC_ENDPOINT}/v2/account/${account.accountId}/subscription/${account.subscriptionId}`;
 
     const sampleToken = {
       access_token: 'original token',
@@ -151,8 +152,8 @@ describe('Workflow', () => {
     // Validate that it goes to connector/api/authorize
     expect(response.headers.location.indexOf(`${baseUrl}/connector/${connectorId}/api/authorize?session=`)).toBe(0);
     let url = new URL(response.headers.location);
-    expect(url.searchParams.get('redirect_uri')).toBe(
-      `${baseUrl}/connector/${connectorId}/session/${url.searchParams.get('session')}/callback`
+    expect(url.searchParams.get('redirect_uri')).toMatch(
+      `/connector/${connectorId}/session/${url.searchParams.get('session')}/callback`
     );
     const connectorSessionId = url.searchParams.get('session');
 
