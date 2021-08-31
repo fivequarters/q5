@@ -51,7 +51,7 @@ const runTest = async (
 };
 
 describe('Function Authz', () => {
-  const endpoint = process.env.LOGS_HOST ? `https://${process.env.LOGS_HOST}` : process.env.API_SERVER;
+  const endpoint = Constants.API_PUBLIC_ENDPOINT;
 
   test('None prevents authorization', async () => {
     const spec = Constants.duplicate({}, specFuncReturnCtx);

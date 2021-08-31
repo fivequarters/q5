@@ -1485,26 +1485,6 @@
   dependencies:
     "@fortawesome/fontawesome-common-types" "^0.2.25"
 
-"@fusebit-int/framework@^3.0.2":
-  version "3.0.2"
-  resolved "https://stage.us-west-2.fusebit.io/v1/account/acc-2ec6c8dba6134772/registry/default/npm/@fusebit-int/framework/-/@fusebit-int/framework@3.0.2#ce8af00781279e4c9539486909fe0cbdffcfb90b"
-  integrity sha512-MRe3ooLjurG6RFeE2eBFztqzIxrLfewGe44cWFpwCO3Xw7jXD/7J0vMGC6BfSnBHwSnnPiG+koF1jECUraZFDQ==
-  dependencies:
-    "@koa/router" "^10.0.0"
-    "@vendia/serverless-express" "^4.3.4"
-    http-errors "^1.8.0"
-    koa "^2.13.1"
-    node-mocks-http "^1.10.1"
-    statuses "^2.0.1"
-    superagent "^6.1.0"
-
-"@fusebit-int/oauth-connector@^2.0.0", "@fusebit-int/oauth-connector@^2.0.1":
-  version "2.0.1"
-  resolved "https://stage.us-west-2.fusebit.io/v1/account/acc-2ec6c8dba6134772/registry/default/npm/@fusebit-int/oauth-connector/-/@fusebit-int/oauth-connector@2.0.1#7add791095887da41c28e482c1b61a2fe28a88a4"
-  integrity sha512-9f17QSOLj00IVeKYO66xxNtzYGqRG+akeZRVNuJuMD0v0tcY43eQ6JToQ8D2oAhFvpE0m5hRpGsylogywSsJSg==
-  dependencies:
-    superagent "6.1.0"
-
 "@fusebit/tunnel@^3.2.5":
   version "3.2.5"
   resolved "https://registry.yarnpkg.com/@fusebit/tunnel/-/tunnel-3.2.5.tgz#a70945fd14d0218ef404ffd8456c6baa1e1a7217"

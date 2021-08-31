@@ -10,8 +10,7 @@ export default class SlackProvider extends Internal.ProviderActivator<FusebitWeb
   protected async instantiate(ctx: Internal.Types.Context, lookupKey: string): Promise<FusebitWebClient> {
     const credentials = await this.requestConnectorToken({ ctx, lookupKey });
     const client: FusebitWebClient = new WebClient(credentials.access_token);
-    client.fusebit = client.fusebit || {};
-    client.fusebit.credentials = credentials;
+    client.fusebit = { credentials };
     return client;
   }
 }
