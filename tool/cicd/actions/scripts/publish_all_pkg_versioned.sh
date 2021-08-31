@@ -9,8 +9,8 @@ PACKAGE_FILES=`find . -name node_modules -prune -false -o -name package.json`;
 BASEDIR=`pwd`
 for fuseProfile in selfservice.api.us-west-1.internal stage.us-west-2.internal; do
   ${FUSE} profile set ${fuseProfile}
+  ${FUSE} npm login
   for pkgPath in ${PACKAGE_FILES}; do
-    ${FUSE} npm login
     dirName=$(dirname $pkgPath)
     cd ${dirName};
     echo BUILDING ${dirName}
@@ -26,8 +26,8 @@ for fuseProfile in selfservice.api.us-west-1.internal stage.us-west-2.internal; 
       git tag --points-at HEAD
       continue
     else
-    echoerr "Publishing ${VERSION}"
-  fi
+      echoerr "Publishing ${VERSION}"
+    fi
     yarn build;
     npm publish;
     cd ${BASEDIR}
