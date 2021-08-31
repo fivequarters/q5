@@ -178,6 +178,22 @@ export abstract class BaseComponentService<IComponentType extends IBaseComponent
         await writeFile(join(cwd, filename), contents);
       })
     );
+
+    const details = [
+      `The ${this.entityTypeName} was downloaded to the ${cwd} directory`,
+      ' and the following files were written to disk:',
+      Text.eol(),
+      Text.eol(),
+    ];
+
+    details.push(Text.dim(`• ${FusebitMetadataFile}`));
+    details.push(Text.eol());
+
+    Object.keys(spec.data.files).forEach((fileName) => {
+      details.push(Text.dim(`• ${fileName}`));
+      details.push(Text.eol());
+    });
+
     delete spec.data.files;
 
     // Reconstruct the fusebit.json file
@@ -189,6 +205,7 @@ export abstract class BaseComponentService<IComponentType extends IBaseComponent
     };
 
     await writeFile(join(cwd, FusebitMetadataFile), JSON.stringify(config, null, 2));
+    await this.executeService.info(this.entityTypeName, Text.create(details));
   }
 
   // Right now the entitySpec is left as mostly abstract to try to minimize the unnecessary breakage if
