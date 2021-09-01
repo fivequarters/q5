@@ -17,6 +17,12 @@ All public releases of the Fusebit CLI are documented here, including notable ch
 <!-- 1. TOC
 {:toc} -->
 
+## Version 1.12.2
+
+_Released 09/02/21_
+
+- **Bugfix.** Cancelled OAuth Device flow cannot be resumed.
+
 ## Version 1.11.2
 
 _Released 08/25/21_

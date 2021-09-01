@@ -729,6 +729,15 @@ export class ProfileService {
     }
   }
 
+  // Removes any half-complete profile created during the initial OAuth flow
+  public async removeUncompletedProfiles(): Promise<void> {
+    const profiles = await this.execute(() => this.profile.listProfiles());
+    const uncompletedProfiles = profiles.filter((profile) => !profile.account || !profile.subscription);
+    for (const profile of uncompletedProfiles) {
+      await this.removeProfile(profile.name);
+    }
+  }
+
   private async writeFusebitProfileErrorMessage(exception: FusebitProfileException) {
     switch (exception.code) {
       case FusebitProfileExceptionCode.profileDoesNotExist:
