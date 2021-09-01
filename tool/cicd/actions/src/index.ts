@@ -14,9 +14,6 @@ interface ISpec {
     // Trigger options
     on_trigger?: any;
 
-    // Trigger condition
-    condition?: string;
-
     // Replacement base
     base?: string;
 
@@ -126,11 +123,6 @@ function buildSpec(name: string, inputs: string[], output: string, options: ISpe
   base.name = name;
   if (options.on_trigger) {
     base.on = options.on_trigger;
-  }
-
-  // Set trigger condition
-  if (options.condition) {
-    base.jobs.deploy.if = options.condition;
   }
 
   inputs.forEach((f) => {
