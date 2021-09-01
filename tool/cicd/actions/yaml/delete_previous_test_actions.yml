@@ -4,4 +4,3 @@ steps:
       access_token: ${{ secrets.TOKEN_GITHUB }}
       workflow_id: 11826632
       all_but_latest: true
-
