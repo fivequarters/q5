@@ -1,6 +1,3 @@
 {
-  "extends": "../../../../tsconfig.json",
-  "compilerOptions": { "rootDir": "src", "module": "CommonJS", "outDir": "libc" },
-  "include": ["src"],
-  "references": [{ "path": "../../framework" }]
+  "extends": ["@5qtrs/tool-config/tslint.json"]
 }

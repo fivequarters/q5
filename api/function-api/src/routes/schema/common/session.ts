@@ -1,5 +1,6 @@
 import express from 'express';
 
+import * as Constants from '@5qtrs/constants';
 import { Model } from '@5qtrs/db';
 import { v2Permissions } from '@5qtrs/constants';
 
@@ -28,9 +29,12 @@ const createSessionRouter = (SessionService: SessionedEntityService<any, any>) =
           },
           req.body
         );
+
+        const sessionId = Model.decomposeSubordinateId(session.result.id).entityId;
         res.status(session.statusCode).json({
           ...Model.entityToSdk(session.result),
-          id: Model.decomposeSubordinateId(session.result.id).entityId,
+          id: sessionId,
+          targetUrl: `${Constants.API_PUBLIC_ENDPOINT}/v2/account/${req.params.accountId}/subscription/${req.params.subscriptionId}/${SessionService.entityType}/${req.params.entityId}/session/${sessionId}/start`,
         });
       } catch (error) {
         console.log(error);
@@ -116,7 +120,7 @@ const createSessionRouter = (SessionService: SessionedEntityService<any, any>) =
           });
 
           // Send the browser to the configured handler url with the sessionid as a query parameter
-          const redirectUrl = `${process.env.API_SERVER}/v2/account/${result.accountId}/subscription/${result.subscriptionId}/${result.entityType}/${result.entityId}${result.path}?session=${result.sessionId}&redirect_uri=${process.env.API_SERVER}/v2/account/${result.accountId}/subscription/${result.subscriptionId}/${result.entityType}/${result.entityId}/session/${result.sessionId}/callback`;
+          const redirectUrl = `${Constants.API_PUBLIC_ENDPOINT}/v2/account/${result.accountId}/subscription/${result.subscriptionId}/${result.entityType}/${result.entityId}${result.path}?session=${result.sessionId}&redirect_uri=${process.env.API_SERVER}/v2/account/${result.accountId}/subscription/${result.subscriptionId}/${result.entityType}/${result.entityId}/session/${result.sessionId}/callback`;
           return res.redirect(redirectUrl);
         } catch (error) {
           console.log(error);
@@ -169,13 +173,13 @@ const createSessionRouter = (SessionService: SessionedEntityService<any, any>) =
       }),
       async (req: express.Request, res: express.Response, next: express.NextFunction) => {
         try {
-          const operation = await SessionService.postSession({
+          const result = await SessionService.postSession({
             accountId: req.params.accountId,
             subscriptionId: req.params.subscriptionId,
             // Sessions use the non-unique component name, but instances and identities use the database id.
             id: Model.createSubordinateId(SessionService.entityType, req.params.entityId, req.params.sessionId),
           });
-          res.status(operation.statusCode).json(operation.result);
+          res.status(result.statusCode).json(result.result);
         } catch (error) {
           console.log(error);
           return next(error);

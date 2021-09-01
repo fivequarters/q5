@@ -1,6 +1,6 @@
 {
   "name": "@fusebit-int/slack-connector",
-  "version": "2.0.1",
+  "version": "2.0.2",
   "description": "",
   "main": "libc/index.js",
   "files": ["libc/**/*.js", "libc/**/*.d.ts", "libc/**/*.json"],

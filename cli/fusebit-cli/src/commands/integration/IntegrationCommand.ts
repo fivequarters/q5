@@ -39,7 +39,7 @@ const command: ICommand = {
 
 async function getSubCommands() {
   const subCommands = [];
-  // subCommands.push(await IntegrationInitCommand.create());
+  subCommands.push(await IntegrationInitCommand.create());
   subCommands.push(await IntegrationGetCommand.create());
   subCommands.push(await IntegrationTestCommand.create());
   subCommands.push(await IntegrationDeployCommand.create());

@@ -1,5 +1,5 @@
 import { Command, ArgType, IExecuteInput } from '@5qtrs/cli';
-import { ExecuteService, ConnectorService, OperationService } from '../../services';
+import { ExecuteService, ConnectorService } from '../../services';
 import { join } from 'path';
 import { Text } from '@5qtrs/text';
 
@@ -75,7 +75,6 @@ export class ConnectorDeployCommand extends Command {
     const fast = input.options.fast as boolean;
 
     const connectorService = await ConnectorService.create(input);
-    const operationService = await OperationService.create(input);
     const executeService = await ExecuteService.create(input);
 
     await executeService.newLine();
@@ -85,13 +84,12 @@ export class ConnectorDeployCommand extends Command {
 
     await connectorService.confirmDeploy(sourcePath, connectorSpec, connectorId);
 
-    const operation = await connectorService.deployEntity(connectorId, connectorSpec);
+    let entity = await connectorService.deployEntity(connectorId, connectorSpec);
     if (!fast) {
-      const result = await operationService.waitForCompletion(operation.operationId);
-      await operationService.displayOperationResults(result);
-    } else {
-      await operationService.displayOperation(operation.operationId);
+      const response = await connectorService.waitForEntity(connectorId);
+      entity = response.data;
     }
+    await connectorService.displayEntities([entity], true);
 
     return 0;
   }

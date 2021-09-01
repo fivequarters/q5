@@ -28,7 +28,7 @@ jobs:
         with:
           readme-oas-key: ${{secrets.README_COM_OAS_KEY}}
           oas-file-path: ./api/function-api/api_v2.yaml
-          api-version: v2.0
+          api-version: v2
       - name: Notify slack success
         if: success()
         env:

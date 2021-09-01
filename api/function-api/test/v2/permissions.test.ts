@@ -18,7 +18,7 @@ afterAll(async () => {
 const crudPermissions = async (entityType: Model.EntityType, authz: string) => {
   await expect(ApiRequestMap[entityType].get(account, 'inv', { authz })).resolves.toBeHttp({ statusCode: 403 });
   await expect(ApiRequestMap[entityType].list(account, undefined, { authz })).resolves.toBeHttp({ statusCode: 403 });
-  await expect(ApiRequestMap[entityType].post(account, { id: 'inv' }, { authz })).resolves.toBeHttp({
+  await expect(ApiRequestMap[entityType].post(account, 'inv', { id: 'inv' }, { authz })).resolves.toBeHttp({
     statusCode: 403,
   });
   await expect(ApiRequestMap[entityType].put(account, 'inv', { id: 'inv' }, { authz })).resolves.toBeHttp({

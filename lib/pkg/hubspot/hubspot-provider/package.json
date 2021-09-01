@@ -1,12 +1,9 @@
 {
   "name": "@fusebit-int/hubspot-provider",
-  "version": "1.0.2",
+  "version": "1.0.1",
   "description": "",
   "main": "libc/index.js",
-  "files": [
-    "libc/*.js",
-    "libc/*.d.ts"
-  ],
+  "files": ["libc/*.js", "libc/*.d.ts"],
   "license": "SEE LICENSE IN LICENSE",
   "author": "Fusebit, Inc.",
   "scripts": {
@@ -20,5 +17,8 @@
   "dependencies": {
     "@fusebit-int/framework": "^3.0.2",
     "@hubspot/api-client": "^4.1.0"
+  },
+  "peerDependencies": {
+    "@fusebit-int/framework": "^3.0.2"
   }
 }
