@@ -212,7 +212,12 @@ export async function deleteFunction(account: IAccount, boundaryId: string, func
   });
 }
 
-export async function putFunction(account: IAccount, boundaryId: string, functionId: string, spec: any) {
+export async function putFunction(
+  account: IAccount,
+  boundaryId: string,
+  functionId: string,
+  spec: any
+): Promise<IHttpResponse> {
   onPutFunction(boundaryId, functionId);
   const response = await request({
     method: 'PUT',
@@ -223,6 +228,12 @@ export async function putFunction(account: IAccount, boundaryId: string, functio
     url: `${account.baseUrl}/v1/account/${account.accountId}/subscription/${account.subscriptionId}/boundary/${boundaryId}/function/${functionId}`,
     data: spec,
   });
+
+  if (response.status === 429) {
+    // Wait a second and try again.
+    await new Promise((resolve) => setTimeout(resolve, 1000));
+    return putFunction(account, boundaryId, functionId, spec);
+  }
 
   return response;
 }

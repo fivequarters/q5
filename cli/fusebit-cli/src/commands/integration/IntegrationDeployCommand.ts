@@ -1,5 +1,5 @@
 import { Command, ArgType, IExecuteInput } from '@5qtrs/cli';
-import { ExecuteService, IntegrationService, OperationService } from '../../services';
+import { ExecuteService, IntegrationService } from '../../services';
 import { join } from 'path';
 import { Text } from '@5qtrs/text';
 
@@ -75,7 +75,6 @@ export class IntegrationDeployCommand extends Command {
     const fast = input.options.fast as boolean;
 
     const integrationService = await IntegrationService.create(input);
-    const operationService = await OperationService.create(input);
     const executeService = await ExecuteService.create(input);
 
     await executeService.newLine();
@@ -85,13 +84,12 @@ export class IntegrationDeployCommand extends Command {
 
     await integrationService.confirmDeploy(sourcePath, integrationSpec, integrationId);
 
-    const operation = await integrationService.deployEntity(integrationId, integrationSpec);
+    let entity = await integrationService.deployEntity(integrationId, integrationSpec);
     if (!fast) {
-      const result = await operationService.waitForCompletion(operation.operationId);
-      await operationService.displayOperationResults(result);
-    } else {
-      await operationService.displayOperation(operation.operationId);
+      const response = await integrationService.waitForEntity(integrationId);
+      entity = response.data;
     }
+    await integrationService.displayEntities([entity], true);
 
     return 0;
   }

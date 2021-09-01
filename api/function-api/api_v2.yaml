@@ -3,7 +3,7 @@ security:
   - AccessToken: []
 
 servers:
-  - url: https://api.{region}.fusebit.io
+  - url: https://api.{region}.on.fusebit.io
     description: Production
     variables:
       region:
@@ -23,8 +23,6 @@ info:
     url: 'http://www.apache.org/licenses/LICENSE-2.0.html'
 
 tags:
-  - name: Operation
-    description: Active operations tracking an asynchronous action
   - name: Session
     description: An active configuration phase for a customer
   - name: Connector
@@ -38,106 +36,6 @@ tags:
     description: A fully configured integration for a customer
 
 paths:
-  #############################################################################
-  # Operation
-  /v2/account/{accountId}/subscription/{subscriptionId}/operation:
-    parameters:
-      - $ref: '#/components/parameters/Account'
-      - $ref: '#/components/parameters/Subscription'
-    post:
-      tags:
-        - Operation
-      summary: Create a new operation
-      operationId: postNewOperation
-      description: |
-        Creates a new operation using the payload as the operation status.
-      requestBody:
-        description: The operation parameters
-        required: true
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/Operation'
-      responses:
-        200:
-          description: An operation was successfully created
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/OperationIdResponse'
-        400:
-          $ref: '#/components/responses/400'
-        403:
-          $ref: '#/components/responses/403'
-        404:
-          $ref: '#/components/responses/404'
-      security:
-        - AccessToken: []
-
-  /v2/account/{accountId}/subscription/{subscriptionId}/operation/{operationId}:
-    parameters:
-      - $ref: '#/components/parameters/Account'
-      - $ref: '#/components/parameters/Subscription'
-      - name: operationId
-        in: path
-        required: true
-        description: Operation id
-        schema:
-          $ref: '#/components/schemas/OperationId'
-    get:
-      tags:
-        - Operation
-      summary: Get the status of an operation
-      operationId: getOperation
-      description: |
-        Get the status of an operation, with the HTTP response code as the
-        response code of the operation.
-      responses:
-        200:
-          description: The contents of the operation.  The resposne code will vary as to
-            the current status of the operation itself.
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/Operation'
-        400:
-          $ref: '#/components/responses/400'
-        403:
-          $ref: '#/components/responses/403'
-        404:
-          $ref: '#/components/responses/404'
-      security:
-        - AccessToken: []
-    put:
-      tags:
-        - Operation
-      summary: Update the status of an operation
-      operationId: putOperation
-      description: |
-        Update the status of the operation.
-      requestBody:
-        description: The operation parameters
-        required: true
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/Operation'
-      responses:
-        200:
-          description: The contents of the operation
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/Operation'
-        400:
-          $ref: '#/components/responses/400'
-        403:
-          $ref: '#/components/responses/403'
-        404:
-          $ref: '#/components/responses/404'
-      security:
-        - AccessToken: []
-
   #############################################################################
   # Session
   /v2/account/{accountId}/subscription/{subscriptionId}/{entityType}/{entityId}/session:
@@ -240,12 +138,12 @@ paths:
         entities, or updating the configuration of existing entities as necessary.
       operationId: postSession
       responses:
-        202:
-          description: The session is being created
+        200:
+          description: The session has been created
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/NewOperation'
+                $ref: '#/components/schemas/SessionInstanceIdResponse'
         400:
           $ref: '#/components/responses/400'
         403:
@@ -269,7 +167,7 @@ paths:
         - $ref: '#/components/parameters/SearchCount'
         - $ref: '#/components/parameters/SearchNext'
         - $ref: '#/components/parameters/SearchTag'
-        - $ref: '#/components/parameters/SearchOperation'
+        - $ref: '#/components/parameters/SearchStatus'
       responses:
         200:
           description: A list of the entities found
@@ -277,34 +175,6 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/ConnectorList'
-        400:
-          $ref: '#/components/responses/400'
-        403:
-          $ref: '#/components/responses/403'
-        404:
-          $ref: '#/components/responses/404'
-      security:
-        - AccessToken: []
-    post:
-      tags:
-        - Connector
-      summary: Create a new entity of the specified type
-      operationId: postConnector
-      requestBody:
-        $ref: '#/components/requestBodies/PostConnectorBody'
-      responses:
-        200:
-          description: The created entity
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ConnectorEntity'
-        202:
-          description: The entity creation is in progress
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/OperationIdUrlResponse'
         400:
           $ref: '#/components/responses/400'
         403:
@@ -323,6 +193,24 @@ paths:
         required: true
         schema:
           $ref: '#/components/schemas/EntityId'
+    post:
+      tags:
+        - Connector
+      summary: Create a new entity of the specified type
+      operationId: postConnector
+      requestBody:
+        $ref: '#/components/requestBodies/PostConnectorBody'
+      responses:
+        202:
+          $ref: '#/components/responses/Connector202'
+        400:
+          $ref: '#/components/responses/400'
+        403:
+          $ref: '#/components/responses/403'
+        404:
+          $ref: '#/components/responses/404'
+      security:
+        - AccessToken: []
     get:
       tags:
         - Connector
@@ -351,18 +239,8 @@ paths:
       requestBody:
         $ref: '#/components/requestBodies/PostConnectorBody'
       responses:
-        200:
-          description: The requested entity
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ConnectorEntity'
         202:
-          description: The entity update is in progress
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/OperationIdUrlResponse'
+          $ref: '#/components/responses/Connector202'
         400:
           $ref: '#/components/responses/400'
         403:
@@ -378,11 +256,7 @@ paths:
       operationId: deleteConnector
       responses:
         202:
-          description: The entity deletion is in progress
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/OperationIdUrlResponse'
+          $ref: '#/components/responses/Connector202'
         400:
           $ref: '#/components/responses/400'
         403:
@@ -515,7 +389,7 @@ paths:
         - $ref: '#/components/parameters/SearchCount'
         - $ref: '#/components/parameters/SearchNext'
         - $ref: '#/components/parameters/SearchTag'
-        - $ref: '#/components/parameters/SearchOperation'
+        - $ref: '#/components/parameters/SearchStatus'
       responses:
         200:
           description: A list of the entities found
@@ -523,28 +397,6 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/IntegrationList'
-        400:
-          $ref: '#/components/responses/400'
-        403:
-          $ref: '#/components/responses/403'
-        404:
-          $ref: '#/components/responses/404'
-      security:
-        - AccessToken: []
-    post:
-      tags:
-        - Integration
-      summary: Create a new entity of the specified type
-      operationId: postIntegration
-      requestBody:
-        $ref: '#/components/requestBodies/PostIntegrationBody'
-      responses:
-        200:
-          description: The created entity
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/IntegrationEntity'
         400:
           $ref: '#/components/responses/400'
         403:
@@ -563,6 +415,24 @@ paths:
         required: true
         schema:
           $ref: '#/components/schemas/EntityId'
+    post:
+      tags:
+        - Integration
+      summary: Create a new entity of the specified type
+      operationId: postIntegration
+      requestBody:
+        $ref: '#/components/requestBodies/PostIntegrationBody'
+      responses:
+        202:
+          $ref: '#/components/responses/Integration202'
+        400:
+          $ref: '#/components/responses/400'
+        403:
+          $ref: '#/components/responses/403'
+        404:
+          $ref: '#/components/responses/404'
+      security:
+        - AccessToken: []
     get:
       tags:
         - Integration
@@ -591,18 +461,8 @@ paths:
       requestBody:
         $ref: '#/components/requestBodies/PostIntegrationBody'
       responses:
-        200:
-          description: The requested entity
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/IntegrationEntity'
         202:
-          description: The entity update is in progress
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/OperationIdUrlResponse'
+          $ref: '#/components/responses/Integration202'
         400:
           $ref: '#/components/responses/400'
         403:
@@ -618,11 +478,7 @@ paths:
       operationId: deleteIntegration
       responses:
         202:
-          description: The entity deletion is in progress
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/OperationIdUrlResponse'
+          $ref: '#/components/responses/Integration202'
         400:
           $ref: '#/components/responses/400'
         403:
@@ -650,7 +506,6 @@ paths:
         - $ref: '#/components/parameters/SearchCount'
         - $ref: '#/components/parameters/SearchNext'
         - $ref: '#/components/parameters/SearchTag'
-        - $ref: '#/components/parameters/SearchOperation'
       responses:
         200:
           description: A list of the entities found
@@ -810,15 +665,16 @@ components:
     SearchTag:
       name: tag
       in: query
-      description: A `tagName` or `tagName=tagValue` to search for. Can be specified multiple times in a query parameter to indicate multiple tag values to require in the results.
+      description: A `tagName` or `tagName=tagValue` to search for. Can be specified multiple times in a query
+        parameter to indicate multiple tag values to require in the results.
       schema:
         type: string
-    SearchOperation:
-      name: operationId
+    SearchStatus:
+      name: status
       in: query
-      description: Get the associated entity that this operation is creating
+      description: Search for entities matching a particular status, `creating`, `invalid`, or `active.
       schema:
-        $ref: '#/components/schemas/OperationId'
+        $ref: '#/components/schemas/EntityState'
 
   requestBodies:
     PostConnectorBody:
@@ -872,7 +728,7 @@ components:
               extendTags:
                 description: If set to `true`, add the tags present on the integration in the `data.componentTags` field
                   to any instances created during this session. If set to `false`, only use the tags specified on the
-                  session directly
+                  session directly.
                 default: false
               input:
                 $ref: '#/components/schemas/SessionInput'
@@ -893,6 +749,28 @@ components:
             type: object
 
   responses:
+    Connector202:
+      description: The entity creation is in progress. While the `operationState.status` value is
+        `processing`, the entity is still being created. Once the `operationState.status` value is
+        `success`, the entity is available for use.
+
+        On failure, `operationState.status` will be set to `failed` and `state` will be `invalid`.
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ConnectorEntity'
+
+    Integration202:
+      description: The entity creation is in progress. While the `operationState.status` value is
+        `processing`, the entity is still being created. Once the `operationState.status` value is
+        `success`, the entity is available for use.
+
+        On failure, `operationState.status` will be set to `failed` and `state` will be `invalid`.
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/IntegrationEntity'
+
     400:
       description: The request submitted is invalid. Please, check the documentation and
         fix the request before sending it again.
@@ -993,6 +871,41 @@ components:
       enum: [connector, integration, identity, instance]
       example: connector
 
+    EntityState:
+      type: string
+      enum: [creating, invalid, active]
+      example: active
+
+    OperationType:
+      type: string
+      enum: ['creating', 'updating', 'deleting']
+      example: updating
+
+    OperationStatus:
+      type: string
+      enum: ['success', 'failed', 'processing']
+      example: processing
+
+    OperationErrorCode:
+      type: string
+      enum: ['OK', 'InvalidParameterValue', 'UnauthorizedOperation', 'VersionConflict', 'InternalError', 'RequestLimitExceeded']
+      example: OK
+
+    OperationStatusObject:
+      type: object
+      description: Contains the status of the last action taken on this entity
+      properties:
+        operation:
+          $ref: '#/components/schemas/OperationType'
+        status:
+          $ref: '#/components/schemas/OperationStatus'
+        message:
+          type: string
+        errorCode:
+          $ref: '#/components/schemas/OperationErrorCode'
+        errorDetails:
+          type: string
+
     EntityTags:
       type: object
       description: An hash containing tags set on this entity
@@ -1008,6 +921,14 @@ components:
       type: string
       description: The time that the entity expires and is automatically removed from the system.
 
+    DateAdded:
+      type: string
+      format: date-time
+
+    DateModified:
+      type: string
+      format: date-time
+
     EntityConfiguration:
       type: object
       description: The collection of configuration values used by this entity.
@@ -1015,58 +936,6 @@ components:
     EntityFiles:
       type: object
       description: The collection of filename and content pairs that are packaged with this entity.
-
-    OperationId:
-      type: string
-      format: uuid
-      example: 00000000-0000-0000-0000-000000000000
-
-    Operation:
-      type: object
-      required:
-        - verb
-        - type
-        - statusCode
-      properties:
-        verb:
-          type: string
-          description: The human-readable verb for the action being performed
-          example: creating
-        type:
-          type: string
-          description: The type of the entity being worked upon
-          example: connector
-        statusCode:
-          type: number
-          description: An HTTP status code indicating the current status of the
-            operation
-          example: 200
-        message:
-          type: string
-          description: An arbitrary message to be passed on to the user concerning the
-            state of the operation
-          example: The operation completed successfully
-        location:
-          $ref: '#/components/schemas/EntityLocation'
-        operationId:
-          $ref: '#/components/schemas/OperationId'
-
-    NewOperation:
-      type: object
-      required:
-        - operationId
-        - target
-        - statusOnly
-      properties:
-        operationId:
-          type: string
-          format: uuid
-        target:
-          type: string
-          format: url
-        statusOnly:
-          type: string
-          format: url
 
     SessionId:
       type: string
@@ -1109,6 +978,12 @@ components:
       description: A collection of output configuration elements created by the various
         steps, and stored on the instance for use in the integration.
 
+    SessionInstanceIdResponse:
+      type: object
+      properties:
+        instanceId:
+          $ref: '#/components/schemas/InstanceId'
+
     EntityLocation:
       type: object
       required:
@@ -1126,34 +1001,6 @@ components:
           $ref: '#/components/schemas/EntityId'
         entityType:
           $ref: '#/components/schemas/EntityType'
-
-    OperationIdResponse:
-      type: object
-      required:
-        - operationId
-      description: A valid operation id for this operation.
-      properties:
-        operationId:
-          $ref: '#/components/schemas/OperationId'
-
-    OperationIdUrlResponse:
-      type: object
-      required:
-        - operationId
-      description: A valid operation id for this operation.
-      properties:
-        operationId:
-          $ref: '#/components/schemas/OperationId'
-        target:
-          type: string
-          description: Query this URL to track the status of the operation and, when
-            complete, receive the resulting entity in the format of a list
-            operation.
-        statusOnly:
-          type: string
-          description: This URL is a public URL suitable to be passed to an untrusted
-            client such as a web browser to drive an in-progress spinner. The
-            URL is always a GET request for `../operation/{operationId}`.
 
     ConnectorEntityData:
       type: object
@@ -1180,6 +1027,14 @@ components:
           $ref: '#/components/schemas/EntityVersion'
         expires:
           $ref: '#/components/schemas/EntityExpires'
+        dateAdded:
+          $ref: '#/components/schemas/DateAdded'
+        dateModified:
+          $ref: '#/components/schemas/DateModified'
+        state:
+          $ref: '#/components/schemas/EntityState'
+        operationState:
+          $ref: '#/components/schemas/OperationStatusObject'
 
     ConnectorPostEntity:
       type: object
@@ -1192,6 +1047,14 @@ components:
           $ref: '#/components/schemas/EntityTags'
         expires:
           $ref: '#/components/schemas/EntityExpires'
+        dateAdded:
+          $ref: '#/components/schemas/DateAdded'
+        dateModified:
+          $ref: '#/components/schemas/DateModified'
+        state:
+          $ref: '#/components/schemas/EntityState'
+        operationState:
+          $ref: '#/components/schemas/OperationStatusObject'
 
     ConnectorListEntity:
       type: object
@@ -1211,6 +1074,14 @@ components:
           $ref: '#/components/schemas/EntityVersion'
         expires:
           $ref: '#/components/schemas/EntityExpires'
+        dateAdded:
+          $ref: '#/components/schemas/DateAdded'
+        dateModified:
+          $ref: '#/components/schemas/DateModified'
+        state:
+          $ref: '#/components/schemas/EntityState'
+        operationState:
+          $ref: '#/components/schemas/OperationStatusObject'
 
     ConnectorList:
       type: object
@@ -1242,6 +1113,10 @@ components:
           $ref: '#/components/schemas/EntityVersion'
         expires:
           $ref: '#/components/schemas/EntityExpires'
+        dateAdded:
+          $ref: '#/components/schemas/DateAdded'
+        dateModified:
+          $ref: '#/components/schemas/DateModified'
 
     IdentityList:
       type: object
@@ -1395,6 +1270,14 @@ components:
           $ref: '#/components/schemas/EntityVersion'
         expires:
           $ref: '#/components/schemas/EntityExpires'
+        dateAdded:
+          $ref: '#/components/schemas/DateAdded'
+        dateModified:
+          $ref: '#/components/schemas/DateModified'
+        state:
+          $ref: '#/components/schemas/EntityState'
+        operationState:
+          $ref: '#/components/schemas/OperationStatusObject'
 
     IntegrationPostEntity:
       type: object
@@ -1407,6 +1290,14 @@ components:
           $ref: '#/components/schemas/EntityTags'
         expires:
           $ref: '#/components/schemas/EntityExpires'
+        dateAdded:
+          $ref: '#/components/schemas/DateAdded'
+        dateModified:
+          $ref: '#/components/schemas/DateModified'
+        state:
+          $ref: '#/components/schemas/EntityState'
+        operationState:
+          $ref: '#/components/schemas/OperationStatusObject'
 
     IntegrationListEntity:
       type: object
@@ -1421,6 +1312,14 @@ components:
           $ref: '#/components/schemas/EntityVersion'
         expires:
           $ref: '#/components/schemas/EntityExpires'
+        dateAdded:
+          $ref: '#/components/schemas/DateAdded'
+        dateModified:
+          $ref: '#/components/schemas/DateModified'
+        state:
+          $ref: '#/components/schemas/EntityState'
+        operationState:
+          $ref: '#/components/schemas/OperationStatusObject'
 
     IntegrationList:
       type: object
@@ -1467,6 +1366,10 @@ components:
           $ref: '#/components/schemas/EntityVersion'
         expires:
           $ref: '#/components/schemas/EntityExpires'
+        dateAdded:
+          $ref: '#/components/schemas/DateAdded'
+        dateModified:
+          $ref: '#/components/schemas/DateModified'
 
     InstanceList:
       type: object

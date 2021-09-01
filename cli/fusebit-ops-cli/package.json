@@ -1,6 +1,6 @@
 {
   "name": "@5qtrs/fusebit-ops-cli",
-  "version": "1.28.9",
+  "version": "1.29.0",
   "description": "The Fusebit Platform Operations CLI",
   "main": "libc/index.js",
   "license": "UNLICENSED",
@@ -15,9 +15,10 @@
   "packageAs": "fusebit-ops-cli",
   "packageAssets": [],
   "scripts": {
-    "build": "yarn build:lambdas && yarn compile",
+    "build": "yarn build:lambdas && yarn build:migrations && yarn compile",
     "compile": "tsc -b",
     "build:lambdas": "cd ../.. && yarn build ops-lambda-set",
+    "build:migrations": "cd ../../lib/data/ops-data-aws/ && yarn build",
     "test": "jest --colors",
     "coverage": "jest --colors --coverage",
     "lint": "tslint --fix -t stylish src/{,**/}*.ts{,x} test/{,**/}*.ts{,x}",
@@ -49,7 +50,5 @@
     "@types/jszip": "^3.4.1",
     "@types/rimraf": "^3.0.0"
   },
-  "bundledDependencies": [
-    "@fusebit/schema"
-  ]
+  "bundledDependencies": ["@fusebit/schema"]
 }
