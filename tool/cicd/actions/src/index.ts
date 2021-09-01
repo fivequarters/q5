@@ -52,7 +52,7 @@ const specs: ISpec[] = [
   { name: 'Full build', inputs: ['checkout', ...fullBuild, 'publish_slack'], output: 'full_build' },
   {
     name: 'Publish All Artifacts',
-    inputs: ['checkout', 'publish_tags', ...fullBuild, ...publishAll, 'publish_slack'],
+    inputs: ['checkout', ...fullBuild, ...publishAll, 'publish_slack'],
     output: 'publish',
   },
   {
