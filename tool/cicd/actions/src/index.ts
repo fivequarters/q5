@@ -96,6 +96,7 @@ const specs: ISpec[] = [
     output: 'clean_old_tests',
     options: {
       on_trigger: 'pull_request',
+      base: 'fast_base',
     },
   },
   {
