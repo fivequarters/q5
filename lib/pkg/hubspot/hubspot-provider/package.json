@@ -1,6 +1,6 @@
 {
   "name": "@fusebit-int/hubspot-provider",
-  "version": "1.0.1",
+  "version": "1.0.2",
   "description": "",
   "main": "libc/index.js",
   "files": [
