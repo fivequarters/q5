@@ -14,9 +14,8 @@ const { Integration } = require('@fusebit-int/framework');
 
 const integration = new Integration();
 
-// Fusebit uses the KoaJS router to allow you to add custom HTTP endpoints to the integration, which
-// you can then call from witin your application.
-// For KoaJS programming model, see https://koajs.com/.
+// Fusebit uses the KoaJS (https://koajs.com/) router to allow you to add custom HTTP endpoints
+// to the integration, which you can then call from witin your application.
 const router = integration.router;
 
 // The sample test endpoint of this integration sends a Direct Message to the Slack user associated with your tenant.
@@ -34,7 +33,7 @@ router.post('/api/tenant/:tenantId/test', integration.middleware.authorizeUser('
     channel: slackUserId,
   });
 
-  ctx.body = { message: 'Success sending a message to Slack!' };
+  ctx.body = { message: `Successfully sent a message to Slack user ${slackUserId}!` };
 });
 
 // This endpoint lists Slack users of the workspace associated with your tenant.
