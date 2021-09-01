@@ -91,8 +91,8 @@ const specs: ISpec[] = [
     },
   },
   {
-    name: 'Delete Duplicate Function-API',
-    inputs: ['checkout', 'delete_previous_test_actions'],
+    name: 'Delete Duplicate Function-API Test Runs',
+    inputs: ['delete_previous_test_actions'],
     output: 'clean_old_tests',
     options: {
       on_trigger: 'pull_request',
