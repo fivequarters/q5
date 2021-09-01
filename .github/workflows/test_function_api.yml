@@ -1,9 +1,6 @@
 ###################################################################
 # Auto-created by the cicd-actions tool
-on:
-  pull_request_review:
-    types:
-      - submitted
+on: pull_request
 name: Test Function-API
 jobs:
   deploy:
