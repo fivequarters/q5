@@ -51,7 +51,8 @@ jobs:
           echo "Versions: function_api/${{env.VERSION_FUNCTION_API}}
           fuse-cli/${{env.VERSION_FUSEBIT_CLI}}
           fuse-ops/${{env.VERSION_FUSEBIT_OPS_CLI}}"
-      - uses: n1hility/cancel-previous-runs@v2
+      - uses: styfle/cancel-workflow-action@0.9.1
         with:
-          token: ${{ secrets.TOKEN_GITHUB }}
-          workflow: test_function_api.yml
+          access_token: ${{ secrets.TOKEN_GITHUB }}
+          workflow_id: 11826632
+          all_but_latest: true
