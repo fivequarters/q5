@@ -34,7 +34,7 @@ class Tenant {
     this.service = service;
   }
 
-  public getInstanceByTenant = async (ctx: RouterContext, tenantId: string): Promise<any> => {
+  public getSdkByTenant = async (ctx: RouterContext, connectorName: string, tenantId: string) => {
     const response = await superagent
       .get(`${ctx.state.params.baseUrl}/instance?tag=${TENANT_TAG_NAME}=${tenantId}`)
       .set('Authorization', `Bearer ${ctx.state.params.functionAccessToken}`);
@@ -48,11 +48,8 @@ class Tenant {
       ctx.throw(400, `Too many Integration Instances found with tenant ${tenantId}`);
     }
 
-    return body.items[0];
-  };
+    const instance = body.items[0];
 
-  public getSdkByTenant = async (ctx: RouterContext, connectorName: string, tenantId: string) => {
-    const instance = await this.getInstanceByTenant(ctx, tenantId);
     return this.service.getSdk(ctx, connectorName, instance.id);
   };
 }

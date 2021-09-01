@@ -15,6 +15,12 @@ const onSessionError = async (ctx: Connector.Types.Context, error: { error: stri
   await ctx.state.identityClient?.saveErrorToSession({ ...error }, ctx.query.state);
 };
 
+const sanitizeCredentials = (credentials: any): object => {
+  const result = { ...credentials };
+  delete result.refresh_token;
+  return result;
+};
+
 router.use(async (ctx: Connector.Types.Context, next: Connector.Types.Next) => {
   if (engine) {
     engine.setMountUrl(ctx.state.params.baseUrl);
@@ -52,7 +58,7 @@ router.get(
   connector.middleware.authorizeUser('connector:execute'),
   async (ctx: Connector.Types.Context) => {
     try {
-      ctx.body = await engine.ensureAccessToken(ctx, ctx.params.lookupKey, false);
+      ctx.body = sanitizeCredentials(await engine.ensureAccessToken(ctx, ctx.params.lookupKey, false));
     } catch (error) {
       ctx.throw(500, error.message);
     }
@@ -67,7 +73,7 @@ router.get(
   connector.middleware.authorizeUser('connector:execute'),
   async (ctx: Connector.Types.Context) => {
     try {
-      ctx.body = await engine.ensureAccessToken(ctx, ctx.params.lookupKey);
+      ctx.body = sanitizeCredentials(await engine.ensureAccessToken(ctx, ctx.params.lookupKey));
     } catch (error) {
       ctx.throw(500, error.message);
     }
