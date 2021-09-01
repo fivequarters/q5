@@ -115,13 +115,14 @@ class RDS implements IRds {
     try {
       const update = await this.DAO.storage.createEntity(entity);
       const get = await this.DAO.storage.getEntity(entity);
-      if (update.data && get.data && update.data.checked == get.data.checked) {
-        this.lastHealth = true;
-        this.lastHealthExecution = get.data.checked;
-      } else {
-        throw new Error('RDS failure was detected when trying to insert entity.');
+      if (!update.data || !get.data || update.data.checked !== get.data.checked) {
+        throw new Error('RDS failure was detected when trying to update entity.');
       }
+      this.healthError = undefined;
+      this.lastHealth = true;
+      this.lastHealthExecution = get.data.checked;
     } catch (e) {
+      console.log(`RDS Execution Error`, e);
       this.healthError = e;
       this.lastHealth = false;
     }
@@ -130,8 +131,13 @@ class RDS implements IRds {
 
   public async ensureRDSLiveliness() {
     const timeDifference = Date.now() - this.lastHealthExecution;
-    if (!this.lastHealth || !this.lastHealthExecution || timeDifference > this.RDS_HEALTH_MAX_ACCEPTABLE_TTL) {
-      throw this.healthError;
+    if (this.healthError || timeDifference > this.RDS_HEALTH_MAX_ACCEPTABLE_TTL) {
+      if (this.healthError) {
+        throw this.healthError;
+      }
+
+      console.log(`RDS has gone away for ${timeDifference - this.RDS_HEALTH_MAX_ACCEPTABLE_TTL} ms too long.`);
+      throw new Error(`RDS blocked, ${timeDifference - this.RDS_HEALTH_MAX_ACCEPTABLE_TTL} ms past deadline`);
     }
   }
 

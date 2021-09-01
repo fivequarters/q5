@@ -78,7 +78,7 @@ router.get(
     { check: async () => keyStore.healthCheck(), name: 'Keystore' },
     { check: async () => subscriptionCache.healthCheck(), name: 'Subscription cache' },
     { check: async () => RDS.ensureConnection(), name: 'RDS connection' },
-    { check: async () => RDS.ensureRDSLiveliness(), name: 'RDS execution' },
+    { check: async () => RDS.ensureRDSLiveliness(), name: 'RDS liveliness' },
   ])
 );
 
