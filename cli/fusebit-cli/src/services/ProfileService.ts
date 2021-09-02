@@ -734,7 +734,7 @@ export class ProfileService {
     const profiles = await this.execute(() => this.profile.listProfiles());
     const uncompletedProfiles = profiles.filter((profile) => !profile.account || !profile.subscription);
     for (const profile of uncompletedProfiles) {
-      await this.removeProfile(profile.name);
+      await this.profile.removeProfile(profile.name);
     }
   }
 
