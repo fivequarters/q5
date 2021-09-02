@@ -21,7 +21,7 @@ All public releases of the Fusebit CLI are documented here, including notable ch
 
 _Released 09/02/21_
 
-- **Bugfix.** Cancelled OAuth Device flow cannot be resumed.
+- **Bugfix.** Cancelling an OAuth flow from the CLI does not prevent subsequent OAuth flows for the same account.
 
 ## Version 1.11.2
 
