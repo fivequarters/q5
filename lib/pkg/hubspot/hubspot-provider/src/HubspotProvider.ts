@@ -1,13 +1,16 @@
 import { Internal } from '@fusebit-int/framework';
 import { Client } from '@hubspot/api-client';
 
-export default class HubspotProvider extends Internal.ProviderActivator<Client> {
+type FusebitHubspotClient = Client & { fusebit?: any };
+
+export default class HubspotProvider extends Internal.ProviderActivator<FusebitHubspotClient> {
   /*
    * This function will create an authorized wrapper of the HubSpot SDK client.
    */
-  protected async instantiate(ctx: Internal.Types.Context, lookupKey: string): Promise<Client> {
-    const accessToken = await this.requestConnectorToken({ ctx, lookupKey });
-    const hubspotClient = new Client({ accessToken });
+  protected async instantiate(ctx: Internal.Types.Context, lookupKey: string): Promise<FusebitHubspotClient> {
+    const credentials = await this.requestConnectorToken({ ctx, lookupKey });
+    const hubspotClient: FusebitHubspotClient = new Client({ accessToken: credentials.access_token });
+    hubspotClient.fusebit = { credentials };
     return hubspotClient;
   }
 }

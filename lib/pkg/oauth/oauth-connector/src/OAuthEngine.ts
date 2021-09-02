@@ -1,5 +1,5 @@
 import superagent from 'superagent';
-import { Internal } from '@fusebit-int/framework';
+import { Connector, Internal } from '@fusebit-int/framework';
 
 import { IOAuthConfig, IOAuthToken } from './OAuthTypes';
 
@@ -27,29 +27,56 @@ class OAuthEngine {
 
   /**
    * Creates the fully formed web authorization URL to start the authorization flow.
-   * @param {string} state The value of the OAuth state parameter.
+   * @param {Connector.Types.Context} ctx Request context.
    */
-  public async getAuthorizationUrl(state: string) {
+  public async getAuthorizationUrl(ctx: Connector.Types.Context) {
     const params = new URLSearchParams({
       response_type: 'code',
       scope: this.cfg.scope,
-      state,
+      state: ctx.query.session,
       client_id: this.cfg.clientId,
-      redirect_uri: this.cfg.mountUrl + callbackSuffixUrl,
+      redirect_uri: this.getRedirectUri(),
     });
 
     if (this.cfg.audience) {
       params.append('audience', this.cfg.audience);
     }
 
-    return `${this.cfg.authorizationUrl}?${params.toString()}${this.cfg.extraParams ? `&${this.cfg.extraParams}` : ''}`;
+    const query = `${params.toString()}${this.cfg.extraParams ? `&${this.cfg.extraParams}` : ''}`;
+
+    // If the configured authorization URL is absolute, use it verbatim.
+    // If it is relative, add the connector's endpoint in front of it.
+    return this.cfg.authorizationUrl.match(/^https?::\/\//i)
+      ? `${this.cfg.authorizationUrl}?${query}`
+      : `${ctx.state.params.endpoint}${this.cfg.authorizationUrl}?${query}`;
+  }
+
+  /**
+   * Generate OAuth redirect URI
+   * @returns OAuth redirect URI
+   */
+  protected getRedirectUri(): string {
+    return `${this.cfg.mountUrl}${callbackSuffixUrl}`;
+  }
+
+  /**
+   * Generate OAuth token URL
+   * @param ctx Request context
+   * @returns OAuth token URL
+   */
+  protected getTokenUrl(ctx: Internal.Types.Context): string {
+    // If the configured token URL is absolute, use it verbatim.
+    // If it is relative, add the connector's endpoint in front of it.
+    return this.cfg.tokenUrl.match(/^https?::\/\//i)
+      ? this.cfg.tokenUrl
+      : `${ctx.state.params.endpoint}${this.cfg.tokenUrl}`;
   }
 
   /**
    * Convert the successful callback into a token via getAccessToken.
    */
   public async convertAccessCodeToToken(ctx: Internal.Types.Context, lookupKey: string, code: string) {
-    const token = await this.getAccessToken(code, this.cfg.mountUrl + callbackSuffixUrl);
+    const token = await this.getAccessToken(code, ctx);
     if (!isNaN(token.expires_in)) {
       token.expires_at = Date.now() + +token.expires_in * 1000;
     }
@@ -74,46 +101,49 @@ class OAuthEngine {
    * Exchanges the OAuth authorization code for the access and refresh tokens.
    * @param {string} authorizationCode The authorization_code supplied to the OAuth callback upon successful
    *                                   authorization flow.
-   * @param {string} redirectUri The redirect_uri value Fusebit used to start the authorization flow.
+   * @param {string} ctx Request context
    */
-  public async getAccessToken(authorizationCode: string, redirectUri: string): Promise<IOAuthToken> {
+  public async getAccessToken(authorizationCode: string, ctx: Connector.Types.Context): Promise<IOAuthToken> {
     const params = {
       grant_type: 'authorization_code',
       code: authorizationCode,
       client_id: this.cfg.clientId,
       client_secret: this.cfg.clientSecret,
-      redirect_uri: redirectUri,
+      redirect_uri: this.getRedirectUri(),
     };
+
+    const tokenUrl = this.getTokenUrl(ctx);
     try {
-      const response = await superagent.post(this.cfg.tokenUrl).type('form').send(params);
+      const response = await superagent.post(tokenUrl).type('form').send(params);
 
       return response.body;
     } catch (error) {
-      throw new Error(`Unable to connect to tokenUrl ${this.cfg.tokenUrl}: ${error}`);
+      throw new Error(`Unable to connect to tokenUrl ${tokenUrl}: ${error}`);
     }
   }
 
   /**
    * Obtains a new access token using refresh token.
    * @param {*} token An object representing the result of the getAccessToken call. It contains refresh_token.
-   * @param {string} redirectUri The redirect_uri value Fusebit used to start the authorization flow.
+   * @param {Connector.Types.Context} ctx Request context
    */
-  public async refreshAccessToken(refreshToken: string) {
+  public async refreshAccessToken(refreshToken: string, ctx: Connector.Types.Context) {
     const params = {
       grant_type: 'refresh_token',
       refresh_token: refreshToken,
       client_id: this.cfg.clientId,
       client_secret: this.cfg.clientSecret,
-      redirect_uri: `${this.cfg.mountUrl}${callbackSuffixUrl}`,
+      redirect_uri: this.getRedirectUri(),
     };
 
+    const tokenUrl = this.getTokenUrl(ctx);
     try {
-      const response = await superagent.post(this.cfg.tokenUrl).type('form').send(params);
+      const response = await superagent.post(tokenUrl).type('form').send(params);
 
       // Use the current token if a new one isn't supplied.
       return { refresh_token: refreshToken, ...response.body };
     } catch (error) {
-      throw new Error(`Unable to connecto to tokenUrl '${this.cfg.tokenUrl}: ${error}`);
+      throw new Error(`Unable to connecto to tokenUrl '${tokenUrl}: ${error}`);
     }
   }
 
@@ -186,7 +216,7 @@ class OAuthEngine {
       try {
         await tokenRw.put(token, lookupKey);
 
-        token = await this.refreshAccessToken(token.refresh_token);
+        token = await this.refreshAccessToken(token.refresh_token, ctx);
 
         if (!isNaN(token.expires_in)) {
           token.expires_at = Date.now() + +token.expires_in * 1000;
