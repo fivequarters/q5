@@ -50,15 +50,6 @@ jobs:
         env:
           FUSE_PROFILE: cicd
         run: ./tool/cicd/actions/scripts/publish_all_pkg.sh
-      - name: Publish - function-api - 749 Only
-        run: ./tool/cicd/actions/scripts/publish_function_api_dev.sh
-      - name: Test - deploy exclusive to cicd/us-east-2
-        env:
-          REGION: us-east-2
-          DEPLOYMENT_NAME: cicd
-          NETWORK_NAME: cicd
-          DEPLOYMENT_DOMAIN: dev.fusebit.io
-        run: ./tool/cicd/actions/scripts/deploy_exclusive_function_api.sh
       - name: Test - function-api
         env:
           FUSE_PROFILE: cicd
