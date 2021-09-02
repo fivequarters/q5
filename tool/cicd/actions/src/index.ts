@@ -80,7 +80,15 @@ const specs: ISpec[] = [
   },
   {
     name: 'Test Function-API',
-    inputs: ['checkout', 'local_env_files', 'full_build_no_qualify', 'publish_all_pkg', 'deploy_test', 'publish_slack'],
+    inputs: [
+      'checkout',
+      'local_env_files',
+      'full_build_no_qualify',
+      'deploy_functionapi_cicd',
+      'publish_all_pkg',
+      'test_function_api',
+      'publish_slack',
+    ],
     output: 'test_function_api',
     options: {
       on_trigger: 'pull_request',
@@ -98,7 +106,15 @@ const specs: ISpec[] = [
   },
   {
     name: 'Test Function-API (Manual)',
-    inputs: ['checkout', 'local_env_files', 'full_build_no_qualify', 'publish_all_pkg', 'deploy_test', 'publish_slack'],
+    inputs: [
+      'checkout',
+      'local_env_files',
+      'full_build_no_qualify',
+      'deploy_functionapi_cicd',
+      'publish_all_pkg',
+      'test_function_api',
+      'publish_slack',
+    ],
     output: 'test_function_api-manual',
     options: {
       runner_type: 'self-hosted',
