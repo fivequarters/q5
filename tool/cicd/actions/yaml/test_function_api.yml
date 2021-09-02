@@ -1,4 +1,3 @@
-# Deploy the image to cicd/us-east-2 and run the test automation against it
 steps:
   - name: Test - function-api
     env:
