@@ -1,12 +1,11 @@
 import * as Constants from '@5qtrs/constants';
-import { Constants as Tags } from '@5qtrs/function-tags';
 import { KeyStore } from './KeyStore';
 import { IFunctionApiRequest } from './Request';
 
 type ExpressHandler = (req: IFunctionApiRequest, res: any, next: any) => any;
 
 const execAs = (keyStore: KeyStore) => {
-  return async (req: IFunctionApiRequest, res: Response, next: any) => {
+  return async (req: IFunctionApiRequest, next: any) => {
     if (!req.functionSummary) {
       return next();
     }
