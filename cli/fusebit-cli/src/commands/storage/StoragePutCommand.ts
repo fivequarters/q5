@@ -8,6 +8,8 @@ import { readFileSync } from 'fs';
 // Internal Constants
 // ------------------
 
+const stdinFileName = '-';
+
 const command = {
   name: 'Upsert Storage',
   cmd: 'put',
@@ -16,7 +18,7 @@ const command = {
   arguments: [
     {
       name: 'file',
-      description: 'File name with JSON input. If . is used, data will be read from stdin ',
+      description: `File name with JSON input. If ${stdinFileName} is used, data will be read from stdin`,
       required: true,
     },
   ],
@@ -67,17 +69,19 @@ export class StoragePutCommand extends Command {
     const payload = await executeService.execute(
       {
         header: 'Reading data',
-        message: Text.create('Reading input data from ', Text.bold(file === '.' ? 'STDIN' : file), '...'),
+        message: Text.create('Reading input data from ', Text.bold(file === stdinFileName ? 'STDIN' : file), '...'),
         errorHeader: 'Data Error',
         errorMessage: Text.create('Error reading input data'),
       },
       async () => {
         const readStdin = async () => {
           const chunks = [];
-          for await (const chunk of process.stdin) chunks.push(chunk);
+          for await (const chunk of process.stdin) {
+            chunks.push(chunk);
+          }
           return Buffer.concat(chunks).toString('utf8');
         };
-        const content = file === '.' ? await readStdin() : readFileSync(join(process.cwd(), file), 'utf8');
+        const content = file === stdinFileName ? await readStdin() : readFileSync(join(process.cwd(), file), 'utf8');
         const json = JSON.parse(content);
         if (typeof json !== 'object') {
           throw new Error('The input data must be a JSON object.');
@@ -124,8 +128,8 @@ export class StoragePutCommand extends Command {
     );
 
     const result = await storageService.putStorage(payload);
-    const json = JSON.stringify(result, null, 2);
-    await input.io.writeLineRaw(json);
+    const jsonResult = JSON.stringify(result, null, 2);
+    await input.io.writeLineRaw(jsonResult);
 
     return 0;
   }

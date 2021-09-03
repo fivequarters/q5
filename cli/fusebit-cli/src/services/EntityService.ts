@@ -60,20 +60,6 @@ export class EntityService {
     return result;
   }
 
-  public async getEntity(
-    profile: IFusebitExecutionProfile,
-    parentEntityId: string,
-    entityId: string
-  ): Promise<IHttpResponse> {
-    return request({
-      method: 'GET',
-      url: this.getUrl(profile, parentEntityId, entityId),
-      headers: {
-        Authorization: `Bearer ${profile.accessToken}`,
-      },
-    });
-  }
-
   public async fetchEntity(parentEntityId: string, entityId: string): Promise<any> {
     const profile = await this.profileService.getExecutionProfile(['account', 'subscription']);
     return this.executeService.executeRequest(

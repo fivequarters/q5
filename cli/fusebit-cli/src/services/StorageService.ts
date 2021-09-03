@@ -54,16 +54,6 @@ export class StorageService {
     return result;
   }
 
-  public async getStorage(profile: IFusebitExecutionProfile, storageId: string): Promise<IHttpResponse> {
-    return request({
-      method: 'GET',
-      url: this.getUrl(profile, storageId),
-      headers: {
-        Authorization: `Bearer ${profile.accessToken}`,
-      },
-    });
-  }
-
   public async fetchStorage(storageId: string): Promise<any> {
     const profile = await this.profileService.getExecutionProfile(['account', 'subscription']);
     return this.executeService.executeRequest(
