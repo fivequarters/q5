@@ -11,6 +11,9 @@ beforeEach(() => {
 
 describe('cron', () => {
   const expectedRuns = 15;
+  const minuteInMs = 60 * 1000;
+  const expectedRunsInMs = expectedRuns * minuteInMs;
+  const testTimeout = expectedRunsInMs + minuteInMs * 2;
 
   test(
     'cron executes on schedule',
@@ -31,10 +34,10 @@ describe('cron', () => {
       expect(maxTimespan).toBeLessThan(70000);
       expect(minTimespan).toBeGreaterThan(50000);
     },
-    16 * 60 * 1000
+    testTimeout
   );
 
-  async function getRuns() {
+  async function getTimestamps() {
     const res = await getStorage(account, boundaryId);
     expect(res).toBeHttp({ statusCode: 200 });
     return res.data.data.timestamps;
@@ -61,20 +64,25 @@ describe('cron', () => {
     // Start logging for the first 10 minutes, to make sure both function-api triggered and cron-scheduler
     // triggered events are captured.  The timer is set to 15, but the connection is unlikely to stay open
     // that long due to internal configuration entities.
-    const logsPromise = getLogs(account, boundaryId, function1Id, false, expectedRuns * 60 * 1000);
+    const logsPromise = getLogs(account, boundaryId, function1Id, false, expectedRunsInMs);
 
     // sleep 15 minutes to make sure the scheduler is working, let the cron run
     let timestamps = [];
+    const startingTimeStamp = Date.now();
+    let currentTimestamp = 0;
     let cycles = 0;
-    while (timestamps.length < expectedRuns) {
-      await sleep(60 * 1000);
+    const currentDate = new Date();
+    while (currentTimestamp < startingTimeStamp + expectedRunsInMs) {
+      await sleep(minuteInMs);
       cycles++;
+      currentTimestamp = Date.now();
+      currentDate.setTime(currentTimestamp);
       if (cycles === 1) {
         continue;
       }
-      timestamps = await getRuns();
+      timestamps = await getTimestamps();
+      console.log(`${currentDate}: Probing runs. Cycles ${cycles}. Timestamps found:`, timestamps);
       expect(timestamps.length >= cycles);
-      console.log('Timestamps', timestamps);
     }
 
     const logResponse = await logsPromise;
