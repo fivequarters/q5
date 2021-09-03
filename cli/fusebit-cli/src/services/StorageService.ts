@@ -1,8 +1,3 @@
-import { join } from 'path';
-import moment from 'moment';
-import globby from 'globby';
-
-import { readFile, writeFile } from '@5qtrs/file';
 import { request, IHttpResponse } from '@5qtrs/request';
 
 import { Text } from '@5qtrs/text';
@@ -10,7 +5,6 @@ import { IFusebitExecutionProfile } from '@5qtrs/fusebit-profile-sdk';
 import { IExecuteInput, Confirm } from '@5qtrs/cli';
 import { ProfileService } from './ProfileService';
 import { ExecuteService } from './ExecuteService';
-import { FunctionService } from './FunctionService';
 
 export interface IFusebitStorageListOptions {
   storageId?: string;
@@ -43,6 +37,12 @@ export class StorageService {
     this.executeService = executeService;
   }
 
+  public static normalizeStorageId(storageId: string, skipSlash?: boolean) {
+    return `${skipSlash ? '' : '/'}${storageId.replace(/^\/(.*)$/, '$1').replace(/^(.*)\/$/, '$1')}${
+      skipSlash ? '' : '/'
+    }`.replace('//', '/');
+  }
+
   public static async create(input: IExecuteInput) {
     const executeService = await ExecuteService.create(input);
     const profileService = await ProfileService.create(input);
@@ -50,9 +50,8 @@ export class StorageService {
   }
 
   public getUrl(profile: IFusebitExecutionProfile, storageId: string = ''): string {
-    return `${profile.baseUrl}/v1/account/${profile.account}/subscription/${profile.subscription}/storage${
-      storageId ? '/' + storageId : ''
-    }`;
+    const result = `${profile.baseUrl}/v1/account/${profile.account}/subscription/${profile.subscription}/storage${storageId}`;
+    return result;
   }
 
   public async getStorage(profile: IFusebitExecutionProfile, storageId: string): Promise<IHttpResponse> {
@@ -70,7 +69,11 @@ export class StorageService {
     return this.executeService.executeRequest(
       {
         header: 'Getting Storage',
-        message: Text.create("Getting existing storage '", Text.bold(`${storageId}`), "'..."),
+        message: Text.create(
+          "Getting existing storage item '",
+          Text.bold(`${StorageService.normalizeStorageId(storageId, true)}`),
+          "'..."
+        ),
         errorHeader: 'Get Storage Error',
         errorMessage: Text.create("Unable to get storage '", Text.bold(`${storageId}`), "'"),
       },
@@ -84,7 +87,31 @@ export class StorageService {
     );
   }
 
-  public async listStorage(options: IFusebitStorageListOptions): Promise<IFusebitStorageListResult> {
+  public async putStorage(payload: any): Promise<any> {
+    const profile = await this.profileService.getExecutionProfile(['account', 'subscription']);
+    return this.executeService.executeRequest(
+      {
+        header: 'Upserting Storage',
+        message: Text.create("Upserting storage item '", Text.bold(`${payload.storageId}`), "'..."),
+        errorHeader: 'Upsert Storage Error',
+        errorMessage: Text.create("Unable to upsert storage '", Text.bold(`${payload.storageId}`), "'"),
+      },
+      {
+        method: 'PUT',
+        url: this.getUrl(profile, StorageService.normalizeStorageId(payload.storageId)),
+        headers: {
+          Authorization: `Bearer ${profile.accessToken}`,
+        },
+        data: payload,
+      }
+    );
+  }
+
+  public async listStorage(
+    prefix: string,
+    tags: string[],
+    options: IFusebitStorageListOptions
+  ): Promise<IFusebitStorageListResult> {
     const profile = await this.profileService.getExecutionProfile(['account', 'subscription']);
     const query = [];
     if (options.count) {
@@ -93,18 +120,18 @@ export class StorageService {
     if (options.next) {
       query.push(`next=${options.next}`);
     }
-    const queryString = (options.storageId ? `/${options.storageId}` : '') + `?${query.join('&')}`;
-
+    tags.forEach((t) => query.push(`tag=${encodeURIComponent(t)}`));
+    const queryString = `?${query.join('&')}`;
     const result = await this.executeService.executeRequest(
       {
         header: 'List Storage',
         message: Text.create('Listing storage...'),
-        errorHeader: 'List Storages Error',
+        errorHeader: 'List Storage Error',
         errorMessage: Text.create('Unable to list storage'),
       },
       {
         method: 'GET',
-        url: `${this.getUrl(profile)}${queryString}`,
+        url: `${this.getUrl(profile, prefix)}${queryString}`,
         headers: { Authorization: `bearer ${profile.accessToken}` },
       }
     );
@@ -133,20 +160,13 @@ export class StorageService {
       tagSummary.push(Text.eol());
     }
 
-    console.log(item);
-
     await this.executeService.message(
       Text.bold(item.storageId),
-      Text.create([
-        ...(item.data ? [`Value: `, Text.bold(item.data), Text.eol(), Text.eol()] : []),
-        ...tagSummary,
-        ...expiresSummary,
-        'Version',
-        Text.dim(': '),
-        item.etag || 'unknown',
-        Text.eol(),
-      ])
+      Text.create([...tagSummary, ...expiresSummary, 'Version', Text.dim(': '), item.etag || 'unknown', Text.eol()])
     );
+
+    const json = JSON.stringify(item, null, 2);
+    await this.input.io.writeLineRaw(json);
   }
 
   public async displayStorages(items: IStorageSpec[], firstDisplay: boolean) {
@@ -156,21 +176,22 @@ export class StorageService {
     }
 
     for (const item of items) {
-      await this.displayStorage(item);
+      console.log(item.storageId);
     }
   }
 
   public async confirmRemove(storageId: string): Promise<boolean> {
+    const storageDisplayName = StorageService.normalizeStorageId(storageId, true);
     if (!this.input.options.quiet) {
       const confirmPrompt = await Confirm.create({
         header: 'Remove?',
-        message: Text.create("Permanently remove the '", Text.bold(storageId), "' storage?"),
+        message: Text.create("Permanently remove the '", Text.bold(storageDisplayName), "' storage?"),
       });
       const confirmed = await confirmPrompt.prompt(this.input.io);
       if (!confirmed) {
         await this.executeService.warning(
           'Remove Canceled',
-          Text.create("Removing the '", Text.bold(storageId), "' storage was canceled")
+          Text.create("Removing the '", Text.bold(storageDisplayName), "' storage was canceled")
         );
         throw new Error('Remove Canceled');
       }
@@ -179,20 +200,15 @@ export class StorageService {
   }
 
   public async removeStorage(storageId: string): Promise<void> {
+    const storageDisplayName = StorageService.normalizeStorageId(storageId, true);
     const profile = await this.profileService.getExecutionProfile(['account', 'subscription']);
 
     await this.executeService.executeRequest(
       {
         header: 'Remove Storage',
-        message: Text.create("Removing storage '", Text.bold(`${storageId}`), "'..."),
+        message: Text.create("Removing storage '", Text.bold(`${storageDisplayName}`), "'..."),
         errorHeader: 'Remove Storage Error',
-        errorMessage: Text.create(
-          "Unable to remove storage '",
-          Text.bold(`${profile.storage}`),
-          "' in boundary '",
-          Text.bold(`${profile.boundary}`),
-          "'"
-        ),
+        errorMessage: Text.create("Unable to remove storage item '", Text.bold(`${storageDisplayName}`), "'"),
       },
       {
         method: 'DELETE',
@@ -203,7 +219,7 @@ export class StorageService {
 
     await this.executeService.result(
       'Storage Removed',
-      Text.create("Storage '", Text.bold(`${storageId}`), "' was successfully removed")
+      Text.create("Storage item '", Text.bold(`${storageDisplayName}`), "' was successfully removed")
     );
   }
 }
