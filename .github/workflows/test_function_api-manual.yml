@@ -50,7 +50,27 @@ jobs:
           NETWORK_NAME: cicd
           DEPLOYMENT_DOMAIN: dev.fusebit.io
         run: ./tool/cicd/actions/scripts/deploy_exclusive_function_api.sh
+      - name: Cleanup Orphaned Resources
+        run: ./tool/cicd/actions/scripts/clean_env.sh
       - name: Test - function-api
         env:
           FUSE_PROFILE: cicd
         run: ./tool/cicd/actions/scripts/test_function_api.sh
+      - name: Notify slack success
+        if: success()
+        env:
+          SLACK_BOT_TOKEN: ${{ secrets.SLACK_NOTIFICATIONS_BOT_TOKEN }}
+        uses: voxmedia/github-action-slack-notify-build@v1
+        with:
+          channel: pr-review
+          status: SUCCESS
+          color: good
+      - name: Notify slack fail
+        if: failure()
+        env:
+          SLACK_BOT_TOKEN: ${{ secrets.SLACK_NOTIFICATIONS_BOT_TOKEN }}
+        uses: voxmedia/github-action-slack-notify-build@v1
+        with:
+          channel: pr-review
+          status: FAILED
+          color: danger
