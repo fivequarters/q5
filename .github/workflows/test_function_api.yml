@@ -30,6 +30,8 @@ jobs:
       - name: Setup .env files
         run: >-
           ./tool/cicd/actions/scripts/create_function_api_env.cicd.us-east-2.749775346857.sh
+      - name: Test - Delete Old Build Artifacts
+        run: ./tool/cicd/actions/scripts/clean_dirty_artifacts.sh
       - name: Pre-Build Summary
         run: |
           echo function-api: ${VERSION_FUNCTION_API}

@@ -17,6 +17,12 @@ All public releases of the Fusebit editor are documented here, including notable
 <!-- 1. TOC
 {:toc} -->
 
+## Version 2.0.3
+
+_Released 9/2/21_
+
+- **Enhancement.** Upgrade superagent.
+
 ## Version 2.0.1
 
 _Released 7/9/21_
