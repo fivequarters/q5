@@ -26,7 +26,7 @@
     "react-router-dom": "^5.1.2",
     "react-scripts": "3.2.0",
     "recharts": "^1.8.5",
-    "superagent": "^5.2.2",
+    "superagent": "^6.1.0",
     "url-parse": "^1.4.7"
   },
   "scripts": {

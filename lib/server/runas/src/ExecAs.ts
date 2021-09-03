@@ -1,7 +1,7 @@
 import * as Constants from '@5qtrs/constants';
-import { Constants as Tags } from '@5qtrs/function-tags';
 import { KeyStore } from './KeyStore';
 import { IFunctionApiRequest } from './Request';
+import { Response } from 'express';
 
 type ExpressHandler = (req: IFunctionApiRequest, res: any, next: any) => any;
 
