@@ -1,6 +1,6 @@
 {
   "name": "@fusebit-int/slack-connector",
-  "version": "3.0.0",
+  "version": "3.0.1",
   "description": "",
   "main": "libc/index.js",
   "files": [
@@ -19,7 +19,7 @@
   },
   "keywords": [],
   "dependencies": {
-    "@fusebit-int/oauth-connector": "^3.0.0",
+    "@fusebit-int/oauth-connector": "^3.0.1",
     "@slack/web-api": "^6.3.0",
     "superagent": "6.1.0"
   },
