@@ -29,8 +29,8 @@ router.get(
   }
 );
 
-connector.service.setGetWebhookAuthId((event: any) => {
-  return event.authorizations[0].user_id;
+connector.service.setGetEventAuthId((ctx: Connector.Types.Context) => {
+  return ctx.req.body.authorizations[0].user_id;
 });
 
 connector.service.setValidateWebhookEvent((ctx: Connector.Types.Context, signingSecret) => {
@@ -55,7 +55,7 @@ connector.service.setInitializationChallenge((ctx: Connector.Types.Context) => {
   return false;
 });
 
-OAuthConnector.service.setGetOAuthAuthId((token: any) => {
+OAuthConnector.service.setGetTokenAuthId((token: any) => {
   return token.bot_user_id;
 });
 

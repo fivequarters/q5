@@ -375,6 +375,7 @@ export default abstract class SessionedEntityService<
     let instanceId;
 
     const leafSessionResults: Record<string, any> = {};
+    const leafTags: Model.ITags = {};
 
     await RDS.inTransaction(async (daos) => {
       // Persist each session.
@@ -389,6 +390,7 @@ export default abstract class SessionedEntityService<
               subscriptionId: session.subscriptionId,
               id: step.childSessionId,
             });
+            Object.assign(leafTags, sessionEntity.tags);
             this.ensureSessionLeaf(sessionEntity, 'invalid session entry in step');
 
             const result = await this.persistLeafSession(
@@ -426,7 +428,7 @@ export default abstract class SessionedEntityService<
       // Create a new `instance` object.
       //
       // Get the integration, to get the database id out of.
-      const parentEntity = await daos[this.entityType].getEntity({
+      const parentEntity: Model.IEntity = await daos[this.entityType].getEntity({
         accountId: session.accountId,
         subscriptionId: session.subscriptionId,
         id: masterSessionId.parentEntityId,
@@ -439,7 +441,12 @@ export default abstract class SessionedEntityService<
         subscriptionId: session.subscriptionId,
         id: Model.createSubordinateId(this.entityType, parentEntity.__databaseId as string, instanceId),
         data: { ...leafSessionResults },
-        tags: { ...session.tags, 'session.master': masterSessionId.entityId },
+        tags: {
+          ...session.tags,
+          'session.master': masterSessionId.entityId,
+          ...leafTags,
+          'fusebit.parentEntityId': parentEntity.id,
+        },
       };
 
       const subDao = daos[this.subDao!.getDaoType()];
@@ -502,7 +509,7 @@ export default abstract class SessionedEntityService<
       subscriptionId: session.subscriptionId,
       id: Model.createSubordinateId(service.entityType, parentEntity.__databaseId as string, leafId),
       data: session.data.output || {},
-      tags: { ...session.tags, 'session.master': masterSessionId.entityId },
+      tags: { ...session.tags, 'session.master': masterSessionId.entityId, 'fusebit.parentEntityId': parentEntity.id },
     };
 
     const subDao = daos[service.subDao!.getDaoType()];

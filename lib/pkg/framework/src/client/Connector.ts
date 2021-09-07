@@ -1,23 +1,24 @@
 /* tslint:disable no-namespace no-empty-interface max-classes-per-file */
 import EntityBase from './EntityBase';
 import superagent from 'superagent';
+type IPromise = typeof Promise & { allSettled: Function };
 
 class Service extends EntityBase.ServiceDefault {
   public handleWebhookEvent = async (ctx: EntityBase.Types.Context, WebhookSigningSecret: string) => {
-    const isChallenge = await this.InitializationChallenge(ctx);
+    const isChallenge = await this.initializationChallenge(ctx);
     if (isChallenge) {
       ctx.status = 200;
       return;
     }
 
-    const authId = await this.GetWebhookAuthId(ctx.req.body);
+    const authId = await this.getEventAuthId(ctx);
     if (!authId) {
       console.log(`webhooks not implemented for connector ${ctx.state.params.entityId}`);
       ctx.status = 404;
       return;
     }
 
-    const isValid = this.ValidateWebhookEvent(ctx, WebhookSigningSecret);
+    const isValid = this.validateWebhookEvent(ctx, WebhookSigningSecret);
     if (!isValid) {
       console.log(`webhook event failed validation for connector ${ctx.state.params.entityId}`);
       ctx.status = 400;
@@ -34,7 +35,7 @@ class Service extends EntityBase.ServiceDefault {
       // webhook caller, demonstrate webhook has been received and stored on our end.
       try {
         const processPromise = this.processWebhook(ctx, event);
-        return await this.CreateWebhookResponse(ctx, processPromise);
+        return await this.createWebhookResponse(ctx, processPromise);
       } catch (e) {}
     }
   };
@@ -47,8 +48,7 @@ class Service extends EntityBase.ServiceDefault {
     //
     // Upon processing of Sessions, this authId is saved to both the associated Identity and Instance, in the format of
     // `webhookId/<connectorId>/<authId>`.  This is a tag key, with null value.
-    const connectorId = ctx.state.params.entityId;
-    const webhookEventId = ['webhook', connectorId, event.authId].join('/');
+    const webhookEventId = this.getWebhookLookupId(ctx);
     const accountUrl = ctx.state.params.baseUrl.split('/connector/')[0];
 
     const response = await superagent
@@ -57,31 +57,30 @@ class Service extends EntityBase.ServiceDefault {
     const instances: any[] = response.body.items;
 
     const instancesByIntegrationId: any[] = instances.reduce((acc, cur) => {
-      const integrationId = cur.integrationId;
-      console.log(integrationId);
-      if (!!acc[integrationId]) {
+      const integrationId = cur.tags['fusebit.parentEntityId'];
+      if (!acc[integrationId]) {
         acc[integrationId] = [];
       }
       acc[integrationId].push(cur.entityId);
       return acc;
     }, {});
 
-    const webhookEventName = this.GetWebhookEventName(ctx);
+    const webhookEventName = this.getWebhookEventName(ctx);
 
     try {
-      await Promise.all(
+      await (Promise as IPromise).allSettled(
         Object.entries<string[]>(instancesByIntegrationId).map(async ([integrationId, instanceIds]) => {
           const eventPayload: Connector.Types.WebhookEventPayload = {
             event: webhookEventName,
             parameters: {
               event,
               instanceIds,
-              connectorId,
+              connectorId: ctx.state.params.entityId,
               webhookEventId,
             },
           };
           return superagent
-            .post(`${accountUrl}/integration/${integrationId}/api/event`)
+            .post(`${accountUrl}/integration/${integrationId}/event`)
             .set('Authorization', `Bearer ${ctx.state.params.functionAccessToken}`)
             .send(eventPayload);
         })
@@ -92,17 +91,29 @@ class Service extends EntityBase.ServiceDefault {
     }
   };
 
+  public getWebhookLookupId(ctx: Connector.Types.Context): string {
+    const authId = this.getEventAuthId(ctx);
+    const connectorId = ctx.state.params.entityId;
+    return ['webhook', connectorId, authId].join('/');
+  }
+
+  public getWebhookTokenId(ctx: Connector.Types.Context, token: any): string {
+    const authId = this.getTokenAuthId(token);
+    const connectorId = ctx.state.params.entityId;
+    return ['webhook', connectorId, authId].join('/');
+  }
+
   // Setters allow for individual Connectors to easily apply unique values if need be
-  // GetWebhookAuthId takes an external event and extracts the authId
-  // CreateWebhookResponse sets any necessary response elements that the caller requires
-  // ValidateWebhookEvent validates the hash
+  // getEventAuthId takes an external event and extracts the authId
+  // createWebhookResponse sets any necessary response elements that the caller requires
+  // validateWebhookEvent validates the hash
   // GetEventName gets the event name from the request
-  public setGetWebhookAuthId = (handler: (event: any) => string | void): void => {
-    this.GetWebhookAuthId = handler;
+  public setGetEventAuthId = (handler: (event: any) => string | void): void => {
+    this.getEventAuthId = handler;
   };
-  public setGetOAuthAuthId = (handler: (token: any) => string | void): void => {
+  public setGetTokenAuthId = (handler: (token: any) => string | void): void => {
     console.log('updating oauth auth Id');
-    this.GetOAuthAuthId = handler;
+    this.getTokenAuthId = handler;
   };
   public setCreateWebhookResponse = (
     handler: (
@@ -110,36 +121,43 @@ class Service extends EntityBase.ServiceDefault {
       processPromise?: Promise<Connector.Types.WebhookEvent | void>
     ) => Promise<void>
   ) => {
-    this.CreateWebhookResponse = handler;
+    this.createWebhookResponse = handler;
   };
   public setValidateWebhookEvent = (handler: (ctx: Connector.Types.Context, signingSecret: string) => boolean) => {
-    this.ValidateWebhookEvent = handler;
+    this.validateWebhookEvent = handler;
   };
   public setGetWebhookEventName = (handler: (ctx: Connector.Types.Context) => string) => {
-    this.GetWebhookEventName = handler;
+    this.getWebhookEventName = handler;
   };
   public setInitializationChallenge = (handler: (ctx: Connector.Types.Context) => boolean) => {
-    this.InitializationChallenge = handler;
+    this.initializationChallenge = handler;
   };
 
   // Default configuration functions
-  private GetWebhookAuthId: (event: any) => string | void = (event: any) => {};
-  public GetOAuthAuthId: (token: any) => string | void = (token) => {
-    console.log('no authId for token');
+  private getEventAuthId = (ctx: Connector.Types.Context): string | void => {
+    console.log('Event AuthId configuration missing.  Required for webhook processing.');
   };
-  private CreateWebhookResponse: (
+  private getTokenAuthId = (token: any): string | void => {
+    console.log('Token AuthId configuration missing.  Required for webhook processing.');
+  };
+  private createWebhookResponse = async (
     ctx: Connector.Types.Context,
     processPromise?: Promise<Connector.Types.WebhookEvent | void>
-  ) => Promise<void> = async (
-    ctx: Connector.Types.Context,
-    processPromise?: Promise<Connector.Types.WebhookEvent | void>
-  ) => {};
-  private ValidateWebhookEvent: (ctx: Connector.Types.Context, signingSecret: string) => boolean = (
-    ctx,
-    signingSecret
-  ) => false;
-  private GetWebhookEventName: (ctx: Connector.Types.Context) => string = (ctx) => `event:${ctx.state.params.entityId}`;
-  private InitializationChallenge: (ctx: Connector.Types.Context) => boolean = (ctx) => false;
+  ): Promise<void> => {
+    console.log('Webhook Response configuration missing.');
+  };
+  private validateWebhookEvent = (ctx: Connector.Types.Context, signingSecret: string): boolean => {
+    console.log('Webhook Validation configuration missing. Required for webhook processing.');
+    return false;
+  };
+  private getWebhookEventName = (ctx: Connector.Types.Context): string => {
+    console.log('Using default webhook event name.');
+    return `event:${ctx.state.params.entityId}`;
+  };
+  private initializationChallenge = (ctx: Connector.Types.Context): boolean => {
+    console.log('Webhook Challenge configuration missing. Required for webhook processing.');
+    return false;
+  };
 }
 
 class Connector extends EntityBase {

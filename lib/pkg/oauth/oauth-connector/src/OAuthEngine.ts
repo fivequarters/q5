@@ -1,7 +1,7 @@
 import superagent from 'superagent';
 import { Internal } from '@fusebit-int/framework';
 
-import { IOAuthConfig, IOAuthToken } from './OAuthTypes';
+import { IOAuthConfig, IOAuthToken, ITags } from './OAuthTypes';
 
 import { callbackSuffixUrl } from './OAuthConstants';
 class OAuthEngine {
@@ -57,22 +57,10 @@ class OAuthEngine {
     token.status = 'authenticated';
     token.timestamp = Date.now();
 
+    await ctx.state.identityClient?.saveTokenToSession(token, lookupKey);
+
     return token;
   }
-
-  public async saveTokenToSession(
-    ctx: Internal.Types.Context,
-    token: IOAuthToken,
-    lookupKey: string,
-    tags?: Record<string, string | undefined>
-  ) {
-    return ctx.state.identityClient?.saveTokenToSession(token, lookupKey, tags);
-  }
-
-  /**
-   * Save tag to session
-   */
-  public async saveSessionTag(tagKey: string, tagValue: string) {}
 
   /**
    * Fetches callback url from session that is managing the connector

@@ -15,7 +15,7 @@ abstract class EntityBase {
   public abstract middleware: EntityBase.MiddlewareBase;
   public abstract response: EntityBase.ResponseBase;
 
-  public readonly router: EntityBase.Types.Router = new _Router();
+  public readonly router = new _Router();
 }
 
 namespace EntityBase {

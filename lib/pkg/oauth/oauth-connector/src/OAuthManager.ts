@@ -5,6 +5,7 @@ import { callbackSuffixUrl } from './OAuthConstants';
 import IdentityClient from './IdentityClient';
 
 import { schema, uischema } from './configure';
+import { IOAuthToken, ITags } from './OAuthTypes';
 
 const connector = new Connector();
 const router = connector.router;
@@ -17,8 +18,18 @@ const onSessionError = async (ctx: Connector.Types.Context, error: { error: stri
 
 router.use(async (ctx: Connector.Types.Context, next: Connector.Types.Next) => {
   if (engine) {
+    const createTags = (token: IOAuthToken): ITags | undefined => {
+      const webhookId = connector.service.getWebhookTokenId(ctx, token);
+
+      const result: ITags = {};
+      if (webhookId) {
+        result[webhookId] = null;
+        return result;
+      }
+    };
     engine.setMountUrl(ctx.state.params.baseUrl);
     ctx.state.identityClient = new IdentityClient({
+      createTags,
       accessToken: ctx.state.params.functionAccessToken,
       ...ctx.state.params,
     });
@@ -126,10 +137,7 @@ router.get(callbackSuffixUrl, async (ctx: Connector.Types.Context) => {
   }
 
   try {
-    const token = await engine.convertAccessCodeToToken(ctx, state, code);
-    const webhookAuthId = connector.service.GetOAuthAuthId(token);
-    const tags = !!webhookAuthId ? { [webhookAuthId]: undefined } : {};
-    await engine.saveTokenToSession(ctx, token, state, tags);
+    await engine.convertAccessCodeToToken(ctx, state, code);
   } catch (e) {
     onSessionError(ctx, { error: `Conversion error: ${e.response?.text} - ${e.stack}` });
   }
