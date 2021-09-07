@@ -61,7 +61,6 @@ export class StoragePutCommand extends Command {
     const file = input.arguments[0] as string;
     const storageId = input.options.storageId && (input.options.storageId as string);
     const force = input.options.force as boolean;
-    const output = input.options.output as string;
 
     const storageService = await StorageService.create(input);
     const executeService = await ExecuteService.create(input);
@@ -127,8 +126,8 @@ export class StoragePutCommand extends Command {
       }
     );
 
-    const result = await storageService.putStorage(payload);
-    const jsonResult = JSON.stringify(result, null, 2);
+    const putResult = await storageService.putStorage(payload);
+    const jsonResult = JSON.stringify(putResult, null, 2);
     await input.io.writeLineRaw(jsonResult);
 
     return 0;
