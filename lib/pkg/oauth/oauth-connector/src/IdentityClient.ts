@@ -61,7 +61,11 @@ class IdentityClient {
     return response.status === 404 ? undefined : response.body.data.token;
   };
 
-  public saveTokenToSession = async (token: IOAuthToken, sessionId: string, tags?: string[][]) => {
+  public saveTokenToSession = async (
+    token: IOAuthToken,
+    sessionId: string,
+    tags?: Record<string, string | undefined>
+  ) => {
     if (!token.access_token && !token.refresh_token) {
       const error = (token as { error?: string }).error;
       const errorMessageString = error ? `"${error}". ` : '';

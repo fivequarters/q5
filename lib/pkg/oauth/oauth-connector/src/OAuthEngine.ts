@@ -64,7 +64,7 @@ class OAuthEngine {
     ctx: Internal.Types.Context,
     token: IOAuthToken,
     lookupKey: string,
-    tags?: string[][]
+    tags?: Record<string, string | undefined>
   ) {
     return ctx.state.identityClient?.saveTokenToSession(token, lookupKey, tags);
   }

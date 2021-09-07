@@ -52,7 +52,7 @@ class Service extends EntityBase.ServiceDefault {
     const accountUrl = ctx.state.params.baseUrl.split('/connector/')[0];
 
     const response = await superagent
-      .get(`${accountUrl}/integration/-/identity?tag=${encodeURIComponent(webhookEventId)}`)
+      .get(`${accountUrl}/integration/-/instance?tag=${encodeURIComponent(webhookEventId)}`)
       .set('Authorization', `Bearer ${ctx.state.params.functionAccessToken}`);
     const instances: any[] = response.body.items;
 

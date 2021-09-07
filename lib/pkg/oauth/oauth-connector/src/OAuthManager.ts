@@ -128,7 +128,7 @@ router.get(callbackSuffixUrl, async (ctx: Connector.Types.Context) => {
   try {
     const token = await engine.convertAccessCodeToToken(ctx, state, code);
     const webhookAuthId = connector.service.GetOAuthAuthId(token);
-    const tags = !!webhookAuthId ? [[webhookAuthId]] : undefined;
+    const tags = !!webhookAuthId ? { [webhookAuthId]: undefined } : {};
     await engine.saveTokenToSession(ctx, token, state, tags);
   } catch (e) {
     onSessionError(ctx, { error: `Conversion error: ${e.response?.text} - ${e.stack}` });

@@ -55,7 +55,7 @@ connector.service.setInitializationChallenge((ctx: Connector.Types.Context) => {
   return false;
 });
 
-connector.service.setGetOAuthAuthId((token: any) => {
+OAuthConnector.service.setGetOAuthAuthId((token: any) => {
   return token.bot_user_id;
 });
 
