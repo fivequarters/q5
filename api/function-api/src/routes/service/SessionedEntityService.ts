@@ -234,12 +234,16 @@ export default abstract class SessionedEntityService<
     return { statusCode: 200, result: session };
   };
 
-  public putSession = async (entity: Model.IEntity, outputValues: any): Promise<IServiceResult> => {
+  public putSession = async (
+    entity: Model.IEntity,
+    sessionParameters: { output: any; tags: Model.ITags }
+  ): Promise<IServiceResult> => {
     const session = await this.sessionDao.getEntity(entity);
     this.ensureSessionLeaf(session, 'Cannot PUT a non-in-progress session', 400);
 
     // Update the output and the object.
-    session.data.output = outputValues;
+    session.data.output = sessionParameters.output;
+    session.tags = { ...session.tags, ...sessionParameters.tags };
     await this.sessionDao.updateEntity(session);
     return { statusCode: 200, result: session };
   };

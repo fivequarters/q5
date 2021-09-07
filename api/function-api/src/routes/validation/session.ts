@@ -1,7 +1,5 @@
 const Joi = require('joi');
 
-import * as Entities from './entities';
-
 import * as Common from './common';
 
 export const SessionParameters = Joi.object().keys({
@@ -15,4 +13,7 @@ export const SessionParameters = Joi.object().keys({
 
 export const SessionCreate = SessionParameters;
 
-export const SessionPut = Joi.object();
+export const SessionPut = Joi.object().keys({
+  output: Joi.object(),
+  tags: Common.tags.optional(),
+});

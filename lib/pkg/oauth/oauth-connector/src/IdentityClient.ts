@@ -61,7 +61,7 @@ class IdentityClient {
     return response.status === 404 ? undefined : response.body.data.token;
   };
 
-  public saveTokenToSession = async (token: IOAuthToken, sessionId: string) => {
+  public saveTokenToSession = async (token: IOAuthToken, sessionId: string, tags?: string[][]) => {
     if (!token.access_token && !token.refresh_token) {
       const error = (token as { error?: string }).error;
       const errorMessageString = error ? `"${error}". ` : '';
@@ -76,7 +76,7 @@ class IdentityClient {
     const response = await superagent
       .put(`${this.connectorUrl}/session/${sessionId}`)
       .set('Authorization', `Bearer ${this.accessToken}`)
-      .send({ token });
+      .send({ output: { token }, tags });
     return response.body;
   };
 
@@ -93,7 +93,7 @@ class IdentityClient {
     const response = await superagent
       .put(this.getUrl(lookup))
       .set('Authorization', `Bearer ${this.accessToken}`)
-      .send({ token });
+      .send({ output: { token } });
     return response.body;
   };
 
@@ -121,7 +121,7 @@ class IdentityClient {
     const response = await superagent
       .put(`${this.connectorUrl}/session/${sessionId}`)
       .set('Authorization', `Bearer ${this.accessToken}`)
-      .send(error);
+      .send({ output: error });
     return response.body;
   };
 

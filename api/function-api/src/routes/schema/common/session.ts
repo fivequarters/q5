@@ -93,6 +93,7 @@ const createSessionRouter = (SessionService: SessionedEntityService<any, any>) =
             input: session.result.input,
             output: session.result.output,
             dependsOn: session.result.dependsOn,
+            tags: session.result.tags,
           };
           res.status(session.statusCode).json(result);
         } catch (error) {
