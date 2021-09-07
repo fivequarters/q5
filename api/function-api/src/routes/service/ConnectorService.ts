@@ -96,11 +96,6 @@ class ConnectorService extends SessionedEntityService<Model.IConnector, Model.II
       ],
     },
   });
-
-  public createFunctionSpecification = (entity: Model.IEntity): Function.IFunctionSpecification => {
-    delete entity.data.schedule;
-    return super.createFunctionSpecification(entity);
-  };
 }
 
 export default ConnectorService;
