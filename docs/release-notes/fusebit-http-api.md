@@ -17,6 +17,12 @@ All public releases of the Fusebit HTTP API are documented here, including notab
 <!-- 1. TOC
 {:toc} -->
 
+## Version 1.22.9
+
+_Released 09/07/21_
+
+- **Enhancement.** Switch to error code 522 instead of 500 when a fusebit function times out.
+
 ## Version 1.22.8
 
 _Released 08/25/21_
