@@ -49,7 +49,7 @@ describe('cron', () => {
         '/function/' +
         function2Id +
         '/';
-      const functionUrl = `${testAccount.baseUrl}/v1${function2Resource}`;
+      const functionUrl = `${testAccount.baseUrl}/v1/${function2Resource}`;
 
       response = await putFunction(account, boundaryId, function1Id, {
         nodejs: {
@@ -109,9 +109,7 @@ describe('cron', () => {
       const runDelay = 15;
       for (let n = 0; n < runDelay; n++) {
         await sleep(60 * 1000);
-        const runs = await getRuns();
-        console.log(`${n} runs completed.  Returned value: ${JSON.stringify(runs)}`);
-        const runCount = runs.length;
+        const runCount = (await getRuns()).length;
         lastRuns.push(runCount);
         if (n > 3) {
           console.log(`${JSON.stringify(lastRuns)}`);
