@@ -5,6 +5,8 @@ import { IFunctionApiRequest } from './Request';
 
 import { get_security_tag_key, getFunctionVersion } from '@5qtrs/constants';
 
+import { Response } from 'express';
+
 const loadSummary = () => {
   return async (req: IFunctionApiRequest, res: Response, next: any) => {
     try {

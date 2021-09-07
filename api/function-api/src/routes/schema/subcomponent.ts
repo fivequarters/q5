@@ -12,7 +12,7 @@ import Validation from '../validation/component';
 
 import query from '../handlers/query';
 
-import { BaseEntityService, operationService } from '../service';
+import { BaseEntityService } from '../service';
 import CommonTagRouter from './common/tag';
 import CommonCrudRouter from './common/crud';
 
@@ -40,20 +40,6 @@ const subcomponentRouter = (
             subscriptionId: req.params.subscriptionId,
             id: req.params.entityId,
           });
-
-          if (req.query.operationId) {
-            const status = await operationService.getInstanceByOperation(
-              req.params as { accountId: string; subscriptionId: string },
-              req.query.operationId as string,
-              req.params.entityId
-            );
-
-            if (status.statusCode === 200 && typeof status.result === 'object') {
-              return res.json({ total: 1, items: [Model.entityToSdk(status.result)] });
-            }
-
-            return res.status(status.statusCode).json({ message: status.result });
-          }
 
           const response = await service.dao.listEntities(
             {

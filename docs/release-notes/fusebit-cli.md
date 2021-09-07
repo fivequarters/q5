@@ -17,6 +17,18 @@ All public releases of the Fusebit CLI are documented here, including notable ch
 <!-- 1. TOC
 {:toc} -->
 
+## Version 1.13.0
+
+_Released 09/02/21_
+
+- **Enhancement.** Improvements in `fuse storage` commands.
+
+## Version 1.12.2
+
+_Released 09/02/21_
+
+- **Bugfix.** Cancelling an OAuth flow from the CLI does not prevent subsequent OAuth flows for the same account.
+
 ## Version 1.11.2
 
 _Released 08/25/21_

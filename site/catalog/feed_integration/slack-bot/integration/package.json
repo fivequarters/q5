@@ -4,9 +4,12 @@
     "get": "fuse integration get <% this.id %> -d ."
   },
   "dependencies": {
-    "@fusebit-int/framework": "^3.0.2",
+    "@fusebit-int/framework": "^4.0.0",
     "superagent": "^6.1.0",
-    "@fusebit-int/slack-provider": "*"
+    "@fusebit-int/slack-provider": "^3.0.0"
   },
-  "files": ["./integration.js", "README.md"]
+  "files": [
+    "./integration.js",
+    "README.md"
+  ]
 }
