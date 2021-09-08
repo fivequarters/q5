@@ -20,6 +20,11 @@ interface IConfig {
   components?: IInstanceConnectorConfig[];
   configuration: any;
   mountUrl: string;
+  schedule: {
+    cron: string;
+    timezone: string;
+    endpoint: string;
+  }[];
 }
 
 /** The internal Fusebit request context. passed in through the lambda. */
@@ -141,6 +146,11 @@ class Manager {
   protected async execute(ctx: Context) {
     return new Promise(async (resolve) => {
       try {
+        const { request } = ctx;
+        if (request.method === 'CRON') {
+          ctx.url = this.config.schedule[0].endpoint;
+        }
+
         // TODO: Need to supply a next, but not sure if it's ever invoked.  Worth looking at the Koa impl at some point.
         await this.router.routes()(ctx as any, resolve as Koa.Next);
 
