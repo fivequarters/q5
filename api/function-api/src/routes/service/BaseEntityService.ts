@@ -95,7 +95,9 @@ export default abstract class BaseEntityService<E extends Model.IEntity, F exten
 
     // Translating integration scheduling to function scheduling
     if (entity.data.schedule) {
-      entity.data.schedule = entity.data.schedule[0];
+      entity.data.schedule = {
+        ...entity.data.schedule[0],
+      };
       delete entity.data.schedule.endpoint;
     }
 
