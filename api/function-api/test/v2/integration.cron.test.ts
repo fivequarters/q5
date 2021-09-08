@@ -1,6 +1,6 @@
 import { cleanupEntities, ApiRequestMap } from './sdk';
 import { getEnv } from '../v1/setup';
-import { getFunction } from '../v1/sdk';
+import { getFunction, getStorage } from '../v1/sdk';
 
 let { account, boundaryId } = getEnv();
 beforeEach(() => {
@@ -15,6 +15,7 @@ describe('Scheduled integrations', () => {
   test('Creating an every-minute scheduled integration', async () => {
     const schedule = [{ cron: '* * * * *', endpoint: '/api/scheduled' }];
     await putScheduledIntegration(boundaryId, schedule);
+    await validateIntegrationScheduledRun();
     await validateIntegrationSpec(boundaryId, schedule);
   }, 180000);
 
@@ -36,24 +37,8 @@ describe('Scheduled integrations', () => {
         handler: './integration.js',
         schedule,
         files: {
-          ['package.json']: JSON.stringify({
-            dependencies: {
-              ['@fusebit-int/framework']: '4.0.1',
-            },
-            files: ['./integration.js'],
-          }),
-          ['integration.js']: [
-            "const { Integration } = require('@fusebit-int/framework');",
-            '',
-            'const integration = new Integration();',
-            'const router = integration.router;',
-            '',
-            "router.cron('/api/scheduled', async (ctx) => {",
-            '  ctx.body = "Hi there";',
-            '});',
-            '',
-            'module.exports = integration;',
-          ].join('\n'),
+          'package.json': JSON.stringify(packageJson),
+          'integration.js': getIntegrationCode(account),
         },
       },
       id,
@@ -72,4 +57,60 @@ describe('Scheduled integrations', () => {
     };
     expect(functionSpec.schedule).toMatchObject(v1Schedule);
   };
+
+  const validateIntegrationScheduledRun = async () => {
+    const oneMinuteFromNow = new Date(Date.now() + 60000);
+    let lastResponse: any = { status: 404 };
+    while (lastResponse.status === 404 && oneMinuteFromNow.getTime() > Date.now()) {
+      lastResponse = await getStorage(account, `integration/${boundaryId}/`);
+    }
+    expect(lastResponse.status).toBe(200);
+    expect(lastResponse.data.data.boundaryId).toBe(boundaryId);
+  };
 });
+
+const getIntegrationCode = ({ accountId, subscriptionId }: typeof account) => {
+  const baseUrl =
+    account.baseUrl.includes('://localhost') && process.env.LOGS_HOST
+      ? `https://${process.env.LOGS_HOST}`
+      : account.baseUrl;
+
+  return `
+    const superagent = require("superagent");
+    
+    const { Integration } = require('@fusebit-int/framework');
+    
+    const integration = new Integration();
+    const router = integration.router;
+    
+    router.cron('/api/scheduled', async (ctx) => {
+      console.log("im here");
+      const storageUrl = '${baseUrl}/v1/account/${accountId}/subscription/${subscriptionId}/storage/integration/${boundaryId}/';
+      console.log("gonna put here: ", storageUrl);
+      const token = ctx.state.params.functionAccessToken;
+      console.log("with this authz: ", \`bearer \$\{token\}\`);
+      try {
+        const response = await superagent
+          .put(storageUrl)
+          .set("authorization", \`bearer \$\{token\}\`)
+          .set("content-type", "application/json")
+          .send({ data: { boundaryId: '${boundaryId}' } });
+        console.log('response.status', response.status);
+      } catch (err) {
+        console.log('Got an error', err);
+      }
+      
+      ctx.body = "Hi there";
+    });
+    
+    module.exports = integration;
+  `;
+};
+
+const packageJson = {
+  dependencies: {
+    '@fusebit-int/framework': '4.0.1',
+    superagent: '^6.1.0',
+  },
+  files: ['./integration.js'],
+};
