@@ -54,7 +54,6 @@ export class IntegrationGetCommand extends Command {
 
     if (destDir) {
       const destPath = join(process.cwd(), destDir);
-
       await integrationService.writeDirectory(destPath, integration);
     } else {
       await integrationService.displayEntities([integration], true);

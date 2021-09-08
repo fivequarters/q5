@@ -8,12 +8,12 @@ import { StorageService, ExecuteService } from '../../services';
 const command = {
   name: 'Remove Storage',
   cmd: 'rm',
-  summary: 'Remove a storage',
-  description: 'Permanently removes a storage.',
+  summary: 'Remove a storage item',
+  description: 'Permanently removes a storage item.',
   arguments: [
     {
-      name: 'storage',
-      description: 'The storage id of the storage to remove',
+      name: 'storageId',
+      description: 'The storageId of the storage item to remove',
       required: true,
     },
   ],
@@ -48,7 +48,7 @@ export class StorageRemoveCommand extends Command {
   }
 
   protected async onExecute(input: IExecuteInput): Promise<number> {
-    const storageId = input.arguments[0] as string;
+    const storageId = StorageService.normalizeStorageId(input.arguments[0] as string);
 
     const executeService = await ExecuteService.create(input);
     const storageService = await StorageService.create(input);

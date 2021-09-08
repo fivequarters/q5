@@ -73,6 +73,8 @@ const RUNAS_ISSUER = 'runas-system-issuer';
 
 const MAX_CACHE_REFRESH_RATE = 10 * 1000;
 
+const EPHEMERAL_ENTITY_EXPIRATION = 10 * 60 * 60 * 1000;
+
 // Changes to this variable will also require changing AgentTooltip.tsx in Portal.
 const RUNAS_SYSTEM_ISSUER_SUFFIX = 'system.fusebit.io';
 
@@ -197,12 +199,17 @@ function get_function_location(req: any, subscriptionId: string, boundaryId: str
 }
 
 function get_fusebit_endpoint(req: any) {
-  if (req.headers && req.headers['x-forwarded-proto'] && req.headers.host) {
-    return `${req.headers['x-forwarded-proto'].split(',')[0]}://${req.headers.host}`;
-  }
+  // If LOGS_HOST is set, the stack is running on localhost with an established public tunnel to it.
+  // Use the tunnel as the Fusebit function endpoint to enable Fusebit function to call back into the local stack.
+  // Otherwise (stack running in the cloud), derive the endpoint from the request.
+  if (!process.env.LOGS_HOST) {
+    if (req.headers && req.headers['x-forwarded-proto'] && req.headers.host) {
+      return `${req.headers['x-forwarded-proto'].split(',')[0]}://${req.headers.host}`;
+    }
 
-  if (req.protocol && req.headers && req.headers.host) {
-    return `${req.protocol}://${req.headers.host}`;
+    if (req.protocol && req.headers && req.headers.host) {
+      return `${req.protocol}://${req.headers.host}`;
+    }
   }
   return API_PUBLIC_ENDPOINT;
 }
@@ -299,6 +306,7 @@ export {
   getFunctionVersion,
   getFunctionAuthorization,
   getFunctionAuthentication,
+  EPHEMERAL_ENTITY_EXPIRATION,
   REGISTRY_CATEGORY,
   REGISTRY_CATEGORY_CONFIG,
   REGISTRY_DEFAULT,

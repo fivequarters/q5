@@ -80,21 +80,42 @@ const specs: ISpec[] = [
   },
   {
     name: 'Test Function-API',
-    inputs: ['checkout', 'local_env_files', 'full_build_no_qualify', 'publish_all_pkg', 'deploy_test', 'publish_slack'],
+    inputs: [
+      'checkout',
+      'local_env_files',
+      'clean_dirty_artifacts',
+      'full_build_no_qualify',
+      'publish_and_deploy_function_api.749',
+      'publish_all_pkg',
+      'deploy_test',
+      'publish_slack',
+    ],
     output: 'test_function_api',
     options: {
-      on_trigger: {
-        pull_request: {
-          branches: 'master',
-          types: ['ready_for_review'],
-        },
-      },
+      on_trigger: 'pull_request',
       runner_type: 'self-hosted',
     },
   },
   {
+    name: 'Delete Duplicate Function-API Test Runs',
+    inputs: ['delete_previous_test_actions'],
+    output: 'clean_old_tests',
+    options: {
+      on_trigger: 'pull_request',
+      base: 'fast_base',
+    },
+  },
+  {
     name: 'Test Function-API (Manual)',
-    inputs: ['checkout', 'local_env_files', 'full_build_no_qualify', 'publish_all_pkg', 'deploy_test', 'publish_slack'],
+    inputs: [
+      'checkout',
+      'local_env_files',
+      'full_build_no_qualify',
+      'publish_and_deploy_function_api.749',
+      'publish_all_pkg',
+      'deploy_test',
+      'publish_slack',
+    ],
     output: 'test_function_api-manual',
     options: {
       runner_type: 'self-hosted',

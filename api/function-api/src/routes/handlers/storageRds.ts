@@ -62,7 +62,6 @@ function storageList() {
           tags: e.tags,
           expires: e.expires,
           etag: e.version as string,
-          data: e.data,
         })),
       };
     } catch (err) {

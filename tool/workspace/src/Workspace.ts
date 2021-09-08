@@ -177,19 +177,29 @@ export default class Workspace {
     const npmModules: { [index: string]: string } = {};
     const bundledDependencies: string[] = [];
     for (const dependencyName in dependencies) {
-      if (
-        dependencyName.startsWith(`@${org}/`) ||
-        (packageJson.bundledDependencies && packageJson.bundledDependencies.includes(dependencyName))
-      ) {
+      if (dependencyName.startsWith(`@${org}/`) || packageJson.bundledDependencies?.includes(dependencyName)) {
         const dependency = await this.project.GetWorkspace(dependencyName);
+        bundledDependencies.push(dependencyName);
         if (dependency) {
-          bundledDependencies.push(dependencyName);
           const dependencyPath = await dependency.GetFullPath();
           const dependencyLibc = join(dependencyPath, 'libc');
           const nodeModules = join(packagePath, 'node_modules', dependencyName);
           await copyDirectory(dependencyLibc, nodeModules, { ensurePath: true, recursive: true });
           const packageJsonDependencyPath = join(dependencyPath, 'package.json');
-          await copyFile(packageJsonDependencyPath, join(nodeModules, 'package.json'));
+          let packageJsonDependency;
+          try {
+            packageJsonDependency = require(packageJsonDependencyPath);
+          } catch (error) {
+            throw new Error(`Error reading '${packageJsonDependencyPath}'; File not found`);
+          }
+          if (packageJsonDependency.main) {
+            packageJsonDependency.main = packageJsonDependency.main.replace('libc/', '');
+          }
+          await writeFile(`${nodeModules}/package.json`, JSON.stringify(packageJsonDependency, null, 2));
+        } else {
+          const source = join(this.project.RootPath, 'node_modules', dependencyName);
+          const dest = join(packagePath, 'node_modules', dependencyName);
+          await copyDirectory(source, dest, { ensurePath: true, recursive: true });
         }
       } else if (!dependencyName.startsWith(`@types/`)) {
         npmModules[dependencyName] = dependencies[dependencyName];

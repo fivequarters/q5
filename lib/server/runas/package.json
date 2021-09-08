@@ -18,13 +18,14 @@
     "@5qtrs/constants": "^0.0.1",
     "@5qtrs/function-tags": "^0.0.1",
     "@5qtrs/jwt": "^0.0.1",
-    "@5qtrs/key-pair": "^0.0.1"
+    "@5qtrs/key-pair": "^0.0.1",
+    "superagent": "^6.1.0"
   },
   "devServer": {
     "port": 9509
   },
   "devDependencies": {
     "@types/express": "^4.17.8",
-    "superagent": "^6.1.0"
+    "@types/superagent": "^4.1.12"
   }
 }

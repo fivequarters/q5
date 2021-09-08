@@ -74,6 +74,8 @@ export class InitCommand extends Command {
     let profileName = input.options.profile as string;
     const profileService = await ProfileService.create(input);
     await profileService.execute(async () => {
+      // Remove any uncompleted profile
+      await profileService.removeUncompletedProfiles();
       const profiles = await profileService.listProfiles();
       if (profiles.length === 0) {
         await profileService.createDefaultProfile(profileName, FusebitProfile.defaultProfileId);

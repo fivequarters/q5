@@ -8,6 +8,7 @@ import { IntegrationLogCommand } from './IntegrationLogCommand';
 import { IntegrationRemoveCommand } from './IntegrationRemoveCommand';
 import { IntegrationEditCommand } from './IntegrationEditCommand';
 import { IntegrationTestCommand } from './IntegrationTestCommand';
+import { InstallCommand } from './install/InstallCommand';
 
 // ------------------
 // Internal Constants
@@ -39,7 +40,7 @@ const command: ICommand = {
 
 async function getSubCommands() {
   const subCommands = [];
-  // subCommands.push(await IntegrationInitCommand.create());
+  subCommands.push(await IntegrationInitCommand.create());
   subCommands.push(await IntegrationGetCommand.create());
   subCommands.push(await IntegrationTestCommand.create());
   subCommands.push(await IntegrationDeployCommand.create());
@@ -47,6 +48,7 @@ async function getSubCommands() {
   subCommands.push(await IntegrationListCommand.create());
   subCommands.push(await IntegrationLogCommand.create());
   subCommands.push(await IntegrationRemoveCommand.create());
+  subCommands.push(await InstallCommand.create());
   return subCommands;
 }
 

@@ -74,12 +74,12 @@ RDS.updateHealth();
 // Health and Private Interfaces
 router.get(
   '/health',
-  health.getHealth(
-    async () => keyStore.healthCheck(),
-    async () => subscriptionCache.healthCheck(),
-    async () => RDS.ensureConnection(),
-    async () => RDS.ensureRDSLiveliness()
-  )
+  health.getHealth([
+    { check: async () => keyStore.healthCheck(), name: 'Keystore' },
+    { check: async () => subscriptionCache.healthCheck(), name: 'Subscription cache' },
+    { check: async () => RDS.ensureConnection(), name: 'RDS connection' },
+    { check: async () => RDS.ensureRDSLiveliness(), name: 'RDS execution' },
+  ])
 );
 
 router.get('/metrics', (req, res) => res.json({ rateLimits: ratelimit.getMetrics() }).send());
@@ -684,7 +684,7 @@ router.put(
   cors(corsManagementOptions),
   validate_schema({ params: require('./validation/api_params') }),
   authorize({ operation: StorageActions.putStorage }),
-  express.json(),
+  express.json({ limit: 500 * 1024 }),
   validate_schema({ body: require('./validation/storage') }),
   storage.storagePut(),
   analytics.finished

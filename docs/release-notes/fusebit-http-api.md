@@ -17,6 +17,36 @@ All public releases of the Fusebit HTTP API are documented here, including notab
 <!-- 1. TOC
 {:toc} -->
 
+## Version 1.23.2
+
+_Released 09/07/21_
+
+- **Enhancement.** Switch to error code 522 instead of 500 when a fusebit function times out.
+
+## Version 1.23.1
+
+_Released 9/2/21_
+
+- **Enhancement.** Upgrade superagent.
+
+## Version 1.22.8
+
+_Released 08/25/21_
+
+- **Enhancement.** Improve health check reporting to clarify the failure's location.
+
+## Version 1.22.6
+
+_Released 08/23/21_
+
+- **Enhancement.** Storage Id field added to GET requests for storage data.
+
+## Version 1.22.5
+
+_Released 08/23/21_
+
+- **Enhancement.** Increase maximum storage payload size up to 400kb.
+
 ## Version 1.21.3
 
 _Released 08/16/21_

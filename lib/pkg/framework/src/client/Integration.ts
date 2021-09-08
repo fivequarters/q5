@@ -47,6 +47,7 @@ class Tenant {
     if (body.items.length > 1) {
       ctx.throw(400, `Too many Integration Instances found with tenant ${tenantId}`);
     }
+
     return this.service.getSdk(ctx, connectorName, body.items[0].id);
   };
 }

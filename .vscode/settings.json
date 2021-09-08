@@ -6,15 +6,7 @@
   "[javascript]": {
     "editor.defaultFormatter": "esbenp.prettier-vscode"
   },
-  "files.exclude": {
-    "**/*.tsbuildinfo": true,
-    "**/devServer.js": true,
-    "**/imports.d.ts": true,
-    "**/jest.config.js": true,
-    "**/jest.setup.js": true,
-    "**/prettier.config.js": true,
-    "**/tslint.json": true
-  },
   "typescript.disableAutomaticTypeAcquisition": true,
-  "typescript.tsdk": "node_modules/typescript/lib"
+  "typescript.tsdk": "node_modules/typescript/lib",
+  "editor.rulers": [100] // You can install rewrap plugin to work with text wrapping rules.
 }

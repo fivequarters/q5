@@ -1,10 +1,10 @@
 import http_error from 'http-errors';
-
 import { v4 as uuidv4 } from 'uuid';
+
+import { EPHEMERAL_ENTITY_EXPIRATION } from '@5qtrs/constants';
 import RDS, { Model } from '@5qtrs/db';
 
 import BaseEntityService, { IServiceResult } from './BaseEntityService';
-import { operationService, OperationVerbs } from './OperationService';
 
 export default abstract class SessionedEntityService<
   E extends Model.IEntity,
@@ -122,6 +122,7 @@ export default abstract class SessionedEntityService<
         redirectUrl: sessionDetails.redirectUrl,
       },
       tags,
+      expires: new Date(Date.now() + EPHEMERAL_ENTITY_EXPIRATION).toISOString(),
     };
 
     // Write the session object.
@@ -338,7 +339,7 @@ export default abstract class SessionedEntityService<
   };
 
   public postSession = async (entity: Model.IEntity): Promise<IServiceResult> => {
-    // Return an operation for creating all of the subsidiary objects.
+    // Returns after the creation process is completed.
     const session = await this.sessionDao.getEntity(entity);
     this.ensureSessionTrunk(session, 'cannot post non-master session', 400);
     if (session.data.components) {
@@ -357,15 +358,7 @@ export default abstract class SessionedEntityService<
       }
     }
 
-    return operationService.inOperation(
-      Model.EntityType.session,
-      entity,
-      { verb: OperationVerbs.creating, type: Model.EntityType.session },
-      async (operationId: string) => {
-        session.data.operationId = operationId;
-        await this.persistTrunkSession(session);
-      }
-    );
+    return this.persistTrunkSession(session);
   };
 
   protected persistTrunkSession = async (session: Model.ITrunkSession): Promise<IServiceResult> => {
@@ -375,9 +368,7 @@ export default abstract class SessionedEntityService<
       throw http_error(500, `Invalid entity type '${this.entityType}' for ${masterSessionId.entityId}`);
     }
 
-    if (session.data.output) {
-      return { statusCode: 200, result: 'completed' };
-    }
+    let instanceId;
 
     const leafSessionResults: Record<string, any> = {};
 
@@ -437,7 +428,7 @@ export default abstract class SessionedEntityService<
         id: masterSessionId.parentEntityId,
       });
 
-      const instanceId = session.data.replacementTargetId || uuidv4();
+      instanceId = session.data.replacementTargetId || uuidv4();
 
       const instance = {
         accountId: session.accountId,
@@ -471,7 +462,7 @@ export default abstract class SessionedEntityService<
       await daos[Model.EntityType.session].updateEntity(session);
     });
 
-    return { statusCode: 200, result: 'success' };
+    return { statusCode: 200, result: { instanceId } };
   };
 
   public persistLeafSession = async (

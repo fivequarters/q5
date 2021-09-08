@@ -14,7 +14,7 @@ import { IFusebitExecutionProfile } from '@5qtrs/fusebit-profile-sdk';
 
 import { FunctionService } from './FunctionService';
 
-import { EntityType, ISdkEntity, IIntegrationData, IConnectorData } from '@fusebit/schema';
+import { OperationStatus, EntityType, ISdkEntity, IIntegrationData, IConnectorData } from '@fusebit/schema';
 
 const FusebitStateFile = '.fusebit-state';
 const FusebitMetadataFile = 'fusebit.json';
@@ -42,13 +42,15 @@ export interface IListOptions {
   count?: number;
 }
 
+const upperCase = (s: string) => s[0].toUpperCase() + s.substr(1);
+
 export abstract class BaseComponentService<IComponentType extends IBaseComponentType> {
   protected profileService: ProfileService;
   protected executeService: ExecuteService;
   protected input: IExecuteInput;
 
   protected entityType: EntityType;
-  protected entityTypeName: string;
+  public entityTypeName: string;
 
   constructor(
     entityType: EntityType,
@@ -93,15 +95,35 @@ export abstract class BaseComponentService<IComponentType extends IBaseComponent
       // do nothing
     }
 
+    const packageJsonBuffer = await readFile(join(cwd, 'package.json'));
+    const fusebitJsonBuffer = await readFile(join(cwd, FusebitMetadataFile));
+
+    if (packageJsonBuffer.length === 0 || fusebitJsonBuffer.length === 0) {
+      await this.executeService.error(
+        `Invalid ${this.entityTypeName}`,
+        Text.create(
+          `${this.entityTypeName} must have at least two files: 'package.json' and 'fusebit.json'. `,
+          'Please, before trying to deploy again, make sure you have those files properly defined. ',
+          'For more information, check https://developer.fusebit.io/.'
+        )
+      );
+    }
+
     // Load package.json, if any.  Only include the type for the files parameter, as that's all that's used
     // here.
     let pack: { files: string[] } | undefined;
     try {
-      const buffer = await readFile(join(cwd, 'package.json'));
-      pack = JSON.parse(buffer.toString());
-      entitySpec.data.files['package.json'] = buffer.toString();
+      pack = JSON.parse(packageJsonBuffer.toString());
+      entitySpec.data.files['package.json'] = packageJsonBuffer.toString();
     } catch (error) {
-      // do nothing
+      await this.executeService.error(
+        `Invalid package.json file`,
+        Text.create(
+          "We were unable to parse the contents of the 'package.json' file. ",
+          'Please, check this file before proceeding again.'
+        ),
+        error
+      );
     }
 
     // Load files in package.files, if any, into the entitySpec.
@@ -114,8 +136,7 @@ export abstract class BaseComponentService<IComponentType extends IBaseComponent
 
     // Load fusebit.json, if any.
     try {
-      const buffer = await readFile(join(cwd, FusebitMetadataFile));
-      const config = JSON.parse(buffer.toString());
+      const config = JSON.parse(fusebitJsonBuffer);
 
       // Copy over the metadata values
       entitySpec.id = config.id;
@@ -131,7 +152,14 @@ export abstract class BaseComponentService<IComponentType extends IBaseComponent
       // Blind copy the rest into data.
       Object.assign(entitySpec.data, config);
     } catch (error) {
-      // do nothing
+      await this.executeService.error(
+        `Invalid fusebit.json file`,
+        Text.create(
+          "We were unable to parse the contents of the 'fusebit.json' file. ",
+          'Please, check this file before proceeding again.'
+        ),
+        error
+      );
     }
 
     return entitySpec;
@@ -150,6 +178,22 @@ export abstract class BaseComponentService<IComponentType extends IBaseComponent
         await writeFile(join(cwd, filename), contents);
       })
     );
+
+    const details = [
+      `The ${this.entityTypeName} was downloaded to the ${cwd} directory`,
+      ' and the following files were written to disk:',
+      Text.eol(),
+      Text.eol(),
+    ];
+
+    details.push(Text.dim(`• ${FusebitMetadataFile}`));
+    details.push(Text.eol());
+
+    Object.keys(spec.data.files).forEach((fileName) => {
+      details.push(Text.dim(`• ${fileName}`));
+      details.push(Text.eol());
+    });
+
     delete spec.data.files;
 
     // Reconstruct the fusebit.json file
@@ -161,6 +205,7 @@ export abstract class BaseComponentService<IComponentType extends IBaseComponent
     };
 
     await writeFile(join(cwd, FusebitMetadataFile), JSON.stringify(config, null, 2));
+    await this.executeService.info(this.entityTypeName, Text.create(details));
   }
 
   // Right now the entitySpec is left as mostly abstract to try to minimize the unnecessary breakage if
@@ -172,7 +217,7 @@ export abstract class BaseComponentService<IComponentType extends IBaseComponent
   ): Promise<void> {
     if (!this.input.options.quiet) {
       const files = entitySpec.data.files || [];
-      if (files.length) {
+      if (Object.keys(files).length) {
         const confirmPrompt = await Confirm.create({
           header: 'Deploy?',
           message: Text.create(`Deploy the ${this.entityType} in the '`, Text.bold(path), "' directory?"),
@@ -207,9 +252,9 @@ export abstract class BaseComponentService<IComponentType extends IBaseComponent
     const profile = await this.profileService.getExecutionProfile(['account', 'subscription']);
     return this.executeService.executeRequest(
       {
-        header: 'Getting Entity',
+        header: `Getting ${this.entityTypeName}`,
         message: Text.create(`Getting existing ${this.entityType} '`, Text.bold(`${entityId}`), "'..."),
-        errorHeader: 'Get Entity Error',
+        errorHeader: `Get ${this.entityTypeName} Error`,
         errorMessage: Text.create(`Unable to get ${this.entityType} '`, Text.bold(`${entityId}`), "'"),
       },
       {
@@ -226,20 +271,20 @@ export abstract class BaseComponentService<IComponentType extends IBaseComponent
     const profile = await this.profileService.getExecutionProfile(['account', 'subscription']);
 
     let method: string = 'POST';
-    let url: string = this.getUrl(profile);
+    let url: string = this.getUrl(profile, entityId);
 
     entitySpec.id = entityId;
 
     await this.executeService.execute(
       {
-        header: 'Checking Entity',
+        header: `Checking ${this.entityTypeName}`,
         message: Text.create(`Checking existing ${this.entityType} '`, Text.bold(entityId), "'..."),
-        errorHeader: 'Check Entity Error',
+        errorHeader: `Check ${this.entityTypeName} Error`,
         errorMessage: Text.create(`Unable to check ${this.entityType} '`, Text.bold(entityId), "'"),
       },
       async () => {
         const response = await this.getEntity(profile, entityId);
-        if (response.status === 200) {
+        if (response.status <= 299) {
           method = 'PUT';
           url = this.getUrl(profile, entityId);
           return;
@@ -252,7 +297,7 @@ export abstract class BaseComponentService<IComponentType extends IBaseComponent
 
     return this.executeService.executeRequest(
       {
-        header: 'Deploy Entity',
+        header: `Deploy ${this.entityTypeName}`,
         message: Text.create(`Deploying ${this.entityType} '`, Text.bold(entityId), "'..."),
         errorHeader: 'Deploy Integration Error',
         errorMessage: Text.create(`Unable to deploy ${this.entityType} '`, Text.bold(entityId), "'"),
@@ -283,7 +328,7 @@ export abstract class BaseComponentService<IComponentType extends IBaseComponent
       {
         header: 'List Entities',
         message: Text.create(`Listing ${this.entityType}s...`),
-        errorHeader: 'List Entity Error',
+        errorHeader: `List ${this.entityTypeName} Error`,
         errorMessage: Text.create(`Unable to list ${this.entityType}`),
       },
       {
@@ -320,14 +365,14 @@ export abstract class BaseComponentService<IComponentType extends IBaseComponent
     }
   }
 
-  public async removeEntity(entityId: string): Promise<{ operationId: string }> {
+  public async removeEntity(entityId: string): Promise<IHttpResponse> {
     const profile = await this.profileService.getExecutionProfile(['account', 'subscription']);
 
-    return this.executeService.executeRequest(
+    return this.executeService.executeSimpleRequest(
       {
-        header: 'Remove Entity',
+        header: `Remove ${this.entityTypeName}`,
         message: Text.create(`Removing ${this.entityType} '`, Text.bold(entityId), "'..."),
-        errorHeader: 'Remove Entity Error',
+        errorHeader: `Remove ${this.entityTypeName} Error`,
         errorMessage: Text.create(`Unable to remove ${this.entityType} '`, Text.bold(entityId), "'"),
       },
       {
@@ -487,5 +532,50 @@ export abstract class BaseComponentService<IComponentType extends IBaseComponent
   
   </html>  
   `;
+  }
+
+  public async waitForEntity(entityId: string): Promise<IHttpResponse> {
+    const profile = await this.profileService.getExecutionProfile(['account', 'subscription']);
+
+    let response = await this.getEntity(profile, entityId);
+
+    if (response.status > 299) {
+      return response;
+    }
+
+    let entity = response.data;
+    let os = entity.operationState;
+    let msg = os ? `${os.operation} ${os.errorCode || os.status}: ${os.errorDetails || os.message}` : '';
+
+    if (entity.operationState && entity.operationState.status !== OperationStatus.processing) {
+      await this.executeService.result(
+        `${this.entityTypeName} ${upperCase(entity.operationState.message)}:`,
+        Text.create(`${this.entityTypeName} '`, Text.bold(entityId), `' ${msg}`, Text.eol())
+      );
+      return response;
+    }
+
+    await this.executeService.execute(
+      {
+        header: ` `,
+        message: Text.create("Processing '", Text.bold(`${entityId}`), `'...`, Text.eol()),
+        errorHeader: `${this.entityTypeName} Error`,
+        errorMessage: Text.create(`${this.entityTypeName} '`, Text.bold(entityId), `' ${msg}`),
+      },
+
+      async () => {
+        while (entity.operationState && entity.operationState.status === OperationStatus.processing) {
+          await new Promise((resolve) => setTimeout(resolve, 500));
+          response = await this.getEntity(profile, entityId);
+          entity = response.data;
+        }
+        if (!entity.operationState) {
+          return;
+        }
+        os = entity.operationState;
+        msg = `${os.operation} ${os.errorCode || os.status}: ${os.errorDetails || os.message}`;
+      }
+    );
+    return response;
   }
 }

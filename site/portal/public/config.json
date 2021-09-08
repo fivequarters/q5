@@ -320,6 +320,23 @@
             "deviceClientId": "VFOtrBCVHEm7I9UNv7rFwu1ID1hTEueF",
             "tokenUrl": "https://fusebit.auth0.com/oauth/token"
           }
+        },
+        {
+          "id": "criipto",
+          "displayName": "Criipto",
+          "icon": "https://cdn.fusebit.io/assets/images/criipto.png",
+          "baseUrl": "https://api.eu-central-1.fusebit.io",
+          "account": "acc-2a322b2381cd4030",
+          "subscription": "sub-bfb00dcf9e3f4ac4",
+          "catalog": "https://api.eu-central-1.fusebit.io/v1/run/sub-bfb00dcf9e3f4ac4/internal/config",
+          "oauth": {
+            "webAuthorizationUrl": "https://fusebit.auth0.com/authorize",
+            "webClientId": "hSgWIXmbluQMADuWhDnRTpWyKptJe6LB",
+            "webLogoutUrl": "https://fusebit.auth0.com/v2/logout?client_id=hSgWIXmbluQMADuWhDnRTpWyKptJe6LB&returnTo=https://criipto.portal.fusebit.io",
+            "deviceAuthorizationUrl": "https://fusebit.auth0.com/oauth/device/code",
+            "deviceClientId": "VFOtrBCVHEm7I9UNv7rFwu1ID1hTEueF",
+            "tokenUrl": "https://fusebit.auth0.com/oauth/token"
+          }
         }
       ],
       "defaultProfile": "stage-us-portal-dev"
@@ -381,9 +398,26 @@
             "deviceClientId": "VFOtrBCVHEm7I9UNv7rFwu1ID1hTEueF",
             "tokenUrl": "https://fusebit.auth0.com/oauth/token"
           }
+        },
+        {
+          "id": "criipto",
+          "displayName": "Criipto",
+          "icon": "https://cdn.fusebit.io/assets/images/criipto.png",
+          "baseUrl": "https://api.eu-central-1.fusebit.io",
+          "account": "acc-2a322b2381cd4030",
+          "subscription": "sub-bfb00dcf9e3f4ac4",
+          "catalog": "https://api.eu-central-1.fusebit.io/v1/run/sub-bfb00dcf9e3f4ac4/internal/config",
+          "oauth": {
+            "webAuthorizationUrl": "https://fusebit.auth0.com/authorize",
+            "webClientId": "hSgWIXmbluQMADuWhDnRTpWyKptJe6LB",
+            "webLogoutUrl": "https://fusebit.auth0.com/v2/logout?client_id=hSgWIXmbluQMADuWhDnRTpWyKptJe6LB&returnTo=https://criipto.portal.fusebit.io",
+            "deviceAuthorizationUrl": "https://fusebit.auth0.com/oauth/device/code",
+            "deviceClientId": "VFOtrBCVHEm7I9UNv7rFwu1ID1hTEueF",
+            "tokenUrl": "https://fusebit.auth0.com/oauth/token"
+          }
         }
       ],
-      "defaultProfile": "criipto-poc"
+      "defaultProfile": "criipto"
     },
     "onelogin": {
       "profiles": [

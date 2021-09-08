@@ -14,6 +14,8 @@ import {
   IRegistryEvents,
 } from './Registry';
 
+import { Request, Response } from 'express';
+
 const s3Path = 'registry/npm';
 
 type ExpressHandler = (reqExpress: Request, res: Response, next: any) => any;
