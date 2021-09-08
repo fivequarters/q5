@@ -148,7 +148,9 @@
       "@fusebit/schema": ["lib/data/schema/src"],
       "@fusebit-int/slack-connector": ["lib/pkg/slack/slack-connector/src"],
       "@fusebit-int/slack-provider": ["lib/pkg/slack/slack-provider/src"],
-      "@5qtrs/catalog": ["site/catalog/src"]
+      "@5qtrs/catalog": ["site/catalog/src"],
+      "@5qtrs/jenkins": ["tool/cicd/jenkins/src"],
+      "@5qtrs/slack-notification": ["tool/cicd/slack-notification/src"]
     }
   }
 }
