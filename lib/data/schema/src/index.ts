@@ -145,6 +145,11 @@ export interface IIntegrationData {
   configuration: Record<string, any>;
   componentTags: Record<string, string>;
   components: IIntegrationComponent[];
+  schedule: {
+    cron: string;
+    timezone: string;
+    endpoint: string;
+  }[];
 }
 
 export interface IIntegration extends IEntity {
