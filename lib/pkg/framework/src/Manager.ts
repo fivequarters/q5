@@ -154,7 +154,7 @@ class Manager {
         await this.router.routes()(ctx as any, resolve as Koa.Next);
 
         // Peak into the ctx; if it's unserved, throw a 404.
-        if (!(ctx as any).routerPath && request.method !== 'CRON') {
+        if (!(ctx as any).routerPath) {
           ctx.throw(404);
         }
       } catch (e) {
