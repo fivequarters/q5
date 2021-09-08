@@ -13,28 +13,28 @@ afterAll(async () => {
 
 describe('Scheduled integrations', () => {
   test('Creating an every-minute scheduled integration', async () => {
-    const cron = '* * * * *';
-    await putScheduledIntegration(boundaryId, cron);
-    await validateIntegrationSpec(boundaryId, cron);
+    const schedule = [{ cron: '* * * * *', endpoint: '/api/scheduled' }];
+    await putScheduledIntegration(boundaryId, schedule);
+    await validateIntegrationSpec(boundaryId, schedule);
   }, 180000);
 
   test('Creating an hourly scheduled integration', async () => {
-    const cron = '0 * * * *';
-    await putScheduledIntegration(boundaryId, cron);
-    await validateIntegrationSpec(boundaryId, cron);
+    const schedule = [{ cron: '0 * * * *', endpoint: '/api/scheduled' }];
+    await putScheduledIntegration(boundaryId, schedule);
+    await validateIntegrationSpec(boundaryId, schedule);
   }, 180000);
 
   test('Creating a daily integration', async () => {
-    const cron = '15 7 * * *';
-    await putScheduledIntegration(boundaryId, cron);
-    await validateIntegrationSpec(boundaryId, cron);
+    const schedule = [{ cron: '15 7 * * *', endpoint: '/api/scheduled' }];
+    await putScheduledIntegration(boundaryId, schedule);
+    await validateIntegrationSpec(boundaryId, schedule);
   }, 180000);
 
-  const putScheduledIntegration = async (id: string, cron: string) => {
+  const putScheduledIntegration = async (id: string, schedule: any[]) => {
     const integrationSpec = {
       data: {
         handler: './integration.js',
-        schedule: [{ cron, endpoint: '/api/scheduled' }],
+        schedule,
         files: {
           ['package.json']: JSON.stringify({
             dependencies: {
@@ -62,20 +62,14 @@ describe('Scheduled integrations', () => {
     expect(createIntegrationResponse).toBeHttp({ statusCode: 200 });
   };
 
-  const validateIntegrationSpec = async (id: string, cronConfig: string) => {
+  const validateIntegrationSpec = async (id: string, schedule: any[]) => {
     // check v1 underneath function config
     const integrationBoundary = 'integration';
     const { data: functionSpec } = await getFunction(account, integrationBoundary, id);
     expect(functionSpec).toBeDefined();
-    expect(functionSpec.schedule).toBeDefined();
-    expect(functionSpec.schedule.cron).toBe(cronConfig);
-
-    // check v2 config
-    const integrationResponse = await ApiRequestMap.integration.get(account, id);
-    expect(integrationResponse).toBeHttp({ statusCode: 200 });
-    const integrationSpec = integrationResponse.data.data;
-    expect(integrationSpec).toBeDefined();
-    expect(integrationSpec.schedule).toBeDefined();
-    expect(integrationSpec.schedule.cron).toBe(cronConfig);
+    const v1Schedule = {
+      cron: schedule[0].cron,
+    };
+    expect(functionSpec.schedule).toMatchObject(v1Schedule);
   };
 });
