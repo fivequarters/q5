@@ -21,8 +21,10 @@ interface IConfig {
   configuration: any;
   mountUrl: string;
   schedule: {
+    cron: string;
+    timezone: string;
     endpoint: string;
-  };
+  }[];
 }
 
 /** The internal Fusebit request context. passed in through the lambda. */
@@ -146,8 +148,7 @@ class Manager {
       try {
         const { request } = ctx;
         if (request.method === 'CRON') {
-          ctx.url = this.config.schedule.endpoint;
-          console.log(`CRON event triggering the ${ctx.url} endpoint.`);
+          ctx.url = this.config.schedule[0].endpoint;
         }
 
         // TODO: Need to supply a next, but not sure if it's ever invoked.  Worth looking at the Koa impl at some point.

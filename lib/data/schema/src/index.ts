@@ -139,17 +139,19 @@ export interface IIntegrationComponent {
   provider?: string; // Great opportunity for a conditional type, in the future.
 }
 
+export interface IIntegrationSchedule {
+  cron: string;
+  timezone: string;
+  endpoint: string;
+}
+
 export interface IIntegrationData {
   files: Record<string, string>;
   handler: string;
   configuration: Record<string, any>;
   componentTags: Record<string, string>;
   components: IIntegrationComponent[];
-  schedule?: {
-    cron: string;
-    timezone: string;
-    endpoint: string;
-  }[];
+  schedule?: IIntegrationSchedule[];
 }
 
 export interface IIntegration extends IEntity {
