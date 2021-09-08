@@ -13,7 +13,7 @@ export const get = async <OAuthConfig>(
     id: `proxy/${name}/configuration`,
   });
 
-  return cfg.data;
+  return { ...cfg.data, accountId: params.accountId, subscriptionId: params.subscriptionId };
 };
 
 export const set = async <OAuthConfig>(
