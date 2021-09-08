@@ -65,7 +65,10 @@
     "yarn": "^1.12.3"
   },
   "workspaces": {
-    "nohoist": ["**/lambda-*", "**/lambda-*/**"],
+    "nohoist": [
+      "**/lambda-*",
+      "**/lambda-*/**"
+    ],
     "packages": [
       "tool/tool-config",
       "tool/workspace",
@@ -208,7 +211,9 @@
       "tool/cicd/jenkins",
       "tool/cicd/slack-notification",
       "lib/pkg/hubspot/hubspot-provider",
-      "lib/pkg/hubspot/hubspot-connector"
+      "lib/pkg/hubspot/hubspot-connector",
+      "tool/cicd/jenkins",
+      "tool/cicd/slack-notification"
     ]
   }
 }

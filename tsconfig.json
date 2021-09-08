@@ -149,10 +149,12 @@
       "@fusebit-int/slack-connector": ["lib/pkg/slack/slack-connector/src"],
       "@fusebit-int/slack-provider": ["lib/pkg/slack/slack-provider/src"],
       "@5qtrs/catalog": ["site/catalog/src"],
+      "@fusebit-int/hubspot-connector": [
+        "lib/pkg/hubspot/hubspot-connector/src"
+      ],
+      "@fusebit-int/hubspot-provider": ["lib/pkg/hubspot/hubspot-provider/src"],
       "@5qtrs/jenkins": ["tool/cicd/jenkins/src"],
-      "@5qtrs/slack-notification": ["tool/cicd/slack-notification/src"],
-      "@fusebit-int/hubspot-connector": ["lib/pkg/hubspot/hubspot-connector/src"],
-      "@fusebit-int/hubspot-provider": ["lib/pkg/hubspot/hubspot-provider/src"]
+      "@5qtrs/slack-notification": ["tool/cicd/slack-notification/src"]
     }
   }
 }
