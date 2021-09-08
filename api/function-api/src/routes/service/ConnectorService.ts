@@ -4,8 +4,6 @@ import RDS, { Model } from '@5qtrs/db';
 import SessionedEntityService from './SessionedEntityService';
 import { defaultFrameworkSemver } from './BaseEntityService';
 
-import * as Function from '../functions';
-
 const defaultOAuthConnectorSemver = '3.0.1';
 
 const defaultPackage = (entityId: string) => ({
