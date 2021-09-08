@@ -33,13 +33,6 @@ const Data = Joi.alternatives().try(
       )
       .unique((a: { name: string }, b: { name: string }) => a.name === b.name)
       .default([]),
-    schedule: Joi.array().items(
-      Joi.object({
-        cron: Joi.string().required(),
-        timezone: Joi.string(),
-        endpoint: Joi.string().required(),
-      })
-    ),
   }),
   Joi.object().keys({})
 );
