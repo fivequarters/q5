@@ -93,7 +93,7 @@ export default abstract class BaseEntityService<E extends Model.IEntity, F exten
     const pkg = JSON.parse(functionConfig.files['package.json']);
     delete functionConfig.files;
 
-    // Clean up the scheduling configuration
+    // Translating integration scheduling to function scheduling
     if (entity.data.schedule) {
       functionConfig.schedule = {
         endpoint: functionConfig.schedule[0].endpoint,
