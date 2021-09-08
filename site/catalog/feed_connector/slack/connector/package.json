@@ -5,7 +5,7 @@
     "get": "fuse connector get <%this.name%> -d ."
   },
   "dependencies": {
-    "@fusebit-int/slack-connector": "^3.0.0",
-    "@fusebit-int/framework": "^4.0.0"
+    "@fusebit-int/slack-connector": "3.0.1",
+    "@fusebit-int/framework": "4.0.0"
   }
 }

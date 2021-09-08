@@ -4,8 +4,8 @@
     "get": "fuse integration get <% this.id %> -d ."
   },
   "dependencies": {
-    "@fusebit-int/framework": "^4.0.0",
-    "@fusebit-int/hubspot-provider": "^1.1.0"
+    "@fusebit-int/framework": "4.0.0",
+    "@fusebit-int/hubspot-provider": "1.1.1"
   },
   "files": [
     "./integration.js",
