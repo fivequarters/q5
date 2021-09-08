@@ -93,15 +93,6 @@ export default abstract class BaseEntityService<E extends Model.IEntity, F exten
     const pkg = JSON.parse(functionConfig.files['package.json']);
     delete functionConfig.files;
 
-    // Clean up the scheduling configuration
-    if (entity.data.schedule) {
-      functionConfig.schedule = {
-        endpoint: functionConfig.schedule[0].endpoint,
-      };
-      entity.data.schedule = entity.data.schedule[0];
-      delete entity.data.schedule.endpoint;
-    }
-
     // Add the baseUrl to the configuration.
     const config = {
       ...functionConfig,
@@ -125,7 +116,6 @@ export default abstract class BaseEntityService<E extends Model.IEntity, F exten
         },
       },
       security: this.getFunctionSecuritySpecification(entity),
-      schedule: entity.data.schedule,
     };
 
     return spec;
