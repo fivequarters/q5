@@ -35,6 +35,8 @@ export interface IOAuthProxyService {
 }
 
 export interface IOAuthProxyConfiguration {
+  accountId: string;
+  subscriptionId: string;
   clientId: string;
   clientSecret: string;
   authorizationUrl: string;
@@ -225,9 +227,9 @@ export class OAuthProxyService implements IOAuthProxyService {
     ttl?: number
   ): Promise<string> => {
     await RDS.DAO.storage.createEntity({
-      accountId: this.accountId,
-      subscriptionId: this.subscriptionId,
-      id: `/proxy/${this.name}/${peerId}/${peerSecret}/${code}`,
+      accountId: this.configuration.accountId,
+      subscriptionId: this.configuration.subscriptionId,
+      id: `/proxy/${this.accountId}/${this.subscriptionId}/${this.connectorId}/${this.name}/${peerId}/${peerSecret}/${code}`,
       data: value,
       ...(ttl ? { expires: new Date(Date.now() + ttl).toISOString() } : {}),
     });
@@ -240,9 +242,9 @@ export class OAuthProxyService implements IOAuthProxyService {
   // Load from storage
   public loadCode = async (peerId: string, peerSecret: string, code: string) => {
     const entity = await RDS.DAO.storage.getEntity({
-      accountId: this.accountId,
-      subscriptionId: this.subscriptionId,
-      id: `/proxy/${this.name}/${peerId}/${peerSecret}/${code}`,
+      accountId: this.configuration.accountId,
+      subscriptionId: this.configuration.subscriptionId,
+      id: `/proxy/${this.accountId}/${this.subscriptionId}/${this.connectorId}/${this.name}/${peerId}/${peerSecret}/${code}`,
     });
 
     return entity.data;
@@ -252,9 +254,9 @@ export class OAuthProxyService implements IOAuthProxyService {
   public deleteCode = async (peerId: string, peerSecret: string, code: string): Promise<void> => {
     try {
       await RDS.DAO.storage.deleteEntity({
-        accountId: this.accountId,
-        subscriptionId: this.subscriptionId,
-        id: `/proxy/${this.name}/${peerId}/${peerSecret}/${code}`,
+        accountId: this.configuration.accountId,
+        subscriptionId: this.configuration.subscriptionId,
+        id: `/proxy/${this.accountId}/${this.subscriptionId}/${this.connectorId}/${this.name}/${peerId}/${peerSecret}/${code}`,
       });
     } catch (e) {
       // Never throw exceptions from here; delete always succeeds according to spec.
