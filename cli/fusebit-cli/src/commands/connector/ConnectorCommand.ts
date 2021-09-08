@@ -7,6 +7,7 @@ import { ConnectorGetCommand } from './ConnectorGetCommand';
 import { ConnectorListCommand } from './ConnectorListCommand';
 import { ConnectorLogCommand } from './ConnectorLogCommand';
 import { ConnectorRemoveCommand } from './ConnectorRemoveCommand';
+import { IdentityCommand } from './identity/IdentityCommand';
 
 // ------------------
 // Internal Constants
@@ -42,6 +43,7 @@ async function getSubCommands() {
   subCommands.push(await ConnectorListCommand.create());
   subCommands.push(await ConnectorLogCommand.create());
   subCommands.push(await ConnectorRemoveCommand.create());
+  subCommands.push(await IdentityCommand.create());
   return subCommands;
 }
 

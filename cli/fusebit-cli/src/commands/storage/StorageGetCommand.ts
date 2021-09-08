@@ -10,16 +10,23 @@ import { Text } from '@5qtrs/text';
 const command = {
   name: 'Get Storage',
   cmd: 'get',
-  summary: 'Get a storage',
+  summary: 'Get a storage item',
   description: Text.create('Get a storage value.'),
   arguments: [
     {
-      name: 'storage',
-      description: 'The id of the storage to fetch',
+      name: 'storageId',
+      description: 'The id of the storage item to fetch',
       required: true,
     },
   ],
-  options: [],
+  options: [
+    {
+      name: 'output',
+      aliases: ['o'],
+      description: "The format to display the output: 'pretty', 'json'",
+      default: 'pretty',
+    },
+  ],
 };
 
 // ----------------
@@ -36,16 +43,25 @@ export class StorageGetCommand extends Command {
   }
 
   protected async onExecute(input: IExecuteInput): Promise<number> {
-    const storageId = input.arguments[0] as string;
+    const storageId = StorageService.normalizeStorageId(input.arguments[0] as string);
+    const output = input.options.output as string;
 
     const storageService = await StorageService.create(input);
     const executeService = await ExecuteService.create(input);
 
     await executeService.newLine();
 
-    const storage = { storageId, ...(await storageService.fetchStorage(storageId)) };
+    const storage = {
+      storageId: StorageService.normalizeStorageId(storageId, true),
+      ...(await storageService.fetchStorage(storageId)),
+    };
 
-    await storageService.displayStorage(storage);
+    if (output === 'json') {
+      const json = JSON.stringify(storage, null, 2);
+      input.io.writeLineRaw(json);
+    } else {
+      await storageService.displayStorage(storage);
+    }
 
     return 0;
   }

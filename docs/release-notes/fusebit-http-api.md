@@ -23,6 +23,12 @@ _Released 9/7/21_
 
 - **Enhancement.** Updating default version of @fusebit-int/oauth-connector and @fusebit-int/framework.
 
+## Version 1.23.2
+
+_Released 09/07/21_
+
+- **Enhancement.** Switch to error code 522 instead of 500 when a fusebit function times out.
+
 ## Version 1.23.1
 
 _Released 9/2/21_
