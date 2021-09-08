@@ -93,21 +93,13 @@ export default abstract class BaseEntityService<E extends Model.IEntity, F exten
     const pkg = JSON.parse(functionConfig.files['package.json']);
     delete functionConfig.files;
 
-    // Translating integration scheduling to function scheduling
-    if (entity.data.schedule) {
-      entity.data.schedule = {
-        ...entity.data.schedule[0],
-      };
-      delete entity.data.schedule.endpoint;
-    }
-
     // Add the baseUrl to the configuration.
     const config = {
       ...functionConfig,
       mountUrl: `/v2/account/${entity.accountId}/subscription/${entity.subscriptionId}/integration/${entity.id}`,
     };
 
-    const spec = {
+    const spec: Function.IFunctionSpecification = {
       id: entity.id,
       nodejs: {
         ...(pkg.engines?.node ? { engines: { node: pkg.engines.node } } : {}),
@@ -124,8 +116,15 @@ export default abstract class BaseEntityService<E extends Model.IEntity, F exten
         },
       },
       security: this.getFunctionSecuritySpecification(entity),
-      schedule: entity.data.schedule,
     };
+
+    if (entity.data.schedule) {
+      const { cron, timezone } = entity.data.schedule[0];
+      spec.schedule = {
+        cron,
+        timezone,
+      };
+    }
 
     return spec;
   };
