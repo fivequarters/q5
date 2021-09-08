@@ -145,7 +145,7 @@ export interface IIntegrationData {
   configuration: Record<string, any>;
   componentTags: Record<string, string>;
   components: IIntegrationComponent[];
-  schedule: {
+  schedule?: {
     cron: string;
     timezone: string;
     endpoint: string;
