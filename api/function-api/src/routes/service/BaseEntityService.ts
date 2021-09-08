@@ -3,7 +3,7 @@ import { Model } from '@5qtrs/db';
 
 import * as Function from '../functions';
 
-export const defaultFrameworkSemver = '4.0.0';
+export const defaultFrameworkSemver = '*';
 
 export interface IServiceResult {
   statusCode: number;

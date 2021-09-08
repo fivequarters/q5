@@ -1,6 +1,5 @@
 import express from 'express';
 
-import { IAgent } from '@5qtrs/account-data';
 import { Model } from '@5qtrs/db';
 import { v2Permissions } from '@5qtrs/constants';
 
@@ -8,7 +7,6 @@ import Validation from '../../validation/component';
 
 import * as common from '../../middleware/common';
 import query from '../../handlers/query';
-import body from '../../handlers/body';
 import pathParams from '../../handlers/pathParams';
 
 import { SessionedEntityService } from '../../service';

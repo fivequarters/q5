@@ -2,6 +2,8 @@ import { Model } from '@5qtrs/db';
 import { cleanupEntities, ApiRequestMap, RequestMethod } from './sdk';
 import { getEnv } from '../v1/setup';
 
+import { defaultFrameworkSemver } from '../../src/routes/service/BaseEntityService';
+
 let { account, boundaryId } = getEnv();
 beforeEach(() => {
   ({ account, boundaryId } = getEnv());
@@ -32,7 +34,7 @@ const getIntegrationEntity = (nodeVersion: string) => {
         ['package.json']: JSON.stringify({
           scripts: {},
           dependencies: {
-            ['@fusebit-int/framework']: '^3.0.2',
+            ['@fusebit-int/framework']: defaultFrameworkSemver,
           },
           files: ['./integrationTest.js'],
           engines: {

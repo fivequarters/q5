@@ -23,30 +23,48 @@ const router = (
 ) => {
   const componentCrudRouter = express.Router({ mergeParams: true });
 
+  if (paramIdNames.length === 1) {
+    // Only support POST for connectors and integrations, not for subcomponents.
+    componentCrudRouter
+      .route('/')
+      .options(common.cors())
+      .post(
+        common.management({
+          validate: {
+            params: Validation.EntityIdParams,
+            body: Validation.Entities[EntityService.entityType].PostEntity,
+          },
+          authorize: { operation: v2Permissions[EntityService.entityType].put },
+        }),
+        async (
+          req: express.Request & { resolvedAgent?: IAgent },
+          res: express.Response,
+          next: express.NextFunction
+        ) => {
+          try {
+            // Thanks Typescript :/
+            if (!req.resolvedAgent) {
+              throw new Error('missing agent');
+            }
+
+            // Overwrite the id in the body with whatever is in the url
+            req.body.id = req.params.entityId;
+
+            const { statusCode, result } = await EntityService.createEntity(req.resolvedAgent, {
+              ...pathParams.accountAndSubscription(req),
+              ...body.entity(req, EntityService.entityType),
+            });
+            res.status(statusCode).json(result);
+          } catch (e) {
+            next(e);
+          }
+        }
+      );
+  }
+
   componentCrudRouter
     .route('/')
     .options(common.cors())
-    .post(
-      common.management({
-        validate: { params: Validation.EntityIdParams, body: Validation[EntityService.entityType].Entity },
-        authorize: { operation: v2Permissions[EntityService.entityType].put },
-      }),
-      async (req: express.Request & { resolvedAgent?: IAgent }, res: express.Response, next: express.NextFunction) => {
-        try {
-          // Thanks Typescript :/
-          if (!req.resolvedAgent) {
-            throw new Error('missing agent');
-          }
-          const { statusCode, result } = await EntityService.createEntity(req.resolvedAgent, {
-            ...pathParams.accountAndSubscription(req),
-            ...body.entity(req, EntityService.entityType),
-          });
-          res.status(statusCode).json(result);
-        } catch (e) {
-          next(e);
-        }
-      }
-    )
     .get(
       common.management({
         validate: { params: Validation.EntityIdParams },
@@ -72,7 +90,7 @@ const router = (
       common.management({
         validate: {
           params: Validation.EntityIdParams,
-          body: Validation[EntityService.entityType].Entity,
+          body: Validation.Entities[EntityService.entityType].Entity,
         },
         authorize: { operation: v2Permissions[EntityService.entityType].put },
       }),

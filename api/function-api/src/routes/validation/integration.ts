@@ -45,5 +45,6 @@ const Data = Joi.alternatives().try(
 );
 
 const Entity = EntityCommon.validateEntity(Data);
+const PostEntity = EntityCommon.validatePostEntity(Data);
 
-export { Entity, Data };
+export { Entity, PostEntity, Data };
