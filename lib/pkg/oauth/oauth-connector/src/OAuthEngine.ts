@@ -46,7 +46,7 @@ class OAuthEngine {
 
     // If the configured authorization URL is absolute, use it verbatim.
     // If it is relative, add the connector's endpoint in front of it.
-    return this.cfg.authorizationUrl.match(/^https?::\/\//i)
+    return this.cfg.authorizationUrl.match(/^https?:\/\//i)
       ? `${this.cfg.authorizationUrl}?${query}`
       : `${ctx.state.params.endpoint}${this.cfg.authorizationUrl}?${query}`;
   }
