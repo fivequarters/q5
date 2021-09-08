@@ -3,7 +3,6 @@ import RDS, { Model } from '@5qtrs/db';
 
 import SessionedEntityService from './SessionedEntityService';
 import { defaultFrameworkSemver } from './BaseEntityService';
-import * as Function from '../functions';
 
 const defaultOAuthConnectorSemver = '3.0.1';
 
@@ -95,11 +94,6 @@ class ConnectorService extends SessionedEntityService<Model.IConnector, Model.II
       ],
     },
   });
-
-  public createFunctionSpecification = (entity: Model.IEntity): Function.IFunctionSpecification => {
-    delete entity.data.schedule;
-    return super.createFunctionSpecification(entity);
-  };
 }
 
 export default ConnectorService;
