@@ -84,22 +84,15 @@ const getIntegrationCode = ({ accountId, subscriptionId }: typeof account) => {
     const router = integration.router;
     
     router.cron('/api/scheduled', async (ctx) => {
-      console.log("im here");
       const storageUrl = '${baseUrl}/v1/account/${accountId}/subscription/${subscriptionId}/storage/integration/${boundaryId}/';
-      console.log("gonna put here: ", storageUrl);
       const token = ctx.state.params.functionAccessToken;
-      console.log("with this authz: ", \`bearer \$\{token\}\`);
-      try {
-        const response = await superagent
-          .put(storageUrl)
-          .set("authorization", \`bearer \$\{token\}\`)
-          .set("content-type", "application/json")
-          .send({ data: { boundaryId: '${boundaryId}' } });
-        console.log('response.status', response.status);
-      } catch (err) {
-        console.log('Got an error', err);
-      }
-      
+
+      await superagent
+        .put(storageUrl)
+        .set("authorization", \`bearer \$\{token\}\`)
+        .set("content-type", "application/json")
+        .send({ data: { boundaryId: '${boundaryId}' } });
+
       ctx.body = "Hi there";
     });
     
