@@ -25,12 +25,6 @@ describe('Scheduled integrations', () => {
     await validateIntegrationSpec(boundaryId, schedule);
   }, 180000);
 
-  test('Creating a daily integration', async () => {
-    const schedule = [{ cron: '15 7 * * *', endpoint: '/api/scheduled' }];
-    await putScheduledIntegration(boundaryId, schedule);
-    await validateIntegrationSpec(boundaryId, schedule);
-  }, 180000);
-
   const putScheduledIntegration = async (id: string, schedule: any[]) => {
     const integrationSpec = {
       data: {
