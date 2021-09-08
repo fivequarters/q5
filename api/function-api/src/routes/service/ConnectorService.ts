@@ -5,7 +5,7 @@ import SessionedEntityService from './SessionedEntityService';
 import { defaultFrameworkSemver } from './BaseEntityService';
 import * as Function from '../functions';
 
-const defaultOAuthConnectorSemver = '^2.0.0';
+const defaultOAuthConnectorSemver = '3.0.1';
 
 const defaultPackage = (entityId: string) => ({
   scripts: { deploy: `fuse connector deploy ${entityId} -d .`, get: `fuse connector get ${entityId} -d .` },

@@ -19,7 +19,7 @@
   },
   "keywords": [],
   "dependencies": {
-    "@fusebit-int/oauth-connector": "^3.0.1",
+    "@fusebit-int/oauth-connector": "3.0.1",
     "@slack/web-api": "^6.3.0",
     "superagent": "6.1.0"
   },
