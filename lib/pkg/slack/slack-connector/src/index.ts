@@ -50,12 +50,7 @@ connector.service.setValidateWebhookEvent((ctx: Connector.Types.Context) => {
 
   const calculatedSignatureBuffer = Buffer.from(calculatedSignature, 'utf8');
   const requestSignatureBuffer = Buffer.from(requestSignature, 'utf8');
-  const isValid = crypto.timingSafeEqual(calculatedSignatureBuffer, requestSignatureBuffer);
-  console.log(
-    `Validation ${isValid ? 'passed' : 'failed'} for message ${requestBody.event.text}.  Stringified object:`
-  );
-  console.log(basestring);
-  return isValid;
+  return crypto.timingSafeEqual(calculatedSignatureBuffer, requestSignatureBuffer);
 });
 
 connector.service.setInitializationChallenge((ctx: Connector.Types.Context) => {
