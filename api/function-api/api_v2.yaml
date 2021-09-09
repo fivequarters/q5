@@ -603,7 +603,7 @@ components:
       scheme: bearer
       bearerFormat: JWT
       description: For a description of the access token format, see
-        [this doc](../../integrator-guide/authz-model).
+        [this doc](https://developer.fusebit.io/docs/connecting-fusebit-with-your-application).
 
   parameters:
     Account:
