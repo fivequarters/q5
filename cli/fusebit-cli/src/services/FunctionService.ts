@@ -1,7 +1,7 @@
 import { join } from 'path';
 import { createServer } from 'http';
 import open from 'open';
-import { EventStream, IEventMessage } from '@5qtrs/event-stream';
+import { EventStream, IEventMessage, IEventStreamOptions } from '@5qtrs/event-stream';
 import { readFile, readDirectory, exists, copyDirectory, writeFile } from '@5qtrs/file';
 import { IFusebitExecutionProfile } from '@5qtrs/fusebit-profile-sdk';
 import { Message, IExecuteInput, Confirm } from '@5qtrs/cli';
@@ -10,6 +10,8 @@ import { ExecuteService } from './ExecuteService';
 import { ProfileService } from './ProfileService';
 import { VersionService } from './VersionService';
 import { request } from '@5qtrs/request';
+import DotEnv from 'dotenv';
+import { spawn } from 'child_process';
 
 import { startTunnel, startHttpServer } from './TunnelService';
 
@@ -604,6 +606,7 @@ export class FunctionService {
             },
           };
 
+          // @ts-ignore
           await EventStream.create(url, options);
 
           await this.executeService.info(
@@ -817,28 +820,61 @@ export class FunctionService {
     };
 
     await this.executeService.info('Starting Service', 'Starting the local server.');
-    const functionServer = startHttpServer(0);
-    functionServer.service = await functionServer.listen();
 
-    functionServer.app.use(async (req: any, res: any) => {
-      try {
-        Object.keys(require.cache).forEach((r) => delete require.cache[r]);
-        const func = require(path);
-        console.log(`> ${req.body.method} ${req.body.url}`);
-        const result = await func(req.body);
-        console.log(`< ${JSON.stringify(result)}`);
-        return res.json(result);
-      } catch (e) {
-        console.log(`E: `, e);
-        res.json({ status: 501, body: `${e}` });
+    DotEnv.config({ path: join(path, '.env') });
+    const port = await startHttpServer(
+      async (body: any): Promise<any> => {
+        try {
+          console.log(`> ${body.method} ${body.url}`);
+          body.configuration = process.env;
+          const result: any = await new Promise((resolve, reject) => {
+            try {
+              const worker = spawn(
+                process.argv[0], // node
+                [join(__dirname, 'cgi.js')],
+                {
+                  windowsHide: true,
+                  stdio: [
+                    'pipe', // stdin
+                    'inherit', // stdout
+                    'inherit', // stderr
+                    'ipc', // cgi result
+                  ],
+                }
+              );
+              worker.stdin?.end(JSON.stringify({ path, body }));
+              let finished = false;
+              worker.once('message', (m) => {
+                if (!finished) {
+                  finished = true;
+                  resolve(m);
+                }
+              });
+              worker.once('close', (code, signal) => {
+                if (!finished) {
+                  finished = true;
+                  reject(new Error(`Error processing request: code ${code} and signal ${signal}`));
+                }
+              });
+            } catch (e) {
+              return reject(e);
+            }
+          });
+          if (result.ok) {
+            console.log(`< ${JSON.stringify(result.body)}`);
+            return result.body;
+          }
+          console.log(`E: `, result.error);
+          return { status: 501, body: result.error };
+        } catch (e) {
+          console.log(`E: `, e);
+          return { status: 501, body: `${e}` };
+        }
       }
-    });
-
-    await this.executeService.info(
-      'Building Tunnel',
-      `Establishing tunnel to Fusebit (port ${functionServer.service.address().port})`
     );
-    const tunnel = await startTunnel(functionServer.service.address().port);
+
+    await this.executeService.info('Building Tunnel', `Establishing tunnel to Fusebit (port ${port})`);
+    const tunnel = await startTunnel(port);
     try {
       await this.executeService.info('Redirecting', `Redirecting traffic for ${profile.boundary}/${functionId}`);
       const result = await this.executeService.executeRequest(

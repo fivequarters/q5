@@ -17,7 +17,7 @@ All public releases of the Fusebit platform components are documented here, incl
 <td>
 <ul>
 <li>
-Fusebit CLI <code>v1.10+</code> - <a href="{{ site.baseurl }}{% link release-notes/fusebit-cli.md %}">release notes</a>
+Fusebit CLI <code>v1.14+</code> - <a href="{{ site.baseurl }}{% link release-notes/fusebit-cli.md %}">release notes</a>
 </li>
 <li>
 Fusebit Editor <code>v1.4+</code> - <a href="{{ site.baseurl }}{% link release-notes/fusebit-editor.md %}">release notes</a>
