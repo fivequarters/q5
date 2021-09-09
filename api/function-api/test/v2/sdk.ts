@@ -623,7 +623,7 @@ export const createPair = async (
 
       handler: './integration',
       files: {
-        ['integration.js']: [
+        'integration.js': [
           "const { Integration } = require('@fusebit-int/framework');",
           '',
           'const integration = new Integration();',

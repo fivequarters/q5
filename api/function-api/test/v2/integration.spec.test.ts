@@ -31,17 +31,17 @@ const getIntegrationEntity = (nodeVersion: string) => {
     data: {
       handler: './integrationTest.js',
       files: {
-        ['package.json']: JSON.stringify({
+        'package.json': JSON.stringify({
           scripts: {},
           dependencies: {
-            ['@fusebit-int/framework']: defaultFrameworkSemver,
+            '@fusebit-int/framework': defaultFrameworkSemver,
           },
           files: ['./integrationTest.js'],
           engines: {
             node: nodeVersion,
           },
         }),
-        ['integrationTest.js']: [
+        'integrationTest.js': [
           "const { Integration } = require('@fusebit-int/framework');",
           '',
           'const integration = new Integration();',
@@ -78,8 +78,8 @@ describe('Integration spec test suite', () => {
       data: {
         handler: './integration',
         files: {
-          ['integration.js']: "module.exports = new (require('@fusebit-int/framework').Integration)();",
-          ['package.json']: 'XXXXXXX',
+          'integration.js': "module.exports = new (require('@fusebit-int/framework').Integration)();",
+          'package.json': 'XXXXXXX',
         },
       },
     };
@@ -93,7 +93,7 @@ describe('Integration spec test suite', () => {
       data: {
         handler: './integration',
         files: {
-          ['integration.js']: "module.exports = new (require('@fusebit-int/framework').Integration)();",
+          'integration.js': "module.exports = new (require('@fusebit-int/framework').Integration)();",
         },
       },
     };

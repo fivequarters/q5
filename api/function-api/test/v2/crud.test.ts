@@ -48,14 +48,14 @@ const sampleEntitiesWithData: SampleEntityMap = {
     data: {
       handler: './integrationTest.js',
       files: {
-        ['package.json']: JSON.stringify({
+        'package.json': JSON.stringify({
           scripts: {},
           dependencies: {
-            ['@fusebit-int/framework']: defaultFrameworkSemver,
+            '@fusebit-int/framework': defaultFrameworkSemver,
           },
           files: ['./integrationTest.js'],
         }),
-        ['integrationTest.js']: [
+        'integrationTest.js': [
           "const { Integration } = require('@fusebit-int/framework');",
           '',
           'const integration = new Integration();',

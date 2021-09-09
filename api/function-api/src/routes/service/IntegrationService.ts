@@ -22,15 +22,15 @@ const defaultIntegrationJs = [
 const defaultPackageJson = (entityId: string) => ({
   scripts: { deploy: `fuse integration deploy ${entityId} -d .`, get: `fuse integration get ${entityId} -d .` },
   dependencies: {
-    ['@fusebit-int/framework']: defaultFrameworkSemver,
+    '@fusebit-int/framework': defaultFrameworkSemver,
   },
   files: ['./integration.js'], // Make sure the default file is included, if nothing else.
 });
 
 const defaultIntegration: Model.IIntegrationData = {
   files: {
-    ['integration.js']: defaultIntegrationJs,
-    ['package.json']: JSON.stringify(defaultPackageJson('sampleIntegration'), null, 2),
+    'integration.js': defaultIntegrationJs,
+    'package.json': JSON.stringify(defaultPackageJson('sampleIntegration'), null, 2),
   },
   handler: './integration',
   configuration: {},

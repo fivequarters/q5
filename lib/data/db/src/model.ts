@@ -44,7 +44,6 @@ export interface IDaoCollection extends IDaoCollectionIndex {
   connector: IEntityDao<Schema.IConnector>;
   integration: IEntityDao<Schema.IIntegration>;
   storage: IEntityDao<Schema.IStorageItem>;
-  operation: IEntityDao<Schema.IOperation>;
   session: IEntityDao<Schema.ISession>;
   identity: IEntityDao<Schema.IIdentity>;
   instance: IEntityDao<Schema.IInstance>;
