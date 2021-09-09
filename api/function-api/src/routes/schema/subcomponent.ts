@@ -59,7 +59,7 @@ const subcomponentRouter = (
     )
     .post(
       common.management({
-        validate: { params: Validation.EntityIdParams, body: Validation[service.entityType].Entity },
+        validate: { params: Validation.EntityIdParams, body: Validation.Entities[service.entityType].Entity },
         authorize: { operation: v2Permissions[service.entityType].put },
       }),
       async (req: express.Request & { resolvedAgent?: IAgent }, res: express.Response, next: express.NextFunction) => {

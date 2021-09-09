@@ -3,10 +3,7 @@
   "version": "1.1.0",
   "description": "",
   "main": "libc/index.js",
-  "files": [
-    "libc/*.js",
-    "libc/*.d.ts"
-  ],
+  "files": ["libc/*.js", "libc/*.d.ts"],
   "license": "SEE LICENSE IN LICENSE",
   "author": "Fusebit, Inc.",
   "scripts": {
@@ -21,6 +18,6 @@
     "@hubspot/api-client": "^4.1.0"
   },
   "peerDependencies": {
-    "@fusebit-int/framework": "^4.0.0"
+    "@fusebit-int/framework": "4.0.1"
   }
 }

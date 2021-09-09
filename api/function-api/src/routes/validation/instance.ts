@@ -4,6 +4,8 @@ import * as EntityCommon from './entities';
 
 const Data = Joi.object();
 
-const Entity = EntityCommon.validatePostEntity(Data);
+const Entity = EntityCommon.validatePostEntity(Data).requiredKeys('data');
 
-export { Entity, Data };
+const PostEntity = EntityCommon.validatePostEntity(Data).requiredKeys('data');
+
+export { Entity, PostEntity, Data };
