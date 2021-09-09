@@ -38,14 +38,23 @@ connector.service.setValidateWebhookEvent((ctx: Connector.Types.Context) => {
   const timestampHeader = ctx.req.headers['x-slack-request-timestamp'];
   const requestBody = ctx.req.body;
 
-  const basestring = ['v0', timestampHeader, JSON.stringify(requestBody)].join(':');
+  const basestring = [
+    'v0',
+    timestampHeader,
+    JSON.stringify(requestBody).replace(/\//g, '\\/').replace(/’/g, '\\u2019'),
+  ].join(':');
   const calculatedSignature = 'v0=' + crypto.createHmac('sha256', signingSecret).update(basestring).digest('hex');
 
   const requestSignature = ctx.req.headers['x-slack-signature'] as string;
 
   const calculatedSignatureBuffer = Buffer.from(calculatedSignature, 'utf8');
   const requestSignatureBuffer = Buffer.from(requestSignature, 'utf8');
-  return crypto.timingSafeEqual(calculatedSignatureBuffer, requestSignatureBuffer);
+  const isValid = crypto.timingSafeEqual(calculatedSignatureBuffer, requestSignatureBuffer);
+  console.log(
+    `Validation ${isValid ? 'passed' : 'failed'} for message ${requestBody.event.text}.  Stringified object:`
+  );
+  console.log(basestring);
+  return isValid;
 });
 
 connector.service.setInitializationChallenge((ctx: Connector.Types.Context) => {
