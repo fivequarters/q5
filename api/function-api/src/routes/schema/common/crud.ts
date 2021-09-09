@@ -23,7 +23,7 @@ const router = (
 ) => {
   const componentCrudRouter = express.Router({ mergeParams: true });
 
-  if (paramIdNames.length === 1) {
+  if ([Model.EntityType.integration, Model.EntityType.connector].includes(EntityService.entityType)) {
     // Only support POST for connectors and integrations, not for subcomponents.
     componentCrudRouter
       .route('/')
