@@ -29,7 +29,7 @@ const getSimpleIntegration = (): any => ({
 
     handler: './integration',
     files: {
-      ['integration.js']: "module.exports = new (require('@fusebit-int/framework').Integration)();",
+      'integration.js': "module.exports = new (require('@fusebit-int/framework').Integration)();",
     },
   },
 });

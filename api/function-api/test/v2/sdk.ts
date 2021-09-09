@@ -7,6 +7,8 @@ import { getEnv } from '../v1/setup';
 
 let { function5Id } = getEnv();
 
+type Optional<T, K extends keyof T> = Pick<Partial<T>, K> & Omit<T, K>;
+
 export enum RequestMethod {
   get = 'GET',
   post = 'POST',
@@ -114,13 +116,13 @@ interface ISdkForEntity {
   post: (
     account: IAccount,
     entityId: string,
-    body?: Model.ISdkEntity,
+    body?: Optional<Model.ISdkEntity, 'id'>,
     options?: IRequestOptions
   ) => Promise<IHttpResponse>;
   postAndWait: (
     account: IAccount,
     entityId: string,
-    body: Model.ISdkEntity,
+    body: Optional<Model.ISdkEntity, 'id'>,
     waitOptions?: IWaitForCompletionParams,
     options?: IRequestOptions
   ) => Promise<IHttpResponse>;
@@ -235,7 +237,12 @@ const createSdk = (entityType: Model.EntityType): ISdkForEntity => ({
     });
   },
 
-  post: async (account: IAccount, entityId: string, body?: Model.ISdkEntity, options?: IRequestOptions) => {
+  post: async (
+    account: IAccount,
+    entityId: string,
+    body?: Optional<Model.ISdkEntity, 'id'>,
+    options?: IRequestOptions
+  ) => {
     testEntitiesCreated.push({ entityType, id: entityId });
     return v2Request(account, { method: RequestMethod.post, uri: `/${entityType}/${entityId}`, body, ...options });
   },
@@ -243,7 +250,7 @@ const createSdk = (entityType: Model.EntityType): ISdkForEntity => ({
   postAndWait: async (
     account: IAccount,
     entityId: string,
-    body: Model.ISdkEntity,
+    body: Optional<Model.ISdkEntity, 'id'>,
     waitOptions: IWaitForCompletionParams = DefaultWaitForCompletionParams,
     options?: IRequestOptions
   ) => {
@@ -616,7 +623,7 @@ export const createPair = async (
 
       handler: './integration',
       files: {
-        ['integration.js']: [
+        'integration.js': [
           "const { Integration } = require('@fusebit-int/framework');",
           '',
           'const integration = new Integration();',

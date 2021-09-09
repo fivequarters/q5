@@ -13,6 +13,8 @@ import * as AuthZ from '../v1/authz';
 
 import { getEnv } from '../v1/setup';
 
+import { defaultFrameworkSemver } from '../../src/routes/service/BaseEntityService';
+
 let { account, boundaryId, function1Id, function2Id, function3Id, function4Id, function5Id } = getEnv();
 beforeEach(() => {
   ({ account, boundaryId, function1Id, function2Id, function3Id, function4Id, function5Id } = getEnv());
@@ -46,14 +48,14 @@ const sampleEntitiesWithData: SampleEntityMap = {
     data: {
       handler: './integrationTest.js',
       files: {
-        ['package.json']: JSON.stringify({
+        'package.json': JSON.stringify({
           scripts: {},
           dependencies: {
-            ['@fusebit-int/framework']: '^3.0.2',
+            '@fusebit-int/framework': defaultFrameworkSemver,
           },
           files: ['./integrationTest.js'],
         }),
-        ['integrationTest.js']: [
+        'integrationTest.js': [
           "const { Integration } = require('@fusebit-int/framework');",
           '',
           'const integration = new Integration();',
@@ -152,6 +154,30 @@ const performTests = (testEntityType: TestableEntityTypes, sampleEntityMap: Samp
 
   test('Create Entity', async () => {
     await createEntityTest(sampleEntity());
+  }, 180000);
+
+  test('Create Entity without body id', async () => {
+    const entity = sampleEntity();
+    delete entity.id;
+
+    const response = await ApiRequestMap[testEntityType].postAndWait(account, boundaryId, entity);
+    expect(response).toBeHttp({ statusCode: 200 });
+  }, 180000);
+
+  test('Create Entity with different body id', async () => {
+    const entity = sampleEntity();
+    const entityId1 = entity.id;
+    const entityId2 = newId('diff');
+
+    let response = await ApiRequestMap[testEntityType].postAndWait(account, entityId2, entity);
+    expect(response).toBeHttp({ statusCode: 200 });
+
+    expect(response.data.id).toBe(entityId2);
+
+    response = await ApiRequestMap[testEntityType].get(account, entityId1);
+    expect(response).toBeHttp({ statusCode: 404 });
+    response = await ApiRequestMap[testEntityType].get(account, entityId2);
+    expect(response).toBeHttp({ statusCode: 200 });
   }, 180000);
 
   test('Create Entity returns 400 on conflict', async () => {
@@ -619,7 +645,7 @@ const performTests = (testEntityType: TestableEntityTypes, sampleEntityMap: Samp
 
   test('Entity Empty POST', async () => {
     const createResponse = await ApiRequestMap[testEntityType].post(account, boundaryId);
-    expect(createResponse).toBeHttp({ statusCode: 400 });
+    expect(createResponse).toBeHttp({ statusCode: 202 });
   }, 180000);
 
   test('Entity Empty POST with ID', async () => {
