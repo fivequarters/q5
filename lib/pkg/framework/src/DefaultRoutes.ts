@@ -30,7 +30,7 @@ router.get('/api/health', async (ctx: Context, next: Next) => {
 router.post('/event/(.*)', async (ctx: Context, next: Next) => {
   // received event name is of format `webhook/<connectorId>/<eventType>`
   // sent event named is of format `/<componentName>/<eventType>`
-  let eventName = `/${ctx.params.event}`;
+  let eventName = `/${ctx.params[0]}`;
 
   if (ctx.params[0].split('/')[0] === 'webhook') {
     const [wh, connectorId, eventType] = ctx.params[0].split('/');
