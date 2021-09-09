@@ -13,10 +13,10 @@ export default class OAuthProvider extends Internal.ProviderActivator<{ accessTo
    * For now, just return the accessToken for the caller to do with as they please.
    */
   protected async instantiate(ctx: Internal.Types.Context, lookupKey: string): Promise<{ accessToken: string }> {
-    const accessToken = await this.requestConnectorToken({ ctx, lookupKey });
+    const credentials = await this.requestConnectorToken({ ctx, lookupKey });
     // Take the responding token, put it into the object below.
     return {
-      accessToken,
+      accessToken: credentials.access_token,
     };
   }
 }

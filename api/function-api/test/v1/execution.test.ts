@@ -70,7 +70,7 @@ describe('Execution', () => {
     const response = await putFunction(account, boundaryId, function1Id, helloWorldThatTimesOut);
     expect(response).toBeHttp({ statusCode: 200 });
     const triggerResponse = await request(response.data.location);
-    expect(triggerResponse).toBeHttp({ statusCode: 500 });
+    expect(triggerResponse).toBeHttp({ statusCode: 522 });
   }, 140000);
   test('function context APIs work as expected', async () => {
     const reflectContext = {

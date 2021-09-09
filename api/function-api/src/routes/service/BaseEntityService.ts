@@ -3,7 +3,7 @@ import { Model } from '@5qtrs/db';
 
 import * as Function from '../functions';
 
-export const defaultFrameworkSemver = '^3.0.2';
+export const defaultFrameworkSemver = '4.0.0';
 
 export interface IServiceResult {
   statusCode: number;
@@ -99,7 +99,7 @@ export default abstract class BaseEntityService<E extends Model.IEntity, F exten
       mountUrl: `/v2/account/${entity.accountId}/subscription/${entity.subscriptionId}/integration/${entity.id}`,
     };
 
-    const spec = {
+    const spec: Function.IFunctionSpecification = {
       id: entity.id,
       nodejs: {
         ...(pkg.engines?.node ? { engines: { node: pkg.engines.node } } : {}),
@@ -117,6 +117,14 @@ export default abstract class BaseEntityService<E extends Model.IEntity, F exten
       },
       security: this.getFunctionSecuritySpecification(entity),
     };
+
+    if (entity.data.schedule) {
+      const { cron, timezone } = entity.data.schedule[0];
+      spec.schedule = {
+        cron,
+        timezone,
+      };
+    }
 
     return spec;
   };

@@ -3,7 +3,7 @@
     "node": "8"
   },
   "dependencies": {
-      "loadtest": "*",
-      "superagent": "^5.2.2"
+    "loadtest": "*",
+    "superagent": "^6.1.0"
   }
 }

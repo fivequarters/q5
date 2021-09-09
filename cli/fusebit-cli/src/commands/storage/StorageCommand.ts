@@ -1,6 +1,7 @@
 import { Command, ICommand } from '@5qtrs/cli';
 
 import { StorageGetCommand } from './StorageGetCommand';
+import { StoragePutCommand } from './StoragePutCommand';
 import { StorageListCommand } from './StorageListCommand';
 import { StorageRemoveCommand } from './StorageRemoveCommand';
 
@@ -30,6 +31,7 @@ const command: ICommand = {
 async function getSubCommands() {
   const subCommands = [];
   subCommands.push(await StorageGetCommand.create());
+  subCommands.push(await StoragePutCommand.create());
   subCommands.push(await StorageListCommand.create());
   subCommands.push(await StorageRemoveCommand.create());
   return subCommands;

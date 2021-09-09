@@ -1,6 +1,6 @@
 {
   "name": "@fusebit-int/framework",
-  "version": "3.0.4",
+  "version": "4.0.1",
   "description": "",
   "main": "libc/index.js",
   "files": [

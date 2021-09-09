@@ -9,20 +9,28 @@ import { Text } from '@5qtrs/text';
 const command = {
   name: 'List Storage',
   cmd: 'ls',
-  summary: 'List storage keys',
-  description: 'Lists storage keys under a particular id.',
+  summary: 'List storage items',
+  description: 'Lists storage items with an id with a particular prefix.',
   arguments: [
     {
-      name: 'storage',
-      description: 'The search path of the storage.',
+      name: 'prefix',
+      description: 'The id prefix of the storage items to list.',
       required: false,
     },
   ],
   options: [
+    // {
+    //   name: 'tag',
+    //   aliases: ['t'],
+    //   description:
+    //     'Only return storage items with the specified {key}={value} tag. You can specify many tags for a logical AND',
+    //   type: ArgType.string,
+    //   allowMany: true,
+    // },
     {
       name: 'count',
       aliases: ['c'],
-      description: 'The number of storages to list at a given time',
+      description: 'The number of storage items to list at a given time',
       type: ArgType.integer,
       default: '100',
     },
@@ -58,7 +66,9 @@ export class StorageListCommand extends Command {
   }
 
   protected async onExecute(input: IExecuteInput): Promise<number> {
+    const prefix = `${StorageService.normalizeStorageId((input.arguments[0] as string) || '')}*`;
     const output = input.options.output as string;
+    const tags = (input.options.tag as string[]) || [];
     const count = input.options.count as string;
     const next = input.options.next as string;
 
@@ -70,7 +80,7 @@ export class StorageListCommand extends Command {
     const storageService = await StorageService.create(input);
 
     if (output === 'json') {
-      const result = await storageService.listStorage(options);
+      const result = await storageService.listStorage(prefix, tags, options);
       const json = JSON.stringify(result, null, 2);
       input.io.writeLineRaw(json);
     } else {
@@ -80,7 +90,7 @@ export class StorageListCommand extends Command {
       let result;
       let firstDisplay = true;
       while (getMore) {
-        result = await storageService.listStorage(options);
+        result = await storageService.listStorage(prefix, tags, options);
         await storageService.displayStorages(result.items, firstDisplay);
         firstDisplay = false;
         getMore = result.next ? await storageService.confirmListMore() : false;
