@@ -1,20 +1,14 @@
 /* tslint:disable no-namespace no-empty-interface max-classes-per-file */
 import EntityBase from './EntityBase';
 import superagent from 'superagent';
-type IPromise = typeof Promise & { allSettled: Function };
 
 class Service extends EntityBase.ServiceDefault {
   public handleWebhookEvent = async (ctx: EntityBase.Types.Context, WebhookSigningSecret: string) => {
+    const webhookAuthId = await this.getEventAuthId(ctx);
     const isChallenge = await this.initializationChallenge(ctx);
-    if (isChallenge) {
-      ctx.status = 200;
-      return;
-    }
-
-    const authId = await this.getEventAuthId(ctx);
-    if (!authId) {
+    if (!webhookAuthId && !isChallenge) {
       console.log(`webhooks not implemented for connector ${ctx.state.params.entityId}`);
-      ctx.status = 404;
+      ctx.status = 400;
       return;
     }
 
@@ -25,68 +19,38 @@ class Service extends EntityBase.ServiceDefault {
       return;
     }
 
-    const event: Connector.Types.WebhookEvent = {
-      authId,
-      event: ctx.req.body,
-    };
-    // Skip if converter fails to create enveloped event
-    if (event) {
-      // Process with no await.  Happily happens in background, to ensure quick response to
-      // webhook caller, demonstrate webhook has been received and stored on our end.
-      try {
-        const processPromise = this.processWebhook(ctx, event);
-        return await this.createWebhookResponse(ctx, processPromise);
-      } catch (e) {}
+    if (isChallenge) {
+      ctx.status = 200;
+      return;
     }
+
+    // Process with no await.  Happily happens in background, to ensure quick response to
+    // webhook caller, demonstrate webhook has been received and stored on our end.
+    try {
+      const processPromise = this.processWebhook(ctx, ctx.req.body, webhookAuthId as string);
+      return await this.createWebhookResponse(ctx, processPromise);
+    } catch (e) {}
   };
 
-  public processWebhook = async (ctx: Connector.Types.Context, event: Connector.Types.WebhookEvent): Promise<void> => {
-    // Relevant Instances are gathered by the following method:
-    //
-    // Identity Sessions will be saved with some `authId` value that is included on both
-    // the event and auth request.  For slack, this is a simple userId or botId
-    //
-    // Upon processing of Sessions, this authId is saved to both the associated Identity and Instance, in the format of
-    // `webhookId/<connectorId>/<authId>`.  This is a tag key, with null value.
-    const webhookEventId = this.getWebhookLookupId(ctx);
-    const accountUrl = ctx.state.params.baseUrl.split('/connector/')[0];
-
-    const response = await superagent
-      .get(`${accountUrl}/integration/-/instance?tag=${encodeURIComponent(webhookEventId)}`)
-      .set('Authorization', `Bearer ${ctx.state.params.functionAccessToken}`);
-    const instances: any[] = response.body.items;
-
-    const instancesByIntegrationId: any[] = instances.reduce((acc, cur) => {
-      const integrationId = cur.tags['fusebit.parentEntityId'];
-      if (!acc[integrationId]) {
-        acc[integrationId] = [];
-      }
-      acc[integrationId].push(cur.entityId);
-      return acc;
-    }, {});
-
-    const webhookEventName = this.getWebhookEventName(ctx);
-
+  public processWebhook = async (ctx: Connector.Types.Context, event: any, webhookAuthId: string): Promise<void> => {
     try {
-      await (Promise as IPromise).allSettled(
-        Object.entries<string[]>(instancesByIntegrationId).map(async ([integrationId, instanceIds]) => {
-          const eventPayload: Connector.Types.WebhookEventPayload = {
-            event: webhookEventName,
-            parameters: {
-              event,
-              instanceIds,
-              connectorId: ctx.state.params.entityId,
-              webhookEventId,
-            },
-          };
-          return superagent
-            .post(`${accountUrl}/integration/${integrationId}/event`)
-            .set('Authorization', `Bearer ${ctx.state.params.functionAccessToken}`)
-            .send(eventPayload);
-        })
-      );
+      const webhookEventId = this.getWebhookLookupId(ctx);
+      const webhookEventName = this.getWebhookEventName(ctx);
+
+      await superagent
+        .post(`${ctx.state.params.baseUrl}/fan_out/event?tag=${encodeURIComponent(webhookEventId)}`)
+        .set('Authorization', `Bearer ${ctx.state.params.functionAccessToken}`)
+        .send({
+          event: webhookEventName,
+          parameters: {
+            event,
+            connectorId: ctx.state.params.entityId,
+            webhookEventId,
+            webhookAuthId,
+          },
+        });
     } catch (e) {
-      console.log('error dispatching events');
+      console.log(`Error processing event:`);
       console.log(e);
     }
   };
@@ -116,10 +80,7 @@ class Service extends EntityBase.ServiceDefault {
     this.getTokenAuthId = handler;
   };
   public setCreateWebhookResponse = (
-    handler: (
-      ctx: Connector.Types.Context,
-      processPromise?: Promise<Connector.Types.WebhookEvent | void>
-    ) => Promise<void>
+    handler: (ctx: Connector.Types.Context, processPromise?: Promise<any>) => Promise<void>
   ) => {
     this.createWebhookResponse = handler;
   };
@@ -142,7 +103,7 @@ class Service extends EntityBase.ServiceDefault {
   };
   private createWebhookResponse = async (
     ctx: Connector.Types.Context,
-    processPromise?: Promise<Connector.Types.WebhookEvent | void>
+    processPromise?: Promise<any>
   ): Promise<void> => {
     console.log('Webhook Response configuration missing.');
   };
@@ -152,7 +113,7 @@ class Service extends EntityBase.ServiceDefault {
   };
   private getWebhookEventName = (ctx: Connector.Types.Context): string => {
     console.log('Using default webhook event name.');
-    return `event:${ctx.state.params.entityId}`;
+    return `event/${ctx.state.params.entityId}`;
   };
   private initializationChallenge = (ctx: Connector.Types.Context): boolean => {
     console.log('Webhook Challenge configuration missing. Required for webhook processing.');
@@ -182,10 +143,6 @@ namespace Connector {
     export type Context = EntityBase.Types.Context;
     export type Next = EntityBase.Types.Next;
     export interface IOnStartup extends EntityBase.Types.IOnStartup {}
-    export type WebhookEvent = {
-      authId: string;
-      event: any;
-    };
     export type WebhookEventPayload = {
       event: string; // event name
       parameters: {
@@ -193,6 +150,7 @@ namespace Connector {
         instanceIds: string[];
         webhookEventId: string;
         event: any;
+        webhookAuthId: string;
       };
     };
   }

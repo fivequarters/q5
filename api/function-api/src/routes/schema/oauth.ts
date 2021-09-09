@@ -50,7 +50,7 @@ function isProxyCallbackRequest(req: ProxyRequest): asserts req is ProxyCallback
 }
 
 // Create a router for this type of OAuth Proxy.
-export const createProxyRouter = (name: string, subscriptionCache: SubscriptionCache): express.Router => {
+export const createProxyRouter = (subscriptionCache: SubscriptionCache): express.Router => {
   const router = express.Router({ mergeParams: true });
 
   // Create a proxy object specialized for each request.
@@ -72,8 +72,8 @@ export const createProxyRouter = (name: string, subscriptionCache: SubscriptionC
         req.params.accountId,
         req.params.subscriptionId,
         req.params.entityId,
-        name,
-        await OAuthProxyConfig.get<IOAuthProxyConfiguration>(name, {
+        req.params.proxyId,
+        await OAuthProxyConfig.get<IOAuthProxyConfiguration>(req.params.proxyId, {
           accountId: req.subscription.proxy.accountId,
           subscriptionId: req.subscription.proxy.subscriptionId,
         })

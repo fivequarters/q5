@@ -27,7 +27,7 @@ router.get('/api/health', async (ctx: Context, next: Next) => {
 });
 
 router.post('/event', async (ctx: Context, next: Next) => {
-  const result = await ctx.state.manager.invoke(ctx.req.body.event, ctx.req.body.parameters);
+  const result = await ctx.state.manager.invoke(ctx.req.body.event, ctx.req.body.parameters, ctx.state.params);
   ctx.body = result;
 });
 

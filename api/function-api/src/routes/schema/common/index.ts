@@ -5,6 +5,7 @@ import componentTagRouter from './tag';
 import componentSessionRouter from './session';
 import * as analytics from '../../middleware/analytics';
 import { SessionedEntityService } from '../../service';
+import proxyRouter from './proxy';
 
 const router = (EntityService: SessionedEntityService<any, any>) => {
   const r = express.Router({ mergeParams: true });
@@ -12,7 +13,7 @@ const router = (EntityService: SessionedEntityService<any, any>) => {
   r.use(analytics.setModality(analytics.Modes.Administration));
   r.use('/:entityId/session', componentSessionRouter(EntityService));
   r.use('/:entityId/tag', componentTagRouter(EntityService));
-  r.use('/:entityId', componentCrudRouter(EntityService));
+  r.use('/:entityId', componentCrudRouter(EntityService), proxyRouter(EntityService));
   r.use('/', componentRootRouter(EntityService));
 
   return r;

@@ -123,11 +123,12 @@ class Manager {
    * @param parameters: The set of parameters the event is expecting.
    * @return the body of the response.
    */
-  public async invoke(event: string, parameters: InvokeParameters) {
+  public async invoke(event: string, parameters: InvokeParameters, params?: any) {
     const ctx = this.createRouteableContext({
       method: 'EVENT',
       path: event,
       request: { body: {}, rawBody: '', params: {} },
+      state: { params },
     });
     ctx.event = { parameters: { ...parameters, ctx } };
     await this.execute(ctx);
@@ -239,7 +240,7 @@ class Manager {
             resourcePath: `/account/${fusebitCtx.accountId}/subscription/${fusebitCtx.subscriptionId}/${fusebitCtx.boundaryId}/${fusebitCtx.functionId}${fusebitCtx.path}`,
             functionAccessToken: fusebitCtx.fusebit.functionAccessToken,
           }
-        : {}),
+        : fusebitCtx.state.params || {}),
     };
     ctx.state.fusebit = { ...fusebitCtx.fusebit, caller: fusebitCtx.caller };
     ctx.state.manager = this;

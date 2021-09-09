@@ -30,7 +30,7 @@ router.get(
 );
 
 connector.service.setGetEventAuthId((ctx: Connector.Types.Context) => {
-  return ctx.req.body.authorizations[0].user_id;
+  return ctx.req?.body?.authorizations[0]?.user_id;
 });
 
 connector.service.setValidateWebhookEvent((ctx: Connector.Types.Context, signingSecret) => {

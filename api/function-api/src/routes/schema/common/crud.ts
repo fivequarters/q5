@@ -117,64 +117,6 @@ const router = (
       }
     );
 
-  const dispatchToFunction = async (req: express.Request, res: express.Response, next: express.NextFunction) => {
-    let result;
-
-    try {
-      const token = getAuthToken(req);
-
-      result = await EntityService.dispatch(
-        pathParams.EntityById(req, paramIdNames[paramIdNames.length - 1]),
-        req.method,
-        req.params.subPath,
-        {
-          token,
-          headers: req.headers,
-          body: req.body,
-          query: req.query,
-          originalUrl: req.originalUrl,
-        }
-      );
-    } catch (e) {
-      return next(e);
-    }
-
-    if (result.error) {
-      return next(result.error);
-    }
-
-    res.set(result.headers);
-    res.status(result.code);
-    res.send(result.body);
-  };
-
-  componentCrudRouter.all(
-    ['/api', '/api/:subPath(*)'],
-    common.management({
-      validate: { params: Validation.EntityIdParams.keys({ '0': Joi.string(), subPath: Joi.string() }) },
-    }),
-    (req: express.Request, res: express.Response, next: express.NextFunction) => {
-      // Touch up subPath to make sure it has the right prefix.
-      req.params.subPath = `/api/${req.params.subPath || ''}`;
-      return dispatchToFunction(req, res, next);
-    }
-  );
-
-  // Restrictive permissions to be added later.
-  // body: {event: string, parameters: any}
-  componentCrudRouter.options('/:subPath(event)', common.cors());
-  componentCrudRouter.post(
-    '/:subPath(event)',
-    common.management({
-      validate: { params: Validation.EntityIdParams.keys({ '0': Joi.string(), subPath: Joi.string() }) },
-    }),
-    (req: express.Request, res: express.Response, next: express.NextFunction) => {
-      // Touch up subPath to make sure it has the right prefix.
-      req.params.subPath = `/${req.params.subPath || ''}`;
-      return dispatchToFunction(req, res, next);
-    }
-  );
-
   return componentCrudRouter;
 };
 

@@ -34,24 +34,18 @@ const subcomponentRouter = (
       }),
       async (req: express.Request, res: express.Response, next: express.NextFunction) => {
         try {
-          let idPrefix = `/${parentEntityType}/`;
-          // no parent lookup for wildcard case
-          if (req.params.entityId !== '-') {
-            // Fetch the parent, to filter for instances under this connector.
-            const parentEntity = await RDS.DAO[parentEntityType].getEntity({
-              accountId: req.params.accountId,
-              subscriptionId: req.params.subscriptionId,
-              id: req.params.entityId,
-            });
-            idPrefix += parentEntity.__databaseId;
-          }
+          // Fetch the parent, to filter for instances under this connector.
+          const parentEntity = await RDS.DAO[parentEntityType].getEntity({
+            accountId: req.params.accountId,
+            subscriptionId: req.params.subscriptionId,
+            id: req.params.entityId,
+          });
 
           const response = await service.dao.listEntities(
             {
-              accountId: req.params.accountId,
-              subscriptionId: req.params.subscriptionId,
+              ...{ accountId: req.params.accountId, subscriptionId: req.params.subscriptionId },
               ...query.tag(req),
-              idPrefix,
+              ...{ idPrefix: `/${parentEntityType}/${parentEntity.__databaseId}/` },
             },
             {
               ...query.listPagination(req),
