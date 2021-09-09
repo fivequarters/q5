@@ -1,0 +1,3 @@
+steps:
+  - name: Test - Drop All Tables
+    run: ./tool/cicd/actions/scripts/cleanup_db.sh

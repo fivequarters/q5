@@ -37,6 +37,8 @@ jobs:
           echo fusebit-ops-cli: ${VERSION_FUSEBIT_OPS_CLI}
       - name: Build
         run: ./tool/cicd/actions/scripts/build_tree.sh
+      - name: Test - Drop All Tables
+        run: ./tool/cicd/actions/scripts/cleanup_db.sh
       - name: Publish - function-api - 749 Only
         run: ./tool/cicd/actions/scripts/publish_function_api_dev.sh
       - name: Test - deploy exclusive to cicd/us-east-2
