@@ -17,6 +17,24 @@ All public releases of the Fusebit HTTP API are documented here, including notab
 <!-- 1. TOC
 {:toc} -->
 
+## Version 1.23.4
+
+_Released 9/8/21_
+
+- **Enhancement.** Adding support for scheduled integrations.
+
+## Version 1.23.3
+
+_Released 9/7/21_
+
+- **Enhancement.** Updating default version of @fusebit-int/oauth-connector and @fusebit-int/framework.
+
+## Version 1.23.2
+
+_Released 09/07/21_
+
+- **Enhancement.** Switch to error code 522 instead of 500 when a fusebit function times out.
+
 ## Version 1.23.1
 
 _Released 9/2/21_

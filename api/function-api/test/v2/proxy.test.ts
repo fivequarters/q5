@@ -63,23 +63,21 @@ describe('Proxy', () => {
   let authorizationUrl: string;
   let tokenUrl: string;
   let revokeUrl: string;
-
-  const localIdentity = {
-    clientId: 'aaa',
-    clientSecret: 'sss',
-  };
+  let localIdentity: { clientId: string; clientSecret: string };
 
   const proxyIdentity = {
-    clientId: 'A',
-    clientSecret: 'B',
+    clientId: 'TEST_PROXY_CLIENT_ID',
+    clientSecret: 'TEST_PROXY_CLIENT_SECRET',
   };
 
-  const sampleToken = {
-    access_token: 'original token',
-    refresh_token: 'FFFF',
-    token_type: 'access',
-    message: boundaryId + '-token',
+  let sampleToken: {
+    access_token: string;
+    refresh_token: string;
+    token_type: string;
+    message: string;
   };
+
+  let replacementToken: string;
 
   let httpLog: { req: express.Request; res: express.Response }[];
 
@@ -97,6 +95,20 @@ describe('Proxy', () => {
     authorizationUrl = `${redirectUrl}/authorize`;
     tokenUrl = `${redirectUrl}/token`;
     revokeUrl = `${redirectUrl}/revoke`;
+
+    localIdentity = {
+      clientId: 'TEST_LOCAL_CLIENT_ID' + boundaryId,
+      clientSecret: 'TEST_LOCAL_CLIENT_SECRET' + boundaryId,
+    };
+
+    sampleToken = {
+      access_token: 'TEST_ACCESS_TOKEN' + boundaryId,
+      refresh_token: 'TEST_TOKEN' + boundaryId,
+      token_type: 'TEST_TOKEN_TYPE',
+      message: boundaryId + '-token',
+    };
+
+    replacementToken = boundaryId + '-replacement-token';
   });
 
   afterEach(async () => {
@@ -109,6 +121,8 @@ describe('Proxy', () => {
 
     await OAuthProxyConfig.set<IOAuthProxyConfiguration>('slack', account, {
       ...proxyIdentity,
+      accountId: account.accountId,
+      subscriptionId: account.subscriptionId,
       authorizationUrl,
       tokenUrl,
       revokeUrl,
@@ -137,7 +151,7 @@ describe('Proxy', () => {
   const registerOAuthServer = () => {
     serverTokenHandler = (req: express.Request, res: express.Response) => {
       httpLog.push({ req, res });
-      return res.json({ ...sampleToken, access_token: 'replacement token' });
+      return res.json({ ...sampleToken, access_token: replacementToken });
     };
     httpServer.app.post(
       '/token',
@@ -187,6 +201,8 @@ describe('Proxy', () => {
     const proxyService = new OAuthProxyService(account.accountId, account.subscriptionId, connectorId, 'slack', {
       clientId: 'A',
       clientSecret: 'B',
+      accountId: account.accountId,
+      subscriptionId: account.subscriptionId,
       authorizationUrl,
       tokenUrl,
       revokeUrl,
@@ -266,7 +282,7 @@ describe('Proxy', () => {
       expect(req.body.client_secret).toBe(proxyIdentity.clientSecret);
       expect(req.body.random_value).toBe(randomValue);
 
-      return res.json({ ...sampleToken, access_token: 'replacement token' });
+      return res.json({ ...sampleToken, access_token: replacementToken });
     };
 
     // Call to convert the refresh_token into an access token
@@ -284,8 +300,8 @@ describe('Proxy', () => {
     expect(response).toBeHttp({
       statusCode: 200,
       data: {
-        access_token: 'replacement token',
-        token_type: 'access',
+        access_token: replacementToken,
+        token_type: sampleToken.token_type,
       },
     });
     expect(response.data.refresh_token).toBeUUID();
@@ -389,6 +405,8 @@ describe('Proxy', () => {
     const proxyService = new OAuthProxyService(account.accountId, account.subscriptionId, boundaryId, 'slack', {
       clientId: 'A',
       clientSecret: 'B',
+      accountId: account.accountId,
+      subscriptionId: account.subscriptionId,
       authorizationUrl,
       tokenUrl,
       revokeUrl,
@@ -446,7 +464,7 @@ describe('Proxy', () => {
       },
     });
     expect(response).toBeHttp({ statusCode: 200 });
-    expect(response.data.access_token).toBe('replacement token');
+    expect(response.data.access_token).toBe(replacementToken);
     expect(response.data.refresh_token).not.toBe(sampleToken.refresh_token);
   }, 180000);
 
@@ -461,6 +479,9 @@ describe('Proxy', () => {
     const proxyService = new OAuthProxyService(account.accountId, account.subscriptionId, boundaryId, 'slack', {
       clientId: 'A',
       clientSecret: 'B',
+
+      accountId: account.accountId,
+      subscriptionId: account.subscriptionId,
       authorizationUrl,
       tokenUrl,
       revokeUrl,

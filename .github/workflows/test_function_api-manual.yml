@@ -37,10 +37,6 @@ jobs:
           echo fusebit-ops-cli: ${VERSION_FUSEBIT_OPS_CLI}
       - name: Build
         run: ./tool/cicd/actions/scripts/build_tree.sh
-      - name: Publish Everything in lib/pkg to 749 CICD.
-        env:
-          FUSE_PROFILE: cicd
-        run: ./tool/cicd/actions/scripts/publish_all_pkg.sh
       - name: Publish - function-api - 749 Only
         run: ./tool/cicd/actions/scripts/publish_function_api_dev.sh
       - name: Test - deploy exclusive to cicd/us-east-2
@@ -50,6 +46,10 @@ jobs:
           NETWORK_NAME: cicd
           DEPLOYMENT_DOMAIN: dev.fusebit.io
         run: ./tool/cicd/actions/scripts/deploy_exclusive_function_api.sh
+      - name: Publish Everything in lib/pkg to 749 CICD.
+        env:
+          FUSE_PROFILE: cicd
+        run: ./tool/cicd/actions/scripts/publish_all_pkg.sh
       - name: Cleanup Orphaned Resources
         run: ./tool/cicd/actions/scripts/clean_env.sh
       - name: Test - function-api
