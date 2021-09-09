@@ -10,6 +10,7 @@
   },
   "files": [
     "./integration.js",
+    "./integration.d.ts",
     "README.md"
   ]
 }
