@@ -37,12 +37,14 @@ connector.service.setValidateWebhookEvent((ctx: Connector.Types.Context) => {
   const signingSecret = ctx.state.manager.config.configuration.signingSecret;
   const timestampHeader = ctx.req.headers['x-slack-request-timestamp'];
   const requestBody = ctx.req.body;
+  const rawBody = JSON.stringify(requestBody)
+    .replace(/\//g, '\\/')
+    .replace(/’/g, '\\u2019')
+    .replace(/[\u007f-\uffff]/g, function (c) {
+      return '\\u' + ('0000' + c.charCodeAt(0).toString(16)).slice(-4);
+    });
 
-  const basestring = [
-    'v0',
-    timestampHeader,
-    JSON.stringify(requestBody).replace(/\//g, '\\/').replace(/’/g, '\\u2019'),
-  ].join(':');
+  const basestring = ['v0', timestampHeader, rawBody].join(':');
   const calculatedSignature = 'v0=' + crypto.createHmac('sha256', signingSecret).update(basestring).digest('hex');
 
   const requestSignature = ctx.req.headers['x-slack-signature'] as string;
