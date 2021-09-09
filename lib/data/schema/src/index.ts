@@ -48,7 +48,7 @@ export interface IOperationState {
 }
 
 export interface ITags {
-  [key: string]: string;
+  [key: string]: string | null;
 }
 
 export interface ITagsWithVersion {

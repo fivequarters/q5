@@ -681,3 +681,17 @@ export const getElementsFromUrl = (url: string) => {
     sessionId: decomp.searchParams.get('session'),
   };
 };
+
+export const createTestFile = (getTestFile: () => any, replacements?: Record<string, string>): string => {
+  let stringFunc = String(getTestFile);
+  let stringArray = stringFunc.split('}');
+  stringArray.pop();
+  stringFunc = stringArray.join('}');
+  stringArray = stringFunc.split('{');
+  stringArray.shift();
+  stringFunc = stringArray.join('{');
+  Object.entries(replacements || {}).forEach(([find, replace]) => {
+    stringFunc = stringFunc.replace(new RegExp(find, 'g'), replace);
+  });
+  return stringFunc;
+};

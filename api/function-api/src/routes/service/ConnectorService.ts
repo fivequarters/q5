@@ -4,7 +4,7 @@ import RDS, { Model } from '@5qtrs/db';
 import SessionedEntityService from './SessionedEntityService';
 import { defaultFrameworkSemver } from './BaseEntityService';
 
-const defaultOAuthConnectorSemver = '3.0.1';
+const defaultOAuthConnectorSemver = '4.0.1';
 
 const defaultPackage = (entityId: string) => ({
   scripts: { deploy: `fuse connector deploy ${entityId} -d .`, get: `fuse connector get ${entityId} -d .` },
@@ -60,8 +60,10 @@ class ConnectorService extends SessionedEntityService<Model.IConnector, Model.II
 
     pkg.dependencies['@fusebit-int/framework'] = pkg.dependencies['@fusebit-int/framework'] || defaultFrameworkSemver;
 
-    // Make sure package mentioned in the `handler` block is also included.
-    pkg.dependencies[data.handler] = pkg.dependencies[data.handler] || '*';
+    // Make sure package mentioned in the `handler` block is also included if it is not a local file
+    if (data.handler[0] !== '.') {
+      pkg.dependencies[data.handler] = pkg.dependencies[data.handler] || '*';
+    }
 
     // Always pretty-print package.json so it's human-readable from the start.
     data.files['package.json'] = JSON.stringify(pkg, null, 2);

@@ -3,7 +3,7 @@ import { Model } from '@5qtrs/db';
 
 import * as Function from '../functions';
 
-export const defaultFrameworkSemver = '4.0.0';
+export const defaultFrameworkSemver = '4.0.1';
 
 export interface IServiceResult {
   statusCode: number;
@@ -366,7 +366,7 @@ export default abstract class BaseEntityService<E extends Model.IEntity, F exten
     result: await this.dao.setEntityTag(taggedEntity),
   });
 
-  public getEntityTag = async (entityKey: Model.IEntityKeyTagSet): Promise<string> => {
+  public getEntityTag = async (entityKey: Model.IEntityKeyTagSet): Promise<string | null> => {
     const response = await this.dao.getEntityTags(entityKey);
     return response.tags[entityKey.tagKey];
   };

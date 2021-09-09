@@ -5,7 +5,7 @@ import * as EntityCommon from './entities';
 import * as Common from './common';
 
 const Data = Joi.object().keys({
-  handler: Common.npmPackageName.required(),
+  handler: [Common.npmPackageName.required(), Joi.string().regex(/^(.+)\/([^\/]+)$/)],
   configuration: Joi.object()
     .keys({
       muxIntegration: Common.entityId,
