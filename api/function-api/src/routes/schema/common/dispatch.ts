@@ -11,9 +11,9 @@ const router = (
   EntityService: BaseEntityService<Model.IEntity, Model.IEntity>,
   paramIdNames: string[] = ['entityId']
 ) => {
-  const proxyRouter = express.Router({ mergeParams: true });
+  const dispatchRouter = express.Router({ mergeParams: true });
 
-  proxyRouter.all(
+  dispatchRouter.all(
     ['/api', '/api/:subPath(*)'],
     common.management({
       validate: { params: Validation.EntityIdParams.keys({ '0': Joi.string(), subPath: Joi.string() }) },
@@ -27,8 +27,8 @@ const router = (
 
   // Restrictive permissions to be added later.
   // body: {event: string, parameters: any}
-  proxyRouter.options('/:subPath(event)', common.cors());
-  proxyRouter.post(
+  dispatchRouter.options('/:subPath(event)', common.cors());
+  dispatchRouter.post(
     '/:subPath(event)',
     common.management({
       validate: { params: Validation.EntityIdParams.keys({ '0': Joi.string(), subPath: Joi.string() }) },
@@ -71,7 +71,7 @@ const router = (
     res.send(result.body);
   };
 
-  return proxyRouter;
+  return dispatchRouter;
 };
 
 export default router;

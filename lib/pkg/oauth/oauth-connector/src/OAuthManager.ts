@@ -43,14 +43,17 @@ router.use(async (ctx: Connector.Types.Context, next: Connector.Types.Next) => {
   return next();
 });
 
-router.on('startup', async ({ mgr, cfg, router: rtr }: Connector.Types.IOnStartup, next: Connector.Types.Next) => {
-  // Router's already been mounted, so any further additions need to happen here on 'rtr'.
-  //
-  // Create the engine, now that the configuration has been loaded.
-  engine = new OAuthEngine(cfg.configuration as IOAuthConfig, rtr);
+router.on(
+  'startup',
+  async ({ event: { cfg, mgr, router } }: Connector.Types.IOnStartup, next: Connector.Types.Next) => {
+    // Router's already been mounted, so any further additions need to happen here on 'rtr'.
+    //
+    // Create the engine, now that the configuration has been loaded.
+    engine = new OAuthEngine(cfg.configuration as IOAuthConfig, router);
 
-  return next();
-});
+    return next();
+  }
+);
 
 // Internal Endpoints
 router.get(

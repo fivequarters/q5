@@ -1,5 +1,6 @@
 import { Router, Context, Next } from './Router';
 import { Manager, IOnStartup } from './Manager';
+import { IInstanceConnectorConfig } from './ConnectorManager';
 
 const router = new Router();
 
@@ -26,8 +27,22 @@ router.get('/api/health', async (ctx: Context, next: Next) => {
   }
 });
 
-router.post('/event', async (ctx: Context, next: Next) => {
-  const result = await ctx.state.manager.invoke(ctx.req.body.event, ctx.req.body.parameters, ctx.state.params);
+router.post('/event/(.*)', async (ctx: Context, next: Next) => {
+  // received event name is of format `webhook/<connectorId>/<eventType>`
+  // sent event named is of format `/<componentName>/<eventType>`
+  let eventName = `/${ctx.params.event}`;
+
+  if (ctx.params[0].split('/')[0] === 'webhook') {
+    const [wh, connectorId, eventType] = ctx.params[0].split('/');
+    const component = ctx.state.manager.config.components.find(
+      (component: IInstanceConnectorConfig) =>
+        component.entityType === 'connector' && component.entityId === connectorId
+    );
+    const connectorName = component.name;
+    eventName = `/${connectorName}/${eventType}`;
+  }
+
+  const result = await ctx.state.manager.invoke(eventName, ctx.req.body, ctx.state);
   ctx.body = result;
 });
 

@@ -86,11 +86,8 @@ const router = (
         token: getAuthToken(req),
         headers: req.headers,
         body: {
-          event: req.body.event,
-          parameters: {
-            ...req.body.parameters,
-            instanceIds,
-          },
+          ...req.body,
+          instanceIds,
         },
         query: req.query,
         originalUrl: req.originalUrl,

@@ -25,7 +25,7 @@ integrationService.addService(connectorService);
 
 router.use(analytics.setModality(analytics.Modes.Administration));
 
-router.use('/connector/:entityId/proxy/:proxyId/oauth', createProxyRouter(subscriptionCache));
+router.use('/connector/:entityId/proxy/:proxyType/oauth', createProxyRouter(subscriptionCache));
 
 router.use(
   '/connector',

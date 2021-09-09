@@ -55,9 +55,7 @@ class Router extends KoaRouter {
       path,
       ['event'],
       // Use the parameters instead of the ctx as the first parameter, and save the result in the ctx.body
-      middleware.map((m) => async (ctx: KoaRouter.RouterContext, next: Koa.Next) => {
-        ctx.body = await m((ctx as Context).event.parameters, next);
-      }),
+      middleware,
       { name: path }
     );
   }

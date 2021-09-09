@@ -3,7 +3,7 @@ import EntityBase from './EntityBase';
 import superagent from 'superagent';
 
 class Service extends EntityBase.ServiceDefault {
-  public handleWebhookEvent = async (ctx: EntityBase.Types.Context, WebhookSigningSecret: string) => {
+  public handleWebhookEvent = async (ctx: EntityBase.Types.Context) => {
     const webhookAuthId = await this.getEventAuthId(ctx);
     const isChallenge = await this.initializationChallenge(ctx);
     if (!webhookAuthId && !isChallenge) {
@@ -12,7 +12,7 @@ class Service extends EntityBase.ServiceDefault {
       return;
     }
 
-    const isValid = this.validateWebhookEvent(ctx, WebhookSigningSecret);
+    const isValid = this.validateWebhookEvent(ctx);
     if (!isValid) {
       console.log(`webhook event failed validation for connector ${ctx.state.params.entityId}`);
       ctx.status = 400;
@@ -32,23 +32,29 @@ class Service extends EntityBase.ServiceDefault {
     } catch (e) {}
   };
 
-  public processWebhook = async (ctx: Connector.Types.Context, event: any, webhookAuthId: string): Promise<void> => {
+  public processWebhook = async (
+    ctx: Connector.Types.Context,
+    event: any,
+    webhookAuthId: string
+  ): Promise<superagent.Response | void> => {
     try {
       const webhookEventId = this.getWebhookLookupId(ctx);
-      const webhookEventName = this.getWebhookEventName(ctx);
+      const webhookEventType = this.getWebhookEventType(ctx);
 
-      await superagent
-        .post(`${ctx.state.params.baseUrl}/fan_out/event?tag=${encodeURIComponent(webhookEventId)}`)
+      return await superagent
+        .post(
+          `${ctx.state.params.baseUrl}/fan_out/event/webhook/${
+            ctx.state.params.entityId
+          }/${webhookEventType}?tag=${encodeURIComponent(webhookEventId)}`
+        )
         .set('Authorization', `Bearer ${ctx.state.params.functionAccessToken}`)
         .send({
-          event: webhookEventName,
-          parameters: {
-            event,
-            connectorId: ctx.state.params.entityId,
-            webhookEventId,
-            webhookAuthId,
-          },
-        });
+          data: event,
+          connectorId: ctx.state.params.entityId,
+          webhookEventId,
+          webhookAuthId,
+        })
+        .ok((res) => true);
     } catch (e) {
       console.log(`Error processing event:`);
       console.log(e);
@@ -84,11 +90,11 @@ class Service extends EntityBase.ServiceDefault {
   ) => {
     this.createWebhookResponse = handler;
   };
-  public setValidateWebhookEvent = (handler: (ctx: Connector.Types.Context, signingSecret: string) => boolean) => {
+  public setValidateWebhookEvent = (handler: (ctx: Connector.Types.Context) => boolean) => {
     this.validateWebhookEvent = handler;
   };
-  public setGetWebhookEventName = (handler: (ctx: Connector.Types.Context) => string) => {
-    this.getWebhookEventName = handler;
+  public setGetWebhookEventType = (handler: (ctx: Connector.Types.Context) => string) => {
+    this.getWebhookEventType = handler;
   };
   public setInitializationChallenge = (handler: (ctx: Connector.Types.Context) => boolean) => {
     this.initializationChallenge = handler;
@@ -107,13 +113,13 @@ class Service extends EntityBase.ServiceDefault {
   ): Promise<void> => {
     console.log('Webhook Response configuration missing.');
   };
-  private validateWebhookEvent = (ctx: Connector.Types.Context, signingSecret: string): boolean => {
+  private validateWebhookEvent = (ctx: Connector.Types.Context): boolean => {
     console.log('Webhook Validation configuration missing. Required for webhook processing.');
     return false;
   };
-  private getWebhookEventName = (ctx: Connector.Types.Context): string => {
+  private getWebhookEventType = (ctx: Connector.Types.Context): string => {
     console.log('Using default webhook event name.');
-    return `event/${ctx.state.params.entityId}`;
+    return `${ctx.state.params.entityId}`;
   };
   private initializationChallenge = (ctx: Connector.Types.Context): boolean => {
     console.log('Webhook Challenge configuration missing. Required for webhook processing.');
@@ -125,14 +131,9 @@ class Connector extends EntityBase {
   constructor() {
     super();
     this.router.post('/api/fusebit_webhook_event', async (ctx: Connector.Types.Context) => {
-      await this.service.handleWebhookEvent(ctx, this.WebhookSigningSecret || '');
-    });
-    this.router.on('startup', ({ cfg, mgr }: Connector.Types.IOnStartup, next: Connector.Types.Next) => {
-      this.WebhookSigningSecret = cfg.configuration.signingSecret;
-      next();
+      await this.service.handleWebhookEvent(ctx);
     });
   }
-  private WebhookSigningSecret?: string;
   public service = new Service();
   public middleware = new EntityBase.MiddlewareDefault();
   public storage = new EntityBase.StorageDefault();

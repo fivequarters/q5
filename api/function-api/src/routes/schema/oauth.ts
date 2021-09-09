@@ -72,8 +72,8 @@ export const createProxyRouter = (subscriptionCache: SubscriptionCache): express
         req.params.accountId,
         req.params.subscriptionId,
         req.params.entityId,
-        req.params.proxyId,
-        await OAuthProxyConfig.get<IOAuthProxyConfiguration>(req.params.proxyId, {
+        req.params.proxyType,
+        await OAuthProxyConfig.get<IOAuthProxyConfiguration>(req.params.proxyType, {
           accountId: req.subscription.proxy.accountId,
           subscriptionId: req.subscription.proxy.subscriptionId,
         })

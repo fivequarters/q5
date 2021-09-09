@@ -16,7 +16,7 @@ export const SessionCreate = SessionParameters;
 export const SessionPut = Joi.object().keys({
   output: Joi.object(),
   tags: Common.tags.optional(),
-  input: Joi.object().optional(),
-  id: Joi.string().optional(),
-  dependsOn: Joi.array().optional(),
+  input: Joi.object().strip(),
+  id: Joi.string().strip(),
+  dependsOn: Joi.array().strip(),
 });
