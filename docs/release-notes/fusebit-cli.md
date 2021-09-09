@@ -21,7 +21,7 @@ All public releases of the Fusebit CLI are documented here, including notable ch
 
 _Released 09/09/21_
 
-- **Enhancement.** Support for configuration settings in `fuse function serve`. The locally running function will be
+- **Enhancement.** Support for configuration settings in `fuse function serve`. The locally running function will now
   have the `ctx.configuration` set to the values defined in the `.env` local file.
 - **Bugfix.** Allow the locally running function to load a set of npm modules that are isolated from the modules
   of fuse CLI. This enables certain mocking scenarios.
