@@ -44,40 +44,51 @@ const sampleEntitiesWithData: SampleEntityMap = {
     id: newId('Test'),
     tags: { [`oneTag`]: 'one-value', [`twoTags`]: 'two-values' },
   }),
-  [Model.EntityType.integration]: (): { id: string; tags: Model.ITags; data: Model.IIntegrationData } => ({
-    data: {
-      handler: './integrationTest.js',
-      files: {
-        'package.json': JSON.stringify({
-          scripts: {},
-          dependencies: {
-            '@fusebit-int/framework': defaultFrameworkSemver,
+  [Model.EntityType.integration]: (): { id: string; tags: Model.ITags; data: Model.IIntegrationData } => {
+    const id = newId('Test');
+    return {
+      data: {
+        handler: './integrationTest.js',
+        files: {
+          'package.json': JSON.stringify({
+            scripts: {},
+            dependencies: {
+              '@fusebit-int/framework': defaultFrameworkSemver,
+            },
+            files: ['./integrationTest.js'],
+          }),
+          'integrationTest.js': [
+            "const { Integration } = require('@fusebit-int/framework');",
+            '',
+            'const integration = new Integration();',
+            'const router = integration.router;',
+            '',
+            "router.get('/api/', async (ctx) => {",
+            "  ctx.body = 'Hello World';",
+            '});',
+            '',
+            "router.get('/api/sillyrabbit', async (ctx) => {",
+            "  ctx.body = 'trix are for kids';",
+            '});',
+            'module.exports = integration;',
+          ].join('\n'),
+        },
+        configuration: {},
+        components: [
+          {
+            name: 'form',
+            entityType: Model.EntityType.integration,
+            entityId: id,
+            dependsOn: [],
+            path: '/dummy/path',
           },
-          files: ['./integrationTest.js'],
-        }),
-        'integrationTest.js': [
-          "const { Integration } = require('@fusebit-int/framework');",
-          '',
-          'const integration = new Integration();',
-          'const router = integration.router;',
-          '',
-          "router.get('/api/', async (ctx) => {",
-          "  ctx.body = 'Hello World';",
-          '});',
-          '',
-          "router.get('/api/sillyrabbit', async (ctx) => {",
-          "  ctx.body = 'trix are for kids';",
-          '});',
-          'module.exports = integration;',
-        ].join('\n'),
+        ],
+        componentTags: {},
       },
-      configuration: {},
-      components: [],
-      componentTags: {},
-    },
-    id: newId('Test'),
-    tags: { [`oneTag`]: 'one-value', [`twoTags`]: 'two-values' },
-  }),
+      id,
+      tags: { [`oneTag`]: 'one-value', [`twoTags`]: 'two-values' },
+    };
+  },
 };
 
 const sampleEntitiesWithoutData: SampleEntityMap = (Object as any).fromEntries(
@@ -417,10 +428,10 @@ const performTests = (testEntityType: TestableEntityTypes, sampleEntityMap: Samp
           if (acc[curTag] === undefined) {
             acc[curTag] = {};
           }
-          if (acc[curTag][cur.tags![curTag]] === undefined) {
-            acc[curTag][cur.tags![curTag]] = 0;
+          if (acc[curTag][cur.tags![curTag]!] === undefined) {
+            acc[curTag][cur.tags![curTag]!] = 0;
           }
-          acc[curTag][cur.tags![curTag]]++;
+          acc[curTag][cur.tags![curTag]!]++;
         });
         return acc;
       },
@@ -787,8 +798,8 @@ const performIntegrationTest = (sampleEntitiesMap: SampleEntityMap) => {
         'const integration = new Integration();',
         'const router = integration.router;',
         '',
-        "router.on('/testEvent', async ({tasty}) => {",
-        '  return { answer: tasty + " and mango"};',
+        "router.on('/form/testEvent', async (ctx) => {",
+        '  return { answer: ctx.req.body.tasty + " and mango"};',
         '});',
         '',
         'module.exports = integration;',
@@ -799,13 +810,16 @@ const performIntegrationTest = (sampleEntitiesMap: SampleEntityMap) => {
 
     let result = await ApiRequestMap[testEntityType].putAndWait(account, entity.id, entity);
     expect(result).toBeHttp({ statusCode: 200 });
-    result = await ApiRequestMap[testEntityType].dispatch(account, entity.id, RequestMethod.post, '/event', {
-      body: {
-        event: '/testEvent',
-        parameters: { tasty: 'banana' },
-      },
-      contentType: 'application/json',
-    });
+    result = await ApiRequestMap[testEntityType].dispatch(
+      account,
+      entity.id,
+      RequestMethod.post,
+      `/event/manual/${entity.id}/testEvent`,
+      {
+        body: { tasty: 'banana' },
+        contentType: 'application/json',
+      }
+    );
     expect(result).toBeHttp({ statusCode: 200, data: { answer: 'banana and mango' } });
   }, 180000);
 };

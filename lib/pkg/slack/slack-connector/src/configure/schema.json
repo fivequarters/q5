@@ -26,6 +26,11 @@
       "type": "string",
       "description": "The Client Secret from your Slack app"
     },
+    "clientSecret": {
+      "title": "Signing Secret",
+      "type": "string",
+      "description": "The Signing Secret from your Slack app"
+    },
     "refreshErrorLimit": {
       "type": "integer"
     },

@@ -22,10 +22,8 @@ class Service extends EntityBase.ServiceDefault {
 
     // Process with no await.  Happily happens in background, to ensure quick response to
     // webhook caller, demonstrate webhook has been received and stored on our end.
-    try {
-      const processPromise = this.processWebhook(ctx, ctx.req.body, webhookAuthId as string);
-      return await this.createWebhookResponse(ctx, processPromise);
-    } catch (e) {}
+    const processPromise = this.processWebhook(ctx, ctx.req.body, webhookAuthId as string);
+    return this.createWebhookResponse(ctx, processPromise);
   };
 
   public processWebhook = async (

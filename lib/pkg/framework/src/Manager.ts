@@ -132,7 +132,7 @@ class Manager {
     const ctx = this.createRouteableContext({
       method: 'EVENT',
       path: eventName,
-      request: { body: eventData, rawBody: '', params: {} },
+      request: { body: {}, rawBody: '', params: {} },
       state,
     });
     ctx.req.body = eventData;
