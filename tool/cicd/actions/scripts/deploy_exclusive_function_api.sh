@@ -10,7 +10,7 @@ set -e
 
 echoerr() { printf "%s\n" "$*" >&2; }
 FUSEOPS="node cli/fusebit-ops-cli/libc/index.js"
-export FUSEBIT_DEBUG=
+export FUSEBIT_DEBUG=1
 
 # -- Parameter Validation --
 if [ -z "${DEPLOYMENT_NAME}" ]; then
