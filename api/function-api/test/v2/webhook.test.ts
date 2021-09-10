@@ -26,7 +26,6 @@ afterAll(async () => {
   await cleanupEntities(account);
 }, 180000);
 
-const FrameworkVersion = '^4.0.1';
 const counterPath = '/api/counter';
 const resetCountPath = '/api/reset';
 const authId = 'testAuthId';
