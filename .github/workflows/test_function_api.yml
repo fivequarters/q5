@@ -1,7 +1,7 @@
 ###################################################################
 # Auto-created by the cicd-actions tool
 on: pull_request
-name: Test Function-API
+name: 'CICD: Test Function-API'
 jobs:
   deploy:
     name: Deploy
@@ -39,7 +39,7 @@ jobs:
           echo fusebit-ops-cli: ${VERSION_FUSEBIT_OPS_CLI}
       - name: Build
         run: ./tool/cicd/actions/scripts/build_tree.sh
-      - name: Test - Drop All Tables
+      - name: Test - Drop Public Schema
         run: ./tool/cicd/actions/scripts/cleanup_db.sh
       - name: Publish - function-api - 749 Only
         run: ./tool/cicd/actions/scripts/publish_function_api_dev.sh

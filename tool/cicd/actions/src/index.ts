@@ -79,7 +79,7 @@ const specs: ISpec[] = [
     },
   },
   {
-    name: 'Test Function-API',
+    name: 'CICD: Test Function-API',
     inputs: [
       'checkout',
       'local_env_files',
@@ -107,7 +107,7 @@ const specs: ISpec[] = [
     },
   },
   {
-    name: 'Test Function-API (Manual)',
+    name: 'CICD: Test Function-API (Manual)',
     inputs: [
       'checkout',
       'local_env_files',
