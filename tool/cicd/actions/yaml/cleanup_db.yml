@@ -1,0 +1,3 @@
+steps:
+  - name: Test - Drop Public Schema
+    run: ./tool/cicd/actions/scripts/cleanup_db.sh

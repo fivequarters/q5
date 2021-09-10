@@ -1,7 +1,7 @@
 ###################################################################
 # Auto-created by the cicd-actions tool
 on: workflow_dispatch
-name: Test Function-API (Manual)
+name: 'CICD: Test Function-API (Manual)'
 jobs:
   deploy:
     name: Deploy
@@ -37,6 +37,8 @@ jobs:
           echo fusebit-ops-cli: ${VERSION_FUSEBIT_OPS_CLI}
       - name: Build
         run: ./tool/cicd/actions/scripts/build_tree.sh
+      - name: Test - Drop Public Schema
+        run: ./tool/cicd/actions/scripts/cleanup_db.sh
       - name: Publish - function-api - 749 Only
         run: ./tool/cicd/actions/scripts/publish_function_api_dev.sh
       - name: Test - deploy exclusive to cicd/us-east-2

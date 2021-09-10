@@ -22,7 +22,7 @@ const validateEntity = (data: any) =>
 const validatePostEntity = (data: any) =>
   Joi.object().keys({
     id: Common.entityId.optional(),
-    data: data.required(),
+    data: data.optional(),
     tags: Common.tags,
     version: Joi.string().guid(),
     expires: Joi.date().iso(),
