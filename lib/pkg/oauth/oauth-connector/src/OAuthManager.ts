@@ -45,11 +45,11 @@ router.use(async (ctx: Connector.Types.Context, next: Connector.Types.Next) => {
 
 router.on(
   'startup',
-  async ({ event: { cfg, mgr, router } }: Connector.Types.IOnStartup, next: Connector.Types.Next) => {
+  async ({ event: { cfg, mgr, router: rtr } }: Connector.Types.IOnStartup, next: Connector.Types.Next) => {
     // Router's already been mounted, so any further additions need to happen here on 'rtr'.
     //
     // Create the engine, now that the configuration has been loaded.
-    engine = new OAuthEngine(cfg.configuration as IOAuthConfig, router);
+    engine = new OAuthEngine(cfg.configuration as IOAuthConfig, rtr);
 
     return next();
   }

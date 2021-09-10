@@ -7,15 +7,13 @@ class Service extends EntityBase.ServiceDefault {
     const webhookAuthId = await this.getEventAuthId(ctx);
     const isChallenge = await this.initializationChallenge(ctx);
     if (!webhookAuthId && !isChallenge) {
-      console.log(`webhooks not implemented for connector ${ctx.state.params.entityId}`);
-      ctx.status = 400;
+      ctx.throw(400, `webhooks not implemented for connector ${ctx.state.params.entityId}`);
       return;
     }
 
     const isValid = this.validateWebhookEvent(ctx);
     if (!isValid) {
-      console.log(`webhook event failed validation for connector ${ctx.state.params.entityId}`);
-      ctx.status = 400;
+      ctx.throw(400, `webhook event failed validation for connector ${ctx.state.params.entityId}`);
       return;
     }
 
@@ -82,7 +80,6 @@ class Service extends EntityBase.ServiceDefault {
     this.getEventAuthId = handler;
   };
   public setGetTokenAuthId = (handler: (token: any) => string | void): void => {
-    console.log('updating oauth auth Id');
     this.getTokenAuthId = handler;
   };
   public setCreateWebhookResponse = (
@@ -102,19 +99,19 @@ class Service extends EntityBase.ServiceDefault {
 
   // Default configuration functions
   private getEventAuthId = (ctx: Connector.Types.Context): string | void => {
-    console.log('Event AuthId configuration missing.  Required for webhook processing.');
+    ctx.throw(500, 'Event AuthId configuration missing.  Required for webhook processing.');
   };
   private getTokenAuthId = (token: any): string | void => {
-    console.log('Token AuthId configuration missing.  Required for webhook processing.');
+    throw 'Token AuthId configuration missing.  Required for webhook processing.';
   };
   private createWebhookResponse = async (
     ctx: Connector.Types.Context,
     processPromise?: Promise<any>
   ): Promise<void> => {
-    console.log('Webhook Response configuration missing.');
+    console.log(500, 'Webhook Response configuration missing.');
   };
   private validateWebhookEvent = (ctx: Connector.Types.Context): boolean => {
-    console.log('Webhook Validation configuration missing. Required for webhook processing.');
+    ctx.throw(500, 'Webhook Validation configuration missing. Required for webhook processing.');
     return false;
   };
   private getWebhookEventType = (ctx: Connector.Types.Context): string => {
@@ -122,7 +119,7 @@ class Service extends EntityBase.ServiceDefault {
     return `${ctx.state.params.entityId}`;
   };
   private initializationChallenge = (ctx: Connector.Types.Context): boolean => {
-    console.log('Webhook Challenge configuration missing. Required for webhook processing.');
+    ctx.throw(500, 'Webhook Challenge configuration missing. Required for webhook processing.');
     return false;
   };
 }

@@ -1,7 +1,7 @@
 import superagent from 'superagent';
 import { Connector, Internal } from '@fusebit-int/framework';
 
-import { IOAuthConfig, IOAuthToken, ITags } from './OAuthTypes';
+import { IOAuthConfig, IOAuthToken } from './OAuthTypes';
 
 import { callbackSuffixUrl } from './OAuthConstants';
 class OAuthEngine {

@@ -4,7 +4,7 @@ import RDS, { Model } from '@5qtrs/db';
 import SessionedEntityService from './SessionedEntityService';
 import { defaultFrameworkSemver } from './BaseEntityService';
 
-const defaultOAuthConnectorSemver = '4.0.1';
+const defaultOAuthConnectorSemver = '3.0.2';
 
 const defaultPackage = (entityId: string) => ({
   scripts: { deploy: `fuse connector deploy ${entityId} -d .`, get: `fuse connector get ${entityId} -d .` },
