@@ -2,9 +2,7 @@ import { Permissions, v2Permissions, safePathMap } from '@5qtrs/constants';
 import RDS, { Model } from '@5qtrs/db';
 
 import SessionedEntityService from './SessionedEntityService';
-import { defaultFrameworkSemver } from './BaseEntityService';
-
-const defaultOAuthConnectorSemver = '3.0.2';
+import { defaultFrameworkSemver, defaultOAuthConnectorSemver } from './BaseEntityService';
 
 const defaultPackage = (entityId: string) => ({
   scripts: { deploy: `fuse connector deploy ${entityId} -d .`, get: `fuse connector get ${entityId} -d .` },

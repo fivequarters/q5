@@ -20,7 +20,7 @@ type IEntityBody = IBaseEntityBody | IIdentityBody | IInstanceBody;
 
 const entity = (req: Request, entityType?: Model.EntityType): IEntityBody => {
   const { id, tags, data, expires } = req.body;
-  let entityBody: IEntityBody = { id, tags, data, expires };
+  const entityBody: IEntityBody = { id, tags, data, expires };
 
   if (entityType === Model.EntityType.identity) {
     return { ...entityBody, connectorId: req.body.connectorId };

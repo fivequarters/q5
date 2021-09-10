@@ -5,7 +5,6 @@
 export enum EntityType {
   integration = 'integration',
   connector = 'connector',
-  operation = 'operation',
   storage = 'storage',
   instance = 'instance',
   identity = 'identity',
@@ -208,8 +207,6 @@ export enum SessionMode {
 }
 
 export interface ITrunkSessionData {
-  operationId?: string;
-
   mode: SessionMode.trunk;
 
   redirectUrl: string;

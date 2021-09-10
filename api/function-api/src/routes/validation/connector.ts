@@ -16,4 +16,7 @@ const Data = Joi.object().keys({
 });
 
 const Entity = EntityCommon.validateEntity(Data);
-export { Entity, Data };
+
+const PostEntity = EntityCommon.validatePostEntity(Data);
+
+export { Entity, PostEntity, Data };

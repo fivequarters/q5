@@ -153,6 +153,7 @@ export const createProxyRouter = (subscriptionCache: SubscriptionCache): express
     common.management({ validate: { ...Validation.TokenRequest } }),
     async (req: ProxyRequest, res: express.Response, next: express.NextFunction) => {
       let code: string;
+
       // Validation
       try {
         isProxiedRequest(req);

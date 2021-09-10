@@ -10,7 +10,6 @@ set -e
 
 echoerr() { printf "%s\n" "$*" >&2; }
 FUSEOPS="node cli/fusebit-ops-cli/libc/index.js"
-export FUSEBIT_DEBUG=
 
 # -- Parameter Validation --
 if [ -z "${DEPLOYMENT_NAME}" ]; then
@@ -56,8 +55,8 @@ echo -n ${OLD_STACKS} | \
   xargs -d ' ' -I STACKID \
   ${FUSEOPS} stack rm ${DEPLOYMENT_NAME} STACKID --force true -c f --region ${REGION} -o json 1>&2
 
-${FUSEOPS} setup -c false
-${FUSEOPS} deployment add ${DEPLOYMENT_NAME} ${NETWORK_NAME} ${DEPLOYMENT_DOMAIN} --dataWarehouse false --size 1 --region ${REGION} -c false
+FUSEBIT_DEBUG=1 ${FUSEOPS} setup -c false
+FUSEBIT_DEBUG=1 ${FUSEOPS} deployment add ${DEPLOYMENT_NAME} ${NETWORK_NAME} ${DEPLOYMENT_DOMAIN} --dataWarehouse false --size 1 --region ${REGION} -c false
 
 echoerr "Deploying stack ${DEPLOYMENT_NAME}/${REGION}: ${IMG_VER} with environment params: ${ENV_PARAMS}"
 

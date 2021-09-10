@@ -6,7 +6,6 @@ import { FinalStatementOptions, IDaoCollection, IRds, IRdsCredentials } from './
 import Connector from './daos/connector';
 import Integration from './daos/integration';
 import Storage from './daos/storage';
-import Operation from './daos/operation';
 import Session from './daos/session';
 import Identity from './daos/identity';
 import Instance from './daos/instance';
@@ -254,7 +253,6 @@ class RDS implements IRds {
         connector: this.DAO.connector.createTransactional(transactionId),
         integration: this.DAO.integration.createTransactional(transactionId),
         storage: this.DAO.storage.createTransactional(transactionId),
-        operation: this.DAO.operation.createTransactional(transactionId),
         session: this.DAO.session.createTransactional(transactionId),
         identity: this.DAO.identity.createTransactional(transactionId),
         instance: this.DAO.instance.createTransactional(transactionId),
@@ -273,7 +271,6 @@ class RDS implements IRds {
     connector: new Connector(this),
     integration: new Integration(this),
     storage: new Storage(this),
-    operation: new Operation(this),
     session: new Session(this),
     identity: new Identity(this),
     instance: new Instance(this),
