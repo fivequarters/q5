@@ -1,6 +1,7 @@
 import { Model } from '@5qtrs/db';
 import { cleanupEntities, ApiRequestMap, RequestMethod, createTestFile } from './sdk';
 import { getEnv } from '../v1/setup';
+import { defaultFrameworkSemver } from '../../src/routes/service/BaseEntityService';
 
 let { account, boundaryId } = getEnv();
 beforeEach(async () => {
@@ -128,7 +129,7 @@ const connectorEntity = {
       ['package.json']: JSON.stringify({
         scripts: {},
         dependencies: {
-          ['@fusebit-int/framework']: FrameworkVersion,
+          ['@fusebit-int/framework']: defaultFrameworkSemver,
         },
         files: ['./connector.js'],
         engines: {
@@ -151,7 +152,7 @@ const integrationEntity = {
       ['package.json']: JSON.stringify({
         scripts: {},
         dependencies: {
-          ['@fusebit-int/framework']: FrameworkVersion,
+          ['@fusebit-int/framework']: defaultFrameworkSemver,
         },
         files: ['./integrationTest.js'],
         engines: {
