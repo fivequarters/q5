@@ -66,7 +66,7 @@ class Service extends EntityBase.ServiceDefault {
   }
 
   public getWebhookTokenId(ctx: Connector.Types.Context, token: any): string {
-    const authId = this.getTokenAuthId(token);
+    const authId = this.getTokenAuthId(ctx, token);
     const connectorId = ctx.state.params.entityId;
     return ['webhook', connectorId, authId].join('/');
   }
@@ -76,7 +76,7 @@ class Service extends EntityBase.ServiceDefault {
   // createWebhookResponse sets any necessary response elements that the caller requires
   // validateWebhookEvent validates the hash
   // GetEventName gets the event name from the request
-  public setGetEventAuthId = (handler: (event: any) => string | void): void => {
+  public setGetEventAuthId = (handler: (ctx: Connector.Types.Context) => string | void): void => {
     this.getEventAuthId = handler;
   };
   public setGetTokenAuthId = (handler: (token: any) => string | void): void => {
@@ -101,8 +101,8 @@ class Service extends EntityBase.ServiceDefault {
   private getEventAuthId = (ctx: Connector.Types.Context): string | void => {
     ctx.throw(500, 'Event AuthId configuration missing.  Required for webhook processing.');
   };
-  private getTokenAuthId = (token: any): string | void => {
-    throw 'Token AuthId configuration missing.  Required for webhook processing.';
+  private getTokenAuthId = (ctx: Connector.Types.Context, token: any): string | void => {
+    ctx.throw(500, 'Token AuthId configuration missing.  Required for webhook processing.');
   };
   private createWebhookResponse = async (
     ctx: Connector.Types.Context,
