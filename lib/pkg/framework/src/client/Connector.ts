@@ -107,20 +107,15 @@ class Service extends EntityBase.ServiceDefault {
   private createWebhookResponse = async (
     ctx: Connector.Types.Context,
     processPromise?: Promise<any>
-  ): Promise<void> => {
-    console.log(500, 'Webhook Response configuration missing.');
-  };
+  ): Promise<void> => {};
   private validateWebhookEvent = (ctx: Connector.Types.Context): boolean => {
     ctx.throw(500, 'Webhook Validation configuration missing. Required for webhook processing.');
-    return false;
   };
   private getWebhookEventType = (ctx: Connector.Types.Context): string => {
-    console.log('Using default webhook event name.');
     return `${ctx.state.params.entityId}`;
   };
   private initializationChallenge = (ctx: Connector.Types.Context): boolean => {
     ctx.throw(500, 'Webhook Challenge configuration missing. Required for webhook processing.');
-    return false;
   };
 }
 
