@@ -27,13 +27,13 @@ router.get('/api/health', async (ctx: Context, next: Next) => {
   }
 });
 
-router.post('/event/(.*)', async (ctx: Context, next: Next) => {
+router.post('/event/eventType(*)', async (ctx: Context, next: Next) => {
   // received event name is of format `webhook/<connectorId>/<eventType>`
   // sent event named is of format `/<componentName>/<eventType>`
-  let eventName = `/${ctx.params[0]}`;
+  let eventName = `/${ctx.params.eventType}`;
 
-  if (ctx.params[0].split('/')[0] === 'webhook') {
-    const [wh, connectorId, eventType] = ctx.params[0].split('/');
+  if (ctx.params.eventType.split('/')[0] === 'webhook') {
+    const [wh, connectorId, eventType] = ctx.params.eventType.split('/');
     const component = ctx.state.manager.config.components.find(
       (component: IInstanceConnectorConfig) =>
         component.entityType === 'connector' && component.entityId === connectorId
