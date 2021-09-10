@@ -79,12 +79,13 @@ const specs: ISpec[] = [
     },
   },
   {
-    name: 'Test Function-API',
+    name: 'CICD: Test Function-API',
     inputs: [
       'checkout',
       'local_env_files',
       'clean_dirty_artifacts',
       'full_build_no_qualify',
+      'cleanup_db',
       'publish_and_deploy_function_api.749',
       'publish_all_pkg',
       'deploy_test',
@@ -106,11 +107,12 @@ const specs: ISpec[] = [
     },
   },
   {
-    name: 'Test Function-API (Manual)',
+    name: 'CICD: Test Function-API (Manual)',
     inputs: [
       'checkout',
       'local_env_files',
       'full_build_no_qualify',
+      'cleanup_db',
       'publish_and_deploy_function_api.749',
       'publish_all_pkg',
       'deploy_test',
