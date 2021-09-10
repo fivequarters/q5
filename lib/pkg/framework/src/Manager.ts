@@ -107,10 +107,7 @@ class Manager {
     // startup phase.
     this.router.use(DefaultRoutes.routes());
 
-    // Give everything a chance to be initialized - normally, the cfg object would be specialized per router
-    // object to allow for routers to have specialized configuration elements, but we will sort that out
-    // later.
-    this.invoke('startup', { mgr: this, cfg, router: this.router });
+    this.invoke('/lifecycle/startup', {});
   }
 
   /**
@@ -135,10 +132,10 @@ class Manager {
     const ctx = this.createRouteableContext({
       method: 'EVENT',
       path: eventName,
-      request: { body: {}, rawBody: '', params: {} },
+      request: { body: eventData, rawBody: '', params: {} },
       state,
     });
-    ctx.event = eventData;
+    ctx.req.body = eventData;
     await this.execute(ctx);
     return ctx.body;
   }

@@ -11,7 +11,8 @@ const AUTHORIZATION_URL = 'https://slack.com/oauth/v2/authorize';
 // TODO: should move these into the connector as params.  This is gonna be a repeated endpoint
 // `tokenUrl` and `authorizationUrl` can exist on the connector.  We already have a `startup` event handler there
 // `schema` and `uischema` can exist on the connector, with exposed setters.  The route is consistent, the schema is not
-router.on('startup', async ({ event: { cfg, mgr } }: Connector.Types.IOnStartup, next: Connector.Types.Next) => {
+router.on('/lifecycle/startup', async (ctx: Connector.Types.Context, next: Connector.Types.Next) => {
+  const { config: cfg } = ctx.state.manager;
   cfg.configuration.tokenUrl = cfg.configuration.tokenUrl || TOKEN_URL;
   cfg.configuration.authorizationUrl = cfg.configuration.authorizationUrl || AUTHORIZATION_URL;
   return next();

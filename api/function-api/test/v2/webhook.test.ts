@@ -58,7 +58,7 @@ const getTestIntegrationFile = () => {
 
   // @ts-ignore
   router.on('incrementEventPath', async (ctx) => {
-    const number = ctx.event.data.value;
+    const number = ctx.req.body.data.value;
     const getResult = await integration.storage.getData(ctx, storageKey);
     await integration.storage.setData(ctx, storageKey, {
       count: getResult.data.count + number,
@@ -67,7 +67,7 @@ const getTestIntegrationFile = () => {
 
   // @ts-ignore
   router.on('decrementEventPath', async (ctx) => {
-    const number = ctx.event.data.value;
+    const number = ctx.req.body.data.value;
     const getResult = await integration.storage.getData(ctx, storageKey);
     await integration.storage.setData(ctx, storageKey, {
       count: getResult.data.count - number,

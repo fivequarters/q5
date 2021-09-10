@@ -27,21 +27,17 @@ router.get('/api/health', async (ctx: Context, next: Next) => {
   }
 });
 
-router.post('/event/eventType(*)', async (ctx: Context, next: Next) => {
-  // received event name is of format `webhook/<connectorId>/<eventType>`
-  // sent event named is of format `/<componentName>/<eventType>`
-  let eventName = `/${ctx.params.eventType}`;
+router.post('/event/:eventMode/:sourceEntityId/:eventType(.*)', async (ctx: Context, next: Next) => {
+  // sent event name is of format `/<componentName>/<eventType>`
 
-  if (ctx.params.eventType.split('/')[0] === 'webhook') {
-    const [wh, connectorId, eventType] = ctx.params.eventType.split('/');
-    const component = ctx.state.manager.config.components.find(
-      (component: IInstanceConnectorConfig) =>
-        component.entityType === 'connector' && component.entityId === connectorId
-    );
-    const connectorName = component.name;
-    eventName = `/${connectorName}/${eventType}`;
+  if (ctx.params.eventMode === 'lifecycle') {
+    ctx.throw(400, 'Lifecycle events should not be created via the `/event` endpoint');
   }
 
+  const component = ctx.state.manager.config.components.find(
+    (component: IInstanceConnectorConfig) => component.entityId === ctx.params.sourceEntityId
+  );
+  const eventName = `/${component.name}/${ctx.params.eventType}`;
   const result = await ctx.state.manager.invoke(eventName, ctx.req.body, ctx.state);
   ctx.body = result;
 });
