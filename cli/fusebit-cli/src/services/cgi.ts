@@ -14,8 +14,10 @@ const readStdin = async () => {
     const request = JSON.parse(await readStdin());
     const func = require(request.path);
     const body = await func(request.body);
+    //@ts-ignore
     process.send({ ok: true, body });
   } catch (e) {
+    //@ts-ignore
     process.send({ ok: false, error: e.stack || e.message || e || 'N/A' });
   }
 })();
