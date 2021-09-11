@@ -748,7 +748,7 @@ const performIntegrationTest = (sampleEntitiesMap: SampleEntityMap) => {
 
     const newFiles = {
       ...entity.data.files,
-      'integration.js': [
+      './integration.js': [
         "const { Integration } = require('@fusebit-int/framework');",
         '',
         'const integration = new Integration();',
