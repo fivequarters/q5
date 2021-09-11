@@ -305,7 +305,7 @@ describe('Proxy', () => {
       },
     });
     expect(response.data.refresh_token).toBeUUID();
-  }, 1800000);
+  }, 180000);
 
   // /authorize:
   //   Call with a bad redirect_uri
