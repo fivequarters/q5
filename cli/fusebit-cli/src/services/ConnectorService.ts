@@ -42,8 +42,8 @@ export class ConnectorService extends BaseComponentService<IConnector> {
       const tagSummary = ['Tags:', Text.eol()];
 
       if (item.tags) {
-        Object.entries(item.tags).forEach(([tagKey, tagValue]: [string, string]) => {
-          tagSummary.push(Text.dim('• '), tagKey, Text.dim(': '), tagValue, Text.eol());
+        Object.entries(item.tags).forEach(([tagKey, tagValue]: [string, string | null]) => {
+          tagSummary.push(Text.dim('• '), tagKey, Text.dim(': '), tagValue || '', Text.eol());
         });
       }
 

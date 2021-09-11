@@ -41,8 +41,8 @@ export class IntegrationService extends BaseComponentService<IIntegration> {
       const expiresSummary = item.expires ? ['Expires: ', Text.bold(item.expires), Text.eol(), Text.eol()] : [];
 
       if (item.tags) {
-        Object.entries(item.tags).forEach(([tagKey, tagValue]: [string, string]) => {
-          tagSummary.push(Text.dim('• '), tagKey, Text.dim(': '), tagValue, Text.eol());
+        Object.entries(item.tags).forEach(([tagKey, tagValue]: [string, string | null]) => {
+          tagSummary.push(Text.dim('• '), tagKey, Text.dim(': '), tagValue || '', Text.eol());
         });
       }
 
