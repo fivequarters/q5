@@ -23,7 +23,10 @@ router.get(
   connector.middleware.authorizeUser('connector:put'),
   async (ctx: Connector.Types.Context) => {
     ctx.body = {
-      data: ctx.state.manager.config.configuration,
+      data: {
+        ...ctx.state.manager.config.configuration,
+        webhookUrl: `${ctx.state.params.baseUrl}/api/fusebit_webhook_event`,
+      },
       schema,
       uischema,
     };

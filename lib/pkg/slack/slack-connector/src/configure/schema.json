@@ -2,7 +2,7 @@
   "type": "object",
   "properties": {
     "scope": {
-      "title": "Scope",
+      "title": "Bot Token Scopes",
       "description": "Comma separated scopes to request from your Slack app",
       "type": "string"
     },
@@ -26,10 +26,15 @@
       "type": "string",
       "description": "The Client Secret from your Slack app"
     },
-    "clientSecret": {
+    "signingSecret": {
       "title": "Signing Secret",
       "type": "string",
       "description": "The Signing Secret from your Slack app"
+    },
+    "webhookUrl": {
+      "title": "Webhook Url",
+      "type": "string",
+      "description": "To enable the Events API, provide this url to slack"
     },
     "refreshErrorLimit": {
       "type": "integer"
