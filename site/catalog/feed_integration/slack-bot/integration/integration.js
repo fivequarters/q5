@@ -46,23 +46,21 @@ router.get('/api/tenant/:tenantId/users', integration.middleware.authorizeUser('
 });
 
 // This event handler responds to messages in channels that the bot has access to
-router.on('/conn1/message', async (ctx) => {
-  const slackClient = await integration.service.getSdk(ctx, 'conn1', ctx.event.instanceIds[0]);
-  const messagingUser = ctx.event.data.event.user;
-  const authedUser = ctx.event.data.authorizations[0].user_id;
-  if (messagingUser === authedUser) {
+router.on('/:componentName/message', async (ctx) => {
+  const slackClient = await integration.service.getSdk(ctx, ctx.params.componentName, ctx.req.body.instanceIds[0]);
+
+  const messagingUser = ctx.req.body.data.event.user;
+  const authorizedListeningUser = ctx.req.body.data.authorizations[0].user_id;
+
+  if (messagingUser === authorizedListeningUser) {
+    console.log('no recursive response');
     return;
   }
 
-  const userInfoResponse = await slackClient.users.info({
-    user: messagingUser,
-  });
-  const userName = userInfoResponse.user.name;
-  const text = ctx.event.data.event.text;
-
-  await slackClient.chat.postMessage({
-    text: `I'm responding via a webhook.  I was alerted when ${userName} sent the message "${text}"`,
-    channel: ctx.event.data.event.channel,
+  const text = ctx.req.body.data.event.text;
+  slackClient.chat.postMessage({
+    text: `I'm responding via a webhook.  I was alerted when <@${messagingUser}> sent the message: \n\n "${text}"`,
+    channel: ctx.req.body.data.event.channel,
   });
 });
 
