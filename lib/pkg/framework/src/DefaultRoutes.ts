@@ -37,6 +37,9 @@ router.post('/event/:eventMode/:sourceEntityId/:eventType(.*)', async (ctx: Cont
   const component = ctx.state.manager.config.components.find(
     (component: IInstanceConnectorConfig) => component.entityId === ctx.params.sourceEntityId
   );
+  if (!component) {
+    return;
+  }
   const eventName = `/${component.name}/${ctx.params.eventType}`;
   const result = await ctx.state.manager.invoke(eventName, ctx.req.body, ctx.state);
   ctx.body = result;

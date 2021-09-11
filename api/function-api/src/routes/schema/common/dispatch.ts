@@ -27,9 +27,9 @@ const router = (
 
   // Restrictive permissions to be added later.
   // body: {event: string, parameters: any}
-  dispatchRouter.options('/:subPath(event)', common.cors());
+  dispatchRouter.options('/:subPath(event/*)', common.cors());
   dispatchRouter.post(
-    '/:subPath(event)',
+    '/:subPath(event/*)',
     common.management({
       validate: { params: Validation.EntityIdParams.keys({ '0': Joi.string(), subPath: Joi.string() }) },
     }),

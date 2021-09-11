@@ -4,6 +4,7 @@ import RDS, { Model } from '@5qtrs/db';
 import * as querystring from 'querystring';
 
 import { getEnv } from '../v1/setup';
+import { getLogs } from '../v1/sdk';
 
 let { function5Id } = getEnv();
 
@@ -701,4 +702,29 @@ export const createTestFile = (getTestFile: () => any, replacements?: Record<str
     stringFunc = stringFunc.replace(new RegExp(find, 'g'), replace);
   });
   return stringFunc;
+};
+
+export const retrieveLogs = async ({ logsPromise }: { logsPromise: Promise<any> }) => {
+  // Wait for logs to drain
+  await new Promise((resolve) => setTimeout(resolve, 4000));
+  return await logsPromise;
+};
+
+export const attachLogger = async (account: IAccount, boundaryId: string, functionId: string) => {
+  const logsPromise = getLogs(account, boundaryId, functionId);
+
+  // Real time logs can take up to 5s to become effective
+  await new Promise((resolve) => setTimeout(resolve, 6000));
+
+  return { logsPromise };
+  // expect(logResponse).toBeHttp({ statusCode: 200 });
+  // expect(logResponse.headers['content-type']).toMatch(/text\/event-stream/);
+  // const i1 = logResponse.data.indexOf('Hello 1');
+  // const i2 = logResponse.data.indexOf('Hello 2');
+  // const i3 = logResponse.data.indexOf('Hello 3');
+  // const i4 = logResponse.data.indexOf('Hello 4');
+  // expect(i1).toBeGreaterThan(0);
+  // expect(i2).toBeGreaterThan(i1);
+  // expect(i3).toBeGreaterThan(i2);
+  // expect(i4).toBeGreaterThan(i3);
 };

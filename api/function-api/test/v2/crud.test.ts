@@ -44,51 +44,40 @@ const sampleEntitiesWithData: SampleEntityMap = {
     id: newId('Test'),
     tags: { [`oneTag`]: 'one-value', [`twoTags`]: 'two-values' },
   }),
-  [Model.EntityType.integration]: (): { id: string; tags: Model.ITags; data: Model.IIntegrationData } => {
-    const id = newId('Test');
-    return {
-      data: {
-        handler: './integrationTest.js',
-        files: {
-          'package.json': JSON.stringify({
-            scripts: {},
-            dependencies: {
-              '@fusebit-int/framework': defaultFrameworkSemver,
-            },
-            files: ['./integrationTest.js'],
-          }),
-          'integrationTest.js': [
-            "const { Integration } = require('@fusebit-int/framework');",
-            '',
-            'const integration = new Integration();',
-            'const router = integration.router;',
-            '',
-            "router.get('/api/', async (ctx) => {",
-            "  ctx.body = 'Hello World';",
-            '});',
-            '',
-            "router.get('/api/sillyrabbit', async (ctx) => {",
-            "  ctx.body = 'trix are for kids';",
-            '});',
-            'module.exports = integration;',
-          ].join('\n'),
-        },
-        configuration: {},
-        components: [
-          {
-            name: 'form',
-            entityType: Model.EntityType.integration,
-            entityId: id,
-            dependsOn: [],
-            path: '/dummy/path',
+  [Model.EntityType.integration]: (): { id: string; tags: Model.ITags; data: Model.IIntegrationData } => ({
+    data: {
+      handler: './integrationTest.js',
+      files: {
+        'package.json': JSON.stringify({
+          scripts: {},
+          dependencies: {
+            '@fusebit-int/framework': defaultFrameworkSemver,
           },
-        ],
-        componentTags: {},
+          files: ['./integrationTest.js'],
+        }),
+        'integrationTest.js': [
+          "const { Integration } = require('@fusebit-int/framework');",
+          '',
+          'const integration = new Integration();',
+          'const router = integration.router;',
+          '',
+          "router.get('/api/', async (ctx) => {",
+          "  ctx.body = 'Hello World';",
+          '});',
+          '',
+          "router.get('/api/sillyrabbit', async (ctx) => {",
+          "  ctx.body = 'trix are for kids';",
+          '});',
+          'module.exports = integration;',
+        ].join('\n'),
       },
-      id,
-      tags: { [`oneTag`]: 'one-value', [`twoTags`]: 'two-values' },
-    };
-  },
+      configuration: {},
+      components: [],
+      componentTags: {},
+    },
+    id: newId('Test'),
+    tags: { [`oneTag`]: 'one-value', [`twoTags`]: 'two-values' },
+  }),
 };
 
 const sampleEntitiesWithoutData: SampleEntityMap = (Object as any).fromEntries(
@@ -759,7 +748,7 @@ const performIntegrationTest = (sampleEntitiesMap: SampleEntityMap) => {
 
     const newFiles = {
       ...entity.data.files,
-      './integration.js': [
+      'integration.js': [
         "const { Integration } = require('@fusebit-int/framework');",
         '',
         'const integration = new Integration();',
@@ -799,7 +788,7 @@ const performIntegrationTest = (sampleEntitiesMap: SampleEntityMap) => {
         'const router = integration.router;',
         '',
         "router.on('/form/testEvent', async (ctx) => {",
-        '  return { answer: ctx.req.body.tasty + " and mango"};',
+        '  ctx.body = { answer: ctx.req.body.tasty + " and mango"};',
         '});',
         '',
         'module.exports = integration;',
@@ -807,6 +796,15 @@ const performIntegrationTest = (sampleEntitiesMap: SampleEntityMap) => {
     };
 
     Object.assign(entity, setFiles(entity, newFiles, './integration.js'));
+    entity.data.components = [
+      {
+        name: 'form',
+        entityType: Model.EntityType.integration,
+        entityId: entity.id,
+        dependsOn: [],
+        path: '/dummy/path',
+      },
+    ];
 
     let result = await ApiRequestMap[testEntityType].putAndWait(account, entity.id, entity);
     expect(result).toBeHttp({ statusCode: 200 });
