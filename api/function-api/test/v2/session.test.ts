@@ -67,7 +67,9 @@ describe('Sessions', () => {
 
     // Write data so there's something in the output
     response = await ApiRequestMap.integration.session.put(account, integrationId, response.data.id, {
-      monkey: 'banana',
+      output: {
+        monkey: 'banana',
+      },
     });
     expect(response).toBeHttp({ statusCode: 400 });
   }, 180000);
@@ -259,8 +261,8 @@ describe('Sessions', () => {
     // put new data to sessions
     const instanceData = { newData: 'for instance' };
     const identityData = { newData: 'for identity' };
-    await ApiRequestMap.integration.session.put(account, integrationId, instanceSessionId, instanceData);
-    await ApiRequestMap.connector.session.put(account, connectorId, identitySessionId, identityData);
+    await ApiRequestMap.integration.session.put(account, integrationId, instanceSessionId, { output: instanceData });
+    await ApiRequestMap.connector.session.put(account, connectorId, identitySessionId, { output: identityData });
 
     // finalize session to write session data to entities
     await ApiRequestMap.integration.session.commitSession(account, integrationId, parentSessionId);
@@ -315,7 +317,9 @@ describe('Sessions', () => {
 
     // put new data to sessions
     const formOneNewData = { newData: 'form one is updated' };
-    response = await ApiRequestMap.integration.session.put(account, integrationId, formOneSessionId, formOneNewData);
+    response = await ApiRequestMap.integration.session.put(account, integrationId, formOneSessionId, {
+      output: formOneNewData,
+    });
 
     // finalize session
     response = await ApiRequestMap.integration.session.commitSession(account, integrationId, parentSessionId);
@@ -548,7 +552,9 @@ describe('Sessions', () => {
 
     // Write data so there's something in the output
     response = await ApiRequestMap[loc.entityType].session.put(account, loc.entityId, loc.sessionId, {
-      monkey: 'banana',
+      output: {
+        monkey: 'banana',
+      },
     });
     expect(response).toBeHttp({ statusCode: 200 });
 

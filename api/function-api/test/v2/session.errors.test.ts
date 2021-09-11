@@ -34,8 +34,10 @@ describe('Sessions', () => {
 
     // Test failure of this step
     response = await ApiRequestMap.connector.session.put(account, connectorId, stepSessionId, {
-      error: 'bad_monkey',
-      errorDescription: 'worst',
+      output: {
+        error: 'bad_monkey',
+        errorDescription: 'worst',
+      },
     });
     expect(response).toBeHttp({ statusCode: 200 });
 
@@ -88,8 +90,10 @@ describe('Sessions', () => {
 
     // Test failure of this step
     response = await ApiRequestMap.integration.session.put(account, integrationId, stepSessionId, {
-      error: 'bad_monkey',
-      errorDescription: 'worst',
+      output: {
+        error: 'bad_monkey',
+        errorDescription: 'worst',
+      },
     });
     expect(response).toBeHttp({ statusCode: 200 });
 

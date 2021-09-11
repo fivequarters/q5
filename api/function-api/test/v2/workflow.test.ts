@@ -108,7 +108,7 @@ describe('Workflow', () => {
       '  ctx.body = response.body;',
       '});',
       "router.get('/api/testSession', async (ctx) => {",
-      "  let response = await superagent.put(`${ctx.state.params.baseUrl}/session/${ctx.query.session}`).set('Authorization', `Bearer ${ctx.state.params.functionAccessToken}`).send({ hello: 'world'});",
+      "  let response = await superagent.put(`${ctx.state.params.baseUrl}/session/${ctx.query.session}`).set('Authorization', `Bearer ${ctx.state.params.functionAccessToken}`).send({output:{ hello: 'world'}});",
       '  const result = {};',
       "  response = await superagent.get(`${ctx.state.params.baseUrl}/session/${ctx.query.session}`).set('Authorization', `Bearer ${ctx.state.params.functionAccessToken}`);",
       '  ctx.body = response.body;',

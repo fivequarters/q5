@@ -13,8 +13,8 @@ export const userId = Joi.string().regex(/^usr-[a-g0-9]{16}$/);
 export const sessionId = Joi.string().guid();
 export const npmPackageName = Joi.string().regex(/^(@[a-z0-9-~][a-z0-9-._~]*\/)?[a-z0-9-~][a-z0-9-._~]*$/);
 
-export const tagValue = /^[a-zA-Z0-9_\-\.]*$/;
-export const tagNameValues = Joi.string().regex(/^([a-zA-Z0-9_\-\.%]+[=]?[a-zA-Z0-9_\-\.%]*)$/);
+export const tagValue = /^[a-zA-Z0-9_\-\.\/]*$/;
+export const tagNameValues = Joi.string().regex(/^([a-zA-Z0-9_\-\.%\/]+[=]?[a-zA-Z0-9_\-\.%\/]*)$/);
 export const tagQuery = Joi.alternatives().try(tagNameValues, Joi.array().items(tagNameValues));
 
-export const tags = Joi.object().pattern(tagValue, Joi.string().regex(tagValue)).default({});
+export const tags = Joi.object().pattern(tagValue, [Joi.string().regex(tagValue), Joi.allow(null)]);
