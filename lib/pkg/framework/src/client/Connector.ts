@@ -65,7 +65,7 @@ class Service extends EntityBase.ServiceDefault {
   }
 
   public getWebhookTokenId(ctx: Connector.Types.Context, token: any): string {
-    const authId = this.getTokenAuthId(ctx, token);
+    const authId = this.getTokenAuthId(token);
     const connectorId = ctx.state.params.entityId;
     return ['webhook', connectorId, authId].join('/');
   }
@@ -100,8 +100,9 @@ class Service extends EntityBase.ServiceDefault {
   private getEventAuthId = (ctx: Connector.Types.Context): string | void => {
     ctx.throw(500, 'Event AuthId configuration missing.  Required for webhook processing.');
   };
-  private getTokenAuthId = (ctx: Connector.Types.Context, token: any): string | void => {
-    ctx.throw(500, 'Token AuthId configuration missing.  Required for webhook processing.');
+  private getTokenAuthId = (token: any): string | void => {
+    // No throw here.  This is called in the auth flow and needs to continue regardless of success
+    console.log('Token AuthId configuration missing.  Required for webhook processing.');
   };
   private createWebhookResponse = async (
     ctx: Connector.Types.Context,

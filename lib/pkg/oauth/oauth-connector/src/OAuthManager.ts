@@ -25,15 +25,13 @@ const sanitizeCredentials = (credentials: any): object => {
 router.use(async (ctx: Connector.Types.Context, next: Connector.Types.Next) => {
   if (engine) {
     const createTags = (token: IOAuthToken): ITags | undefined => {
-      try {
-        const webhookId = connector.service.getWebhookTokenId(ctx, token);
+      const webhookId = connector.service.getWebhookTokenId(ctx, token);
 
-        const result: ITags = {};
-        if (webhookId) {
-          result[webhookId] = null;
-          return result;
-        }
-      } catch (e) {}
+      const result: ITags = {};
+      if (webhookId) {
+        result[webhookId] = null;
+        return result;
+      }
     };
     engine.setMountUrl(ctx.state.params.baseUrl);
     ctx.state.identityClient = new IdentityClient({

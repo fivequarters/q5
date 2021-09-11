@@ -4,7 +4,6 @@ import RDS, { Model } from '@5qtrs/db';
 import * as querystring from 'querystring';
 
 import { getEnv } from '../v1/setup';
-import { getLogs } from '../v1/sdk';
 
 let { function5Id } = getEnv();
 
@@ -702,10 +701,4 @@ export const createTestFile = (getTestFile: () => any, replacements?: Record<str
     stringFunc = stringFunc.replace(new RegExp(find, 'g'), replace);
   });
   return stringFunc;
-};
-
-export const retrieveLogs = async ({ logsPromise }: { logsPromise: Promise<any> }) => {
-  // Wait for logs to drain
-  await new Promise((resolve) => setTimeout(resolve, 4000));
-  return await logsPromise;
 };
