@@ -5,6 +5,8 @@ import * as querystring from 'querystring';
 
 import { getEnv } from '../v1/setup';
 
+import { getLogs } from '../v1/sdk';
+
 let { function5Id } = getEnv();
 
 type Optional<T, K extends keyof T> = Pick<Partial<T>, K> & Omit<T, K>;
@@ -47,12 +49,23 @@ export const DefaultWaitForCompletionParams: IWaitForCompletionParams = {
 };
 
 const testEntitiesCreated: { entityType: Model.EntityType; id: string }[] = [];
+let enableLogAllEntities = false;
+let testEntitiesLogged: Record<string, Promise<any>> = {};
 
 export const cleanupEntities = async (account: IAccount) => {
   await (Promise as any).allSettled(
     testEntitiesCreated.map(({ entityType, id }) => (ApiRequestMap as any)[entityType].deleteAndWait(account, id))
   );
   testEntitiesCreated.length = 0; // Clear the array.
+  if (enableLogAllEntities) {
+    await new Promise((resolve) => setTimeout(resolve, 4000));
+    for (const entity of Object.keys(testEntitiesLogged)) {
+      process.stderr.write(`\n${entity} Logs:\n`);
+      for (const m of ((await retrieveLogs(entity)) as any).matchAll(new RegExp(/data: (.*)/g))) {
+        process.stderr.write(`\t${m[1]}\n`);
+      }
+    }
+  }
 };
 
 export const v2Request = async (account: IAccount, options: IRequestOptions) => {
@@ -260,7 +273,16 @@ const createSdk = (entityType: Model.EntityType): ISdkForEntity => ({
       data: { operationState: { operation: Model.OperationType.creating, status: Model.OperationStatus.processing } },
     });
 
-    return waitForCompletion(account, entityType, entityId, undefined, waitOptions, options);
+    const waitPromise = waitForCompletion(account, entityType, entityId, undefined, waitOptions, options);
+    if (!enableLogAllEntities) {
+      return waitPromise;
+    }
+
+    const result = await waitPromise;
+
+    const logPromise = await attachLogger(account, entityType, entityId);
+
+    return result;
   },
 
   put: async (account: IAccount, entityId: string, body: Model.ISdkEntity, options?: IRequestOptions) =>
@@ -687,6 +709,34 @@ export const getElementsFromUrl = (url: string) => {
     entityId: comps[4],
     sessionId: decomp.searchParams.get('session'),
   };
+};
+
+export const getEntityLogs = async (entityType: Model.EntityType, entityId: string): Promise<string> => {
+  return retrieveLogs(`${entityType}/${entityId}`);
+};
+
+const retrieveLogs = async (logKey: string): Promise<string> => {
+  const logResponse = await testEntitiesLogged[logKey];
+  delete testEntitiesLogged[logKey];
+
+  expect(logResponse).toBeHttp({ statusCode: 200 });
+  expect(logResponse.headers['content-type']).toMatch(/text\/event-stream/);
+
+  return logResponse.data;
+};
+
+export const enableLogs = (mode: boolean = true) => {
+  enableLogAllEntities = mode;
+};
+
+export const attachLogger = async (account: IAccount, entityType: Model.EntityType, entityId: string) => {
+  const logsPromise = getLogs(account, entityType, entityId);
+
+  // Real time logs can take up to 5s to become effective
+  await new Promise((resolve) => setTimeout(resolve, 6000));
+
+  testEntitiesLogged[`${entityType}/${entityId}`] = logsPromise;
+  return { logsPromise };
 };
 
 export const createTestFile = (getTestFile: () => any, replacements?: Record<string, string>): string => {
