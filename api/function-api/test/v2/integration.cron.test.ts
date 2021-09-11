@@ -2,6 +2,8 @@ import { cleanupEntities, ApiRequestMap } from './sdk';
 import { getEnv } from '../v1/setup';
 import { getFunction, getStorage } from '../v1/sdk';
 
+import { defaultFrameworkSemver } from '../../src/routes/service/BaseEntityService';
+
 let { account, boundaryId } = getEnv();
 beforeEach(() => {
   ({ account, boundaryId } = getEnv());
@@ -96,7 +98,7 @@ const getIntegrationCode = ({ accountId, subscriptionId }: typeof account) => {
 
 const packageJson = {
   dependencies: {
-    '@fusebit-int/framework': '4.0.1',
+    '@fusebit-int/framework': defaultFrameworkSemver,
     superagent: '^6.1.0',
   },
   files: ['./integration.js'],
