@@ -64,6 +64,7 @@ const createSessionRouter = (SessionService: SessionedEntityService<any, any>) =
             input: session.result.data.input,
             output: session.result.data.output,
             dependsOn: session.result.data.dependsOn,
+            tags: session.result.tags,
           };
           res.status(session.statusCode).json(result);
         } catch (error) {
@@ -93,6 +94,7 @@ const createSessionRouter = (SessionService: SessionedEntityService<any, any>) =
             input: session.result.input,
             output: session.result.output,
             dependsOn: session.result.dependsOn,
+            tags: session.result.tags,
           };
           res.status(session.statusCode).json(result);
         } catch (error) {

@@ -417,10 +417,10 @@ const performTests = (testEntityType: TestableEntityTypes, sampleEntityMap: Samp
           if (acc[curTag] === undefined) {
             acc[curTag] = {};
           }
-          if (acc[curTag][cur.tags![curTag]] === undefined) {
-            acc[curTag][cur.tags![curTag]] = 0;
+          if (acc[curTag][cur.tags![curTag]!] === undefined) {
+            acc[curTag][cur.tags![curTag]!] = 0;
           }
-          acc[curTag][cur.tags![curTag]]++;
+          acc[curTag][cur.tags![curTag]!]++;
         });
         return acc;
       },
@@ -787,8 +787,8 @@ const performIntegrationTest = (sampleEntitiesMap: SampleEntityMap) => {
         'const integration = new Integration();',
         'const router = integration.router;',
         '',
-        "router.on('/testEvent', async ({tasty}) => {",
-        '  return { answer: tasty + " and mango"};',
+        "router.on('/form/testEvent', async (ctx) => {",
+        '  ctx.body = { answer: ctx.req.body.tasty + " and mango"};',
         '});',
         '',
         'module.exports = integration;',
@@ -796,16 +796,28 @@ const performIntegrationTest = (sampleEntitiesMap: SampleEntityMap) => {
     };
 
     Object.assign(entity, setFiles(entity, newFiles, './integration.js'));
+    entity.data.components = [
+      {
+        name: 'form',
+        entityType: Model.EntityType.integration,
+        entityId: entity.id,
+        dependsOn: [],
+        path: '/dummy/path',
+      },
+    ];
 
     let result = await ApiRequestMap[testEntityType].putAndWait(account, entity.id, entity);
     expect(result).toBeHttp({ statusCode: 200 });
-    result = await ApiRequestMap[testEntityType].dispatch(account, entity.id, RequestMethod.post, '/event', {
-      body: {
-        event: '/testEvent',
-        parameters: { tasty: 'banana' },
-      },
-      contentType: 'application/json',
-    });
+    result = await ApiRequestMap[testEntityType].dispatch(
+      account,
+      entity.id,
+      RequestMethod.post,
+      `/event/manual/${entity.id}/testEvent`,
+      {
+        body: { tasty: 'banana' },
+        contentType: 'application/json',
+      }
+    );
     expect(result).toBeHttp({ statusCode: 200, data: { answer: 'banana and mango' } });
   }, 180000);
 };

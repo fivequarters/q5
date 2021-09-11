@@ -7,6 +7,7 @@ const commonParams = {
     accountId: Common.accountId.required(),
     subscriptionId: Common.subscriptionId.required(),
     entityId: Common.entityId.required(),
+    proxyType: Joi.string(),
   }),
 };
 

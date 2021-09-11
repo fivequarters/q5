@@ -738,3 +738,17 @@ export const attachLogger = async (account: IAccount, entityType: Model.EntityTy
   testEntitiesLogged[`${entityType}/${entityId}`] = logsPromise;
   return { logsPromise };
 };
+
+export const createTestFile = (getTestFile: () => any, replacements?: Record<string, string>): string => {
+  let stringFunc = String(getTestFile);
+  let stringArray = stringFunc.split('}');
+  stringArray.pop();
+  stringFunc = stringArray.join('}');
+  stringArray = stringFunc.split('{');
+  stringArray.shift();
+  stringFunc = stringArray.join('{');
+  Object.entries(replacements || {}).forEach(([find, replace]) => {
+    stringFunc = stringFunc.replace(new RegExp(find, 'g'), replace);
+  });
+  return stringFunc;
+};
