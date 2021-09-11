@@ -11,7 +11,7 @@ set -e
 DEPLOYMENT_NAME=cicd
 REGION=us-east-2
 NETWORK_NAME=cicd
-DEPLOYMENT_DOMAIN=cicd.fusebit.io
+DEPLOYMENT_DOMAIN=dev.fusebit.io
 
 echoerr() { printf "%s\n" "$*" >&2; }
 FUSEOPS="node cli/fusebit-ops-cli/libc/index.js"
