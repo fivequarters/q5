@@ -1,6 +1,8 @@
 import { Connector } from '@fusebit-int/framework';
 import OAuthConnector from '@fusebit-int/oauth-connector';
 import { schema, uischema } from './configure';
+import crypto from 'crypto';
+import superagent from 'superagent';
 
 const connector = new Connector();
 const router = connector.router;
@@ -19,12 +21,55 @@ router.get(
   connector.middleware.authorizeUser('connector:put'),
   async (ctx: Connector.Types.Context) => {
     ctx.body = {
-      data: ctx.state.manager.config.configuration,
+      data: {
+        ...ctx.state.manager.config.configuration,
+        webhookUrl: `${ctx.state.params.baseUrl}/api/fusebit_webhook_event`,
+      },
       schema,
       uischema,
     };
   }
 );
+
+connector.service.setGetEventAuthId((ctx: Connector.Types.Context) => {
+  if (!ctx.req?.body || ctx.req.body.length === 0) {
+    return;
+  }
+
+  return ctx.req.body.reduce((acc: Record<string, any>, cv: any) => {
+    const key = `${cv.appId}/${cv.portalId}`;
+    (acc[key] = acc[key] || []).push(cv);
+    return acc;
+  }, {});
+});
+
+// HubSpot has a very straightforward auth scheme; there's a slightly more complicated v2 variant, but it's
+// not in use at this time for webhooks.
+connector.service.setValidateWebhookEvent((ctx: Connector.Types.Context) => {
+  if (ctx.req.headers['x-hubspot-signature-version'] !== 'v1') {
+    ctx.throw(400, { message: `Unsupported signature version: ${ctx.req.headers['x-hubspot-signature-version']}` });
+  }
+
+  const signatureHeader = ctx.req.headers['x-hubspot-signature'] as string;
+  const clientSecret = ctx.state.manager.config.configuration.clientSecret;
+  const requestBody = JSON.stringify(ctx.req.body);
+
+  const calculatedHash = crypto.createHash('sha256').update(`${clientSecret}${requestBody}`).digest('hex');
+
+  return crypto.timingSafeEqual(Buffer.from(signatureHeader, 'utf8'), Buffer.from(calculatedHash, 'utf8'));
+});
+
+// HubSpot doesn't have any challenge messages
+connector.service.setInitializationChallenge(() => false);
+
+// Query hubspot to get the hub_id (aka portalId) for this authenticated user.
+OAuthConnector.service.setGetTokenAuthId(async (ctx: Connector.Types.Context, token: any) => {
+  const meUrl = new URL(ctx.state.manager.config.configuration.authorizationUrl);
+  const response = await superagent.get(`${meUrl.origin}/oauth/v1/access-tokens/${token.access_token}`);
+  return `${response.body.app_id}/${response.body.hub_id}`;
+});
+
+connector.service.setGetWebhookEventType((ctx: Connector.Types.Context) => 'events');
 
 router.use(OAuthConnector.router.routes());
 
