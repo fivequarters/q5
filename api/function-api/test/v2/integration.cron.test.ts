@@ -55,9 +55,9 @@ describe('Scheduled integrations', () => {
   };
 
   const validateIntegrationScheduledRun = async () => {
-    const oneMinuteFromNow = new Date(Date.now() + 60000);
+    const threeMinutesFromNow = new Date(Date.now() + 180000);
     let lastResponse: any = { status: 404 };
-    while (lastResponse.status === 404 && oneMinuteFromNow.getTime() > Date.now()) {
+    while (lastResponse.status === 404 && threeMinutesFromNow.getTime() > Date.now()) {
       lastResponse = await getStorage(account, `integration/${boundaryId}/`);
     }
     expect(lastResponse.status).toBe(200);
