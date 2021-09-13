@@ -170,7 +170,7 @@ export class EntityService {
       } else {
         details.push(Text.eol());
         keys.forEach((key) => {
-          details.push(Text.dim('• '), key, Text.dim(': '), item.tags[key] ? item.tags[key] : 'null', Text.eol());
+          details.push(Text.dim('• '), key, Text.dim(': '), item.tags[key] || 'null', Text.eol());
         });
       }
     }

@@ -21,12 +21,6 @@ class Service extends EntityBase.ServiceDefault {
       return;
     }
 
-    if (typeof webhookAuthId === 'string') {
-      // Process with no await.  Happily happens in background ensuring a quick response to
-      // the webhook caller.
-      return this.createWebhookResponse(ctx, this.processWebhook(ctx, ctx.req.body, webhookAuthId));
-    }
-
     // Event contains many different authId-associated entries - process them independently.
     return this.createWebhookResponse(
       ctx,
@@ -93,7 +87,7 @@ class Service extends EntityBase.ServiceDefault {
   };
 
   // getEventAuthId takes an external event and extracts the authId
-  public setGetEventAuthId = (handler: (ctx: Connector.Types.Context) => Record<string, any> | string | void): void => {
+  public setGetEventAuthId = (handler: (ctx: Connector.Types.Context) => Record<string, any> | void): void => {
     this.getEventAuthId = handler;
   };
 
@@ -123,7 +117,7 @@ class Service extends EntityBase.ServiceDefault {
   };
 
   // Default configuration functions
-  private getEventAuthId = (ctx: Connector.Types.Context): Record<string, any> | string | void => {
+  private getEventAuthId = (ctx: Connector.Types.Context): Record<string, any> | void => {
     ctx.throw(500, 'Event AuthId configuration missing.  Required for webhook processing.');
   };
 
