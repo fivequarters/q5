@@ -22,7 +22,7 @@ All public releases of the Fusebit Operations CLI are documented here, including
 
 _Released 09/13/21_
 
-- **Bugfix.** Fuse-ops no longer error out when adding a new deployment from a missing segment key.
+- **Bugfix.** Fuse-ops no longer error out when adding a new deployment with no segment key provided on the command line.
 
 ## Version 1.28.9
 
