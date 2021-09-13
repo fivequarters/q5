@@ -18,6 +18,12 @@ All public releases of the Fusebit Operations CLI are documented here, including
 {:toc}
 -->
 
+## Version 1.29.1
+
+_Released 09/13/21_
+
+- **Bugfix.** Fuse-ops no longer error out when adding a new deployment with no segment key provided on the command line.
+
 ## Version 1.28.9
 
 _Released 08/18/21_
