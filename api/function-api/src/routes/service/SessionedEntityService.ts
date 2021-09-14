@@ -5,7 +5,7 @@ import { EPHEMERAL_ENTITY_EXPIRATION } from '@5qtrs/constants';
 import RDS, { Model } from '@5qtrs/db';
 
 import BaseEntityService, { IServiceResult } from './BaseEntityService';
-import { EntityState, OperationType, OperationStatus } from '@fusebit/schema';
+import { EntityState, OperationType, OperationStatus, ITrunkSession } from '@fusebit/schema';
 
 export default abstract class SessionedEntityService<
   E extends Model.IEntity,
@@ -374,16 +374,17 @@ export default abstract class SessionedEntityService<
 
     setImmediate(async () => {
       try {
-        await this.persistTrunkSession(session);
+        await this.persistTrunkSession(result as ITrunkSession);
       } catch (error) {
         console.log(error);
 
-        session.state = EntityState.active;
-        session.operationState = {
+        const brokenSession = await this.sessionDao.getEntity(entity);
+        brokenSession.state = EntityState.active;
+        brokenSession.operationState = {
           operation: OperationType.creating,
           status: OperationStatus.failed,
         };
-        await this.sessionDao.updateEntity(session);
+        await this.sessionDao.updateEntity(brokenSession);
       }
     });
 

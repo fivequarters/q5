@@ -183,10 +183,14 @@
                 .set('Authorization', `Bearer ${accessToken}`)
                 .send();
 
-            while (result.statusCode === 202) {
-                console.log('waiting for ');
+            let retries = 0;
+            while (result.statusCode === 202 && retries < 10) {
+                console.log('WAITING FOR SESSION TO BE FULLY COMMITED...');
                 await new Promise(res => setTimeout(res, 100));
-                result = await superagent.get(`${integrationBaseUrl}/session/${sessionId}`);
+                result = await superagent.get(`${integrationBaseUrl}/session/${sessionId}`)
+                    .set('Authorization', `Bearer ${accessToken}`)
+                    .send();
+                retries++;
             }
 
             if (result.statusCode !== 200) {
