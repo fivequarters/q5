@@ -31,14 +31,14 @@ router.get(
   }
 );
 
-connector.service.setGetEventAuthId((ctx: Connector.Types.Context) => {
+connector.service.setGetEventsByAuthId((ctx: Connector.Types.Context) => {
   if (!ctx.req?.body || ctx.req.body.length === 0) {
     return;
   }
 
   return ctx.req.body.reduce((acc: Record<string, any>, cv: any) => {
     const key = `${cv.appId}/${cv.portalId}`;
-    (acc[key] = acc[key] || []).push(cv);
+    (acc[key] = acc[key] || []).push(connector.service.createWebhookEvent(ctx, cv, key));
     return acc;
   }, {});
 });
