@@ -22,14 +22,12 @@ class Service extends EntityBase.ServiceDefault {
     }
 
     // Event contains many different authId-associated entries - process them independently.
-    return this.createWebhookResponse(
-      ctx,
-      Promise.all(
-        Object.entries(
-          eventsByAuthId as Record<string, Connector.Types.IWebhookEvents>
-        ).map(([authId, events]: [string, Connector.Types.IWebhookEvents]) => this.processWebhook(ctx, authId, events))
-      )
+    const processPromise = Promise.all(
+      Object.entries(
+        eventsByAuthId as Record<string, Connector.Types.IWebhookEvents>
+      ).map(([authId, events]: [string, Connector.Types.IWebhookEvents]) => this.processWebhook(ctx, authId, events))
     );
+    return this.createWebhookResponse(ctx, processPromise);
   };
 
   public createWebhookEvent = (

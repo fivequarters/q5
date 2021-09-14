@@ -47,11 +47,12 @@ router.post('/event/:eventMode/:sourceEntityId', async (ctx: Context, next: Next
     (comp: IInstanceConnectorConfig) => comp.entityId === events[0].connectorId
   );
 
+  if (!component) {
+    return next();
+  }
+
   const result = await Promise.all(
     events.map(async (event: Connector.Types.IWebhookEvent) => {
-      if (!component) {
-        return next();
-      }
       const eventName = `/${component.name}/${event.eventType}`;
       return ctx.state.manager.invoke(eventName, ctx.req.body.data, ctx.state);
     })

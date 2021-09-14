@@ -37,7 +37,7 @@ connector.service.setGetEventsByAuthId((ctx: Connector.Types.Context) => {
   const authId = ctx.req?.body?.authorizations?.[0]?.user_id;
 
   if (authId) {
-    return { [authId]: connector.service.createWebhookEvent(ctx, ctx.req.body, authId) };
+    return { [authId]: [connector.service.createWebhookEvent(ctx, ctx.req.body, authId)] };
   }
 });
 
