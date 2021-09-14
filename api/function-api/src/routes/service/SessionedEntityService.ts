@@ -5,6 +5,7 @@ import { EPHEMERAL_ENTITY_EXPIRATION } from '@5qtrs/constants';
 import RDS, { Model } from '@5qtrs/db';
 
 import BaseEntityService, { IServiceResult } from './BaseEntityService';
+import { EntityState, OperationType, OperationStatus } from '@fusebit/schema';
 
 export default abstract class SessionedEntityService<
   E extends Model.IEntity,
@@ -231,7 +232,9 @@ export default abstract class SessionedEntityService<
       }));
     }
 
-    return { statusCode: 200, result: session };
+    const statusCode = session.operationState?.status === OperationStatus.processing ? 202 : 200;
+
+    return { statusCode, result: session };
   };
 
   public putSession = async (
@@ -342,7 +345,7 @@ export default abstract class SessionedEntityService<
     };
   };
 
-  public postSession = async (entity: Model.IEntity): Promise<IServiceResult> => {
+  public commitSession = async (entity: Model.IEntity): Promise<IServiceResult> => {
     // Returns after the creation process is completed.
     const session = await this.sessionDao.getEntity(entity);
     this.ensureSessionTrunk(session, 'cannot post non-master session', 400);
@@ -362,22 +365,47 @@ export default abstract class SessionedEntityService<
       }
     }
 
-    return this.persistTrunkSession(session);
+    session.state = EntityState.creating;
+    session.operationState = {
+      operation: OperationType.creating,
+      status: OperationStatus.processing,
+    };
+    const result = await this.sessionDao.updateEntity(session);
+
+    setImmediate(async () => {
+      try {
+        await this.persistTrunkSession(session);
+      } catch (error) {
+        console.log(error);
+
+        session.state = EntityState.active;
+        session.operationState = {
+          operation: OperationType.creating,
+          status: OperationStatus.failed,
+        };
+        await this.sessionDao.updateEntity(session);
+      }
+    });
+
+    return {
+      statusCode: 202,
+      result,
+    };
   };
 
-  protected persistTrunkSession = async (session: Model.ITrunkSession): Promise<IServiceResult> => {
-    const masterSessionId = Model.decomposeSubordinateId(session.id);
+  protected persistTrunkSession = async (session: Model.ITrunkSession): Promise<void> => {
+    return RDS.inTransaction(async (daos) => {
+      const masterSessionId = Model.decomposeSubordinateId(session.id);
 
-    if (this.entityType !== Model.EntityType.integration) {
-      throw http_error(500, `Invalid entity type '${this.entityType}' for ${masterSessionId.entityId}`);
-    }
+      if (this.entityType !== Model.EntityType.integration) {
+        throw new Error(`Invalid entity type '${this.entityType}' for ${masterSessionId.entityId}`);
+      }
 
-    let instanceId;
+      let instanceId;
 
-    const leafSessionResults: Record<string, any> = {};
-    const leafTags: Model.ITags = {};
+      const leafSessionResults: Record<string, any> = {};
+      const leafTags: Model.ITags = {};
 
-    await RDS.inTransaction(async (daos) => {
       // Persist each session.
       const leafPromises = await (Promise as any).allSettled(
         Object.values(session.data.components).map(async (step: Model.IStep) => {
@@ -403,7 +431,6 @@ export default abstract class SessionedEntityService<
             // Store the results.
             leafSessionResults[step.name] = result.result;
           } catch (e) {
-            console.log(e);
             // Force the transaction to fail.
             throw e;
           }
@@ -470,10 +497,15 @@ export default abstract class SessionedEntityService<
         tags: instance.tags,
       };
       session.data.replacementTargetId = instanceId;
+
+      session.state = EntityState.active;
+      session.operationState = {
+        operation: OperationType.creating,
+        status: OperationStatus.success,
+      };
+
       await daos[Model.EntityType.session].updateEntity(session);
     });
-
-    return { statusCode: 200, result: { instanceId } };
   };
 
   public persistLeafSession = async (

@@ -175,7 +175,7 @@ const createSessionRouter = (SessionService: SessionedEntityService<any, any>) =
       }),
       async (req: express.Request, res: express.Response, next: express.NextFunction) => {
         try {
-          const result = await SessionService.postSession({
+          const result = await SessionService.commitSession({
             accountId: req.params.accountId,
             subscriptionId: req.params.subscriptionId,
             // Sessions use the non-unique component name, but instances and identities use the database id.

@@ -138,12 +138,12 @@ paths:
         entities, or updating the configuration of existing entities as necessary.
       operationId: postSession
       responses:
-        200:
+        202:
           description: The session has been created
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/SessionInstanceIdResponse'
+                $ref: '#/components/schemas/Session'
         400:
           $ref: '#/components/responses/400'
         403:
@@ -771,6 +771,17 @@ components:
           schema:
             $ref: '#/components/schemas/IntegrationEntity'
 
+    Session202:
+      description: The entity creation is in progress. While the `operationState.status` value is
+        `processing`, the entity is still being created. Once the `operationState.status` value is
+        `success`, the entity is available for use.
+
+        On failure, `operationState.status` will be set to `failed` and `state` will be `invalid`.
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Session'
+
     400:
       description: The request submitted is invalid. Please, check the documentation and
         fix the request before sending it again.
@@ -888,7 +899,15 @@ components:
 
     OperationErrorCode:
       type: string
-      enum: ['OK', 'InvalidParameterValue', 'UnauthorizedOperation', 'VersionConflict', 'InternalError', 'RequestLimitExceeded']
+      enum:
+        [
+          'OK',
+          'InvalidParameterValue',
+          'UnauthorizedOperation',
+          'VersionConflict',
+          'InternalError',
+          'RequestLimitExceeded',
+        ]
       example: OK
 
     OperationStatusObject:
