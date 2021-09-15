@@ -1,18 +1,47 @@
 #!/usr/bin/env node
-import fs from 'fs';
-import yargs from 'yargs/yargs';
-import { hideBin } from 'yargs/helpers';
 
-const processInputAndTriggerNotification = async () => {
-  const argv = await yargs(hideBin(process.argv)).argv;
+import superagent from 'superagent';
+import { JestOutput, Status } from './jestTypes';
+const outputJson: JestOutput = require('../../../../api/function-api/testOutput.json');
 
-  if (!argv || !argv.path || typeof argv.path !== 'string') {
-    throw Error('Invalid input path.');
+const failureWebhook = 'https://hooks.slack.com/services/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';
+const successWebhook = 'https://hooks.slack.com/services/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';
+
+(async () => {
+  if (outputJson.success) {
+    await superagent.post(successWebhook).send({
+      text: ':tada: Fusebit Test Suite Passed :tada:',
+    });
   }
-  const content = await fs.promises.readFile(argv.path);
-  return JSON.parse(content.toString('utf8'));
-};
+  const failurePayload = {
+    text: ':alarm: Tests are failing :alarm:',
+    blocks: [
+      {
+        type: 'section',
+        text: {
+          type: 'mrkdwn',
+          text: `OOF ${outputJson.numFailedTestSuites} Suites have failed.`,
+        },
+      },
+    ],
+  };
+  for (const test of outputJson.testResults) {
+    if (test.status !== Status.Failed) {
+      continue;
+    }
 
-processInputAndTriggerNotification().then((pl) => {
-  console.log(pl);
-});
+    failurePayload.blocks.push({
+      type: 'section',
+      text: {
+        type: 'plain_text',
+        text: `${test.name} Failed`,
+      },
+    });
+  }
+  console.log(failurePayload.blocks.map((v) => v.text));
+  try {
+    await superagent.post(successWebhook).send(failurePayload);
+  } catch (e) {
+    console.log(e);
+  }
+})();
