@@ -204,7 +204,7 @@
             const instance = result.body;
             console.log('INTEGRATION INSTANCE CREATED', JSON.stringify(instance, null, 2));
 
-            return { instanceId: instance.output.entityId, accessToken, integrationBaseUrl, tenantId };
+            return { instanceId: instance.data.output.entityId, accessToken, integrationBaseUrl, tenantId };
         }
 
         // Parse input params
