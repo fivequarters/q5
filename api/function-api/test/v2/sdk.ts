@@ -207,6 +207,12 @@ interface ISdkForEntity {
       sessionId: string,
       options?: Partial<IRequestOptions>
     ) => Promise<IHttpResponse>;
+    commitSession: (
+      account: IAccount,
+      entityId: string,
+      sessionId: string,
+      options?: Partial<IRequestOptions>
+    ) => Promise<IHttpResponse>;
   };
 }
 
@@ -437,10 +443,14 @@ const createSdk = (entityType: Model.EntityType): ISdkForEntity => ({
         statusCode: 202,
         data: { operationState: { operation: Model.OperationType.creating, status: Model.OperationStatus.processing } },
       });
-
-      console.log('trying to get session id', sessionId);
       return waitForCompletion(account, Model.EntityType.session, entityId, sessionId, waitOptions, options);
     },
+    commitSession: async (account: IAccount, entityId: string, sessionId: string, options?: Partial<IRequestOptions>) =>
+      v2Request(account, {
+        method: RequestMethod.post,
+        uri: `/${entityType}/${encodeURI(entityId)}/session/${sessionId}/commit`,
+        ...options,
+      }),
   },
 });
 
