@@ -137,8 +137,10 @@ describe('Sessions', () => {
       has: ['id'],
       hasNot: ['output'],
       data: {
-        input: {
-          iguana: 'mango',
+        data: {
+          input: {
+            iguana: 'mango',
+          },
         },
       },
     });
@@ -265,7 +267,7 @@ describe('Sessions', () => {
     await ApiRequestMap.connector.session.put(account, connectorId, identitySessionId, { output: identityData });
 
     // finalize session to write session data to entities
-    await ApiRequestMap.integration.session.commitSession(account, integrationId, parentSessionId);
+    await ApiRequestMap.integration.session.commitSessionAndWait(account, integrationId, parentSessionId);
 
     // verify that pre-existing identity and instance have been updated
     response = await ApiRequestMap.instance.get(account, integrationId, instanceId);
@@ -322,7 +324,7 @@ describe('Sessions', () => {
     });
 
     // finalize session
-    response = await ApiRequestMap.integration.session.commitSession(account, integrationId, parentSessionId);
+    response = await ApiRequestMap.integration.session.commitSessionAndWait(account, integrationId, parentSessionId);
 
     // verify that pre-existing instance has been updated while preserving skipped formTwo data
     response = await ApiRequestMap.instance.get(account, integrationId, instanceId);
@@ -560,15 +562,20 @@ describe('Sessions', () => {
 
     // Getting a session with data in it return the output.
     response = await ApiRequestMap[loc.entityType].session.get(account, loc.entityId, loc.sessionId);
-    expect(response).toBeHttp({ statusCode: 200, data: { output: { monkey: 'banana' } } });
+    expect(response).toBeHttp({
+      statusCode: 200,
+      data: {
+        data: { output: { monkey: 'banana' } },
+      },
+    });
 
     // Finish the session
     response = await ApiRequestMap[loc.entityType].session.callback(account, loc.entityId, loc.sessionId);
     expect(response).toBeHttp({ statusCode: 302 });
 
     // POST the parent session
-    response = await ApiRequestMap.integration.session.commitSession(account, integrationId, parentSessionId);
-    const instanceId = response.data.instanceId;
+    response = await ApiRequestMap.integration.session.commitSessionAndWait(account, integrationId, parentSessionId);
+    const instanceId = response.data.data.replacementTargetId;
     expect(instanceId).toBeUUID();
 
     // Returns the identity and instance id's.
@@ -578,6 +585,7 @@ describe('Sessions', () => {
         tags: {
           'session.master': parentSessionId,
         },
+        entityId: instanceId,
         accountId: account.accountId,
         entityType: Model.EntityType.instance,
         parentEntityId: integrationId,
@@ -683,7 +691,7 @@ describe('Sessions', () => {
     response = await ApiRequestMap[loc.entityType].session.callback(account, loc.entityId, loc.sessionId);
 
     // Post to finish
-    response = await ApiRequestMap.integration.session.commitSession(account, integrationId, parentSessionId);
+    response = await ApiRequestMap.integration.session.commitSessionAndWait(account, integrationId, parentSessionId);
     expect(response).toBeHttp({ statusCode: 200 });
 
     // Verify Operation Id
@@ -717,7 +725,7 @@ describe('Sessions', () => {
     response = await ApiRequestMap[loc.entityType].session.callback(account, loc.entityId, loc.sessionId);
 
     // Post to finish
-    response = await ApiRequestMap.integration.session.commitSession(account, integrationId, parentSessionId);
+    response = await ApiRequestMap.integration.session.commitSessionAndWait(account, integrationId, parentSessionId);
     expect(response).toBeHttp({ statusCode: 200 });
 
     // Verify Operation Id
