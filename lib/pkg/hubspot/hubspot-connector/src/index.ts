@@ -38,7 +38,7 @@ connector.service.setGetEventsByAuthId((ctx: Connector.Types.Context) => {
 
   return ctx.req.body.reduce((acc: Record<string, any>, cv: any) => {
     const key = `${cv.appId}/${cv.portalId}`;
-    (acc[key] = acc[key] || []).push(connector.service.createWebhookEvent(ctx, cv, key));
+    (acc[key] = acc[key] || []).push(cv);
     return acc;
   }, {});
 });
