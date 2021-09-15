@@ -60,9 +60,6 @@ const createSessionRouter = (SessionService: SessionedEntityService<any, any>) =
             id: Model.createSubordinateId(SessionService.entityType, req.params.entityId, req.params.sessionId),
           });
           const resultJson = Model.entityToSdk(session.result);
-          console.log('-----------------------------------------------');
-          console.log(resultJson);
-          console.log('-----------------------------------------------');
           res.status(session.statusCode).json(resultJson);
         } catch (error) {
           console.log(error);
