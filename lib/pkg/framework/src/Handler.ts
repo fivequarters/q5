@@ -30,6 +30,7 @@ export const Handler = (handler: string, config: any) => {
   manager.setup(config, router, routerError); // Configure the system.
 
   return async (ctx: any) => {
+    console.log(`handler2: ${ctx.method} ${ctx.path}`);
     let result;
     try {
       result = await manager.handle(ctx);

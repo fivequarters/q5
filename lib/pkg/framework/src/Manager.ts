@@ -152,11 +152,13 @@ class Manager {
           ctx.url = this.config.schedule[0].endpoint;
         }
 
+        console.log(`execute3: ${request.method} ${ctx.url} ${JSON.stringify(ctx.req.body)}`);
         // TODO: Need to supply a next, but not sure if it's ever invoked.  Worth looking at the Koa impl at some point.
         await this.router.routes()(ctx as any, resolve as Koa.Next);
 
         // Peak into the ctx; if it's unserved, throw a 404.
         if (!(ctx as any).routerPath) {
+          console.log(`No router path found`);
           ctx.throw(404);
         }
       } catch (e) {

@@ -3,7 +3,7 @@ import { Model } from '@5qtrs/db';
 
 import * as Function from '../functions';
 
-export const defaultFrameworkSemver = '4.0.2';
+export const defaultFrameworkSemver = '4.1.1';
 export const defaultOAuthConnectorSemver = '3.0.3';
 
 export interface IServiceResult {
@@ -378,6 +378,7 @@ export default abstract class BaseEntityService<E extends Model.IEntity, F exten
     location: string,
     elements: Function.IExecuteFunctionOptions
   ): Promise<Function.IExecuteFunction> => {
+    console.log(`dispatch to ${entity.id}: ${method} ${location}`);
     return Function.executeFunction(
       { ...entity, boundaryId: this.entityType, functionId: entity.id, version: undefined },
       method,

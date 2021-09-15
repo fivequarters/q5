@@ -36,7 +36,7 @@ class Service extends EntityBase.ServiceDefault {
     webhookAuthId: string
   ): Connector.Types.IWebhookEvent => {
     const webhookEventId = this.getWebhookLookupId(ctx, webhookAuthId);
-    const webhookEventType = this.getWebhookEventType(ctx);
+    const webhookEventType = this.getWebhookEventType(event);
 
     return {
       data: event,
@@ -61,7 +61,7 @@ class Service extends EntityBase.ServiceDefault {
       const response = await superagent
         .post(`${ctx.state.params.baseUrl}/fan_out/event/webhook?tag=${encodeURIComponent(webhookEventId)}`)
         .set('Authorization', `Bearer ${ctx.state.params.functionAccessToken}`)
-        .send(data)
+        .send({ payload: data })
         .ok((res) => true);
       return response;
     } catch (e) {
@@ -120,7 +120,7 @@ class Service extends EntityBase.ServiceDefault {
 
   // getWebhookEventType returns a string that can becomes part of the event path, and is used to filter for
   // different webhooks in the integration.
-  public setGetWebhookEventType = (handler: (ctx: Connector.Types.Context) => string) => {
+  public setGetWebhookEventType = (handler: (event: any) => string) => {
     this.getWebhookEventType = handler;
   };
 
@@ -144,8 +144,9 @@ class Service extends EntityBase.ServiceDefault {
     ctx.throw(500, 'Webhook Validation configuration missing. Required for webhook processing.');
   };
 
-  private getWebhookEventType = (ctx: Connector.Types.Context): string => {
-    return `${ctx.state.params.entityId}`;
+  private getWebhookEventType = (event: any): string => {
+    // No known event type
+    return '';
   };
 
   private initializationChallenge = (ctx: Connector.Types.Context): boolean => {

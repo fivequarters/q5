@@ -71,7 +71,7 @@ OAuthConnector.service.setGetTokenAuthId(async (ctx: Connector.Types.Context, to
   return token.bot_user_id;
 });
 
-connector.service.setGetWebhookEventType((ctx: Connector.Types.Context) => ctx.req.body.event.type);
+connector.service.setGetWebhookEventType((event: any) => event.type);
 
 router.use(OAuthConnector.router.routes());
 

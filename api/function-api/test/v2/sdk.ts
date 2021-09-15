@@ -50,7 +50,7 @@ export const DefaultWaitForCompletionParams: IWaitForCompletionParams = {
 
 const testEntitiesCreated: { entityType: Model.EntityType; id: string }[] = [];
 let enableLogAllEntities = false;
-let testEntitiesLogged: Record<string, Promise<any>> = {};
+const testEntitiesLogged: Record<string, Promise<any>> = {};
 
 export const cleanupEntities = async (account: IAccount) => {
   await (Promise as any).allSettled(

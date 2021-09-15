@@ -9,9 +9,15 @@ enum AllSettledStatus {
   Fulfilled = 'fulfilled',
   Rejected = 'rejected',
 }
-type Fulfilled = { status: AllSettledStatus.Fulfilled; value: any };
-type Rejected = { status: AllSettledStatus.Rejected; reason: any };
-type AllSettledResult = (Fulfilled | Rejected)[];
+interface IFulfilled {
+  status: AllSettledStatus.Fulfilled;
+  value: any;
+}
+interface IRejected {
+  status: AllSettledStatus.Rejected;
+  reason: any;
+}
+type AllSettledResult = (IFulfilled | IRejected)[];
 
 const router = (
   connectorService: ConnectorService,
@@ -23,6 +29,7 @@ const router = (
     const instances: Model.IInstance[] = [];
     let next = '0';
 
+    console.log(`fanout body: ${JSON.stringify(req.body)}`);
     do {
       const instanceResponse = await instanceService.dao.listEntities(
         {
@@ -57,9 +64,15 @@ const router = (
     const dispatchResponses: AllSettledResult = await (Promise as typeof Promise & {
       allSettled: Function;
     }).allSettled(
-      Object.entries(instancesByIntegrationId).map(([integrationId, instanceIds]) =>
-        dispatch(integrationId, instanceIds)
-      )
+      Object.entries(instancesByIntegrationId).map(async ([integrationId, instanceIds]) => {
+        const result = await dispatch(integrationId, instanceIds);
+        console.log(
+          `result ${integrationId} ${JSON.stringify(instanceIds)}: ${req.params.subPath}`,
+          JSON.stringify(req.body),
+          result
+        );
+        return result;
+      })
     );
 
     const fullSuccess = dispatchResponses.every(
@@ -74,7 +87,8 @@ const router = (
     res.send(dispatchResponses);
   });
 
-  const getDispatchToIntegration = (req: express.Request) => (integrationId: string, instanceIds: string[]) =>
+  const getDispatchToIntegration = (req: express.Request) => (integrationId: string, instanceIds: string[]) => {
+    console.log(`dispatch: ${req.method} /${req.params.subPath} ${JSON.stringify({...req.body, instanceIds})}`);
     integrationService.dispatch(
       {
         ...pathParams.EntityById(req),
