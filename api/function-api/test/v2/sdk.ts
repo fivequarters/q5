@@ -44,7 +44,7 @@ interface IWaitForCompletionParams {
 
 export const DefaultWaitForCompletionParams: IWaitForCompletionParams = {
   getAfter: true,
-  waitMs: 30000,
+  waitMs: 180000,
   pollMs: 100,
 };
 
@@ -201,7 +201,7 @@ interface ISdkForEntity {
       sessionId: string,
       options?: IRequestOptions
     ) => Promise<IHttpResponse>;
-    commitSession: (
+    commitSessionAndWait: (
       account: IAccount,
       entityId: string,
       sessionId: string,
@@ -421,12 +421,26 @@ const createSdk = (entityType: Model.EntityType): ISdkForEntity => ({
         ...options,
       });
     },
-    commitSession: async (account: IAccount, entityId: string, sessionId: string, options?: Partial<IRequestOptions>) =>
-      v2Request(account, {
+    commitSessionAndWait: async (
+      account: IAccount,
+      entityId: string,
+      sessionId: string,
+      options?: Partial<IRequestOptions>,
+      waitOptions?: IWaitForCompletionParams
+    ) => {
+      const operation = await v2Request(account, {
         method: RequestMethod.post,
         uri: `/${entityType}/${encodeURI(entityId)}/session/${sessionId}/commit`,
         ...options,
-      }),
+      });
+      expect(operation).toBeHttp({
+        statusCode: 202,
+        data: { operationState: { operation: Model.OperationType.creating, status: Model.OperationStatus.processing } },
+      });
+
+      console.log('trying to get session id', sessionId);
+      return waitForCompletion(account, Model.EntityType.session, entityId, sessionId, waitOptions, options);
+    },
   },
 });
 
@@ -439,6 +453,15 @@ export const ApiRequestMap: {
 } = {
   connector: createSdk(Model.EntityType.connector),
   integration: createSdk(Model.EntityType.integration),
+  session: {
+    get: (account: IAccount, entityId: string, subordinateId: string, options?: IRequestOptions) => {
+      return v2Request(account, {
+        method: RequestMethod.get,
+        uri: `/integration/${encodeURI(entityId)}/session/${subordinateId}`,
+        ...options,
+      });
+    },
+  },
   instance: {
     get: async (account: IAccount, entityId: string, subordinateId: string, options?: IRequestOptions) => {
       const response = await v2Request(account, {
