@@ -219,11 +219,13 @@ describe('Workflow', () => {
       statusCode: 200,
       data: {
         id: formSessionId,
-        dependsOn: {
-          conn1: {
-            parentEntityType: 'connector',
-            parentEntityId: connectorId,
-            entityId: connectorSessionId,
+        data: {
+          dependsOn: {
+            conn1: {
+              parentEntityType: 'connector',
+              parentEntityId: connectorId,
+              entityId: connectorSessionId,
+            },
           },
         },
       },
@@ -238,11 +240,13 @@ describe('Workflow', () => {
       statusCode: 200,
       data: {
         id: formSessionId,
-        dependsOn: {
-          conn1: {
-            parentEntityType: 'connector',
-            parentEntityId: connectorId,
-            entityId: connectorSessionId,
+        data: {
+          dependsOn: {
+            conn1: {
+              parentEntityType: 'connector',
+              parentEntityId: connectorId,
+              entityId: connectorSessionId,
+            },
           },
         },
       },
@@ -257,9 +261,9 @@ describe('Workflow', () => {
     expect(url.searchParams.get('session')).toBe(parentSessionId);
 
     // POST to the session to instantiate the instances/identities.
-    response = await ApiRequestMap.integration.session.commitSession(account, integrationId, parentSessionId);
+    response = await ApiRequestMap.integration.session.commitSessionAndWait(account, integrationId, parentSessionId);
     expect(response).toBeHttp({ statusCode: 200 });
-    const instanceId = response.data.instanceId;
+    const instanceId = response.data.data.output.entityId;
     expect(instanceId).toBeUUID();
 
     // Get the completed session with the output details
@@ -423,7 +427,7 @@ describe('Workflow', () => {
     await nextSessionStep(nextUrl);
 
     // POST to the session to instantiate the instances/identities.
-    await ApiRequestMap.integration.session.commitSession(account, integrationId, replacementParentSessionId);
+    await ApiRequestMap.integration.session.commitSessionAndWait(account, integrationId, replacementParentSessionId);
 
     // Get the completed session with the output details
     response = await ApiRequestMap.integration.session.getResult(account, integrationId, replacementParentSessionId);
