@@ -139,11 +139,7 @@ paths:
       operationId: postSession
       responses:
         202:
-          description: The session has been created
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/Session'
+          $ref: '#/components/responses/Session202'
         400:
           $ref: '#/components/responses/400'
         403:
@@ -780,7 +776,7 @@ components:
       content:
         application/json:
           schema:
-            $ref: '#/components/schemas/Session'
+            $ref: '#/components/schemas/InstanceEntity'
 
     400:
       description: The request submitted is invalid. Please, check the documentation and
@@ -919,7 +915,7 @@ components:
 
     EntityTags:
       type: object
-      description: An hash containing tags set on this entity
+      description: A hash containing tags set on this entity
       example:
         tenant: tenant-525
         customer: Sonicity
