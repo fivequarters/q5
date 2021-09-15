@@ -87,8 +87,7 @@ const router = (
     res.send(dispatchResponses);
   });
 
-  const getDispatchToIntegration = (req: express.Request) => (integrationId: string, instanceIds: string[]) => {
-    console.log(`dispatch: ${req.method} /${req.params.subPath} ${JSON.stringify({...req.body, instanceIds})}`);
+  const getDispatchToIntegration = (req: express.Request) => (integrationId: string, instanceIds: string[]) =>
     integrationService.dispatch(
       {
         ...pathParams.EntityById(req),
