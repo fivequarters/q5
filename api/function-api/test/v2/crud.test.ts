@@ -13,7 +13,9 @@ import * as AuthZ from '../v1/authz';
 
 import { getEnv } from '../v1/setup';
 
-import { defaultFrameworkSemver } from '../../src/routes/service/BaseEntityService';
+// Pull from function.utils so that keyStore.shutdown() and terminate_garbage_collection() get run, otherwise
+// the jest process hangs.
+import { defaultFrameworkSemver } from '../v1/function.utils';
 
 let { account, boundaryId, function1Id, function2Id, function3Id, function4Id, function5Id } = getEnv();
 beforeEach(() => {
@@ -787,8 +789,8 @@ const performIntegrationTest = (sampleEntitiesMap: SampleEntityMap) => {
         'const integration = new Integration();',
         'const router = integration.router;',
         '',
-        "router.on('/form/testEvent', async (ctx) => {",
-        '  ctx.body = { answer: ctx.req.body.tasty + " and mango"};',
+        "router.on('/form/manual/testEvent', async (ctx) => {",
+        '  ctx.body = { answer: ctx.req.body.data.tasty + " and mango"};',
         '});',
         '',
         'module.exports = integration;',
@@ -806,19 +808,25 @@ const performIntegrationTest = (sampleEntitiesMap: SampleEntityMap) => {
       },
     ];
 
-    let result = await ApiRequestMap[testEntityType].putAndWait(account, entity.id, entity);
+    let result = await ApiRequestMap.integration.putAndWait(account, entity.id, entity);
     expect(result).toBeHttp({ statusCode: 200 });
-    result = await ApiRequestMap[testEntityType].dispatch(
-      account,
-      entity.id,
-      RequestMethod.post,
-      `/event/manual/${entity.id}/testEvent`,
-      {
-        body: { tasty: 'banana' },
-        contentType: 'application/json',
-      }
-    );
-    expect(result).toBeHttp({ statusCode: 200, data: { answer: 'banana and mango' } });
+    result = await ApiRequestMap.integration.dispatch(account, entity.id, RequestMethod.post, `/event/manual`, {
+      body: {
+        payload: [
+          {
+            data: { tasty: 'banana' },
+            eventType: 'testEvent',
+            entityId: entity.id,
+            webhookEventId: '',
+            webhookAuthId: '',
+          },
+        ],
+      },
+      contentType: 'application/json',
+    });
+
+    expect(result).toBeHttp({ statusCode: 200 });
+    expect(result.data[0].answer).toBe('banana and mango');
   }, 180000);
 };
 

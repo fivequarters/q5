@@ -4,6 +4,8 @@ import { terminate_garbage_collection } from '@5qtrs/function-lambda';
 
 import { keyStore, subscriptionCache } from '../../src/routes/globals';
 
+import { defaultFrameworkSemver } from '../../src/routes/service/BaseEntityService';
+
 export const createRegistry = (account: IAccount, boundaryId: string) => {
   return AwsRegistry.create({ ...getParams('', account, boundaryId), registryId: 'default' }, {});
 };
@@ -27,4 +29,4 @@ afterAll(() => {
   terminate_garbage_collection();
 });
 
-export { keyStore, subscriptionCache };
+export { keyStore, subscriptionCache, defaultFrameworkSemver };

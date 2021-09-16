@@ -3,7 +3,7 @@ import { Model } from '@5qtrs/db';
 
 import * as Function from '../functions';
 
-export const defaultFrameworkSemver = '4.0.2';
+export const defaultFrameworkSemver = '4.1.1';
 export const defaultOAuthConnectorSemver = '3.0.3';
 
 export interface IServiceResult {
