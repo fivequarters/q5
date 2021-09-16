@@ -2,7 +2,9 @@ import { Model } from '@5qtrs/db';
 import { cleanupEntities, ApiRequestMap, RequestMethod } from './sdk';
 import { getEnv } from '../v1/setup';
 
-import { defaultFrameworkSemver } from '../../src/routes/service/BaseEntityService';
+// Pull from function.utils so that keyStore.shutdown() and terminate_garbage_collection() get run, otherwise
+// the jest process hangs.
+import { defaultFrameworkSemver } from '../v1/function.utils';
 
 let { account, boundaryId } = getEnv();
 beforeEach(() => {
