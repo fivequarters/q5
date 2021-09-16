@@ -85,19 +85,18 @@ class Service extends EntityBase.ServiceDefault {
   };
 
   // Setters allow for individual Connectors to easily apply unique values if need be
+  public setGetEventsFromPayload = (handler: (ctx: Connector.Types.Context) => any[] | void) => {
+    this.getEventsFromPayload = handler;
+  };
+
+  public setGetAuthIdFromEvent = (handler: (event: any) => string | void) => {
+    this.getAuthIdFromEvent = handler;
+  };
 
   // initializationChallenge returns true if the event is a security challenge by the remote service, and not
   // an actual event to be sent onwards to an integration.
   public setInitializationChallenge = (handler: (ctx: Connector.Types.Context) => boolean) => {
     this.initializationChallenge = handler;
-  };
-
-  // getEventsByAuthId takes an external event or events and returns a keyed dictionary of authentication
-  // information paired with Connector.Types.IWebhookEvent objects.
-  public setGetEventsByAuthId = (
-    handler: (ctx: Connector.Types.Context) => Record<string, Connector.Types.IWebhookEvents> | void
-  ): void => {
-    this.getEventsByAuthId = handler;
   };
 
   // getTokenAuthId takes an authentication token and extracts out the authId, to match against future
@@ -127,7 +126,27 @@ class Service extends EntityBase.ServiceDefault {
 
   // Default configuration functions
   private getEventsByAuthId = (ctx: Connector.Types.Context): Record<string, Connector.Types.IWebhookEvents> | void => {
+    const events = this.getEventsFromPayload(ctx);
+    if (!events) {
+      ctx.throw(500, 'Event AuthId configuration missing.  Required for webhook processing.');
+    }
+
+    return events.reduce((acc, event) => {
+      const authId = this.getAuthIdFromEvent(event);
+      if (!authId) {
+        ctx.throw(500, 'Event AuthId configuration missing.  Required for webhook processing.');
+      }
+      (acc[authId] = acc[authId] || []).push(event);
+      return acc;
+    }, {});
+  };
+
+  private getEventsFromPayload = (ctx: Connector.Types.Context): any[] | void => {
     ctx.throw(500, 'Event AuthId configuration missing.  Required for webhook processing.');
+  };
+
+  private getAuthIdFromEvent = (event: any): string | void => {
+    return;
   };
 
   private getTokenAuthId = async (ctx: Connector.Types.Context, token: any): Promise<string | void> => {
