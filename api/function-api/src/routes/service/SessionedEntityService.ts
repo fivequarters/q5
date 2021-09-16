@@ -345,7 +345,7 @@ export default abstract class SessionedEntityService<
     };
   };
 
-  public commitSession = async (entity: Model.IEntity): Promise<IServiceResult> => {
+  public commitSession = async (entity: Model.IEntity): Promise<string> => {
     // Returns after the creation process is completed.
     const session = await this.sessionDao.getEntity(entity);
     this.ensureSessionTrunk(session, 'cannot post non-master session', 400);
@@ -372,9 +372,11 @@ export default abstract class SessionedEntityService<
     };
     const result = await this.sessionDao.updateEntity(session);
 
+    const instanceId = session.data.replacementTargetId || uuidv4();
+
     setImmediate(async () => {
       try {
-        await this.persistTrunkSession(result as ITrunkSession);
+        await this.persistTrunkSession(result as ITrunkSession, instanceId);
       } catch (error) {
         console.log(error);
 
@@ -388,21 +390,16 @@ export default abstract class SessionedEntityService<
       }
     });
 
-    return {
-      statusCode: 202,
-      result,
-    };
+    return instanceId;
   };
 
-  protected persistTrunkSession = async (session: Model.ITrunkSession): Promise<void> => {
+  protected persistTrunkSession = async (session: Model.ITrunkSession, instanceId: string): Promise<void> => {
     return RDS.inTransaction(async (daos) => {
       const masterSessionId = Model.decomposeSubordinateId(session.id);
 
       if (this.entityType !== Model.EntityType.integration) {
         throw new Error(`Invalid entity type '${this.entityType}' for ${masterSessionId.entityId}`);
       }
-
-      let instanceId;
 
       const leafSessionResults: Record<string, any> = {};
       const leafTags: Model.ITags = {};
@@ -461,8 +458,6 @@ export default abstract class SessionedEntityService<
         subscriptionId: session.subscriptionId,
         id: masterSessionId.parentEntityId,
       });
-
-      instanceId = session.data.replacementTargetId || uuidv4();
 
       const instance = {
         accountId: session.accountId,
