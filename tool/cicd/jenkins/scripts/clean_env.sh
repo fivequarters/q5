@@ -26,16 +26,6 @@ while true; do
   echo $RESOURCES | jq -rc ".items[] | [.id]" | jq -r '" " + .[0]' | xargs -P 30 -L 1 ${FUSE_CLI} connector rm -q true
 done
 
-# Storage API is being broken right now, disabling for now
-while true; do
-  RESOURCES=`${FUSE_CLI} storage ls --output json`
-  LEFTOVER_RESOURCES=$(echo $RESOURCES | jq -r .items)
-  if [[ $LEFTOVER_RESOURCES == "[]" ]]; then
-    break
-  fi
-  echo $RESOURCES | jq -rc ".items[] | [.storageId]" | jq -r '" " + .[0]' | xargs -P 30 -L 1 ${FUSE_CLI} storage rm -q true
-done
-
 while true; do
   RESOURCES=`${FUSE_CLI} \function ls --output json`
   LEFTOVER_RESOURCES=$(${FUSE_CLI} \function ls -o json | jq -r .items)
