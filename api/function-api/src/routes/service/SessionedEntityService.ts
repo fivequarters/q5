@@ -404,14 +404,12 @@ export default abstract class SessionedEntityService<
         await this.persistTrunkSession(session, masterSessionId, parentEntity, instance);
       } catch (error) {
         console.log(error);
-
-        const brokenSession = await this.sessionDao.getEntity(entity);
-        brokenSession.state = EntityState.active;
-        brokenSession.operationState = {
-          operation: OperationType.creating,
-          status: OperationStatus.failed,
+        const brokenInstance = await this.subDao!.getEntity(instance);
+        brokenInstance.operationState = {
+          operation: instance.operationState!.operation,
+          status: OperationStatus.processing,
         };
-        await this.sessionDao.updateEntity(brokenSession);
+        await this.subDao!.updateEntity(brokenInstance);
       }
     });
 
@@ -478,6 +476,14 @@ export default abstract class SessionedEntityService<
         }
       });
 
+      // update its operation state
+      instance.state = EntityState.active;
+      instance.operationState = {
+        operation: OperationType.creating,
+        status: OperationStatus.success,
+      };
+
+      // update its tags
       instance.tags = {
         ...session.tags,
         'session.master': masterSessionId.entityId,
@@ -500,12 +506,6 @@ export default abstract class SessionedEntityService<
         tags: instance.tags,
       };
       session.data.replacementTargetId = instance.id;
-
-      session.state = EntityState.active;
-      session.operationState = {
-        operation: OperationType.creating,
-        status: OperationStatus.success,
-      };
 
       await daos[Model.EntityType.session].updateEntity(session);
     });
