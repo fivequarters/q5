@@ -7,21 +7,15 @@ import { ProfileService } from '../../services';
 // ------------------
 
 const command = {
-  name: 'Set Default Profile',
-  cmd: 'default',
-  summary: 'Get or set the default profile',
-  description: Text.create(
-    "Returns the current default profile if the '",
-    Text.bold('name'),
-    "' argument is not specified. Sets the stored default profile if the '",
-    Text.bold('name'),
-    "' argument is not specified."
-  ),
+  name: 'Set Profile',
+  cmd: 'set',
+  summary: 'Set the profile',
+  description: Text.create("Sets the stored default profile to '", Text.bold('name'), "'."),
   arguments: [
     {
       name: 'name',
       description: 'The name of the profile to use as the default',
-      required: false,
+      required: true,
     },
     {
       name: 'output',
@@ -36,13 +30,13 @@ const command = {
 // Exported Classes
 // ----------------
 
-export class ProfileDefaultCommand extends Command {
+export class ProfileSetCommand extends Command {
   private constructor() {
     super(command);
   }
 
   public static async create() {
-    return new ProfileDefaultCommand();
+    return new ProfileSetCommand();
   }
 
   protected async onExecute(input: IExecuteInput): Promise<number> {
@@ -51,13 +45,8 @@ export class ProfileDefaultCommand extends Command {
 
     const profileService = await ProfileService.create(input);
 
-    let profile;
-    if (!name) {
-      profile = await profileService.getDefaultProfileOrThrow();
-    } else {
-      profile = await profileService.getProfileOrThrow(name);
-      await profileService.setDefaultProfileName(name);
-    }
+    const profile = await profileService.getProfileOrThrow(name);
+    await profileService.setDefaultProfileName(name);
 
     await profileService.displayProfile(profile);
 

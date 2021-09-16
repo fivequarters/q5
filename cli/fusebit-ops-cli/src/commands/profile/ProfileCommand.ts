@@ -1,7 +1,8 @@
 import { EOL } from 'os';
 import { Command, ICommand } from '@5qtrs/cli';
 import { ProfileListCommand } from './ProfileListCommand';
-import { ProfileDefaultCommand } from './ProfileDefaultCommand';
+import { ProfileSetCommand } from './ProfileSetCommand';
+import { ProfileGetCommand } from './ProfileGetCommand';
 import { ProfileCopyCommand } from './ProfileCopyCommand';
 import { ProfileRenameCommand } from './ProfileRenameCommand';
 import { ProfileRemoveCommand } from './ProfileRemoveCommand';
@@ -30,7 +31,8 @@ const command: ICommand = {
 async function getSubCommands() {
   const subCommands = [];
   subCommands.push(await ProfileListCommand.create());
-  subCommands.push(await ProfileDefaultCommand.create());
+  subCommands.push(await ProfileSetCommand.create());
+  subCommands.push(await ProfileGetCommand.create());
   subCommands.push(await ProfileCopyCommand.create());
   subCommands.push(await ProfileRenameCommand.create());
   subCommands.push(await ProfileUpdateCommand.create());
