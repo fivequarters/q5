@@ -2,6 +2,8 @@ import { cleanupEntities, ApiRequestMap } from './sdk';
 import { getEnv } from '../v1/setup';
 import { getFunction, getStorage } from '../v1/sdk';
 
+import { defaultFrameworkSemver } from '../../src/routes/service/BaseEntityService';
+
 let { account, boundaryId } = getEnv();
 beforeEach(() => {
   ({ account, boundaryId } = getEnv());
@@ -53,9 +55,9 @@ describe('Scheduled integrations', () => {
   };
 
   const validateIntegrationScheduledRun = async () => {
-    const oneMinuteFromNow = new Date(Date.now() + 60000);
+    const threeMinutesFromNow = new Date(Date.now() + 180000);
     let lastResponse: any = { status: 404 };
-    while (lastResponse.status === 404 && oneMinuteFromNow.getTime() > Date.now()) {
+    while (lastResponse.status === 404 && threeMinutesFromNow.getTime() > Date.now()) {
       lastResponse = await getStorage(account, `integration/${boundaryId}/`);
     }
     expect(lastResponse.status).toBe(200);
@@ -96,7 +98,7 @@ const getIntegrationCode = ({ accountId, subscriptionId }: typeof account) => {
 
 const packageJson = {
   dependencies: {
-    '@fusebit-int/framework': '4.0.1',
+    '@fusebit-int/framework': defaultFrameworkSemver,
     superagent: '^6.1.0',
   },
   files: ['./integration.js'],

@@ -1,5 +1,5 @@
 {
-  "version": "1.23.8",
+  "version": "1.23.10",
   "private": true,
   "org": "5qtrs",
   "engines": {
@@ -196,11 +196,6 @@
       "lib/server/registry",
       "lib/server/runas",
       "tool/cicd/actions",
-      "lib/pkg/framework",
-      "lib/pkg/oauth/oauth-connector",
-      "lib/pkg/oauth/oauth-provider",
-      "lib/pkg/slack/slack-connector",
-      "lib/pkg/slack/slack-provider",
       "lib/data/db",
       "lib/data/schema",
       "site/catalog",

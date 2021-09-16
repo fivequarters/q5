@@ -1,25 +1,16 @@
+import { IHttpResponse } from '@5qtrs/request';
+
 import { Model } from '@5qtrs/db';
 import { cleanupEntities, ApiRequestMap, RequestMethod, createTestFile } from './sdk';
 import { getEnv } from '../v1/setup';
-import { defaultFrameworkSemver } from '../../src/routes/service/BaseEntityService';
+
+// Pull from function.utils so that keyStore.shutdown() and terminate_garbage_collection() get run, otherwise
+// the jest process hangs.
+import { defaultFrameworkSemver } from '../v1/function.utils';
 
 let { account, boundaryId } = getEnv();
 beforeEach(async () => {
   ({ account, boundaryId } = getEnv());
-  const createConnectorResponse = await ApiRequestMap.connector.postAndWait(account, connectorId, connectorEntity);
-  expect(createConnectorResponse).toBeHttp({ statusCode: 200 });
-  const createIntegrationResponse = await ApiRequestMap.integration.postAndWait(
-    account,
-    integrationId,
-    integrationEntity
-  );
-  expect(createIntegrationResponse).toBeHttp({ statusCode: 200 });
-  const createInstanceResponse = await ApiRequestMap.instance.post(account, integrationId, {
-    tags: { [sharedTag]: null, 'fusebit.parentEntityId': integrationId },
-    data: {},
-  });
-  expect(createInstanceResponse).toBeHttp({ statusCode: 200 });
-  await resetCounter();
 }, 180000);
 
 afterAll(async () => {
@@ -34,9 +25,32 @@ const incrementEventName = 'increment';
 const incrementEventPath = `/${connectorName}/${incrementEventName}`;
 const decrementEventName = 'decrement';
 const decrementEventPath = `/${connectorName}/${decrementEventName}`;
-const connectorId = `${boundaryId}--con`;
-const integrationId = `${boundaryId}--int`;
+const connectorId = `${boundaryId}-con`;
+const integrationId = `${boundaryId}-int`;
 const sharedTag = `webhook/${connectorId}/${authId}`;
+
+const createEntities = async () => {
+  const createConnectorResponse = await ApiRequestMap.connector.postAndWait(account, connectorId, connectorEntity);
+  expect(createConnectorResponse).toBeHttp({ statusCode: 200 });
+  let response = await ApiRequestMap.connector.dispatch(account, connectorId, RequestMethod.get, '/api/health');
+  expect(response).toBeHttp({ statusCode: 200 });
+
+  const createIntegrationResponse = await ApiRequestMap.integration.postAndWait(
+    account,
+    integrationId,
+    integrationEntity
+  );
+  expect(createIntegrationResponse).toBeHttp({ statusCode: 200 });
+  response = await ApiRequestMap.integration.dispatch(account, integrationId, RequestMethod.get, '/api/health');
+  expect(response).toBeHttp({ statusCode: 200 });
+
+  const createInstanceResponse = await ApiRequestMap.instance.post(account, integrationId, {
+    tags: { [sharedTag]: null, 'fusebit.parentEntityId': integrationId },
+    data: {},
+  });
+  expect(createInstanceResponse).toBeHttp({ statusCode: 200 });
+  await resetCounter();
+};
 
 const getTestIntegrationFile = () => {
   const { Integration } = require('@fusebit-int/framework');
@@ -57,21 +71,25 @@ const getTestIntegrationFile = () => {
   });
 
   // @ts-ignore
-  router.on('incrementEventPath', async (ctx) => {
-    const number = ctx.req.body.data.value;
+  router.on('/con/webhook/increment', async (ctx) => {
+    const event = ctx.req.body;
+    const num = event.data.value;
     const getResult = await integration.storage.getData(ctx, storageKey);
     await integration.storage.setData(ctx, storageKey, {
-      count: getResult.data.count + number,
+      count: getResult.data.count + num,
     });
+    ctx.body = 'success';
   });
 
   // @ts-ignore
-  router.on('decrementEventPath', async (ctx) => {
-    const number = ctx.req.body.data.value;
+  router.on('/con/webhook/decrement', async (ctx) => {
+    const event = ctx.req.body;
+    const num = event.data.value;
     const getResult = await integration.storage.getData(ctx, storageKey);
     await integration.storage.setData(ctx, storageKey, {
-      count: getResult.data.count - number,
+      count: getResult.data.count - num,
     });
+    ctx.body = 'success';
   });
 
   // @ts-ignore
@@ -94,13 +112,19 @@ const getTestConnectorFile = () => {
 
   const connector = new Connector();
 
-  connector.service.setGetEventAuthId(() => {
+  // @ts-ignore
+  connector.service.setGetEventsFromPayload((ctx) => {
+    return [ctx.req.body];
+  });
+
+  // @ts-ignore
+  connector.service.setGetAuthIdFromEvent((event) => {
     return 'authId';
   });
 
   // @ts-ignore
-  connector.service.setGetWebhookEventType((ctx) => {
-    return ctx.req.body.action;
+  connector.service.setGetWebhookEventType((event) => {
+    return event.action;
   });
 
   // @ts-ignore
@@ -116,7 +140,9 @@ const getTestConnectorFile = () => {
   connector.service.setInitializationChallenge(() => false);
 
   // @ts-ignore
-  connector.router.get('/api/test', (ctx) => (ctx.body = { test: 'this' }));
+  connector.router.get('/api/test', (ctx) => {
+    ctx.body = { test: 'this' };
+  });
 
   module.exports = connector;
 };
@@ -182,47 +208,36 @@ const integrationEntity = {
 };
 
 const getCounter = async () => {
-  return await ApiRequestMap.integration.dispatch(account, integrationId, RequestMethod.get, counterPath);
+  return ApiRequestMap.integration.dispatch(account, integrationId, RequestMethod.get, counterPath);
 };
 const resetCounter = async () => {
-  return await ApiRequestMap.integration.dispatch(account, integrationId, RequestMethod.put, resetCountPath);
+  return ApiRequestMap.integration.dispatch(account, integrationId, RequestMethod.put, resetCountPath);
 };
 
-const incrementCounter = async (number: number) => {
-  return await ApiRequestMap.connector.dispatch(
-    account,
-    connectorId,
-    RequestMethod.post,
-    '/api/fusebit_webhook_event',
-    {
-      body: {
-        action: incrementEventName,
-        value: number,
-      },
-    }
-  );
+const incrementCounter = async (num: number) => {
+  return ApiRequestMap.connector.dispatch(account, connectorId, RequestMethod.post, '/api/fusebit_webhook_event', {
+    body: {
+      action: incrementEventName,
+      value: num,
+    },
+  });
 };
 
-const decrementCounter = async (number: number) => {
-  return await ApiRequestMap.connector.dispatch(
-    account,
-    connectorId,
-    RequestMethod.post,
-    '/api/fusebit_webhook_event',
-    {
-      body: {
-        action: decrementEventName,
-        value: number,
-      },
-    }
-  );
+const decrementCounter = async (num: number) => {
+  return ApiRequestMap.connector.dispatch(account, connectorId, RequestMethod.post, '/api/fusebit_webhook_event', {
+    body: {
+      action: decrementEventName,
+      value: num,
+    },
+  });
 };
 const testDispatch = async () => {
-  return await ApiRequestMap.connector.dispatch(account, connectorId, RequestMethod.get, '/api/test');
+  return ApiRequestMap.connector.dispatch(account, connectorId, RequestMethod.get, '/api/test');
 };
 
 describe('Connector webhook test suite', () => {
   test('Connector created with supported node.js version 14', async () => {
+    await createEntities();
     let localCounter = 0;
 
     const healthResponse = await ApiRequestMap.integration.dispatch(
@@ -241,16 +256,17 @@ describe('Connector webhook test suite', () => {
 
     const verifyCounterState = async (count: number) => {
       const retries = 3;
+      let counterResponse: IHttpResponse;
       for (let i = 0; i < retries; i++) {
         try {
-          let counterResponse = await getCounter();
+          counterResponse = await getCounter();
           expect(counterResponse).toBeHttp({ statusCode: 200, data: { count } });
           return;
         } catch (e) {
           await new Promise((resolve) => setTimeout(resolve, 1000));
         }
       }
-      let counterResponse = await getCounter();
+      counterResponse = await getCounter();
       expect(counterResponse).toBeHttp({ statusCode: 200, data: { count } });
     };
     const incrementBy = async (increment: number) => {

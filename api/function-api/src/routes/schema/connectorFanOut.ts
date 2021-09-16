@@ -9,9 +9,24 @@ enum AllSettledStatus {
   Fulfilled = 'fulfilled',
   Rejected = 'rejected',
 }
-type Fulfilled = { status: AllSettledStatus.Fulfilled; value: any };
-type Rejected = { status: AllSettledStatus.Rejected; reason: any };
-type AllSettledResult = (Fulfilled | Rejected)[];
+interface IFulfilled {
+  status: AllSettledStatus.Fulfilled;
+  value: any;
+}
+interface IRejected {
+  status: AllSettledStatus.Rejected;
+  reason: any;
+}
+type AllSettledResult = (IFulfilled | IRejected)[];
+
+export interface IWebhookEvent {
+  data: any;
+  eventType: string;
+  connectorId: string;
+  webhookEventId: string;
+  webhookAuthId: string;
+}
+export type IWebhookEvents = IWebhookEvent[];
 
 const router = (
   connectorService: ConnectorService,
@@ -57,7 +72,7 @@ const router = (
     const dispatchResponses: AllSettledResult = await (Promise as typeof Promise & {
       allSettled: Function;
     }).allSettled(
-      Object.entries(instancesByIntegrationId).map(([integrationId, instanceIds]) =>
+      Object.entries(instancesByIntegrationId).map(async ([integrationId, instanceIds]) =>
         dispatch(integrationId, instanceIds)
       )
     );
@@ -86,8 +101,7 @@ const router = (
         token: getAuthToken(req),
         headers: req.headers,
         body: {
-          ...req.body,
-          instanceIds,
+          payload: req.body.payload.map((event: IWebhookEvents) => ({ ...event, instanceIds })),
         },
         query: req.query,
         originalUrl: req.originalUrl,
