@@ -4,7 +4,8 @@ import superagent from 'superagent';
 import { JestOutput, Status } from './jestTypes';
 const outputJson: JestOutput = require('../../../../api/function-api/testOutput.json');
 
-const failureWebhook = 'https://hooks.slack.com/services/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';
+// Using 2 variables despite being the same URL because eventually we want to publish to engineering on a test failure.
+const failureWebhook = 'https://hooks.slack.com/services/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';
 const successWebhook = 'https://hooks.slack.com/services/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';
 
 (async () => {
@@ -46,7 +47,7 @@ const successWebhook = 'https://hooks.slack.com/services/TDFBLCJV9/B02ETT25989/f
     },
   });
   try {
-    await superagent.post(successWebhook).send(failurePayload);
+    await superagent.post(failureWebhook).send(failurePayload);
   } catch (e) {
     console.log(e);
   }
