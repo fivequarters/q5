@@ -128,13 +128,13 @@ class Service extends EntityBase.ServiceDefault {
   private getEventsByAuthId = (ctx: Connector.Types.Context): Record<string, Connector.Types.IWebhookEvents> | void => {
     const events = this.getEventsFromPayload(ctx);
     if (!events) {
-      ctx.throw(500, 'Event AuthId configuration missing.  Required for webhook processing.');
+      ctx.throw(500, 'No Events found on payload.');
     }
 
     return events.reduce((acc, event) => {
       const authId = this.getAuthIdFromEvent(event);
       if (!authId) {
-        ctx.throw(500, 'Event AuthId configuration missing.  Required for webhook processing.');
+        ctx.throw(500, 'No AuthId present for event.');
       }
       (acc[authId] = acc[authId] || []).push(event);
       return acc;
@@ -142,7 +142,7 @@ class Service extends EntityBase.ServiceDefault {
   };
 
   private getEventsFromPayload = (ctx: Connector.Types.Context): any[] | void => {
-    ctx.throw(500, 'Event AuthId configuration missing.  Required for webhook processing.');
+    ctx.throw(500, 'Event location configuration missing.  Required for webhook processing.');
   };
 
   private getAuthIdFromEvent = (event: any): string | void => {
