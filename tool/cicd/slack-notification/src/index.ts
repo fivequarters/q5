@@ -37,15 +37,14 @@ const successWebhook = 'https://hooks.slack.com/services/TDFBLCJV9/B02ETT25989/f
         text: `${test.name} Failed`,
       },
     });
-    failurePayload.blocks.push({
-      type: 'mrkdwn',
-      text: {
-        type: 'plain_text',
-        text: `Check the logs here ${process.env.BUILD_URL}`,
-      },
-    });
   }
-  console.log(failurePayload.blocks.map((v) => v.text));
+  failurePayload.blocks.push({
+    type: 'section',
+    text: {
+      type: 'mrkdwn',
+      text: `Check the logs here ${process.env.BUILD_URL}`,
+    },
+  });
   try {
     await superagent.post(successWebhook).send(failurePayload);
   } catch (e) {
