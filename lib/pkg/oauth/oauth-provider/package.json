@@ -15,6 +15,6 @@
   },
   "keywords": [],
   "peerDependencies": {
-    "@fusebit-int/framework": "4.0.2"
+    "@fusebit-int/framework": "*"
   }
 }

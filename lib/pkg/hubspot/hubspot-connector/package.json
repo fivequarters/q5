@@ -18,6 +18,6 @@
     "@fusebit-int/oauth-connector": "3.0.3"
   },
   "peerDependencies": {
-    "@fusebit-int/framework": "4.0.2"
+    "@fusebit-int/framework": "*"
   }
 }

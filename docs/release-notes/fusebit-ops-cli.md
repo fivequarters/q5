@@ -18,6 +18,12 @@ All public releases of the Fusebit Operations CLI are documented here, including
 {:toc}
 -->
 
+## Version 1.29.2
+
+_Released 09/15/21_
+
+- **Enhancement.** Add a 'clearModules' command to remove cached artifacts for specific npm packages.
+
 ## Version 1.29.1
 
 _Released 09/13/21_
