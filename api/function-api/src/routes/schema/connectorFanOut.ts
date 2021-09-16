@@ -19,6 +19,15 @@ interface IRejected {
 }
 type AllSettledResult = (IFulfilled | IRejected)[];
 
+export interface IWebhookEvent {
+  data: any;
+  eventType: string;
+  connectorId: string;
+  webhookEventId: string;
+  webhookAuthId: string;
+}
+export type IWebhookEvents = IWebhookEvent[];
+
 const router = (
   connectorService: ConnectorService,
   integrationService: IntegrationService,
@@ -99,8 +108,7 @@ const router = (
         token: getAuthToken(req),
         headers: req.headers,
         body: {
-          ...req.body,
-          instanceIds,
+          payload: req.body.payload.map((event: IWebhookEvents) => ({ ...event, instanceIds })),
         },
         query: req.query,
         originalUrl: req.originalUrl,

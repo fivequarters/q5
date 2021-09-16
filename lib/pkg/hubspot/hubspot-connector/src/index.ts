@@ -31,16 +31,12 @@ router.get(
   }
 );
 
-connector.service.setGetEventsByAuthId((ctx: Connector.Types.Context) => {
-  if (!ctx.req?.body || ctx.req.body.length === 0) {
-    return;
-  }
+connector.service.setGetEventsFromPayload((ctx) => {
+  return ctx.req.body || [];
+});
 
-  return ctx.req.body.reduce((acc: Record<string, any>, cv: any) => {
-    const key = `${cv.appId}/${cv.portalId}`;
-    (acc[key] = acc[key] || []).push(connector.service.createWebhookEvent(ctx, cv, key));
-    return acc;
-  }, {});
+connector.service.setGetAuthIdFromEvent((event) => {
+  return `${event.appId}/${event.portalId}`;
 });
 
 // HubSpot has a very straightforward auth scheme; there's a slightly more complicated v2 variant, but it's

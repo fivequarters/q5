@@ -33,12 +33,12 @@ router.get(
   }
 );
 
-connector.service.setGetEventsByAuthId((ctx: Connector.Types.Context) => {
-  const authId = ctx.req?.body?.authorizations?.[0]?.user_id;
+connector.service.setGetEventsFromPayload((ctx) => {
+  return [ctx.req.body];
+});
 
-  if (authId) {
-    return { [authId]: [connector.service.createWebhookEvent(ctx, ctx.req.body, authId)] };
-  }
+connector.service.setGetAuthIdFromEvent((event) => {
+  return event.authorizations?.[0]?.user_id;
 });
 
 connector.service.setValidateWebhookEvent((ctx: Connector.Types.Context) => {
