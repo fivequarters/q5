@@ -3,8 +3,8 @@ import { Model } from '@5qtrs/db';
 
 import * as Function from '../functions';
 
-export const defaultFrameworkSemver = '4.1.1';
-export const defaultOAuthConnectorSemver = '3.0.3';
+export const defaultFrameworkSemver = '5.1.0';
+export const defaultOAuthConnectorSemver = '5.1.0';
 
 export interface IServiceResult {
   statusCode: number;
