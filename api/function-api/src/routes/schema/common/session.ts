@@ -59,8 +59,14 @@ const createSessionRouter = (SessionService: SessionedEntityService<any, any>) =
             subscriptionId: req.params.subscriptionId,
             id: Model.createSubordinateId(SessionService.entityType, req.params.entityId, req.params.sessionId),
           });
-          const resultJson = Model.entityToSdk(session.result);
-          res.status(session.statusCode).json(resultJson);
+          const result = {
+            id: req.params.sessionId,
+            input: session.result.data.input,
+            output: session.result.data.output,
+            dependsOn: session.result.data.dependsOn,
+            tags: session.result.tags,
+          };
+          res.status(session.statusCode).json(result);
         } catch (error) {
           console.log(error);
           return next(error);
