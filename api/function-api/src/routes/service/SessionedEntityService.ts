@@ -365,18 +365,43 @@ export default abstract class SessionedEntityService<
       }
     }
 
-    session.state = EntityState.creating;
-    session.operationState = {
-      operation: OperationType.creating,
-      status: OperationStatus.processing,
-    };
-    const result = await this.sessionDao.updateEntity(session);
-
     const instanceId = session.data.replacementTargetId || uuidv4();
+
+    const masterSessionId = Model.decomposeSubordinateId(session.id);
+
+    const parentEntity: Model.IEntity = await this.dao!.getEntity({
+      accountId: session.accountId,
+      subscriptionId: session.subscriptionId,
+      id: masterSessionId.parentEntityId,
+    });
+
+    const instance: Model.IInstance = {
+      accountId: session.accountId,
+      subscriptionId: session.subscriptionId,
+      id: Model.createSubordinateId(this.entityType, parentEntity.__databaseId as string, instanceId),
+      data: null,
+    };
+
+    if (!!session.data.replacementTargetId) {
+      const existingEntity = await this.subDao!.getEntity(instance);
+      instance.data = { ...existingEntity.data, ...instance.data };
+      instance.operationState = {
+        operation: OperationType.updating,
+        status: OperationStatus.processing,
+      };
+      await this.subDao!.updateEntity(instance);
+    } else {
+      instance.state = EntityState.creating;
+      instance.operationState = {
+        operation: OperationType.creating,
+        status: OperationStatus.processing,
+      };
+      await this.subDao!.createEntity(instance);
+    }
 
     setImmediate(async () => {
       try {
-        await this.persistTrunkSession(result as ITrunkSession, instanceId);
+        await this.persistTrunkSession(session, masterSessionId, parentEntity, instance);
       } catch (error) {
         console.log(error);
 
@@ -393,10 +418,13 @@ export default abstract class SessionedEntityService<
     return instanceId;
   };
 
-  protected persistTrunkSession = async (session: Model.ITrunkSession, instanceId: string): Promise<void> => {
+  protected persistTrunkSession = async (
+    session: Model.ITrunkSession,
+    masterSessionId: Model.ISubordinateId,
+    parentEntity: Model.IEntity,
+    instance: Model.IInstance
+  ): Promise<void> => {
     return RDS.inTransaction(async (daos) => {
-      const masterSessionId = Model.decomposeSubordinateId(session.id);
-
       if (this.entityType !== Model.EntityType.integration) {
         throw new Error(`Invalid entity type '${this.entityType}' for ${masterSessionId.entityId}`);
       }
@@ -450,36 +478,15 @@ export default abstract class SessionedEntityService<
         }
       });
 
-      // Create a new `instance` object.
-      //
-      // Get the integration, to get the database id out of.
-      const parentEntity: Model.IEntity = await daos[this.entityType].getEntity({
-        accountId: session.accountId,
-        subscriptionId: session.subscriptionId,
-        id: masterSessionId.parentEntityId,
-      });
-
-      const instance = {
-        accountId: session.accountId,
-        subscriptionId: session.subscriptionId,
-        id: Model.createSubordinateId(this.entityType, parentEntity.__databaseId as string, instanceId),
-        data: { ...leafSessionResults },
-        tags: {
-          ...session.tags,
-          'session.master': masterSessionId.entityId,
-          ...leafTags,
-          'fusebit.parentEntityId': parentEntity.id,
-        },
+      instance.tags = {
+        ...session.tags,
+        'session.master': masterSessionId.entityId,
+        ...leafTags,
+        'fusebit.parentEntityId': parentEntity.id,
       };
 
       const subDao = daos[this.subDao!.getDaoType()];
-      if (!!session.data.replacementTargetId) {
-        const existingEntity = await subDao.getEntity(instance);
-        instance.data = { ...existingEntity.data, ...instance.data };
-        await subDao.updateEntity(instance);
-      } else {
-        await subDao.createEntity(instance);
-      }
+      await subDao.updateEntity(instance);
 
       // Record the successfully created instance in the master session.
       session.data.output = {
@@ -489,10 +496,10 @@ export default abstract class SessionedEntityService<
         parentEntityType: this.entityType,
         parentEntityId: masterSessionId.parentEntityId,
         entityType: this.subDao!.getDaoType(),
-        entityId: instanceId,
+        entityId: instance.id,
         tags: instance.tags,
       };
-      session.data.replacementTargetId = instanceId;
+      session.data.replacementTargetId = instance.id;
 
       session.state = EntityState.active;
       session.operationState = {
