@@ -1,7 +1,7 @@
 import { IHttpResponse } from '@5qtrs/request';
 
 import { Model } from '@5qtrs/db';
-import { cleanupEntities, ApiRequestMap, RequestMethod, createTestFile, enableLogs } from './sdk';
+import { cleanupEntities, ApiRequestMap, RequestMethod, createTestFile } from './sdk';
 import { getEnv } from '../v1/setup';
 import { defaultFrameworkSemver } from '../../src/routes/service/BaseEntityService';
 
@@ -27,9 +27,6 @@ const integrationId = `${boundaryId}-int`;
 const sharedTag = `webhook/${connectorId}/${authId}`;
 
 const createEntities = async () => {
-  enableLogs();
-
-  console.log(`defaultFrameworkSemver: ${defaultFrameworkSemver}`);
   const createConnectorResponse = await ApiRequestMap.connector.postAndWait(account, connectorId, connectorEntity);
   expect(createConnectorResponse).toBeHttp({ statusCode: 200 });
   let response = await ApiRequestMap.connector.dispatch(account, connectorId, RequestMethod.get, '/api/health');
@@ -94,7 +91,6 @@ const getTestIntegrationFile = () => {
 
   // @ts-ignore
   router.get('counterPath', async (ctx) => {
-    console.log(`counterPath`);
     ctx.body = (await integration.storage.getData(ctx, storageKey)).data;
   });
 
@@ -114,8 +110,13 @@ const getTestConnectorFile = () => {
   const connector = new Connector();
 
   // @ts-ignore
-  connector.service.setGetEventsByAuthId((ctx) => {
-    return { authId: [connector.service.createWebhookEvent(ctx, ctx.req.body, 'authId')] };
+  connector.service.setGetEventsFromPayload((ctx) => {
+    return [ctx.req.body];
+  });
+
+  // @ts-ignore
+  connector.service.setGetAuthIdFromEvent((event) => {
+    return 'authId';
   });
 
   // @ts-ignore
@@ -137,7 +138,6 @@ const getTestConnectorFile = () => {
 
   // @ts-ignore
   connector.router.get('/api/test', (ctx) => {
-    console.log(`connector /api/test`);
     ctx.body = { test: 'this' };
   });
 

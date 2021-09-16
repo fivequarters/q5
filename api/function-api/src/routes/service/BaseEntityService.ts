@@ -378,7 +378,6 @@ export default abstract class BaseEntityService<E extends Model.IEntity, F exten
     location: string,
     elements: Function.IExecuteFunctionOptions
   ): Promise<Function.IExecuteFunction> => {
-    console.log(`dispatch to ${entity.id}: ${method} ${location}`);
     return Function.executeFunction(
       { ...entity, boundaryId: this.entityType, functionId: entity.id, version: undefined },
       method,

@@ -38,7 +38,6 @@ const router = (
     const instances: Model.IInstance[] = [];
     let next = '0';
 
-    console.log(`fanout body: ${JSON.stringify(req.body)}`);
     do {
       const instanceResponse = await instanceService.dao.listEntities(
         {
@@ -73,15 +72,9 @@ const router = (
     const dispatchResponses: AllSettledResult = await (Promise as typeof Promise & {
       allSettled: Function;
     }).allSettled(
-      Object.entries(instancesByIntegrationId).map(async ([integrationId, instanceIds]) => {
-        const result = await dispatch(integrationId, instanceIds);
-        console.log(
-          `result ${integrationId} ${JSON.stringify(instanceIds)}: ${req.params.subPath}`,
-          JSON.stringify(req.body),
-          result
-        );
-        return result;
-      })
+      Object.entries(instancesByIntegrationId).map(async ([integrationId, instanceIds]) =>
+        dispatch(integrationId, instanceIds)
+      )
     );
 
     const fullSuccess = dispatchResponses.every(
