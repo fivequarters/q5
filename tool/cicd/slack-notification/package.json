@@ -15,12 +15,10 @@
   },
   "keywords": [],
   "dependencies": {
-    "yargs": "^17.1.1"
+    "superagent": "^6.1.0"
   },
   "devServer": {
     "port": 9516
   },
-  "devDependencies": {
-    "@types/yargs": "^17.0.2"
-  }
+  "devDependencies": {}
 }
