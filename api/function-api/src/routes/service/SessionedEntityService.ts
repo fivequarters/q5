@@ -491,6 +491,9 @@ export default abstract class SessionedEntityService<
         'fusebit.parentEntityId': parentEntity.id,
       };
 
+      // update instance with identity info
+      instance.data = { ...leafSessionResults };
+
       const subDao = daos[this.subDao!.getDaoType()];
       await subDao.updateEntity(instance);
 
