@@ -439,11 +439,15 @@ const createSdk = (entityType: Model.EntityType): ISdkForEntity => ({
         uri: `/${entityType}/${encodeURI(entityId)}/session/${sessionId}/commit`,
         ...options,
       });
-      expect(operation).toBeHttp({
-        statusCode: 202,
-        data: { operationState: { operation: Model.OperationType.creating, status: Model.OperationStatus.processing } },
-      });
-      return waitForCompletion(account, Model.EntityType.session, entityId, sessionId, waitOptions, options);
+      expect(operation).toBeHttp({ statusCode: 202 });
+      return waitForCompletion(
+        account,
+        Model.EntityType.instance,
+        operation.data.instanceId,
+        undefined,
+        waitOptions,
+        options
+      );
     },
     commitSession: async (account: IAccount, entityId: string, sessionId: string, options?: Partial<IRequestOptions>) =>
       v2Request(account, {
@@ -463,15 +467,6 @@ export const ApiRequestMap: {
 } = {
   connector: createSdk(Model.EntityType.connector),
   integration: createSdk(Model.EntityType.integration),
-  session: {
-    get: (account: IAccount, entityId: string, subordinateId: string, options?: IRequestOptions) => {
-      return v2Request(account, {
-        method: RequestMethod.get,
-        uri: `/integration/${encodeURI(entityId)}/session/${subordinateId}`,
-        ...options,
-      });
-    },
-  },
   instance: {
     get: async (account: IAccount, entityId: string, subordinateId: string, options?: IRequestOptions) => {
       const response = await v2Request(account, {
