@@ -5,7 +5,7 @@ import { EPHEMERAL_ENTITY_EXPIRATION } from '@5qtrs/constants';
 import RDS, { Model } from '@5qtrs/db';
 
 import BaseEntityService, { IServiceResult } from './BaseEntityService';
-import { EntityState, OperationType, OperationStatus, ITrunkSession } from '@fusebit/schema';
+import { EntityState, OperationType, OperationStatus } from '@fusebit/schema';
 
 export default abstract class SessionedEntityService<
   E extends Model.IEntity,
