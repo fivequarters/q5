@@ -179,32 +179,29 @@
 
             // Finalize creation of the integration instance
             console.log('CREATING INTEGRATION INSTANCE...');
-            let result = await superagent.post(`${integrationBaseUrl}/session/${sessionId}/commit`)
+            const sessionCommitResult = await superagent.post(`${integrationBaseUrl}/session/${sessionId}/commit`)
                 .set('Authorization', `Bearer ${accessToken}`)
                 .send();
 
+            const { targetUrl } = sessionCommitResult.body;
+            let instanceResult = await superagent.get(targetUrl).set('Authorization', `Bearer ${accessToken}`).send();
+
             let retries = 0;
-            while (result.statusCode === 202 && retries < 10) {
-                console.log('WAITING FOR SESSION TO BE FULLY COMMITED...');
+            while (instanceResult.body.operationState.status === 'processing' && retries < 10) {
+                console.log('WAITING FOR INSTANCE TO BE FULLY CREATED...');
                 await new Promise(res => setTimeout(res, 100));
-                result = await superagent.get(`${integrationBaseUrl}/session/${sessionId}`)
-                    .set('Authorization', `Bearer ${accessToken}`)
-                    .send();
+                instanceResult = await superagent.get(targetUrl).set('Authorization', `Bearer ${accessToken}`).send();
                 retries++;
             }
 
-            if (result.statusCode !== 200) {
-                throw new Error(`Failed to create integration instance: ${result.statusCode}: ${result.body}`);
+            if (instanceResult.statusCode !== 200) {
+                throw new Error(`Failed to create integration instance: ${instanceResult.statusCode}: ${instanceResult.body}`);
             }
 
-            // Instance creation completed, get the instance
-            console.log('GETTING INSTANCE...');
-            result = await superagent.get(`${integrationBaseUrl}/session/${sessionId}`)
-                .set('Authorization', `Bearer ${accessToken}`);
-            const instance = result.body;
+            const instance = instanceResult.body;
             console.log('INTEGRATION INSTANCE CREATED', JSON.stringify(instance, null, 2));
 
-            return { instanceId: instance.data.output.entityId, accessToken, integrationBaseUrl, tenantId };
+            return { instanceId: instance.id, accessToken, integrationBaseUrl, tenantId };
         }
 
         // Parse input params
