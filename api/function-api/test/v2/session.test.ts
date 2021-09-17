@@ -275,7 +275,7 @@ describe('Sessions', () => {
     expect(response).toBeHttp({ statusCode: 200, data: { data: identityData } });
   }, 180000);
 
-  test('Overwrite 1 of 2 forms', async () => {
+  test.only('Overwrite 1 of 2 forms', async () => {
     const { integrationId } = await createPair(account, boundaryId, {
       components: [
         {
