@@ -17,8 +17,5 @@
   "dependencies": {
     "superagent": "^6.1.0"
   },
-  "devServer": {
-    "port": 9516
-  },
   "devDependencies": {}
 }
