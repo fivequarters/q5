@@ -115,7 +115,7 @@ describe('Sessions', () => {
     });
   }, 180000);
 
-  test('GETting the step session includes a supplied input object', async () => {
+  test.only('GETting the step session includes a supplied input object', async () => {
     const { integrationId, connectorId } = await createPair(account, boundaryId);
 
     let response = await ApiRequestMap.integration.session.post(account, integrationId, {
@@ -137,10 +137,8 @@ describe('Sessions', () => {
       has: ['id'],
       hasNot: ['output'],
       data: {
-        data: {
-          input: {
-            iguana: 'mango',
-          },
+        input: {
+          iguana: 'mango',
         },
       },
     });
