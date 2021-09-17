@@ -8,48 +8,17 @@
 # -- Standard Header --
 set -e
 
-DEPLOYMENT_NAME=cicd
+DEPLOYMENT_NAME=jenkins
 REGION=us-east-2
 NETWORK_NAME=cicd
 DEPLOYMENT_DOMAIN=dev.fusebit.io
 
 echoerr() { printf "%s\n" "$*" >&2; }
 FUSEOPS="node cli/fusebit-ops-cli/libc/index.js"
-export FUSEBIT_DEBUG=
-
-# -- Parameter Validation --
-if [ -z "${DEPLOYMENT_NAME}" ]; then
-  echoerr "ERROR: DEPLOYMENT_NAME is unset."
-  exit -1
-fi
-
-if [ -z "${REGION}" ]; then
-  echoerr "ERROR: REGION is unset."
-  exit -1
-fi
-
-if [ -z "${NETWORK_NAME}" ]; then
-  echoerr "ERROR: NETWORK_NAME is unset."
-  exit -1
-fi
-
-if [ -z "${DEPLOYMENT_DOMAIN}" ]; then
-  echoerr "ERROR: DEPLOYMENT_DOMAIN is unset."
-  exit -1
-fi
 
 # -- Optional Parameters --
 # Pin to a specific version
 IMG_VER=${VERSION_FUNCTION_API:=`jq -r '.version' ./package.json`}
-
-# Is there an environment file present?
-if [ -z ${ENV_FILE+x} ]; then
-  if [ -f "./gc_bq.env" ]; then
-    ENV_PARAMS="--env ./gc_bq.env"
-  fi
-else
-  ENV_PARAMS="--env ${ENV_FILE}"
-fi
 
 # -- Script --
 
