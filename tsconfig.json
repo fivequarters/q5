@@ -142,7 +142,9 @@
       "@5qtrs/cicd-actions": ["tool/cicd/actions/src"],
       "@5qtrs/db": ["lib/data/db/src"],
       "@fusebit/schema": ["lib/data/schema/src"],
-      "@5qtrs/catalog": ["site/catalog/src"]
+      "@5qtrs/catalog": ["site/catalog/src"],
+      "@5qtrs/jenkins": ["tool/cicd/jenkins/src"],
+      "@5qtrs/slack-notification": ["tool/cicd/slack-notification/src"]
     }
   }
 }

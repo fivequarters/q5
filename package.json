@@ -199,7 +199,9 @@
       "lib/data/db",
       "lib/data/schema",
       "site/catalog",
-      "site/v2-session-driver"
+      "site/v2-session-driver",
+      "tool/cicd/jenkins",
+      "tool/cicd/slack-notification"
     ]
   }
 }
