@@ -26,6 +26,8 @@ while true; do
   echo $RESOURCES | jq -rc ".items[] | [.id]" | jq -r '" " + .[0]' | xargs -P 30 -L 1 ${FUSE_CLI} connector rm -q true
 done
 
+# Intentionally left out storage cleanup because it seems like it easily gets stuck on a leading / in the key name.
+
 while true; do
   RESOURCES=`${FUSE_CLI} \function ls --output json`
   LEFTOVER_RESOURCES=$(${FUSE_CLI} \function ls -o json | jq -r .items)
