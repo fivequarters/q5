@@ -115,7 +115,7 @@ describe('Sessions', () => {
     });
   }, 180000);
 
-  test.only('GETting the step session includes a supplied input object', async () => {
+  test('GETting the step session includes a supplied input object', async () => {
     const { integrationId, connectorId } = await createPair(account, boundaryId);
 
     let response = await ApiRequestMap.integration.session.post(account, integrationId, {
@@ -206,7 +206,7 @@ describe('Sessions', () => {
     expect(response).toBeHttp({ statusCode: 400 });
   }, 180000);
 
-  test('Overwrite an existing instance and identity', async () => {
+  test.only('Overwrite an existing instance and identity', async () => {
     const { integrationId, connectorId, steps } = await createPair(account, boundaryId, {
       components: [
         {
@@ -269,9 +269,16 @@ describe('Sessions', () => {
 
     // verify that pre-existing identity and instance have been updated
     response = await ApiRequestMap.instance.get(account, integrationId, instanceId);
-    expect(response).toBeHttp({ statusCode: 200, data: { data: { form: instanceData } } });
-    response = await ApiRequestMap.identity.get(account, connectorId, identityId);
-    expect(response).toBeHttp({ statusCode: 200, data: { data: identityData } });
+
+    console.log('+++++++++++++++++++++++++++++++');
+    console.log(response.data);
+    console.log('+++++++++++++++++++++++++++++++');
+    console.log({ data: { form: instanceData } });
+    console.log('+++++++++++++++++++++++++++++++');
+
+    // expect(response).toBeHttp({ statusCode: 200, data: { data: { form: instanceData } } });
+    // response = await ApiRequestMap.identity.get(account, connectorId, identityId);
+    // expect(response).toBeHttp({ statusCode: 200, data: { data: identityData } });
   }, 180000);
 
   test('Overwrite 1 of 2 forms', async () => {
