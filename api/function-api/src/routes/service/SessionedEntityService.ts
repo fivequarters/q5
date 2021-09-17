@@ -401,7 +401,7 @@ export default abstract class SessionedEntityService<
 
     setImmediate(async () => {
       try {
-        await this.persistTrunkSession(session, masterSessionId, parentEntity, instance);
+        await this.persistTrunkSession(session, masterSessionId, parentEntity, instance, instanceId);
       } catch (error) {
         console.log(error);
         const brokenInstance = await this.subDao!.getEntity(instance);
@@ -420,7 +420,8 @@ export default abstract class SessionedEntityService<
     session: Model.ITrunkSession,
     masterSessionId: Model.ISubordinateId,
     parentEntity: Model.IEntity,
-    instance: Model.IInstance
+    instance: Model.IInstance,
+    instanceId: string
   ): Promise<void> => {
     return RDS.inTransaction(async (daos) => {
       if (this.entityType !== Model.EntityType.integration) {
@@ -505,10 +506,10 @@ export default abstract class SessionedEntityService<
         parentEntityType: this.entityType,
         parentEntityId: masterSessionId.parentEntityId,
         entityType: this.subDao!.getDaoType(),
-        entityId: instance.id,
+        entityId: instanceId,
         tags: instance.tags,
       };
-      session.data.replacementTargetId = instance.id;
+      session.data.replacementTargetId = instanceId;
 
       await daos[Model.EntityType.session].updateEntity(session);
     });
