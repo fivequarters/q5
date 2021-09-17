@@ -206,7 +206,7 @@ describe('Sessions', () => {
     expect(response).toBeHttp({ statusCode: 400 });
   }, 180000);
 
-  test.only('Overwrite an existing instance and identity', async () => {
+  test('Overwrite an existing instance and identity', async () => {
     const { integrationId, connectorId, steps } = await createPair(account, boundaryId, {
       components: [
         {
@@ -323,7 +323,7 @@ describe('Sessions', () => {
     });
 
     // finalize session
-    response = await ApiRequestMap.integration.session.commitSessionAndWait(account, integrationId, parentSessionId);
+    await ApiRequestMap.integration.session.commitSessionAndWait(account, integrationId, parentSessionId);
 
     // verify that pre-existing instance has been updated while preserving skipped formTwo data
     response = await ApiRequestMap.instance.get(account, integrationId, instanceId);
@@ -574,7 +574,7 @@ describe('Sessions', () => {
 
     // POST the parent session
     response = await ApiRequestMap.integration.session.commitSessionAndWait(account, integrationId, parentSessionId);
-    const instanceId = response.data.data.replacementTargetId;
+    const instanceId = response.data.instanceId;
     expect(instanceId).toBeUUID();
 
     // Returns the identity and instance id's.

@@ -219,13 +219,11 @@ describe('Workflow', () => {
       statusCode: 200,
       data: {
         id: formSessionId,
-        data: {
-          dependsOn: {
-            conn1: {
-              parentEntityType: 'connector',
-              parentEntityId: connectorId,
-              entityId: connectorSessionId,
-            },
+        dependsOn: {
+          conn1: {
+            parentEntityType: 'connector',
+            parentEntityId: connectorId,
+            entityId: connectorSessionId,
           },
         },
       },
@@ -240,13 +238,11 @@ describe('Workflow', () => {
       statusCode: 200,
       data: {
         id: formSessionId,
-        data: {
-          dependsOn: {
-            conn1: {
-              parentEntityType: 'connector',
-              parentEntityId: connectorId,
-              entityId: connectorSessionId,
-            },
+        dependsOn: {
+          conn1: {
+            parentEntityType: 'connector',
+            parentEntityId: connectorId,
+            entityId: connectorSessionId,
           },
         },
       },
@@ -260,10 +256,10 @@ describe('Workflow', () => {
     url = new URL(response.headers.location);
     expect(url.searchParams.get('session')).toBe(parentSessionId);
 
-    // POST to the session to instantiate the instances/identities.
+    // Commit session to instantiate the instances/identities.
     response = await ApiRequestMap.integration.session.commitSessionAndWait(account, integrationId, parentSessionId);
-    expect(response).toBeHttp({ statusCode: 200 });
-    const instanceId = response.data.data.output.entityId;
+    expect(response).toBeHttp({ statusCode: 202 });
+    const instanceId = response.data.instanceId;
     expect(instanceId).toBeUUID();
 
     // Get the completed session with the output details
