@@ -561,12 +561,7 @@ describe('Sessions', () => {
 
     // Getting a session with data in it return the output.
     response = await ApiRequestMap[loc.entityType].session.get(account, loc.entityId, loc.sessionId);
-    expect(response).toBeHttp({
-      statusCode: 200,
-      data: {
-        output: { monkey: 'banana' },
-      },
-    });
+    expect(response).toBeHttp({ statusCode: 200, data: { output: { monkey: 'banana' } } });
 
     // Finish the session
     response = await ApiRequestMap[loc.entityType].session.callback(account, loc.entityId, loc.sessionId);
