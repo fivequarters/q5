@@ -275,7 +275,7 @@ describe('Sessions', () => {
     expect(response).toBeHttp({ statusCode: 200, data: { data: identityData } });
   }, 180000);
 
-  test.only('Overwrite 1 of 2 forms', async () => {
+  test('Overwrite 1 of 2 forms', async () => {
     const { integrationId } = await createPair(account, boundaryId, {
       components: [
         {
@@ -671,7 +671,7 @@ describe('Sessions', () => {
     ).toBe(0);
   }, 180000);
 
-  test('Tags specified on the session get persisted to identities and instances', async () => {
+  test.only('Tags specified on the session get persisted to identities and instances', async () => {
     const { integrationId } = await createPair(account, boundaryId);
     const tenantId = 'exampleTenantId';
     let response = await ApiRequestMap.integration.session.post(account, integrationId, {
@@ -691,7 +691,7 @@ describe('Sessions', () => {
 
     // Post to finish
     response = await ApiRequestMap.integration.session.commitSessionAndWait(account, integrationId, parentSessionId);
-    expect(response).toBeHttp({ statusCode: 200 });
+    expect(response).toBeHttp({ statusCode: 202 });
 
     // Verify Operation Id
     response = await ApiRequestMap.integration.session.getResult(account, integrationId, parentSessionId);
