@@ -62,8 +62,10 @@ export class ProfileGetCommand extends Command {
 
     const profile = await profileService.getProfileOrDefaultOrThrow(profileName);
     if (input.options.output === 'json' || input.options.output === 'json64') {
-      let pki = input.options.includeCredentials ? await profileService.getExportProfileDemux(profileName) : undefined;
-      let result: any = {
+      const pki = input.options.includeCredentials
+        ? await profileService.getExportProfileDemux(profileName)
+        : undefined;
+      const result: any = {
         id: profile.name,
         displayName: profile.name,
         baseUrl: profile.baseUrl,
@@ -88,10 +90,8 @@ export class ProfileGetCommand extends Command {
           issuer: profile.issuer,
           subject: profile.subject,
           kid: profile.kid,
+          ...(pki || {}),
         };
-        if (pki) {
-          (result.pki.algorithm = pki.algorithm), (result.pki.privateKey = pki.privateKey);
-        }
       }
       if (input.options.output === 'json') {
         await input.io.writeLineRaw(JSON.stringify(result, null, 2));

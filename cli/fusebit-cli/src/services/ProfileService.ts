@@ -111,16 +111,16 @@ export class ProfileService {
   }
 
   public async createProfile(name: string, newProfile: IFusebitProfileSettings): Promise<IOAuthFusebitProfile> {
-    return await this.execute(async () => {
+    return this.execute(async () => {
       if (await this.profile.profileExists(name)) {
         await this.profile.removeProfile(name);
       }
-      return await this.profile.createProfile(name, newProfile);
+      return this.profile.createProfile(name, newProfile);
     });
   }
 
   public async createDefaultProfile(name: string, defaultProfileId: string): Promise<IOAuthFusebitProfile> {
-    return await this.execute(async () => {
+    return this.execute(async () => {
       if (await this.profile.profileExists(name)) {
         await this.profile.removeProfile(name);
       }
@@ -148,6 +148,20 @@ export class ProfileService {
         Text.bold(copyTo),
         "' profile"
       )
+    );
+
+    return profile;
+  }
+
+  public async importProfile(
+    source: { profile: IFusebitProfile; pki: IFusebitKeyPair; type: string },
+    copyTo: string
+  ): Promise<IFusebitProfile> {
+    const profile = await this.execute(() => this.profile.importProfile(source, copyTo));
+
+    await this.executeService.result(
+      'Profile Imported',
+      Text.create("The '", Text.bold(copyTo), "' profile was successfully written")
     );
 
     return profile;
@@ -343,11 +357,11 @@ export class ProfileService {
   }
 
   public async getExportProfileDemux(profileName?: string): Promise<any> {
-    return await this.execute(async () => {
+    return this.execute(async () => {
       const profile = await this.profile.getProfileOrDefaultOrThrow(profileName);
       const profiles = this.profile.getTypedProfile(profile);
       if (profiles.pkiProfile) {
-        return await this.profile.getPKICredentials(profiles.pkiProfile as IPKIFusebitProfile);
+        return this.profile.getPKICredentials(profiles.pkiProfile as IPKIFusebitProfile);
       } else {
         return undefined;
       }
@@ -373,7 +387,7 @@ export class ProfileService {
   ): Promise<IFusebitExecutionProfile> {
     let accessToken = ignoreCache ? undefined : await this.profile.getCachedAccessToken(profile);
     if (!accessToken) {
-      let refreshToken = await this.profile.getCachedRefreshToken(profile);
+      const refreshToken = await this.profile.getCachedRefreshToken(profile);
       if (refreshToken) {
         try {
           accessToken = await this.refreshOAuthAccessToken(profile, refreshToken);
@@ -390,7 +404,9 @@ export class ProfileService {
             'Unable to obtain OAuth access token because the command was launched in a non-interactive mode.'
           );
         }
-        if (this.executeService) accessToken = await this.getOAuthAccessToken(profile);
+        if (this.executeService) {
+          accessToken = await this.getOAuthAccessToken(profile);
+        }
       }
     }
 
