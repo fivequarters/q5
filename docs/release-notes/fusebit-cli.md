@@ -17,6 +17,12 @@ All public releases of the Fusebit CLI are documented here, including notable ch
 <!-- 1. TOC
 {:toc} -->
 
+## Version 1.14.4
+
+_Released 09/18/21_
+
+- **Enhancement.** Support importing and exporting individual profiles.
+
 ## Version 1.14.0
 
 _Released 09/09/21_
