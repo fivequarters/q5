@@ -768,15 +768,26 @@ components:
             $ref: '#/components/schemas/IntegrationEntity'
 
     Session202:
-      description: The entity creation is in progress. While the `operationState.status` value is
+      description: The instance creation is in progress. To check its status, use the `targetUrl` endpoint
+        returned by this call. While the `operationState.status` value of the instance is
         `processing`, the entity is still being created. Once the `operationState.status` value is
-        `success`, the entity is available for use.
+        `success`, the entity becomes available for use.
 
         On failure, `operationState.status` will be set to `failed` and `state` will be `invalid`.
       content:
         application/json:
           schema:
-            $ref: '#/components/schemas/InstanceEntity'
+            type: object
+            required:
+              - instanceId
+              - targetUrl
+            properties:
+              instanceId:
+                type: string
+                description: The id of the instance being created
+              targetUrl:
+                type: string
+                description: The endpoint where you can find the instance being created
 
     400:
       description: The request submitted is invalid. Please, check the documentation and
