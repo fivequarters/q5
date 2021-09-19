@@ -441,7 +441,7 @@ const createSdk = (entityType: Model.EntityType): ISdkForEntity => ({
         ...options,
       });
       expect(operation).toBeHttp({ statusCode: 202 });
-      await waitForCompletion(account, entityType, entityId, operation.data.instanceId, waitOptions, options);
+      await waitForCompletion(account, Model.EntityType.instance, entityId, operation.data.instanceId, waitOptions, options);
       return operation;
     },
     commitSession: async (account: IAccount, entityId: string, sessionId: string, options?: Partial<IRequestOptions>) =>
