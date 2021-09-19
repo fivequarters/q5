@@ -493,7 +493,7 @@ export default abstract class SessionedEntityService<
       };
 
       // update instance with identity info
-      instance.data = { ...leafSessionResults };
+      instance.data = { ...instance.data, ...leafSessionResults };
 
       const subDao = daos[this.subDao!.getDaoType()];
       await subDao.updateEntity(instance);
