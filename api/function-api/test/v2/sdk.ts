@@ -205,7 +205,8 @@ interface ISdkForEntity {
       account: IAccount,
       entityId: string,
       sessionId: string,
-      options?: Partial<IRequestOptions>
+      options?: Partial<IRequestOptions>,
+      waitOptions?: IWaitForCompletionParams
     ) => Promise<IHttpResponse>;
     commitSession: (
       account: IAccount,

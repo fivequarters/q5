@@ -564,7 +564,7 @@ describe('Sessions', () => {
     expect(response).toBeHttp({
       statusCode: 200,
       data: {
-        data: { output: { monkey: 'banana' } },
+        output: { monkey: 'banana' },
       },
     });
 
