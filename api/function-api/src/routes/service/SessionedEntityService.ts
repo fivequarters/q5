@@ -480,7 +480,7 @@ export default abstract class SessionedEntityService<
       // update its operation state
       instance.state = EntityState.active;
       instance.operationState = {
-        operation: OperationType.creating,
+        operation: instance.operationState?.operation || OperationType.creating,
         status: OperationStatus.success,
       };
 
