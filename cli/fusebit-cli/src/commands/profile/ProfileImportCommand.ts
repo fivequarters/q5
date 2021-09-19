@@ -1,5 +1,5 @@
 import { Command, IExecuteInput, ArgType } from '@5qtrs/cli';
-import { ProfileService, ExecuteService, AgentService } from '../../services';
+import { ProfileService, ExecuteService } from '../../services';
 import { Text } from '@5qtrs/text';
 import { join } from 'path';
 import { readFileSync } from 'fs';
@@ -52,11 +52,10 @@ export class ProfileImportCommand extends Command {
     const file = input.options.file as string;
     const profileService = await ProfileService.create(input);
     const executeService = await ExecuteService.create(input);
-    const agentService = await AgentService.create(input);
 
     await executeService.newLine();
 
-    const payload = await executeService.execute(
+    await executeService.execute(
       {
         header: 'Reading data',
         message: Text.create('Reading input data from ', Text.bold(file === stdinFileName ? 'STDIN' : file), '...'),
@@ -72,7 +71,6 @@ export class ProfileImportCommand extends Command {
           return Buffer.concat(chunks).toString('utf8');
         };
 
-        console.log(`${file},${stdinFileName}`);
         const content = file === stdinFileName ? await readStdin() : readFileSync(join(process.cwd(), file), 'utf8');
         const json = JSON.parse(content);
         if (typeof json !== 'object') {

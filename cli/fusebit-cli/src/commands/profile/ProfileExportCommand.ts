@@ -1,4 +1,4 @@
-import { Command, IExecuteInput, ArgType } from '@5qtrs/cli';
+import { Command, IExecuteInput } from '@5qtrs/cli';
 import { ProfileService, ExecuteService } from '../../services';
 
 // ------------------
@@ -46,12 +46,16 @@ export class ProfileExportCommand extends Command {
     const profile = await profileService.getProfileOrDefaultOrThrow(profileName);
     const pki = await profileService.getExportProfileDemux(profileName);
 
+    if (!pki) {
+      throw new Error('Unable to export non-pki profiles');
+    }
+
     const result = {
       profile,
       type: 'pki',
       pki: {
         name: profile.name,
-        ...(pki || {}),
+        ...pki,
       },
     };
     await input.io.writeLineRaw(JSON.stringify(result, null, 2));

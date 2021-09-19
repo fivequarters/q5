@@ -27,7 +27,6 @@ export class DotConfig {
 
   protected async writeBinary(path: string, contents: Buffer, options: { mode?: number } = {}) {
     const fullPath = join(this.path, path);
-    console.log(`Writing ${contents.length} to ${fullPath}`);
     return writeFile(fullPath, contents, { ensurePath: true, ...options });
   }
 
