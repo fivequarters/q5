@@ -201,13 +201,6 @@ interface ISdkForEntity {
       sessionId: string,
       options?: IRequestOptions
     ) => Promise<IHttpResponse>;
-    commitSessionAndWait: (
-      account: IAccount,
-      entityId: string,
-      sessionId: string,
-      options?: Partial<IRequestOptions>,
-      waitOptions?: IWaitForCompletionParams
-    ) => Promise<IHttpResponse>;
     commitSession: (
       account: IAccount,
       entityId: string,
@@ -427,22 +420,6 @@ const createSdk = (entityType: Model.EntityType): ISdkForEntity => ({
         maxRedirects: 0,
         ...options,
       });
-    },
-    commitSessionAndWait: async (
-      account: IAccount,
-      entityId: string,
-      sessionId: string,
-      options?: Partial<IRequestOptions>,
-      waitOptions?: IWaitForCompletionParams
-    ) => {
-      const operation = await v2Request(account, {
-        method: RequestMethod.post,
-        uri: `/${entityType}/${encodeURI(entityId)}/session/${sessionId}/commit`,
-        ...options,
-      });
-      expect(operation).toBeHttp({ statusCode: 202 });
-      await waitForCompletion(account, Model.EntityType.instance, entityId, operation.data.instanceId, waitOptions, options);
-      return operation;
     },
     commitSession: async (account: IAccount, entityId: string, sessionId: string, options?: Partial<IRequestOptions>) =>
       v2Request(account, {

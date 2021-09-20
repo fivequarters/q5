@@ -2,7 +2,7 @@ import { request } from '@5qtrs/request';
 
 import * as Constants from '@5qtrs/constants';
 import { Model } from '@5qtrs/db';
-import { cleanupEntities, ApiRequestMap, createPair, getElementsFromUrl } from './sdk';
+import { cleanupEntities, ApiRequestMap, createPair, getElementsFromUrl, waitForCompletion } from './sdk';
 
 import { getEnv } from '../v1/setup';
 
@@ -206,7 +206,7 @@ describe('Sessions', () => {
     expect(response).toBeHttp({ statusCode: 400 });
   }, 180000);
 
-  test('Overwrite an existing instance and identity', async () => {
+  test.only('Overwrite an existing instance and identity', async () => {
     const { integrationId, connectorId, steps } = await createPair(account, boundaryId, {
       components: [
         {
@@ -265,7 +265,14 @@ describe('Sessions', () => {
     await ApiRequestMap.connector.session.put(account, connectorId, identitySessionId, { output: identityData });
 
     // finalize session to write session data to entities
-    await ApiRequestMap.integration.session.commitSessionAndWait(account, integrationId, parentSessionId);
+    await ApiRequestMap.integration.session.commitSession(account, integrationId, parentSessionId);
+    const sessionResult = await ApiRequestMap.integration.session.getResult(account, integrationId, parentSessionId);
+    console.log('------------------------------');
+    console.log(sessionResult.data.replacementTargetId);
+    console.log(instanceId);
+    console.log('------------------------------');
+    expect(instanceId).toBe(sessionResult.data.replacementTargetId)
+    await waitForCompletion(account, Model.EntityType.instance, integrationId, instanceId);
 
     // verify that pre-existing identity and instance have been updated
     response = await ApiRequestMap.instance.get(account, integrationId, instanceId);
@@ -322,7 +329,7 @@ describe('Sessions', () => {
     });
 
     // finalize session
-    await ApiRequestMap.integration.session.commitSessionAndWait(account, integrationId, parentSessionId);
+    // await ApiRequestMap.integration.session.commitSessionAndWait(account, integrationId, parentSessionId);
 
     // verify that pre-existing instance has been updated while preserving skipped formTwo data
     response = await ApiRequestMap.instance.get(account, integrationId, instanceId);
@@ -567,7 +574,7 @@ describe('Sessions', () => {
     expect(response).toBeHttp({ statusCode: 302 });
 
     // POST the parent session
-    response = await ApiRequestMap.integration.session.commitSessionAndWait(account, integrationId, parentSessionId);
+    // response = await ApiRequestMap.integration.session.commitSessionAndWait(account, integrationId, parentSessionId);
     const instanceId = response.data.instanceId;
     expect(instanceId).toBeUUID();
 
@@ -684,7 +691,7 @@ describe('Sessions', () => {
     response = await ApiRequestMap[loc.entityType].session.callback(account, loc.entityId, loc.sessionId);
 
     // Post to finish
-    response = await ApiRequestMap.integration.session.commitSessionAndWait(account, integrationId, parentSessionId);
+    // response = await ApiRequestMap.integration.session.commitSessionAndWait(account, integrationId, parentSessionId);
     expect(response).toBeHttp({ statusCode: 202 });
 
     // Verify Operation Id
@@ -718,7 +725,7 @@ describe('Sessions', () => {
     response = await ApiRequestMap[loc.entityType].session.callback(account, loc.entityId, loc.sessionId);
 
     // Post to finish
-    response = await ApiRequestMap.integration.session.commitSessionAndWait(account, integrationId, parentSessionId);
+    // response = await ApiRequestMap.integration.session.commitSessionAndWait(account, integrationId, parentSessionId);
     expect(response).toBeHttp({ statusCode: 202 });
 
     // Verify Operation Id
