@@ -232,9 +232,7 @@ export default abstract class SessionedEntityService<
       }));
     }
 
-    const statusCode = session.operationState?.status === OperationStatus.processing ? 202 : 200;
-
-    return { statusCode, result: session };
+    return { statusCode: 200, result: session };
   };
 
   public putSession = async (
