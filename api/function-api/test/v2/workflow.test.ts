@@ -3,7 +3,7 @@ import { request } from '@5qtrs/request';
 import * as Constants from '@5qtrs/constants';
 import { Model } from '@5qtrs/db';
 
-import { cleanupEntities, ApiRequestMap, createPair, RequestMethod } from './sdk';
+import { cleanupEntities, ApiRequestMap, createPair, RequestMethod, waitForCompletionTargetUrl } from './sdk';
 
 import { startTunnel, startHttpServer } from '../v1/tunnel';
 
@@ -257,9 +257,12 @@ describe('Workflow', () => {
     expect(url.searchParams.get('session')).toBe(parentSessionId);
 
     // Commit session to instantiate the instances/identities.
-    response = await ApiRequestMap.integration.session.commitSessionAndWait(account, integrationId, parentSessionId);
+    response = await ApiRequestMap.integration.session.commitSession(account, integrationId, parentSessionId);
     expect(response).toBeHttp({ statusCode: 202 });
-    const instanceId = response.data.instanceId;
+
+    // Wait for the entities to be fully created.
+    response = await waitForCompletionTargetUrl(account, response.data.targetUrl);
+    let instanceId = response.data.id;
     expect(instanceId).toBeUUID();
 
     // Get the completed session with the output details
@@ -423,7 +426,12 @@ describe('Workflow', () => {
     await nextSessionStep(nextUrl);
 
     // POST to the session to instantiate the instances/identities.
-    await ApiRequestMap.integration.session.commitSessionAndWait(account, integrationId, replacementParentSessionId);
+    response = await ApiRequestMap.integration.session.commitSession(account, integrationId, replacementParentSessionId);
+    expect(response).toBeHttp({ statusCode: 202 });
+
+    // Wait for the entities to be fully created.
+    response = await waitForCompletionTargetUrl(account, response.data.targetUrl);
+    instanceId = response.data.id;
 
     // Get the completed session with the output details
     response = await ApiRequestMap.integration.session.getResult(account, integrationId, replacementParentSessionId);

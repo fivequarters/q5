@@ -388,6 +388,11 @@ export default abstract class SessionedEntityService<
       };
       await this.subDao!.updateEntity(instance);
     } else {
+      instance.state = EntityState.creating;
+      instance.operationState = {
+        operation: OperationType.creating,
+        status: OperationStatus.processing,
+      };
       await this.subDao!.createEntity(instance);
     }
 

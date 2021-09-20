@@ -112,6 +112,31 @@ export const waitForCompletion = async (
   return response;
 };
 
+export const waitForCompletionTargetUrl = async (
+  account: IAccount,
+  targetUrl: string,
+  waitOptions: IWaitForCompletionParams = DefaultWaitForCompletionParams
+) => {
+  const startTime = Date.now();
+  let response: any;
+  waitOptions = { ...DefaultWaitForCompletionParams, ...waitOptions };
+  do {
+    response = await v2Request(account, {
+      uri: targetUrl,
+      rawUrl: true,
+      method: RequestMethod.get,
+    });
+    if (!response.data.operationState || response.data.operationState.status !== Model.OperationStatus.processing) {
+      return response;
+    }
+    await new Promise((resolve) => setTimeout(resolve, waitOptions.pollMs));
+  } while (startTime + waitOptions.waitMs > Date.now());
+
+  console.log(`WARNING: Failed to wait for ${targetUrl} after ${waitOptions.waitMs} ms, aborting wait...`);
+
+  return response;
+}
+
 interface ISdkForEntity {
   get: (account: IAccount, entityId: string, options?: IRequestOptions) => Promise<IHttpResponse>;
   list: (
