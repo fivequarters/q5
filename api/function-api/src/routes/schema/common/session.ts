@@ -182,7 +182,6 @@ const createSessionRouter = (SessionService: SessionedEntityService<any, any>) =
             id: Model.createSubordinateId(SessionService.entityType, req.params.entityId, req.params.sessionId),
           });
           res.status(202).json({
-            instanceId,
             targetUrl: `${Constants.API_PUBLIC_ENDPOINT}/v2/account/${req.params.accountId}/subscription/${req.params.subscriptionId}/${SessionService.entityType}/${req.params.entityId}/instance/${instanceId}/`,
           });
         } catch (error) {
