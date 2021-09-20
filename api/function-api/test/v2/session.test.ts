@@ -269,7 +269,6 @@ describe('Sessions', () => {
 
     // verify that pre-existing identity and instance have been updated
     response = await ApiRequestMap.instance.get(account, integrationId, instanceId);
-
     expect(response).toBeHttp({ statusCode: 200, data: { data: { form: instanceData } } });
     response = await ApiRequestMap.identity.get(account, connectorId, identityId);
     expect(response).toBeHttp({ statusCode: 200, data: { data: identityData } });
