@@ -345,7 +345,7 @@ export default abstract class SessionedEntityService<
 
   public commitSession = async (entity: Model.IEntity): Promise<string> => {
     // Triggers an async process to commit the session, returning instantenously.
-    const session = await this.sessionDao.getEntity(entity);
+    let session = await this.sessionDao.getEntity(entity);
     this.ensureSessionTrunk(session, 'cannot post non-master session', 400);
     if (session.data.components) {
       for (const component of session.data.components) {
@@ -394,11 +394,20 @@ export default abstract class SessionedEntityService<
         status: OperationStatus.processing,
       };
       await this.subDao!.createEntity(instance);
+
+      session.data.replacementTargetId = instanceId;
+      session = await this.sessionDao.updateEntity(session);
     }
 
     setImmediate(async () => {
       try {
-        await this.persistTrunkSession(session, masterSessionId, parentEntity, instance, instanceId);
+        await this.persistTrunkSession(
+          session as Model.ITrunkSession,
+          masterSessionId,
+          parentEntity,
+          instance,
+          instanceId
+        );
       } catch (error) {
         console.log(error);
         const brokenInstance = await this.subDao!.getEntity(instance);
@@ -511,7 +520,6 @@ export default abstract class SessionedEntityService<
         entityId: instanceId,
         tags: instance.tags,
       };
-      session.data.replacementTargetId = instanceId;
 
       await daos[Model.EntityType.session].updateEntity(session);
     });
