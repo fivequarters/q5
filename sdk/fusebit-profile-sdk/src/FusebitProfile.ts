@@ -363,6 +363,21 @@ export class FusebitProfile {
     return profile;
   }
 
+  public async importProfile(
+    source: { profile: IFusebitProfile; pki: IFusebitKeyPair; type: string },
+    target: string
+  ): Promise<IFusebitProfile> {
+    source.profile.name = target;
+    source.pki.name = target;
+    source.profile.keyPair = target;
+
+    await this.dotConfig.setProfile(target, source.profile);
+    await this.dotConfig.setPublicKey(source.profile.name, source.profile.kid!, source.pki.publicKey);
+    await this.dotConfig.setPrivateKey(source.profile.name, source.profile.kid!, source.pki.privateKey);
+
+    return source.profile;
+  }
+
   public async renameProfile(name: string, renameTo: string, overWrite: boolean): Promise<IFusebitProfile> {
     const profile = await this.getProfileOrThrow(name);
     const renameToExists = await this.profileExists(renameTo);
@@ -430,6 +445,7 @@ export class FusebitProfile {
       subject: profile.subject,
       kid: profile.kid,
       privateKey: await this.dotConfig.getPrivateKey(profile.keyPair, profile.kid),
+      publicKey: await this.dotConfig.getPublicKey(profile.keyPair, profile.kid),
     };
 
     return result;
