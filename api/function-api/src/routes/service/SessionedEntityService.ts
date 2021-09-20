@@ -380,7 +380,8 @@ export default abstract class SessionedEntityService<
       data: null,
     };
 
-    if (!!session.data.replacementTargetId) {
+    const newInstace = !session.data.replacementTargetId;
+    if (!newInstace) {
       instance.operationState = {
         operation: OperationType.updating,
         status: OperationStatus.processing,
@@ -396,9 +397,10 @@ export default abstract class SessionedEntityService<
       } catch (error) {
         console.log(error);
         const brokenInstance = await this.subDao!.getEntity(instance);
+        brokenInstance.state = newInstace ? Model.EntityState.invalid : instance.state;
         brokenInstance.operationState = {
           operation: instance.operationState!.operation,
-          status: OperationStatus.processing,
+          status: OperationStatus.failed,
         };
         await this.subDao!.updateEntity(brokenInstance);
       }
