@@ -12,6 +12,7 @@
     "resolveJsonModule": true,
     "jsx": "react",
     "baseUrl": ".",
+    "forceConsistentCasingInFileNames": true,
     "paths": {
       "@5qtrs/workspace": ["tool/workspace/src"],
       "@5qtrs/yarn-tool": ["tool/yarn-tool/src"],
