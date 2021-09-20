@@ -284,7 +284,14 @@ export default abstract class BaseEntityService<E extends Model.IEntity, F exten
       }
     });
 
-    return { statusCode: 200, result: existingEntity };
+    return {
+      statusCode: 202,
+      result: {
+        ...entity,
+        state: existingEntity.state,
+        operationState: existingEntity.operationState,
+      }
+    };
   };
 
   public deleteEntity = async (entity: Model.IEntity): Promise<IServiceResult> => {
