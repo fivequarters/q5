@@ -732,10 +732,13 @@ describe('Sessions', () => {
     response = await ApiRequestMap[loc.entityType].session.callback(account, loc.entityId, loc.sessionId);
 
     // Post to finish
-    await ApiRequestMap.integration.session.commitSession(account, integrationId, parentSessionId);
-    const sessionResult = await ApiRequestMap.integration.session.getResult(account, integrationId, parentSessionId);
-    const instanceId = sessionResult.data.replacementTargetId;
-    await waitForCompletion(account, Model.EntityType.instance, integrationId, instanceId);
+    response = await ApiRequestMap.integration.session.commitSession(account, integrationId, parentSessionId);
+        
+    // Wait for the instance to be fully available.
+    response = await waitForCompletionTargetUrl(account, response.data.targetUrl);
+    const instanceId = response.data.id;
+    expect(instanceId).toBeUUID();
+    expect(response.data.state).toBe(EntityState.active);
 
     // Verify Operation Id
     response = await ApiRequestMap.integration.session.getResult(account, integrationId, parentSessionId);
