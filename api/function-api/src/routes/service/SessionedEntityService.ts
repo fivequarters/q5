@@ -346,7 +346,7 @@ export default abstract class SessionedEntityService<
   };
 
   public commitSession = async (entity: Model.IEntity): Promise<string> => {
-    // Returns after the creation process is completed.
+    // Triggers an async process to commit the session, returning instantenously.
     const session = await this.sessionDao.getEntity(entity);
     this.ensureSessionTrunk(session, 'cannot post non-master session', 400);
     if (session.data.components) {
