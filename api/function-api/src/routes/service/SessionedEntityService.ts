@@ -381,19 +381,12 @@ export default abstract class SessionedEntityService<
     };
 
     if (!!session.data.replacementTargetId) {
-      const existingEntity = await this.subDao!.getEntity(instance);
-      instance.data = { ...existingEntity.data, ...instance.data };
       instance.operationState = {
         operation: OperationType.updating,
         status: OperationStatus.processing,
       };
       await this.subDao!.updateEntity(instance);
     } else {
-      instance.state = EntityState.creating;
-      instance.operationState = {
-        operation: OperationType.creating,
-        status: OperationStatus.processing,
-      };
       await this.subDao!.createEntity(instance);
     }
 
@@ -468,30 +461,34 @@ export default abstract class SessionedEntityService<
         }
       });
 
-      // Otherwise, make sure everything else succeeded
+      // Otherwise, make sure everything else succeeded.
       leafPromises.forEach((result: { status: string; message: string }) => {
         if (result.status === 'rejected') {
           throw http_error(500, result.message);
         }
       });
 
-      // update its operation state
+      // Update instance operation state.
       instance.state = EntityState.active;
       instance.operationState = {
         operation: instance.operationState?.operation || OperationType.creating,
         status: OperationStatus.success,
       };
 
-      // update its tags
+      // Grab up-to-date information to use as basis.
+      const existingEntity = await this.subDao!.getEntity(instance);
+
+      // Update instance tags.
       instance.tags = {
+        ...existingEntity.tags,
         ...session.tags,
         'session.master': masterSessionId.entityId,
         ...leafTags,
         'fusebit.parentEntityId': parentEntity.id,
       };
 
-      // update instance with identity info
-      instance.data = { ...instance.data, ...leafSessionResults };
+      // Update instance with identity information.
+      instance.data = { ...existingEntity.data, ...instance.data, ...leafSessionResults };
 
       const subDao = daos[this.subDao!.getDaoType()];
       await subDao.updateEntity(instance);
