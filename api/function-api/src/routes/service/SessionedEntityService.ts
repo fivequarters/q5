@@ -380,7 +380,7 @@ export default abstract class SessionedEntityService<
       data: null,
     };
 
-    if (session.data.replacementTargetId) {
+    if (!session.data.replacementTargetId) {
       instance.state = EntityState.creating;
       instance.operationState = {
         operation: OperationType.creating,
