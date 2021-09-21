@@ -5,6 +5,7 @@ import { EPHEMERAL_ENTITY_EXPIRATION } from '@5qtrs/constants';
 import RDS, { Model } from '@5qtrs/db';
 
 import BaseEntityService, { IServiceResult } from './BaseEntityService';
+import { EntityState, OperationType, OperationStatus } from '@fusebit/schema';
 
 export default abstract class SessionedEntityService<
   E extends Model.IEntity,
@@ -342,9 +343,9 @@ export default abstract class SessionedEntityService<
     };
   };
 
-  public postSession = async (entity: Model.IEntity): Promise<IServiceResult> => {
-    // Returns after the creation process is completed.
-    const session = await this.sessionDao.getEntity(entity);
+  public commitSession = async (entity: Model.IEntity): Promise<string> => {
+    // Triggers an async process to commit the session.
+    let session = await this.sessionDao.getEntity(entity);
     this.ensureSessionTrunk(session, 'cannot post non-master session', 400);
     if (session.data.components) {
       for (const component of session.data.components) {
@@ -362,22 +363,82 @@ export default abstract class SessionedEntityService<
       }
     }
 
-    return this.persistTrunkSession(session);
-  };
+    const instanceId = session.data.replacementTargetId || uuidv4();
 
-  protected persistTrunkSession = async (session: Model.ITrunkSession): Promise<IServiceResult> => {
     const masterSessionId = Model.decomposeSubordinateId(session.id);
 
-    if (this.entityType !== Model.EntityType.integration) {
-      throw http_error(500, `Invalid entity type '${this.entityType}' for ${masterSessionId.entityId}`);
+    const parentEntity: Model.IEntity = await this.dao!.getEntity({
+      accountId: session.accountId,
+      subscriptionId: session.subscriptionId,
+      id: masterSessionId.parentEntityId,
+    });
+
+    const instance: Model.IInstance = {
+      accountId: session.accountId,
+      subscriptionId: session.subscriptionId,
+      id: Model.createSubordinateId(this.entityType, parentEntity.__databaseId as string, instanceId),
+      data: null,
+    };
+
+    if (!session.data.replacementTargetId) {
+      instance.state = EntityState.creating;
+      instance.operationState = {
+        operation: OperationType.creating,
+        status: OperationStatus.processing,
+      };
+      await this.subDao!.createEntity(instance);
+
+      session.data.replacementTargetId = instanceId;
+      session = await this.sessionDao.updateEntity(session);
+    } else {
+      instance.operationState = {
+        operation: OperationType.updating,
+        status: OperationStatus.processing,
+      };
+      await this.subDao!.updateEntity(instance);
     }
 
-    let instanceId;
+    setImmediate(async () => {
+      try {
+        await this.persistTrunkSession(
+          session as Model.ITrunkSession,
+          masterSessionId,
+          parentEntity,
+          instance,
+          instanceId
+        );
+      } catch (error) {
+        console.log(error);
+        const brokenInstance = await this.subDao!.getEntity(instance);
+        brokenInstance.state =
+          instance.state === Model.EntityState.creating ? Model.EntityState.invalid : brokenInstance.state;
+        brokenInstance.operationState = {
+          operation: instance.operationState!.operation,
+          status: OperationStatus.failed,
+        };
+        await this.subDao!.updateEntity(brokenInstance);
+        // Future: Mark other identities or instances created here as invalid, as appropriate.
+      }
+    });
 
-    const leafSessionResults: Record<string, any> = {};
-    const leafTags: Model.ITags = {};
+    return instanceId;
+  };
 
-    await RDS.inTransaction(async (daos) => {
+  protected persistTrunkSession = async (
+    session: Model.ITrunkSession,
+    masterSessionId: Model.ISubordinateId,
+    parentEntity: Model.IEntity,
+    instance: Model.IInstance,
+    instanceId: string
+  ): Promise<void> => {
+    return RDS.inTransaction(async (daos) => {
+      if (this.entityType !== Model.EntityType.integration) {
+        throw new Error(`Invalid entity type '${this.entityType}' for ${masterSessionId.entityId}`);
+      }
+
+      const leafSessionResults: Record<string, any> = {};
+      const leafTags: Model.ITags = {};
+
       // Persist each session.
       const leafPromises = await (Promise as any).allSettled(
         Object.values(session.data.components).map(async (step: Model.IStep) => {
@@ -403,7 +464,6 @@ export default abstract class SessionedEntityService<
             // Store the results.
             leafSessionResults[step.name] = result.result;
           } catch (e) {
-            console.log(e);
             // Force the transaction to fail.
             throw e;
           }
@@ -418,45 +478,37 @@ export default abstract class SessionedEntityService<
         }
       });
 
-      // Otherwise, make sure everything else succeeded
+      // Otherwise, make sure everything else succeeded.
       leafPromises.forEach((result: { status: string; message: string }) => {
         if (result.status === 'rejected') {
           throw http_error(500, result.message);
         }
       });
 
-      // Create a new `instance` object.
-      //
-      // Get the integration, to get the database id out of.
-      const parentEntity: Model.IEntity = await daos[this.entityType].getEntity({
-        accountId: session.accountId,
-        subscriptionId: session.subscriptionId,
-        id: masterSessionId.parentEntityId,
-      });
-
-      instanceId = session.data.replacementTargetId || uuidv4();
-
-      const instance = {
-        accountId: session.accountId,
-        subscriptionId: session.subscriptionId,
-        id: Model.createSubordinateId(this.entityType, parentEntity.__databaseId as string, instanceId),
-        data: { ...leafSessionResults },
-        tags: {
-          ...session.tags,
-          'session.master': masterSessionId.entityId,
-          ...leafTags,
-          'fusebit.parentEntityId': parentEntity.id,
-        },
+      // Update instance operation state.
+      instance.state = EntityState.active;
+      instance.operationState = {
+        operation: instance.operationState?.operation || OperationType.creating,
+        status: OperationStatus.success,
       };
 
+      // Grab up-to-date information to use as basis.
+      const existingEntity = await this.subDao!.getEntity(instance);
+
+      // Update instance tags.
+      instance.tags = {
+        ...existingEntity.tags,
+        ...session.tags,
+        'session.master': masterSessionId.entityId,
+        ...leafTags,
+        'fusebit.parentEntityId': parentEntity.id,
+      };
+
+      // Update instance with identity information.
+      instance.data = { ...existingEntity.data, ...instance.data, ...leafSessionResults };
+
       const subDao = daos[this.subDao!.getDaoType()];
-      if (!!session.data.replacementTargetId) {
-        const existingEntity = await subDao.getEntity(instance);
-        instance.data = { ...existingEntity.data, ...instance.data };
-        await subDao.updateEntity(instance);
-      } else {
-        await subDao.createEntity(instance);
-      }
+      await subDao.updateEntity(instance);
 
       // Record the successfully created instance in the master session.
       session.data.output = {
@@ -469,11 +521,8 @@ export default abstract class SessionedEntityService<
         entityId: instanceId,
         tags: instance.tags,
       };
-      session.data.replacementTargetId = instanceId;
       await daos[Model.EntityType.session].updateEntity(session);
     });
-
-    return { statusCode: 200, result: { instanceId } };
   };
 
   public persistLeafSession = async (

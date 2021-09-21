@@ -8,5 +8,10 @@
   },
   "typescript.disableAutomaticTypeAcquisition": true,
   "typescript.tsdk": "node_modules/typescript/lib",
-  "editor.rulers": [100] // You can install rewrap plugin to work with text wrapping rules.
+  "editor.rulers": [100], // You can install rewrap plugin to work with text wrapping rules.
+  "files.watcherExclude": {
+    "**/.git/objects/**": true,
+    "**/.git/subtree-cache/**": true,
+    "**/node_modules/*/**": true
+  }
 }

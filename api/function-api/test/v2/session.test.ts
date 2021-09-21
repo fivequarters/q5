@@ -1,8 +1,14 @@
-import { request } from '@5qtrs/request';
-
 import * as Constants from '@5qtrs/constants';
 import { Model } from '@5qtrs/db';
-import { cleanupEntities, ApiRequestMap, createPair, getElementsFromUrl } from './sdk';
+import { EntityState, OperationStatus } from '@fusebit/schema';
+import {
+  cleanupEntities,
+  ApiRequestMap,
+  createPair,
+  getElementsFromUrl,
+  waitForCompletion,
+  waitForCompletionTargetUrl,
+} from './sdk';
 
 import { getEnv } from '../v1/setup';
 
@@ -266,6 +272,9 @@ describe('Sessions', () => {
 
     // finalize session to write session data to entities
     await ApiRequestMap.integration.session.commitSession(account, integrationId, parentSessionId);
+    const sessionResult = await ApiRequestMap.integration.session.getResult(account, integrationId, parentSessionId);
+    expect(instanceId).toBe(sessionResult.data.replacementTargetId);
+    await waitForCompletion(account, Model.EntityType.instance, integrationId, instanceId);
 
     // verify that pre-existing identity and instance have been updated
     response = await ApiRequestMap.instance.get(account, integrationId, instanceId);
@@ -322,7 +331,10 @@ describe('Sessions', () => {
     });
 
     // finalize session
-    response = await ApiRequestMap.integration.session.commitSession(account, integrationId, parentSessionId);
+    await ApiRequestMap.integration.session.commitSession(account, integrationId, parentSessionId);
+    const sessionResult = await ApiRequestMap.integration.session.getResult(account, integrationId, parentSessionId);
+    expect(instanceId).toBe(sessionResult.data.replacementTargetId);
+    await waitForCompletion(account, Model.EntityType.instance, integrationId, instanceId);
 
     // verify that pre-existing instance has been updated while preserving skipped formTwo data
     response = await ApiRequestMap.instance.get(account, integrationId, instanceId);
@@ -562,14 +574,18 @@ describe('Sessions', () => {
     response = await ApiRequestMap[loc.entityType].session.get(account, loc.entityId, loc.sessionId);
     expect(response).toBeHttp({ statusCode: 200, data: { output: { monkey: 'banana' } } });
 
-    // Finish the session
+    // Finish the session.
     response = await ApiRequestMap[loc.entityType].session.callback(account, loc.entityId, loc.sessionId);
     expect(response).toBeHttp({ statusCode: 302 });
 
-    // POST the parent session
+    // Commit the parent session.
     response = await ApiRequestMap.integration.session.commitSession(account, integrationId, parentSessionId);
-    const instanceId = response.data.instanceId;
+
+    // Wait for the instance to be fully available.
+    response = await waitForCompletionTargetUrl(account, response.data.targetUrl);
+    const instanceId = response.data.id;
     expect(instanceId).toBeUUID();
+    expect(response.data.state).toBe(EntityState.active);
 
     // Returns the identity and instance id's.
     response = await ApiRequestMap.integration.session.getResult(account, integrationId, parentSessionId);
@@ -578,6 +594,7 @@ describe('Sessions', () => {
         tags: {
           'session.master': parentSessionId,
         },
+        entityId: instanceId,
         accountId: account.accountId,
         entityType: Model.EntityType.instance,
         parentEntityId: integrationId,
@@ -679,16 +696,20 @@ describe('Sessions', () => {
     response = await ApiRequestMap.integration.session.start(account, integrationId, parentSessionId);
     const loc = getElementsFromUrl(response.headers.location);
 
-    // Call the callback
+    // Call the callback.
     response = await ApiRequestMap[loc.entityType].session.callback(account, loc.entityId, loc.sessionId);
 
-    // Post to finish
+    // Commit the parent session.
     response = await ApiRequestMap.integration.session.commitSession(account, integrationId, parentSessionId);
-    expect(response).toBeHttp({ statusCode: 200 });
+
+    // Wait for the instance to be fully available.
+    response = await waitForCompletionTargetUrl(account, response.data.targetUrl);
+    const instanceId = response.data.id;
 
     // Verify Operation Id
     response = await ApiRequestMap.integration.session.getResult(account, integrationId, parentSessionId);
-    const instanceId = response.data.output.entityId;
+
+    expect(response.data.output.entityId).toBe(instanceId);
 
     // Get the instance, and validate it has the tag specified
     response = await ApiRequestMap.instance.get(account, integrationId, instanceId);
@@ -718,11 +739,16 @@ describe('Sessions', () => {
 
     // Post to finish
     response = await ApiRequestMap.integration.session.commitSession(account, integrationId, parentSessionId);
-    expect(response).toBeHttp({ statusCode: 200 });
+
+    // Wait for the instance to be fully available.
+    response = await waitForCompletionTargetUrl(account, response.data.targetUrl);
+    const instanceId = response.data.id;
+    expect(instanceId).toBeUUID();
+    expect(response.data.state).toBe(EntityState.active);
 
     // Verify Operation Id
     response = await ApiRequestMap.integration.session.getResult(account, integrationId, parentSessionId);
-    const instanceId = response.data.output.entityId;
+    expect(response.data.output.entityId).toBe(instanceId);
 
     // Get the instance, and validate it has the tag specified
     response = await ApiRequestMap.instance.get(account, integrationId, instanceId);

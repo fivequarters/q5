@@ -175,13 +175,15 @@ const createSessionRouter = (SessionService: SessionedEntityService<any, any>) =
       }),
       async (req: express.Request, res: express.Response, next: express.NextFunction) => {
         try {
-          const result = await SessionService.postSession({
+          const instanceId = await SessionService.commitSession({
             accountId: req.params.accountId,
             subscriptionId: req.params.subscriptionId,
             // Sessions use the non-unique component name, but instances and identities use the database id.
             id: Model.createSubordinateId(SessionService.entityType, req.params.entityId, req.params.sessionId),
           });
-          res.status(result.statusCode).json(result.result);
+          res.status(202).json({
+            targetUrl: `${Constants.API_PUBLIC_ENDPOINT}/v2/account/${req.params.accountId}/subscription/${req.params.subscriptionId}/${SessionService.entityType}/${req.params.entityId}/instance/${instanceId}/`,
+          });
         } catch (error) {
           console.log(error);
           return next(error);

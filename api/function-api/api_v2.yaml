@@ -138,12 +138,8 @@ paths:
         entities, or updating the configuration of existing entities as necessary.
       operationId: postSession
       responses:
-        200:
-          description: The session has been created
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/SessionInstanceIdResponse'
+        202:
+          $ref: '#/components/responses/Session202'
         400:
           $ref: '#/components/responses/400'
         403:
@@ -771,6 +767,24 @@ components:
           schema:
             $ref: '#/components/schemas/IntegrationEntity'
 
+    Session202:
+      description: The instance creation is in progress. To check its status, use the `targetUrl` endpoint
+        returned by this call. While the `operationState.status` value of the instance is
+        `processing`, the entity is still being created. Once the `operationState.status` value is
+        `success`, the entity becomes available for use.
+
+        On failure, `operationState.status` will be set to `failed` and `state` will be `invalid`.
+      content:
+        application/json:
+          schema:
+            type: object
+            required:
+              - targetUrl
+            properties:
+              targetUrl:
+                type: string
+                description: The endpoint where you can find the instance being created
+
     400:
       description: The request submitted is invalid. Please, check the documentation and
         fix the request before sending it again.
@@ -908,7 +922,7 @@ components:
 
     EntityTags:
       type: object
-      description: An hash containing tags set on this entity
+      description: A hash containing tags set on this entity
       example:
         tenant: tenant-525
         customer: Sonicity

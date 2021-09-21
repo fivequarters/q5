@@ -146,6 +146,37 @@ const createEntityTests = <T extends Model.IEntity>(DAO: Model.IEntityDao<T>, en
     });
   }, 10000);
 
+  test('Partial update does not overwrite previous data', async () => {
+    const id = 'slack';
+    const original = {
+      id,
+      accountId,
+      subscriptionId,
+      data: { foo: 'bar' },
+      tags: { test: '123' },
+      operationState: {
+        status: Model.OperationStatus.processing,
+        operation: Model.OperationType.creating,
+      },
+      state: Model.EntityState.creating,
+    };
+
+    const originalResult = await DAO.createEntity(original);
+    const updatedResult = await DAO.updateEntity({ accountId, subscriptionId, id });
+
+    expect(updatedResult.data).toBeDefined();
+    expect(updatedResult.data).toStrictEqual(originalResult.data);
+
+    expect(updatedResult.tags).toBeDefined();
+    expect(updatedResult.tags).toStrictEqual(originalResult.tags);
+
+    expect(updatedResult.operationState).toBeDefined();
+    expect(updatedResult.operationState).toStrictEqual(originalResult.operationState);
+
+    expect(updatedResult.state).toBeDefined();
+    expect(updatedResult.state).toStrictEqual(originalResult.state);
+  });
+
   test('Updating non-existing throws NotFoundError', async () => {
     const id = 'slack';
     const data = { foo: 'bar' };
