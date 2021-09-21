@@ -17,6 +17,12 @@ All public releases of the Fusebit HTTP API are documented here, including notab
 <!-- 1. TOC
 {:toc} -->
 
+## Version 1.23.11
+
+_Released 9/21/21_
+
+- **Enhancement.** Commit session now triggers an async process, returning a targetUrl that the caller can use to check the status.
+
 ## Version 1.23.8
 
 _Released 9/10/21_
