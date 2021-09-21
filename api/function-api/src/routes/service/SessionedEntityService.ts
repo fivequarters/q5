@@ -417,6 +417,7 @@ export default abstract class SessionedEntityService<
           status: OperationStatus.failed,
         };
         await this.subDao!.updateEntity(brokenInstance);
+        // Future: Mark other identities or instances created here as invalid, as appropriate.
       }
     });
 
