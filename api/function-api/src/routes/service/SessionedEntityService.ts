@@ -520,7 +520,6 @@ export default abstract class SessionedEntityService<
         entityId: instanceId,
         tags: instance.tags,
       };
-
       await daos[Model.EntityType.session].updateEntity(session);
     });
   };
