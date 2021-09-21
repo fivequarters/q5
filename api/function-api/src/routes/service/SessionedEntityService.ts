@@ -380,14 +380,8 @@ export default abstract class SessionedEntityService<
       data: null,
     };
 
-    const newInstace = !session.data.replacementTargetId;
-    if (!newInstace) {
-      instance.operationState = {
-        operation: OperationType.updating,
-        status: OperationStatus.processing,
-      };
-      await this.subDao!.updateEntity(instance);
-    } else {
+    const newInstance = !session.data.replacementTargetId;
+    if (newInstance) {
       instance.state = EntityState.creating;
       instance.operationState = {
         operation: OperationType.creating,
@@ -397,6 +391,12 @@ export default abstract class SessionedEntityService<
 
       session.data.replacementTargetId = instanceId;
       session = await this.sessionDao.updateEntity(session);
+    } else {
+      instance.operationState = {
+        operation: OperationType.updating,
+        status: OperationStatus.processing,
+      };
+      await this.subDao!.updateEntity(instance);
     }
 
     setImmediate(async () => {
@@ -411,7 +411,7 @@ export default abstract class SessionedEntityService<
       } catch (error) {
         console.log(error);
         const brokenInstance = await this.subDao!.getEntity(instance);
-        brokenInstance.state = newInstace ? Model.EntityState.invalid : instance.state;
+        brokenInstance.state = newInstance ? Model.EntityState.invalid : instance.state;
         brokenInstance.operationState = {
           operation: instance.operationState!.operation,
           status: OperationStatus.failed,
