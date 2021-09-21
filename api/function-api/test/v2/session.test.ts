@@ -1,7 +1,14 @@
 import * as Constants from '@5qtrs/constants';
 import { Model } from '@5qtrs/db';
 import { EntityState, OperationStatus } from '@fusebit/schema';
-import { cleanupEntities, ApiRequestMap, createPair, getElementsFromUrl, waitForCompletion, waitForCompletionTargetUrl } from './sdk';
+import {
+  cleanupEntities,
+  ApiRequestMap,
+  createPair,
+  getElementsFromUrl,
+  waitForCompletion,
+  waitForCompletionTargetUrl,
+} from './sdk';
 
 import { getEnv } from '../v1/setup';
 
@@ -266,7 +273,7 @@ describe('Sessions', () => {
     // finalize session to write session data to entities
     await ApiRequestMap.integration.session.commitSession(account, integrationId, parentSessionId);
     const sessionResult = await ApiRequestMap.integration.session.getResult(account, integrationId, parentSessionId);
-    expect(instanceId).toBe(sessionResult.data.replacementTargetId)
+    expect(instanceId).toBe(sessionResult.data.replacementTargetId);
     await waitForCompletion(account, Model.EntityType.instance, integrationId, instanceId);
 
     // verify that pre-existing identity and instance have been updated
@@ -704,7 +711,6 @@ describe('Sessions', () => {
 
     expect(response.data.output.entityId).toBe(instanceId);
 
-
     // Get the instance, and validate it has the tag specified
     response = await ApiRequestMap.instance.get(account, integrationId, instanceId);
     expect(response).toBeHttp({ statusCode: 200, data: { tags: { tenantId } } });
@@ -733,7 +739,7 @@ describe('Sessions', () => {
 
     // Post to finish
     response = await ApiRequestMap.integration.session.commitSession(account, integrationId, parentSessionId);
-        
+
     // Wait for the instance to be fully available.
     response = await waitForCompletionTargetUrl(account, response.data.targetUrl);
     const instanceId = response.data.id;

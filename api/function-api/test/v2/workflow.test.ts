@@ -426,7 +426,11 @@ describe('Workflow', () => {
     await nextSessionStep(nextUrl);
 
     // Commit session to instantiate the instances/identities.
-    response = await ApiRequestMap.integration.session.commitSession(account, integrationId, replacementParentSessionId);
+    response = await ApiRequestMap.integration.session.commitSession(
+      account,
+      integrationId,
+      replacementParentSessionId
+    );
     expect(response).toBeHttp({ statusCode: 202 });
 
     // Wait for the entities to be fully created.

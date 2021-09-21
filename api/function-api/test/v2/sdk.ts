@@ -135,7 +135,7 @@ export const waitForCompletionTargetUrl = async (
   console.log(`WARNING: Failed to wait for ${targetUrl} after ${waitOptions.waitMs} ms, aborting wait...`);
 
   return response;
-}
+};
 
 interface ISdkForEntity {
   get: (account: IAccount, entityId: string, options?: IRequestOptions) => Promise<IHttpResponse>;
