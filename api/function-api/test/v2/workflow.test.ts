@@ -425,7 +425,7 @@ describe('Workflow', () => {
     // Call the session endpoint to complete this session.
     await nextSessionStep(nextUrl);
 
-    // POST to the session to instantiate the instances/identities.
+    // Commit session to instantiate the instances/identities.
     response = await ApiRequestMap.integration.session.commitSession(account, integrationId, replacementParentSessionId);
     expect(response).toBeHttp({ statusCode: 202 });
 
