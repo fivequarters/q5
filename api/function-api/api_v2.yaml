@@ -779,12 +779,8 @@ components:
           schema:
             type: object
             required:
-              - instanceId
               - targetUrl
             properties:
-              instanceId:
-                type: string
-                description: The id of the instance being created
               targetUrl:
                 type: string
                 description: The endpoint where you can find the instance being created
