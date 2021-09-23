@@ -116,4 +116,28 @@ describe('Integration spec test suite', () => {
       },
     });
   }, 180000);
+
+  test('Validate component default entityId', async () => {
+    const simpleInteg = {
+      id: boundaryId,
+      data: {
+        handler: './integration',
+        files: {
+          'integration.js': "module.exports = new (require('@fusebit-int/framework').Integration)();",
+        },
+        components: [
+          {
+            name: 'form',
+            entityType: Model.EntityType.integration,
+            dependsOn: [],
+            path: '/dummy/path',
+          },
+        ],
+      },
+    };
+    const response = await ApiRequestMap.integration.postAndWait(account, boundaryId, simpleInteg);
+    expect(response).toBeHttp({ statusCode: 200 });
+
+    expect(response.data.data.components[0].entityId).toBe(response.data.id);
+  }, 180000);
 });

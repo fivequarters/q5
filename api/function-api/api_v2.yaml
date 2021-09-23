@@ -872,6 +872,14 @@ components:
       description: |
         The name of an entity, matches: `/^[A-Za-z0-9\-]{1,64}$/)`
 
+    ComponentsEntityId:
+      type: string
+      description: |
+        The name of an entity, matches: `/^[A-Za-z0-9\-]{1,64}$/)` or `{{integration}}` when the current
+          entity's id should be used.
+
+          This parameter is optional. When not supplied, it defaults to the current entity's id.
+
     InstanceId:
       type: string
       format: uuid
@@ -1183,7 +1191,7 @@ components:
                 description: Does this component reference a connector, to acquire a new identity for the user of this
                   integration, or an integration form specified by the `path` parameter?
               entityId:
-                $ref: '#/components/schemas/EntityId'
+                $ref: '#/components/schemas/ComponentsEntityId'
               skip:
                 type: boolean
                 default: false
@@ -1241,7 +1249,7 @@ components:
                 enum: [connector, integration]
                 description: Does this component reference a connector or an integration?
               entityId:
-                $ref: '#/components/schemas/EntityId'
+                $ref: '#/components/schemas/ComponentsEntityId'
               skip:
                 type: boolean
                 default: false
