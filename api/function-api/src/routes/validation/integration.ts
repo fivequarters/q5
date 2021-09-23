@@ -15,7 +15,11 @@ const Data = Joi.alternatives().try(
       .items(
         Joi.object().keys({
           name: Joi.string().required(),
-          entityId: Joi.string().required(),
+          entityId: Joi.string().when('entityType', {
+            is: 'connector',
+            then: Common.entityId.required(),
+            otherwise: Joi.default('{{integration}}'),
+          }),
           entityType: Joi.valid('integration', 'connector'),
           skip: Joi.boolean().optional().default(false),
           path: Joi.string().when('entityType', {
