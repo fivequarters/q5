@@ -69,8 +69,10 @@ export function createEditorPanel(element: HTMLElement, editorContext: EditorCon
     const model = editor.getModel();
     const language = editorContext.getSelectedFileLanguage();
     let packageJson: any = editorContext.getPackageJson();
+    const metadata = editorContext.getMetadata();
+    const components = editorContext.getComponents();
     updateNodejsTypings(editorContext.getNodeVersion(packageJson));
-    updateDependencyTypings(editorContext.getDependencies(packageJson));
+    updateDependencyTypings(editorContext.getDependencies(packageJson), metadata.editor.registry, components);
     if (model && language) {
       Monaco.editor.setModelLanguage(model, language);
     } else {
@@ -181,7 +183,9 @@ export function createEditorPanel(element: HTMLElement, editorContext: EditorCon
   updateFusebitContextTypings(editorContext.getConfiguration());
   let packageJson: any = editorContext.getPackageJson();
   updateNodejsTypings(editorContext.getNodeVersion(packageJson));
-  updateDependencyTypings(editorContext.getDependencies(packageJson));
+  const metadata = editorContext.getMetadata();
+  const components = editorContext.getComponents();
+  updateDependencyTypings(editorContext.getDependencies(packageJson), metadata.editor.registry, components);
 
   return editorContext;
 

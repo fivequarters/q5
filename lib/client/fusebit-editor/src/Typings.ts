@@ -1,5 +1,14 @@
 import * as Monaco from 'monaco-editor/esm/vs/editor/editor.api.js';
 import * as Superagent from 'superagent';
+import { IIntegrationComponent } from '@fusebit/schema';
+import {
+  buildSdkStatementsTree,
+  downloadAndExtractInternalPackage,
+  IRegistryInfo,
+  ISdkStatement,
+  downloadPackageFromCDN,
+  FUSEBIT_PACKAGE_SCOPE,
+} from './PackageManager';
 
 Monaco.languages.typescript.javascriptDefaults.setDiagnosticsOptions({
   noSemanticValidation: true,
@@ -161,8 +170,13 @@ export function updateNodejsTypings(version: string) {
 
 let dependencyTypings: { [property: string]: { version: string; typings: Monaco.IDisposable | undefined } } = {};
 
-export function updateDependencyTypings(dependencies: { [property: string]: string }) {
-  for (var name in dependencies) {
+export function updateDependencyTypings(
+  dependencies: { [property: string]: string },
+  registry: IRegistryInfo,
+  components: IIntegrationComponent[]
+) {
+  const sdkStatementsTree = buildSdkStatementsTree(dependencies, components);
+  for (const name in dependencies) {
     if (dependencyTypings[name] && dependencyTypings[name].version === dependencies[name]) {
       continue;
     }
@@ -172,19 +186,28 @@ export function updateDependencyTypings(dependencies: { [property: string]: stri
       (dependencyTypings[name].typings as Monaco.IDisposable).dispose();
       dependencyTypings[name].typings = undefined;
     }
-    downloadAndInstallTypes(name, dependencies[name]);
+    downloadAndInstallTypes(name, dependencies[name], registry, sdkStatementsTree);
   }
 
-  function downloadAndInstallTypes(name: string, version: string) {
-    getCdnTypes(name, version).then((res: Superagent.Response | undefined) => {
-      if (res) {
-        dependencyTypings[name].typings = Monaco.languages.typescript.javascriptDefaults.addExtraLib(
-          res.text,
-          `file:///node_modules/@types/${name}/index.d.ts`
-          // `node_modules/${name}/index.d.ts`
-        );
-      }
-    });
+  function downloadAndInstallTypes(
+    name: string,
+    version: string,
+    registry: IRegistryInfo,
+    sdkStatements: ISdkStatement[]
+  ) {
+    // Resolve internal fusebit packages
+    if (name.includes(FUSEBIT_PACKAGE_SCOPE)) {
+      downloadAndExtractInternalPackage(
+        {
+          name,
+          version,
+          registry,
+        },
+        sdkStatements
+      );
+    } else {
+      downloadPackageFromCDN({ name, version });
+    }
   }
 }
 

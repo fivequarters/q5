@@ -17,6 +17,12 @@ All public releases of the Fusebit editor are documented here, including notable
 <!-- 1. TOC
 {:toc} -->
 
+## Version 2.1.3
+
+_Released 9/24/21_
+
+- **Enhancement.** Improve IntelliSense support for SDK libraries, integrations and npm packages
+
 ## Version 2.0.3
 
 _Released 9/2/21_

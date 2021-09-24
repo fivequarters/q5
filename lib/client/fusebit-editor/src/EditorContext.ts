@@ -1,4 +1,5 @@
 import { EventEmitter } from '@5qtrs/event';
+import { IIntegrationComponent } from '@fusebit/schema';
 import { ServerResponse } from 'http';
 import * as Events from './Events';
 import { IBuildStatus, Server } from './Server';
@@ -75,6 +76,7 @@ export abstract class BaseEditorContext<ISpecType> extends EventEmitter {
   public abstract getConfiguration(): { [index: string]: string | number };
   public abstract getScheduleSettings(): string;
   public abstract getFileFromSpecification(fileName: string): string | object;
+  public abstract getComponents(): IIntegrationComponent[]; 
 
   /**
    * Creates a _EditorContext_ given the optional function specification. If you do not provide a function specification,

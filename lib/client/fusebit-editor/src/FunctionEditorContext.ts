@@ -2,6 +2,7 @@ import { IFunctionSpecification } from './FunctionSpecification';
 import { BaseServer } from './Server';
 
 import { BaseEditorContext } from './EditorContext';
+import { IIntegrationComponent } from '@fusebit/schema';
 
 const RunnerPlaceholder = `// Return a function that evaluates to a Superagent request promise
 
@@ -227,6 +228,10 @@ export class FunctionEditorContext extends BaseEditorContext<IFunctionSpecificat
 
   public getFiles(): { [fileName: string]: string | object } {
     return this.specification.nodejs!.files || {};
+  }
+
+  public getComponents(): IIntegrationComponent[] {
+    return [];
   }
 }
 

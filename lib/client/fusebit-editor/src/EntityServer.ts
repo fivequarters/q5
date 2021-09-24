@@ -46,6 +46,10 @@ export class EntityServer extends BaseServer<IIntegrationSpecification> {
         ...defaultEditorOptions,
         ...(createIfNotExist && createIfNotExist.editor),
         version: require('../package.json').version,
+        registry: {
+          baseUrl: `${this.account?.baseUrl}v1/account/${this.account?.accountId}/registry/default/npm/`,
+          token: this.account?.accessToken,
+        },
       };
 
       Object.keys(defaultEditorOptions).forEach((k) => {
