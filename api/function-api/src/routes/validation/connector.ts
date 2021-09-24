@@ -6,13 +6,9 @@ import * as Common from './common';
 
 const Data = Joi.object().keys({
   handler: [Common.npmPackageName.required(), Joi.string().regex(/^(.+)\/([^\/]+)$/)],
-  configuration: Joi.object()
-    .keys({
-      muxIntegration: Common.entityId,
-    })
-    .unknown(true)
-    .default({}),
+  configuration: Joi.object().default({}),
   files: EntityCommon.Files.optional().default({}),
+  defaultEventHandler: Common.entityId.optional(),
 });
 
 const Entity = EntityCommon.validateEntity(Data);

@@ -456,13 +456,19 @@ const createSdk = (entityType: Model.EntityType): ISdkForEntity => ({
 });
 
 export const ApiRequestMap: {
-  connector: ISdkForEntity;
+  connector: ISdkForEntity & {
+    fanOut: (account: IAccount, entityId: string, path: string, options?: IDispatchOptions) => Promise<IHttpResponse>;
+  };
   integration: ISdkForEntity;
   instance: any;
   identity: any;
   [key: string]: any;
 } = {
-  connector: createSdk(Model.EntityType.connector),
+  connector: {
+    ...createSdk(Model.EntityType.connector),
+    fanOut: async (account: IAccount, entityId: string, path: string, options?: IDispatchOptions) =>
+      v2Request(account, { method: RequestMethod.post, uri: `/connector/${entityId}/fan_out/${path}`, ...options }),
+  },
   integration: createSdk(Model.EntityType.integration),
   instance: {
     get: async (account: IAccount, entityId: string, subordinateId: string, options?: IRequestOptions) => {
