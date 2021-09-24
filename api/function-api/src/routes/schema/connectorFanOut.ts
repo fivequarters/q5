@@ -27,7 +27,7 @@ type AllSettledResult = (IFulfilled | IRejected)[];
 export interface IWebhookEvent {
   data: any;
   eventType: string;
-  connectorId: string;
+  entityId: string;
   webhookEventId: string;
   webhookAuthId: string;
 }
@@ -41,7 +41,7 @@ const router = (
   const fanOutRouter = express.Router({ mergeParams: true });
   fanOutRouter.route('/:entityId/fan_out/:subPath(*)').post(
     common.management({
-      validate: { query: fanOutValidate },
+      validate: { query: fanOutValidate.fanOutQuery, body: fanOutValidate.fanOutBody },
       authorize: { operation: v2Permissions[Model.EntityType.connector].get },
     }),
     async (req: express.Request, res: express.Response) => {
@@ -77,18 +77,16 @@ const router = (
         return acc;
       }, {});
 
-      if (!instances && req.query.default) {
+      if (instances.length === 0 && req.query.default) {
         // No instances identified; send to the default target with an invalid instanceId of all 0's
         instancesByIntegrationId[req.query.default as string] = ['00000000-0000-0000-0000-000000000000'];
       }
 
       const dispatch = getDispatchToIntegration(req);
 
-      const dispatchResponses: AllSettledResult = await (
-        Promise as typeof Promise & {
-          allSettled: Function;
-        }
-      ).allSettled(
+      const dispatchResponses: AllSettledResult = await (Promise as typeof Promise & {
+        allSettled: Function;
+      }).allSettled(
         Object.entries(instancesByIntegrationId).map(async ([integrationId, instanceIds]) =>
           dispatch(integrationId, instanceIds)
         )

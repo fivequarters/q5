@@ -231,12 +231,13 @@ const decrementCounter = async (num: number) => {
     },
   });
 };
+
 const testDispatch = async () => {
   return ApiRequestMap.connector.dispatch(account, connectorId, RequestMethod.get, '/api/test');
 };
 
 describe('Connector webhook test suite', () => {
-  test('Connector created with supported node.js version 14', async () => {
+  test('Connector webhook fires a fan_out to the target integration instances', async () => {
     await createEntities();
     let localCounter = 0;
 

@@ -1,7 +1,9 @@
 import { Model } from '@5qtrs/db';
 
 import { ApiRequestMap, cleanupEntities, RequestMethod, createTestFile } from './sdk';
-import { getStorage } from '../v1/sdk';
+import { setStorage, getStorage } from '../v1/sdk';
+
+import { IWebhookEvents } from '../../src/routes/schema/connectorFanOut';
 
 import { getEnv } from '../v1/setup';
 
@@ -18,25 +20,17 @@ const getTestIntegrationFile = () => {
 
   const integration = new Integration();
   const router = integration.router;
-  const storageKey = 'event';
-
-  // @ts-ignore
-  router.use(async (ctx, next) => {
-    try {
-      await integration.storage.getData(ctx, storageKey);
-    } catch (e) {
-      await integration.storage.setData(ctx, storageKey, []);
-    } finally {
-      await next();
-    }
-  });
 
   // @ts-ignore
   router.on('/:sourceEntityId/:eventType/:eventCode', async (ctx) => {
     const event = ctx.req.body;
-    const getResult = await integration.storage.getData(ctx, storageKey);
-    await integration.storage.setData(ctx, storageKey, [...(getResult.data || []), { event, params: ctx.params }]);
-    ctx.body = 'success';
+    const storage = await integration.storage.getData(ctx, event.data.storageKey);
+    await integration.storage.setData(ctx, event.data.storageKey, {
+      data: {
+        events: [...(storage?.data?.events || []), { event, params: ctx.params }],
+      },
+    });
+    ctx.body = `success1 ${event.data.storageKey} ${JSON.stringify(storage)}`;
   });
 
   module.exports = integration;
@@ -65,54 +59,28 @@ const createIntegrationEntity = (connectorId: string, integrationId: string, sha
 });
 
 describe('Fan Out Endpoint Tests', () => {
-  test.only('Fan out to instances works', async () => {
+  test('Fan out to some but not all instances works', async () => {
     const connectorId = `${boundaryId}-con`;
     const integrationId = `${boundaryId}-int`;
     const authId = 'testAuthId';
     const sharedTag = `webhook/${connectorId}/${authId}`;
 
-    // Create integration
-    let response = await ApiRequestMap.integration.postAndWait(
-      account,
-      integrationId,
-      createIntegrationEntity(connectorId, integrationId, sharedTag)
-    );
+    const storageKey = `foo/bar/bah/${boundaryId}`;
+    const actualStorageKey = `integration/${integrationId}/${storageKey}`;
+    let response;
 
-    // Create three instances
-    const instanceIds = [];
-    for (let i = 0; i < 3; i++) {
-      response = await ApiRequestMap.instance.post(account, integrationId, {
-        tags: { [sharedTag]: null, 'fusebit.parentEntityId': integrationId },
-        data: {},
-      });
-      expect(response).toBeHttp({ statusCode: 200 });
-      instanceIds.push(response.data.id);
-    }
-
-    // Perform fan_out
-    response = await ApiRequestMap.connector.dispatch(
-      account,
-      connectorId,
-      RequestMethod.post,
-      `/fan_out/event/webhook?tag=${sharedTag}`,
-      { body: { hello: 'world' } }
-    );
-    expect(response).toBeHttp({ statusCode: 200 });
-
-    // Verify all three instances ids were supplied on invocation
-    response = await getStorage(account, '/foo/bar/bah');
-    expect(response).toBeHttp({ statusCode: 418 });
-    console.log(JSON.stringify(response.data));
-  }, 180000);
-
-  test.only('Fan out to some instances works', async () => {
-    const connectorId = `${boundaryId}-con`;
-    const integrationId = `${boundaryId}-int`;
-    const authId = 'testAuthId';
-    const sharedTag = `webhook/${connectorId}/${authId}`;
+    const payload: IWebhookEvents = [
+      {
+        data: { storageKey },
+        eventType: 'example',
+        entityId: connectorId,
+        webhookEventId: 'someEventId',
+        webhookAuthId: 'unknown',
+      },
+    ];
 
     // Create integration
-    let response = await ApiRequestMap.integration.postAndWait(
+    response = await ApiRequestMap.integration.postAndWait(
       account,
       integrationId,
       createIntegrationEntity(connectorId, integrationId, sharedTag)
@@ -120,6 +88,7 @@ describe('Fan Out Endpoint Tests', () => {
 
     // Create two instances with the same tag
     const instanceIds = [];
+    const invalidInstanceIds = [];
     for (let i = 0; i < 2; i++) {
       response = await ApiRequestMap.instance.post(account, integrationId, {
         tags: { [sharedTag]: null, 'fusebit.parentEntityId': integrationId },
@@ -135,7 +104,7 @@ describe('Fan Out Endpoint Tests', () => {
       data: {},
     });
     expect(response).toBeHttp({ statusCode: 200 });
-    instanceIds.push(response.data.id);
+    invalidInstanceIds.push(response.data.id);
 
     // Perform fan_out
     response = await ApiRequestMap.connector.dispatch(
@@ -143,20 +112,57 @@ describe('Fan Out Endpoint Tests', () => {
       connectorId,
       RequestMethod.post,
       `/fan_out/event/webhook?tag=${sharedTag}`,
-      { body: { hello: 'world' } }
+      { body: { payload } }
     );
     expect(response).toBeHttp({ statusCode: 200 });
 
-    // Verify only two of the three instances ids were supplied on invocation
-    response = await getStorage(account, '/foo/bar/bah');
-    expect(response).toBeHttp({ statusCode: 418 });
-    console.log(JSON.stringify(response.data));
+    // Verify just two of the three instances ids were supplied on invocation
+    response = await getStorage(account, actualStorageKey);
+    expect(response).toBeHttp({
+      statusCode: 200,
+      data: {
+        data: {
+          data: {
+            events: [
+              {
+                event: {
+                  data: {
+                    storageKey: `foo/bar/bah/${boundaryId}`,
+                  },
+                  entityId: connectorId,
+                  eventType: 'example',
+                  webhookAuthId: 'unknown',
+                  webhookEventId: 'someEventId',
+                },
+                params: {
+                  eventCode: 'example',
+                  eventType: 'webhook',
+                  sourceEntityId: 'con',
+                },
+              },
+            ],
+          },
+        },
+      },
+    });
+
+    expect(response.data.data.data.events[0].event.instanceIds.sort()).toEqual(instanceIds.sort());
   }, 180000);
 
-  test.only('Missing permissions for fan_out call fails', async () => {
+  test('Missing permissions for fan_out call fails', async () => {
     const connectorId = `${boundaryId}-con`;
     const authId = 'testAuthId';
     const sharedTag = `webhook/${connectorId}/${authId}`;
+
+    const payload: IWebhookEvents = [
+      {
+        data: {},
+        eventType: 'example',
+        entityId: connectorId,
+        webhookEventId: 'someEventId',
+        webhookAuthId: 'unknown',
+      },
+    ];
 
     // Invoke fan_out w/o connector:get permission, fails
     const response = await ApiRequestMap.connector.dispatch(
@@ -164,19 +170,26 @@ describe('Fan Out Endpoint Tests', () => {
       connectorId,
       RequestMethod.post,
       `/fan_out/event/webhook?tag=${sharedTag}`,
-      { body: { hello: 'world' }, authz: '' }
+      { body: { payload }, authz: '' }
     );
     expect(response).toBeHttp({ statusCode: 403 });
   }, 180000);
 
-  test.only('Default integration receives event when no matching instances', async () => {
+  test('Default integration receives event when no matching instances', async () => {
     const connectorId = `${boundaryId}-con`;
     const integrationId = `${boundaryId}-int`;
     const authId = 'testAuthId';
     const sharedTag = `webhook/${connectorId}/${authId}`;
 
+    const storageKey = `foo/bar/bah/${boundaryId}`;
+    const actualStorageKey = `integration/${integrationId}/${storageKey}`;
+    let response;
+    // Prime the storage entry
+    // let response = await setStorage(account, actualStorageKey, { data: { events: [] } });
+    // expect(response).toBeHttp({ statusCode: 200 });
+
     // Create integration
-    let response = await ApiRequestMap.integration.postAndWait(
+    response = await ApiRequestMap.integration.postAndWait(
       account,
       integrationId,
       createIntegrationEntity(connectorId, integrationId, sharedTag)
@@ -193,34 +206,79 @@ describe('Fan Out Endpoint Tests', () => {
       instanceIds.push(response.data.id);
     }
 
+    const payload: IWebhookEvents = [
+      {
+        data: { storageKey },
+        eventType: 'example',
+        entityId: connectorId,
+        webhookEventId: 'someEventId',
+        webhookAuthId: 'unknown',
+      },
+    ];
     // Invoke callback in connector with no matching authIds
     response = await ApiRequestMap.connector.dispatch(
       account,
       connectorId,
       RequestMethod.post,
       `/fan_out/event/webhook?tag=${sharedTag}&default=${integrationId}`,
-      { body: { hello: 'world' } }
+      { body: { payload } }
     );
     expect(response).toBeHttp({ statusCode: 200 });
 
     // Verify it invoked using the default invocation uuid
-    response = await getStorage(account, '/foo/bar/bah');
-    expect(response).toBeHttp({ statusCode: 418 });
-    console.log(JSON.stringify(response.data));
+    response = await getStorage(account, actualStorageKey);
+    expect(response).toBeHttp({
+      statusCode: 200,
+      data: {
+        data: {
+          data: {
+            events: [
+              {
+                event: {
+                  data: {
+                    storageKey: `foo/bar/bah/${boundaryId}`,
+                  },
+                  entityId: connectorId,
+                  eventType: 'example',
+                  instanceIds: ['00000000-0000-0000-0000-000000000000'],
+                  webhookAuthId: 'unknown',
+                  webhookEventId: 'someEventId',
+                },
+                params: {
+                  eventCode: 'example',
+                  eventType: 'webhook',
+                  sourceEntityId: 'con',
+                },
+              },
+            ],
+          },
+        },
+      },
+    });
   }, 180000);
 
-  test.only('Missing default integration does not error', async () => {
+  test('Missing default integration generates an error', async () => {
+    const payload: IWebhookEvents = [
+      {
+        data: {},
+        eventType: 'example',
+        entityId: boundaryId,
+        webhookEventId: 'someEventId',
+        webhookAuthId: 'unknown',
+      },
+    ];
+
     const response = await ApiRequestMap.connector.dispatch(
       account,
       boundaryId,
       RequestMethod.post,
       `/fan_out/event/webhook?tag=foobar&default=${boundaryId}`,
-      { body: { hello: 'world' } }
+      { body: { payload } }
     );
-    expect(response).toBeHttp({ statusCode: 200 });
+    expect(response).toBeHttp({ statusCode: 500 });
   }, 180000);
 
-  test.only('Invalid default is rejected by input validation', async () => {
+  test('Invalid default is rejected by input validation', async () => {
     const response = await ApiRequestMap.connector.dispatch(
       account,
       boundaryId,
@@ -228,6 +286,6 @@ describe('Fan Out Endpoint Tests', () => {
       `/fan_out/event/webhook?tag=foobar&default=${encodeURI(';')}`,
       { body: { hello: 'world' } }
     );
-    expect(response).toBeHttp({ statusCode: 200 });
+    expect(response).toBeHttp({ statusCode: 400 });
   }, 180000);
 });
