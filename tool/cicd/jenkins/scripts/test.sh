@@ -6,4 +6,4 @@ set -x
 # Run tests
 cd api/function-api
 
-FUSE_PROFILE=cicd EC2=1 yarn test --outputFile testOutput.json --json | true
+FUSE_PROFILE=cicd EC2=1 yarn test -i --outputFile testOutput.json --json | true
