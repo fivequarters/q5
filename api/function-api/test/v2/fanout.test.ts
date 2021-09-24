@@ -183,13 +183,9 @@ describe('Fan Out Endpoint Tests', () => {
 
     const storageKey = `foo/bar/bah/${boundaryId}`;
     const actualStorageKey = `integration/${integrationId}/${storageKey}`;
-    let response;
-    // Prime the storage entry
-    // let response = await setStorage(account, actualStorageKey, { data: { events: [] } });
-    // expect(response).toBeHttp({ statusCode: 200 });
 
     // Create integration
-    response = await ApiRequestMap.integration.postAndWait(
+    let response = await ApiRequestMap.integration.postAndWait(
       account,
       integrationId,
       createIntegrationEntity(connectorId, integrationId, sharedTag)
