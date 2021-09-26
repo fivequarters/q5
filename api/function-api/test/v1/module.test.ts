@@ -137,7 +137,9 @@ describe('Module', () => {
           },
         },
       },
-      true
+      {
+        tryOnce: true,
+      }
     );
     expect(response).toBeHttp({ statusCode: [200, 201, 429] });
     if (response.status === 429) {

@@ -217,7 +217,7 @@ export async function putFunction(
   boundaryId: string,
   functionId: string,
   spec: any,
-  tryOnce?: boolean
+  options?: { tryOnce?: boolean }
 ): Promise<IHttpResponse> {
   onPutFunction(boundaryId, functionId);
   const response = await request({
@@ -230,7 +230,7 @@ export async function putFunction(
     data: spec,
   });
 
-  if (response.status === 429 && !tryOnce) {
+  if (response.status === 429 && !options?.tryOnce) {
     // Wait a second and try again.
     await new Promise((resolve) => setTimeout(resolve, 1000));
     return putFunction(account, boundaryId, functionId, spec);
