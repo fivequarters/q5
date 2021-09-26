@@ -118,21 +118,29 @@ describe('Module', () => {
   }, 15000);
 
   test('PUT fails for function with dependency that fails to build', async () => {
-    let response = await putFunction(account, boundaryId, function1Id, {
-      nodejs: {
-        files: {
-          'index.js': 'module.exports = (ctx, cb) => cb(null, { body: "hello" });',
-          'package.json': {
-            engines: {
-              node: '10',
-            },
-            dependencies: {
-              clearbit: '1.3.4',
+    let response = await putFunction(
+      account,
+      boundaryId,
+      function1Id,
+      {
+        nodejs: {
+          files: {
+            'index.js': 'module.exports = (ctx, cb) => cb(null, { body: "hello" });',
+            'package.json': {
+              engines: {
+                node: '10',
+              },
+              dependencies: {
+                clearbit: '1.3.4',
+              },
             },
           },
         },
       },
-    });
+      {
+        tryOnce: true,
+      }
+    );
     expect(response).toBeHttp({ statusCode: [200, 201, 429] });
     if (response.status === 429) {
       expect(response).toBeHttpError(429, 'failed to build previously and another attempt is delayed until');
