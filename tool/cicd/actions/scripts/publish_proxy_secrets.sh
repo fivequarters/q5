@@ -26,17 +26,17 @@ fuse-ops profile set github-automation.763
 fuse-ops deployment defaults set api subscription \{\"proxy\":\{\"accountId\":\"acc-124a0b2e6a1043d4\",\"subscriptionId\":\"sub-5da267cb8f284af4\"\}\} --region us-west-1
 
 SLACK_SECRET_PAYLOAD="{\"data\":{\"clientId\":\"${SLACK_PROXY_CLIENT_ID}\",\"clientSecret\":\"${SLACK_PROXY_CLIENT_SECRET}\",\"authorizationUrl\":\"https://slack.com/oauth/v2/authorize\",\"tokenUrl\":\"https://slack.com/api/oauth.v2.access\",\"revokeUrl\":\"https://slack.com/api/auth.revoke\"}}"
-
 HUBSPOT_SECRET_PAYLOAD="{\"data\":{\"clientId\":\"${HUBSPOT_PROXY_CLIENT_ID}\",\"clientSecret\":\"${HUBSPOT_PROXY_CLIENT_SECRET}\",\"authorizationUrl\":\"https://app.hubspot.com/oauth/authorize\",\"tokenUrl\":\"https://api.hubapi.com/oauth/v1/token\",\"revokeUrl\":\"https://api.hubapi.com/oauth/v1/refresh-tokens/:token\"}}"
+SALESFORCE_SECRET_PAYLOAD="{\"data\":{\"clientId\":\"${SFDC_PROXY_CLIENT_ID}\",\"clientSecret\":\"${SFDC_PROXY_CLIENT_SECRET}\",\"authorizationUrl\":\"https://login.salesforce.com/services/oauth2/authorize\",\"tokenUrl\":\"https://login.salesforce.com/services/oauth2/token\",\"revokeUrl\":\"https://login.salesforce.com/services/oauth2/revoke\"}}"
 
 # 321 stage
 fuse profile set stage.us-west-2.internal
-curl -H "Authorization: Bearer `fuse token -o raw`" https://stage.us-west-2.fusebit.io/v1/account/acc-2ec6c8dba6134772/subscription/sub-2e2374b63eb040e9/storage/proxy/slack/configuration -XPUT -d ${SLACK_SECRET_PAYLOAD} -H "Content-Type: application/json"
-
-curl -H "Authorization: Bearer `fuse token -o raw`" https://stage.us-west-2.fusebit.io/v1/account/acc-2ec6c8dba6134772/subscription/sub-2e2374b63eb040e9/storage/proxy/hubspot/configuration -XPUT -d ${HUBSPOT_SECRET_PAYLOAD} -H "Content-Type: application/json"
+echo ${SLACK_SECRET_PAYLOAD} | fuse storage put - --storageId proxy/slack/configuration
+echo ${HUBSPOT_SECRET_PAYLOAD} | fuse storage put - --storageId proxy/hubspot/configuration
+echo ${SALESFORCE_SECRET_PAYLOAD} | fuse storage put - --storageId proxy/salesforce/configuration
 
 # 763 api
 fuse profile set selfservice.api.us-west-1.internal
-curl -H "Authorization: Bearer `fuse token -o raw`" https://api.us-west-1.on.fusebit.io/v1/account/acc-124a0b2e6a1043d4/subscription/sub-5da267cb8f284af4/storage/proxy/slack/configuration -XPUT -d ${SLACK_SECRET_PAYLOAD} -H "Content-Type: application/json"
-
-curl -H "Authorization: Bearer `fuse token -o raw`" https://api.us-west-1.on.fusebit.io/v1/account/acc-124a0b2e6a1043d4/subscription/sub-5da267cb8f284af4/storage/proxy/hubspot/configuration -XPUT -d ${HUBSPOT_SECRET_PAYLOAD} -H "Content-Type: application/json"
+echo ${SLACK_SECRET_PAYLOAD} | fuse storage put - --storageId proxy/slack/configuration
+echo ${HUBSPOT_SECRET_PAYLOAD} | fuse storage put - --storageId proxy/hubspot/configuration
+echo ${SALESFORCE_SECRET_PAYLOAD} | fuse storage put - --storageId proxy/salesforce/configuration
