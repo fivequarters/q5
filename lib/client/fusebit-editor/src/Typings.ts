@@ -159,7 +159,7 @@ export function updateNodejsTypings(version: string) {
     lastNodejsTypings = undefined;
   }
 
-  downloadPackageFromDefinitelyTyped({ name: 'node', version });
+  downloadPackageFromDefinitelyTyped({ name: 'node', version }, '');
 }
 
 let dependencyTypings: { [property: string]: { version: string; typings: Monaco.IDisposable | undefined } } = {};

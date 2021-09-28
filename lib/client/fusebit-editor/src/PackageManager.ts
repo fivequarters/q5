@@ -48,6 +48,7 @@ export interface IConnectorComponent {
 export interface IDownloadedTypes {
   files: IDownloadedFile[];
   maxSatisfyingVersion: string;
+  mainFolder: string;
 }
 
 export const SDK_PACKAGE_PROVIDER_CDN_MAPPINGS: Record<string, IProviderPackage> = {
@@ -77,9 +78,6 @@ export const SDK_PACKAGE_PROVIDER_CDN_MAPPINGS: Record<string, IProviderPackage>
   },
 };
 
-// Common names used in package distribution
-export const COMMON_DIST_DIR_NAMES = ['/build', '/lib', '/dist'];
-
 export const PUBLIC_CDN_API_URL = 'https://data.jsdelivr.com/v1/package/npm/';
 
 export const PUBLIC_CDN_URL = 'https://cdn.jsdelivr.net/npm/';
@@ -104,15 +102,8 @@ export function filterTypeDefinitionFiles<T>(files: IDownloadedFile[]): T[] {
   ) as unknown) as T[];
 }
 
-/**
- * Removes package distribution folder name from common used names (i.e lib, dist)
- * @param fileName
- * @returns string
- */
-export function cleanDistFolder(fileName: string): string {
-  let cleanName = fileName;
-  COMMON_DIST_DIR_NAMES.forEach((commonName) => (cleanName = cleanName.replace(commonName, '')));
-  return cleanName;
+export function resolveMainFolderFromPackage(mainFolder: string): string {
+  return mainFolder ? `/${mainFolder.split('/')[0]}` : '';
 }
 
 /**
@@ -139,7 +130,7 @@ export async function downloadAndExtractInternalPackage(
 
     clearTimeout(packageFetchTimeoutId);
 
-    //Handle package redirect to download the tarball from a signed S3 File
+    // Handle package redirect to download the tarball from a signed S3 File
     if (response.redirected) {
       const tarballResponse: Superagent.Response = await Superagent.get(response.url)
         .responseType('arraybuffer')
@@ -150,8 +141,9 @@ export async function downloadAndExtractInternalPackage(
         const packageJson = extractedFiles.find((file: IExtractedFile) => file.name == 'package/package.json');
         if (packageJson) {
           const packageJsonContent = new TextDecoder().decode(new DataView(packageJson.buffer));
-          const { dependencies } = JSON.parse(packageJsonContent);
+          const { dependencies, main } = JSON.parse(packageJsonContent);
           for (const dependency in dependencies) {
+            // Fire a package download asynchronously, no exceptions will be thrown from here.
             downloadPackageFromCDN({
               name: dependency,
               version: dependencies[dependency],
@@ -164,8 +156,8 @@ export async function downloadAndExtractInternalPackage(
       for (const typeFile of packageTypeFiles) {
         const typePath = `file:///node_modules/${packageInfo.name}${typeFile.name.replace('package/libc', '')}`;
         let fileContent = new TextDecoder().decode(new DataView(typeFile.buffer));
-        // Inject dynamic typings for SDK methods.
-        if (typeFile.name.includes('client/Integration.d.ts') && sdkStatements?.length) {
+        // Special case for framework only: Inject dynamic typings for SDK methods by extending Tenant class Typings, defined at Integration.d.ts
+        if (packageInfo.name === '@fusebit-int/framework' && typeFile.name.includes('client/Integration.d.ts') && sdkStatements?.length) {
           fileContent = getDynamicSdkTypings(fileContent, sdkStatements);
         }
         Monaco.languages.typescript.javascriptDefaults.addExtraLib(fileContent, typePath);
@@ -189,13 +181,16 @@ export async function downloadPackageFromCDN(
   settings: IDownloadPackageSettings = { requestTimeout: 60000 }
 ): Promise<void> {
   try {
-    const typinsFiles = await getTypingsFilesFromCDN(packageInfo, settings);
-    if (typinsFiles) {
+    if (FUSEBIT_INT_PACKAGE_REGEX.test(packageInfo.name)) {
+      throw new Error('Unexpected usage, please use downloadAndExtractInternalPackage');
+    }
+    const typingsFiles = await getTypingsFilesFromCDN(packageInfo, settings);
+    if (typingsFiles) {
       // If no typings found, try to load them from DefinitelyTyped
-      if (!typinsFiles.files.length && fallbackToDefinitelyTyped) {
-        downloadPackageFromDefinitelyTyped(packageInfo, settings);
+      if (!typingsFiles.files.length && fallbackToDefinitelyTyped) {
+        await downloadPackageFromDefinitelyTyped(packageInfo, typingsFiles.mainFolder, settings);
       } else {
-        await downloadAndInjectTypeFiles(packageInfo, typinsFiles.files, settings);
+        await downloadAndInjectTypeFiles(packageInfo, typingsFiles.files, typingsFiles.mainFolder, settings);
       }
     }
   } catch (e) {
@@ -211,16 +206,18 @@ export async function downloadPackageFromCDN(
  */
 export async function downloadPackageFromDefinitelyTyped(
   packageInfo: IPackage,
+  mainFolder: string,
   settings: IDownloadPackageSettings = { requestTimeout: 60000 }
 ): Promise<void> {
   try {
-    const maxSatisfyingVersion = await resolvePackageMaxSatisfyingVersion(packageInfo, settings);
+    const packageFromDT = { ...packageInfo, name: `@types/${packageInfo.name}` };
+    const maxSatisfyingVersion = await resolvePackageMaxSatisfyingVersion(packageFromDT, settings);
     if (maxSatisfyingVersion) {
-      //Override the package to fetch (@types instead of the original package)
-      const packageFromDT = { ...packageInfo, name: `@types/${packageInfo.name}`, version: maxSatisfyingVersion };
-      const typinsFiles = await getTypingsFilesFromCDN(packageFromDT, settings);
-      if (typinsFiles) {
-        await downloadAndInjectTypeFiles(packageFromDT, typinsFiles.files, settings);
+      // Override the package to fetch (@types instead of the original package)
+      packageFromDT.version = maxSatisfyingVersion;
+      const typingsFiles = await getTypingsFilesFromCDN(packageFromDT, settings);
+      if (typingsFiles) {
+        downloadAndInjectTypeFiles(packageFromDT, typingsFiles.files, mainFolder, settings);
       }
     }
   } catch (e) {
@@ -234,14 +231,15 @@ export async function downloadPackageFromDefinitelyTyped(
 async function downloadAndInjectTypeFiles(
   packageInfo: IPackage,
   files: IDownloadedFile[],
+  mainFolder: string,
   settings: IDownloadPackageSettings = { requestTimeout: 60000 }
 ): Promise<void> {
   for await (const file of files) {
     const path = `${PUBLIC_CDN_URL}${packageInfo.name}@${packageInfo.version}${file.name}`;
     const response = await Superagent.get(path).timeout(settings.requestTimeout);
-    const typingsPath = `file:///node_modules/${packageInfo.name}${cleanDistFolder(file.name)}`;
-    const contents = response.text || response.body.toString();
-    if (contents) {
+    const typingsPath = `file:///node_modules/${packageInfo.name}${file.name.replace(mainFolder, '')}`;
+    const contents = response.text;
+    if (contents && file.name !== '/package.json') {
       Monaco.languages.typescript.javascriptDefaults.addExtraLib(contents, typingsPath);
     }
   }
@@ -275,10 +273,16 @@ async function getTypingsFilesFromCDN(
   if (maxSatisfyingVersion) {
     const packagePath = `${PUBLIC_CDN_API_URL}${packageInfo.name}@${maxSatisfyingVersion}/flat`;
     const response = await Superagent.get(packagePath).timeout(settings.requestTimeout);
+    const packageJson = await Superagent.get(
+      `${PUBLIC_CDN_URL}${packageInfo.name}@${maxSatisfyingVersion}/package.json`
+    );
+    const { main } = JSON.parse(packageJson.text || packageJson.body.toString());
+
     const packageTypeFiles: IDownloadedFile[] = filterTypeDefinitionFiles(response.body?.files);
     return {
       files: packageTypeFiles,
       maxSatisfyingVersion: maxSatisfyingVersion,
+      mainFolder: resolveMainFolderFromPackage(main),
     };
   }
 }
@@ -297,7 +301,20 @@ function buildSdkByTenantType(sdk?: ISdkStatement): string {
   */
   getSdkByTenant(ctx: RouterContext, connectorName: ${
     sdk?.connectorName ? `'${sdk.connectorName}'` : 'string'
-  }, tenantId: string):Promise<${sdk?.importName || 'any'}>;`;
+  }, tenantId: string):Promise<${sdk?.importName || 'any'}>;
+  
+  /** Get an authenticated SDK for the specified Connector, using a given Instance
+   * @param ctx The context object provided by the route function
+   * @param {string} connectorName The name of the Connector from the service to interact with
+   * @param {string} instanceId The identifier of the Instance to get the associated Connector
+   * @returns {Promise<${sdk?.importName || 'any'}>} Returns an authenticated SDK you would use to interact with the
+   * Connector service on behalf of your user
+   */
+    getSdk(ctx: RouterContext, connectorName: ${
+      sdk?.connectorName ? `'${sdk.connectorName}'` : 'string'
+    }, instanceId: string): Promise<${sdk?.importName || 'any'}>
+    
+  `;
 }
 
 /**
