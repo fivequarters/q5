@@ -4,17 +4,12 @@ import semver from 'semver';
 import untar from 'js-untar';
 import pako from 'pako';
 import { IIntegrationComponent } from '@fusebit/schema';
+import { IRegistryInfo } from './Server';
 
 export interface IPackage {
   name: string;
   version: string;
 }
-
-export interface IRegistryInfo {
-  baseUrl: string;
-  token: string;
-}
-
 export interface IInternalPackage extends IPackage {
   registry: IRegistryInfo;
 }

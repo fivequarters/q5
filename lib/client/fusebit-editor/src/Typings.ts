@@ -4,12 +4,12 @@ import { IIntegrationComponent } from '@fusebit/schema';
 import {
   buildSdkStatementsTree,
   downloadAndExtractInternalPackage,
-  IRegistryInfo,
   ISdkStatement,
   downloadPackageFromCDN,
   downloadPackageFromDefinitelyTyped,
   FUSEBIT_INT_PACKAGE_REGEX,
 } from './PackageManager';
+import { IRegistryInfo } from './Server';
 
 Monaco.languages.typescript.javascriptDefaults.setDiagnosticsOptions({
   noSemanticValidation: true,

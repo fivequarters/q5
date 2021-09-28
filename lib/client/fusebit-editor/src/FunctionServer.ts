@@ -89,10 +89,6 @@ export class FunctionServer extends BaseServer<IFunctionSpecification> {
         ...defaultEditorOptions,
         ...(createIfNotExist && createIfNotExist.editor),
         version: require('../package.json').version,
-        registry: {
-          baseUrl: `${self.account?.baseUrl}v1/account/${self.account?.accountId}/registry/default/npm/`,
-          token: self.account?.accessToken,
-        },
       };
       Object.keys(defaultEditorOptions).forEach((k) => {
         // @ts-ignore

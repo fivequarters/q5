@@ -86,6 +86,11 @@ export interface IBuildStatus {
   location?: string;
 }
 
+export interface IRegistryInfo {
+  baseUrl: string;
+  token?: string;
+}
+
 const logsExponentialBackoff = 1.5;
 const logsInitialBackoff = 5000;
 const logsMaxBackoff = 60000;

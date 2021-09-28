@@ -2,7 +2,7 @@ import { EventEmitter } from '@5qtrs/event';
 import { IIntegrationComponent } from '@fusebit/schema';
 import { ServerResponse } from 'http';
 import * as Events from './Events';
-import { IBuildStatus, Server } from './Server';
+import { IBuildStatus, IRegistryInfo, Server } from './Server';
 
 export const DEFAULT_NODE_VERSION = '14';
 /**
@@ -480,6 +480,14 @@ export abstract class BaseEditorContext<ISpecType> extends EventEmitter {
    */
   public getMetadata(): any {
     return this.metadata;
+  }
+
+  public getRegistry(): IRegistryInfo {
+    const { account } = this._server;
+    return  {
+      baseUrl: `${account?.baseUrl}v1/account/${account?.accountId}/registry/default/npm/`,
+      token: account?.accessToken,
+    };
   }
 }
 
