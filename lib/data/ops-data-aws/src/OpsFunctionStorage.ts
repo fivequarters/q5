@@ -27,8 +27,8 @@ export async function createFunctionStorage(
         (cb: any) => ensureS3Bucket(cb),
         (cb: any) => configureBucketEncryption(cb),
         (cb: any) => configurePublicAccess(cb),
-        (cb: any) => configureCORSAccess(cb),
         (cb: any) => configureLifecycle(cb),
+        (cb: any) => configureCORSAccess(cb),
       ],
       (e: any) => {
         return e ? reject(e) : resolve();

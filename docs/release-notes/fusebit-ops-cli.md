@@ -22,7 +22,7 @@ All public releases of the Fusebit Operations CLI are documented here, including
 
 _Released 09/28/21_
 
-- **Enhancement.** Add CORS policy to allow Downloading packages from S3 using presigned urls coming from the fusebit registry.
+- **Enhancement.** Add CORS policy to allow downloading packages from S3 using presigned urls coming from the Fusebit registry.
 
 ## Version 1.30.0
 
