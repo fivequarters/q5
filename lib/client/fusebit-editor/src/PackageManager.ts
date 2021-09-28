@@ -1,10 +1,11 @@
 import * as Monaco from 'monaco-editor/esm/vs/editor/editor.api.js';
 import * as Superagent from 'superagent';
+import semver from 'semver';
 import untar from 'js-untar';
 import pako from 'pako';
 import { IIntegrationComponent } from '@fusebit/schema';
 
-export interface IPublicPackage {
+export interface IPackage {
   name: string;
   version: string;
 }
@@ -14,7 +15,7 @@ export interface IRegistryInfo {
   token: string;
 }
 
-export interface IInternalPackage extends IPublicPackage {
+export interface IInternalPackage extends IPackage {
   registry: IRegistryInfo;
 }
 
@@ -48,8 +49,6 @@ export interface IConnectorComponent {
   name: string;
   provider: string;
 }
-
-export const FUSEBIT_PACKAGE_SCOPE = '@fusebit-int';
 
 export const SDK_PACKAGE_PROVIDER_CDN_MAPPINGS: Record<string, IProviderPackage> = {
   '@fusebit-int/slack-provider': {
@@ -85,6 +84,10 @@ export const PUBLIC_CDN_API_URL = 'https://data.jsdelivr.com/v1/package/npm/';
 
 export const PUBLIC_CDN_URL = 'https://cdn.jsdelivr.net/npm/';
 
+export const FUSEBIT_INT_PACKAGE_PROVIDER_REGEX = new RegExp(/@fusebit-int\/(.*?)-provider$/);
+
+export const FUSEBIT_INT_PACKAGE_REGEX = new RegExp(/@fusebit-int\/(.*?)/);
+
 /**
  * Removes caret (^) and tilde (~) from version
  */
@@ -110,15 +113,20 @@ export async function downloadAndExtractInternalPackage(
   settings: IDownloadPackageSettings = { requestTimeout: 60000 }
 ): Promise<void> {
   try {
+    // Clean the package version just in case contains an invalid version to fetch from the registry (this only applies for internal packages)
     const packageUrl = `${packageInfo.registry.baseUrl}${packageInfo.name}/-/${packageInfo.name}@${cleanVersion(
       packageInfo.version
     )}`;
-
+    const packageAbortController = new AbortController();
+    const packageFetchTimeoutId = setTimeout(() => packageAbortController.abort(), settings.requestTimeout);
     const response = await fetch(packageUrl, {
       headers: {
         Authorization: `Bearer ${packageInfo.registry.token}`,
       },
+      signal: packageAbortController.signal,
     });
+
+    clearTimeout(packageFetchTimeoutId);
 
     //Handle package redirect to download the tarball from a signed S3 File
     if (response.redirected) {
@@ -127,7 +135,7 @@ export async function downloadAndExtractInternalPackage(
         .timeout(settings.requestTimeout);
       const extractedFiles = await untar(pako.inflate(tarballResponse.body).buffer);
       // Save some bandwidth, download only deps for the provider dependencies.
-      if (packageInfo.name.includes('-provider')) {
+      if (FUSEBIT_INT_PACKAGE_PROVIDER_REGEX.test(packageInfo.name)) {
         const packageJson = extractedFiles.find((file: IExtractedFile) => file.name == 'package/package.json');
         if (packageJson) {
           const packageJsonContent = new TextDecoder().decode(new DataView(packageJson.buffer));
@@ -137,7 +145,7 @@ export async function downloadAndExtractInternalPackage(
             for (const dependency of dependenciesKeys) {
               downloadPackageFromCDN({
                 name: dependency,
-                version: cleanVersion(dependencies[dependency]),
+                version: dependencies[dependency],
               });
             }
           }
@@ -179,44 +187,103 @@ export function cleanDistFolder(fileName: string): string {
  * If package types are not defined, will try to get them from DefinitelyTyped (enabled by default)
  */
 export async function downloadPackageFromCDN(
-  packageInfo: IPublicPackage,
+  packageInfo: IPackage,
   fallbackToDefinitelyTyped = true,
   settings: IDownloadPackageSettings = { requestTimeout: 60000 }
 ): Promise<void> {
   try {
     // Try to find typings from the package
-    let packagePath = `${PUBLIC_CDN_API_URL}${packageInfo.name}@${cleanVersion(packageInfo.version)}`;
-    let response = await Superagent.get(`${packagePath}/flat`);
-    let packageTypeFiles: any[] = filterTypeDefinitionFiles(response.body?.files);
-    // If no typings found, try to load them from DefinitelyTyped
-    if (!packageTypeFiles.length && fallbackToDefinitelyTyped) {
-      // Since we're not aware of the version of the types file (yet),
-      // fetch the versions and use the latest one
-      const versions = `${PUBLIC_CDN_API_URL}@types/${packageInfo.name}`;
-      let packageVersions = await Superagent.get(`${versions}`);
-      const latestVersion = (packageVersions.body?.versions || [])[0];
-      if (latestVersion) {
-        packagePath = `${PUBLIC_CDN_API_URL}@types/${packageInfo.name}@${latestVersion}/flat`;
-        response = await Superagent.get(packagePath);
-        packageTypeFiles = filterTypeDefinitionFiles(response.body?.files);
-        //Override the package to fetch (@types instead of the original package)
-        packageInfo.name = `@types/${packageInfo.name}`;
-        packageInfo.version = latestVersion;
-      }
-    }
+    const versionsPath = `${PUBLIC_CDN_API_URL}${packageInfo.name}`;
+    const packageVersions = await Superagent.get(versionsPath).timeout(settings.requestTimeout);
 
-    for await (const file of packageTypeFiles) {
-      const path = `${PUBLIC_CDN_URL}${packageInfo.name}@${packageInfo.version}${file.name}`;
-      const response = await Superagent.get(path);
-      const typingsPath = `file:///node_modules/${packageInfo.name}${cleanDistFolder(file.name)}`;
-      const contents = response.text || response.body.toString();
-      if (contents) {
-        Monaco.languages.typescript.javascriptDefaults.addExtraLib(contents, typingsPath);
+    if (packageVersions) {
+      let maxSatisfyingVersion = semver.maxSatisfying(packageVersions.body?.versions, packageInfo.version);
+      // If not satisfying version is found, use latest available version
+      if (!maxSatisfyingVersion) {
+        maxSatisfyingVersion = (packageVersions.body?.versions || [])[0];
+      }
+      const packagePath = `${PUBLIC_CDN_API_URL}${packageInfo.name}@${maxSatisfyingVersion}/flat`;
+      const response = await Superagent.get(packagePath).timeout(settings.requestTimeout);
+      const packageTypeFiles: any[] = filterTypeDefinitionFiles(response.body?.files);
+      // If no typings found, try to load them from DefinitelyTyped
+      if (!packageTypeFiles.length && fallbackToDefinitelyTyped) {
+        downloadPackageFromDefinitelyTyped(packageInfo, settings);
+      } else {
+        for await (const file of packageTypeFiles) {
+          const path = `${PUBLIC_CDN_URL}${packageInfo.name}@${packageInfo.version}${file.name}`;
+          const response = await Superagent.get(path).timeout(settings.requestTimeout);
+          const typingsPath = `file:///node_modules/${packageInfo.name}${cleanDistFolder(file.name)}`;
+          const contents = response.text || response.body.toString();
+          if (contents) {
+            Monaco.languages.typescript.javascriptDefaults.addExtraLib(contents, typingsPath);
+          }
+        }
       }
     }
   } catch (e) {
     console.warn(`Unable to install typings for package ${packageInfo.name}`, e);
   }
+}
+
+/**
+ * Downloads npm package typings from @types project
+ * Typings are injected automatically
+ * The version used will be the max satisfying value following semver spec.
+ * If no version is found, it will fallback to latest version.
+ */
+export async function downloadPackageFromDefinitelyTyped(
+  packageInfo: IPackage,
+  settings: IDownloadPackageSettings = { requestTimeout: 60000 }
+): Promise<void> {
+  try {
+    const versions = `${PUBLIC_CDN_API_URL}@types/${packageInfo.name}`;
+    const packageVersions = await Superagent.get(`${versions}`).timeout(settings.requestTimeout);
+
+    if (packageVersions) {
+      let maxSatisfyingVersion = semver.maxSatisfying(packageVersions.body?.versions, packageInfo.version);
+      // If not satisfying version is found, use latest available version
+      if (!maxSatisfyingVersion) {
+        maxSatisfyingVersion = (packageVersions.body?.versions || [])[0];
+      }
+      if (maxSatisfyingVersion) {
+        const packagePath = `${PUBLIC_CDN_API_URL}@types/${packageInfo.name}@${maxSatisfyingVersion}/flat`;
+        const response = await Superagent.get(packagePath).timeout(settings.requestTimeout);
+        const packageTypeFiles: any[] = filterTypeDefinitionFiles(response.body?.files);
+        //Override the package to fetch (@types instead of the original package)
+        packageInfo.name = `@types/${packageInfo.name}`;
+        packageInfo.version = maxSatisfyingVersion.toString();
+
+        for await (const file of packageTypeFiles) {
+          const path = `${PUBLIC_CDN_URL}${packageInfo.name}@${packageInfo.version}${file.name}`;
+          const response = await Superagent.get(path).timeout(settings.requestTimeout);
+          const typingsPath = `file:///node_modules/${packageInfo.name}${cleanDistFolder(file.name)}`;
+          const contents = response.text || response.body.toString();
+          if (contents) {
+            Monaco.languages.typescript.javascriptDefaults.addExtraLib(contents, typingsPath);
+          }
+        }
+      }
+    }
+  } catch (e) {
+    console.warn(`Unable to install @types for package ${packageInfo.name}@${packageInfo.version}`, e);
+  }
+}
+
+function buildSdkByTenantType(sdk?: ISdkStatement): string {
+  return ` /**
+  * Get an authenticated ${sdk?.integrationType || ''} SDK for the specified Connector, using a given Tenant ID
+  * @param ctx The context object provided by the route function
+  * @param {string} connectorName The name of the Connector from the service to interact with
+  * @param {string} tenantId Represents a single user of this Integration,
+  * usually corresponding to a user or account in your own system
+  * @returns Promise<${sdk?.importName || 'any'}> Returns an authenticated ${
+    sdk?.integrationType || ''
+  } SDK you would use to interact with the
+  * Connector service on behalf of your user
+  */
+  getSdkByTenant(ctx: RouterContext, connectorName: ${
+    sdk?.connectorName ? `'${sdk.connectorName}'` : 'string'
+  }, tenantId: string):Promise<${sdk?.importName || 'any'}>;`;
 }
 
 /**
@@ -235,19 +302,11 @@ function getDynamicSdkTypings(contents: string, sdks: ISdkStatement[]) {
         })}
 
         ${sdks.map((sdk: ISdkStatement) => {
-          return ` /**
-            * Get an authenticated ${sdk.integrationType} SDK for the specified Connector, using a given Tenant ID
-            * @param ctx The context object provided by the route function
-            * @param {string} connectorName The name of the Connector from the service to interact with
-            * @param {string} tenantId Represents a single user of this Integration,
-            * usually corresponding to a user or account in your own system
-            * @returns Promise<${sdk.importName}> Returns an authenticated ${sdk.integrationType} SDK you would use to interact with the
-            * Connector service on behalf of your user
-            */
-            getSdkByTenant: (ctx: any, connectorName: '${sdk.connectorName}', tenantId: string) => Promise<${sdk.importName}>;`;
+          return buildSdkByTenantType(sdk);
         })}
-    }
 
+        ${buildSdkByTenantType()}  
+    }
     ${contents}
    `;
 }

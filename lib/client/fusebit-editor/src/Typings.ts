@@ -7,7 +7,8 @@ import {
   IRegistryInfo,
   ISdkStatement,
   downloadPackageFromCDN,
-  FUSEBIT_PACKAGE_SCOPE,
+  downloadPackageFromDefinitelyTyped,
+  FUSEBIT_INT_PACKAGE_REGEX,
 } from './PackageManager';
 
 Monaco.languages.typescript.javascriptDefaults.setDiagnosticsOptions({
@@ -158,14 +159,7 @@ export function updateNodejsTypings(version: string) {
     lastNodejsTypings = undefined;
   }
 
-  getCdnTypes('node', version).then((res) => {
-    if (res) {
-      lastNodejsTypings = Monaco.languages.typescript.javascriptDefaults.addExtraLib(
-        res.text,
-        'node_modules/@types/node/index.d.ts'
-      );
-    }
-  });
+  downloadPackageFromDefinitelyTyped({ name: 'node', version });
 }
 
 let dependencyTypings: { [property: string]: { version: string; typings: Monaco.IDisposable | undefined } } = {};
@@ -196,7 +190,7 @@ export function updateDependencyTypings(
     sdkStatements: ISdkStatement[]
   ) {
     // Resolve internal fusebit packages
-    if (name.includes(FUSEBIT_PACKAGE_SCOPE)) {
+    if (FUSEBIT_INT_PACKAGE_REGEX.test(name)) {
       downloadAndExtractInternalPackage(
         {
           name,
@@ -207,22 +201,6 @@ export function updateDependencyTypings(
       );
     } else {
       downloadPackageFromCDN({ name, version });
-    }
-  }
-}
-
-async function getCdnTypes(name: string, version: string): Promise<Superagent.Response | undefined> {
-  const jsdelvr: string = `https://cdn.jsdelivr.net/npm/@types/${name}@${version}/index.d.ts`;
-  const unpkg: string = `https://unpkg.com/@types/${name}@${version}/index.d.ts`;
-  const cdns: string[] = [jsdelvr, unpkg].sort(() => Math.random() - 0.5);
-  const deadline: number = 60000;
-
-  for (const cdn of cdns) {
-    try {
-      const res: Superagent.Response = await Superagent.get(cdn).timeout(deadline);
-      return res;
-    } catch (e) {
-      console.error(`Unable to install typings for module ${name}@${version} from ${cdn}:`, e);
     }
   }
 }
