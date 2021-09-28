@@ -19,7 +19,7 @@ All public releases of the Fusebit editor are documented here, including notable
 
 ## Version 2.1.3
 
-_Released 9/24/21_
+_Released 9/28/21_
 
 - **Enhancement.** Improve IntelliSense support for SDK libraries, integrations and npm packages
 

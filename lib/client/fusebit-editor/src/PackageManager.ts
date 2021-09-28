@@ -45,6 +45,11 @@ export interface IConnectorComponent {
   provider: string;
 }
 
+export interface IDownloadedTypes {
+  files: IDownloadedFile[];
+  maxSatisfyingVersion: string;
+}
+
 export const SDK_PACKAGE_PROVIDER_CDN_MAPPINGS: Record<string, IProviderPackage> = {
   '@fusebit-int/slack-provider': {
     name: '@slack/web-api',
@@ -100,6 +105,17 @@ export function filterTypeDefinitionFiles<T>(files: IDownloadedFile[]): T[] {
 }
 
 /**
+ * Removes package distribution folder name from common used names (i.e lib, dist)
+ * @param fileName
+ * @returns string
+ */
+export function cleanDistFolder(fileName: string): string {
+  let cleanName = fileName;
+  COMMON_DIST_DIR_NAMES.forEach((commonName) => (cleanName = cleanName.replace(commonName, '')));
+  return cleanName;
+}
+
+/**
  * Download and extract package contents from Fusebit internal registry
  */
 export async function downloadAndExtractInternalPackage(
@@ -135,14 +151,11 @@ export async function downloadAndExtractInternalPackage(
         if (packageJson) {
           const packageJsonContent = new TextDecoder().decode(new DataView(packageJson.buffer));
           const { dependencies } = JSON.parse(packageJsonContent);
-          if (dependencies) {
-            const dependenciesKeys = Object.keys(dependencies);
-            for (const dependency of dependenciesKeys) {
-              downloadPackageFromCDN({
-                name: dependency,
-                version: dependencies[dependency],
-              });
-            }
+          for (const dependency in dependencies) {
+            downloadPackageFromCDN({
+              name: dependency,
+              version: dependencies[dependency],
+            });
           }
         }
       }
@@ -166,17 +179,6 @@ export async function downloadAndExtractInternalPackage(
 }
 
 /**
- * Removes package distribution folder name from common used names (i.e lib, dist)
- * @param fileName
- * @returns string
- */
-export function cleanDistFolder(fileName: string): string {
-  let cleanName = fileName;
-  COMMON_DIST_DIR_NAMES.forEach((commonName) => (cleanName = cleanName.replace(commonName, '')));
-  return cleanName;
-}
-
-/**
  * Downloads npm package typings from public CDN.
  * Typings are injected automatically
  * If package types are not defined, will try to get them from DefinitelyTyped (enabled by default)
@@ -187,32 +189,13 @@ export async function downloadPackageFromCDN(
   settings: IDownloadPackageSettings = { requestTimeout: 60000 }
 ): Promise<void> {
   try {
-    // Try to find typings from the package
-    const versionsPath = `${PUBLIC_CDN_API_URL}${packageInfo.name}`;
-    const packageVersions = await Superagent.get(versionsPath).timeout(settings.requestTimeout);
-
-    if (packageVersions) {
-      let maxSatisfyingVersion = semver.maxSatisfying(packageVersions.body?.versions, packageInfo.version);
-      // If not satisfying version is found, use latest available version
-      if (!maxSatisfyingVersion) {
-        maxSatisfyingVersion = (packageVersions.body?.versions || [])[0];
-      }
-      const packagePath = `${PUBLIC_CDN_API_URL}${packageInfo.name}@${maxSatisfyingVersion}/flat`;
-      const response = await Superagent.get(packagePath).timeout(settings.requestTimeout);
-      const packageTypeFiles: any[] = filterTypeDefinitionFiles(response.body?.files);
+    const typinsFiles = await getTypingsFilesFromCDN(packageInfo, settings);
+    if (typinsFiles) {
       // If no typings found, try to load them from DefinitelyTyped
-      if (!packageTypeFiles.length && fallbackToDefinitelyTyped) {
+      if (!typinsFiles.files.length && fallbackToDefinitelyTyped) {
         downloadPackageFromDefinitelyTyped(packageInfo, settings);
       } else {
-        for await (const file of packageTypeFiles) {
-          const path = `${PUBLIC_CDN_URL}${packageInfo.name}@${packageInfo.version}${file.name}`;
-          const response = await Superagent.get(path).timeout(settings.requestTimeout);
-          const typingsPath = `file:///node_modules/${packageInfo.name}${cleanDistFolder(file.name)}`;
-          const contents = response.text || response.body.toString();
-          if (contents) {
-            Monaco.languages.typescript.javascriptDefaults.addExtraLib(contents, typingsPath);
-          }
-        }
+        await downloadAndInjectTypeFiles(packageInfo, typinsFiles.files, settings);
       }
     }
   } catch (e) {
@@ -231,36 +214,72 @@ export async function downloadPackageFromDefinitelyTyped(
   settings: IDownloadPackageSettings = { requestTimeout: 60000 }
 ): Promise<void> {
   try {
-    const versions = `${PUBLIC_CDN_API_URL}@types/${packageInfo.name}`;
-    const packageVersions = await Superagent.get(`${versions}`).timeout(settings.requestTimeout);
-
-    if (packageVersions) {
-      let maxSatisfyingVersion = semver.maxSatisfying(packageVersions.body?.versions, packageInfo.version);
-      // If not satisfying version is found, use latest available version
-      if (!maxSatisfyingVersion) {
-        maxSatisfyingVersion = (packageVersions.body?.versions || [])[0];
-      }
-      if (maxSatisfyingVersion) {
-        const packagePath = `${PUBLIC_CDN_API_URL}@types/${packageInfo.name}@${maxSatisfyingVersion}/flat`;
-        const response = await Superagent.get(packagePath).timeout(settings.requestTimeout);
-        const packageTypeFiles: any[] = filterTypeDefinitionFiles(response.body?.files);
-        //Override the package to fetch (@types instead of the original package)
-        packageInfo.name = `@types/${packageInfo.name}`;
-        packageInfo.version = maxSatisfyingVersion.toString();
-
-        for await (const file of packageTypeFiles) {
-          const path = `${PUBLIC_CDN_URL}${packageInfo.name}@${packageInfo.version}${file.name}`;
-          const response = await Superagent.get(path).timeout(settings.requestTimeout);
-          const typingsPath = `file:///node_modules/${packageInfo.name}${cleanDistFolder(file.name)}`;
-          const contents = response.text || response.body.toString();
-          if (contents) {
-            Monaco.languages.typescript.javascriptDefaults.addExtraLib(contents, typingsPath);
-          }
-        }
+    const maxSatisfyingVersion = await resolvePackageMaxSatisfyingVersion(packageInfo, settings);
+    if (maxSatisfyingVersion) {
+      //Override the package to fetch (@types instead of the original package)
+      const packageFromDT = { ...packageInfo, name: `@types/${packageInfo.name}`, version: maxSatisfyingVersion };
+      const typinsFiles = await getTypingsFilesFromCDN(packageFromDT, settings);
+      if (typinsFiles) {
+        await downloadAndInjectTypeFiles(packageFromDT, typinsFiles.files, settings);
       }
     }
   } catch (e) {
     console.warn(`Unable to install @types for package ${packageInfo.name}@${packageInfo.version}`, e);
+  }
+}
+
+/**
+ * Get package files from CDN and injects Types files to the editor
+ */
+async function downloadAndInjectTypeFiles(
+  packageInfo: IPackage,
+  files: IDownloadedFile[],
+  settings: IDownloadPackageSettings = { requestTimeout: 60000 }
+): Promise<void> {
+  for await (const file of files) {
+    const path = `${PUBLIC_CDN_URL}${packageInfo.name}@${packageInfo.version}${file.name}`;
+    const response = await Superagent.get(path).timeout(settings.requestTimeout);
+    const typingsPath = `file:///node_modules/${packageInfo.name}${cleanDistFolder(file.name)}`;
+    const contents = response.text || response.body.toString();
+    if (contents) {
+      Monaco.languages.typescript.javascriptDefaults.addExtraLib(contents, typingsPath);
+    }
+  }
+}
+
+async function resolvePackageMaxSatisfyingVersion(
+  packageInfo: IPackage,
+  settings: IDownloadPackageSettings = { requestTimeout: 60000 }
+): Promise<string | undefined> {
+  const versionsPath = `${PUBLIC_CDN_API_URL}${packageInfo.name}`;
+  const packageVersions = await Superagent.get(versionsPath).timeout(settings.requestTimeout);
+  if (packageVersions) {
+    let maxSatisfyingVersion = semver.maxSatisfying(packageVersions.body?.versions, packageInfo.version);
+    // If not satisfying version is found, use latest available version
+    if (!maxSatisfyingVersion) {
+      maxSatisfyingVersion = (packageVersions.body?.versions || [])[0];
+    }
+    return maxSatisfyingVersion?.toString();
+  }
+}
+
+/**
+ * Get a list of Typings files to download from CDN
+ * It will use semver to resolve the max satisfying version to use.
+ */
+async function getTypingsFilesFromCDN(
+  packageInfo: IPackage,
+  settings: IDownloadPackageSettings = { requestTimeout: 60000 }
+): Promise<IDownloadedTypes | undefined> {
+  const maxSatisfyingVersion = await resolvePackageMaxSatisfyingVersion(packageInfo, settings);
+  if (maxSatisfyingVersion) {
+    const packagePath = `${PUBLIC_CDN_API_URL}${packageInfo.name}@${maxSatisfyingVersion}/flat`;
+    const response = await Superagent.get(packagePath).timeout(settings.requestTimeout);
+    const packageTypeFiles: IDownloadedFile[] = filterTypeDefinitionFiles(response.body?.files);
+    return {
+      files: packageTypeFiles,
+      maxSatisfyingVersion: maxSatisfyingVersion,
+    };
   }
 }
 
