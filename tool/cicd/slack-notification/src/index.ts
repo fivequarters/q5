@@ -2,7 +2,7 @@
 
 import superagent from 'superagent';
 import { JestOutput, Status } from './jestTypes';
-import fs from 'fs/promises';
+import { promises as fs } from 'fs';
 const outputJson: JestOutput = require('../../../../api/function-api/testOutput.json');
 
 // Using 2 variables despite being the same URL because eventually we want to publish to engineering on a test failure.
@@ -19,6 +19,7 @@ const nameToMention = [
   { name: 'Chris More', id: '<@U01NQDVLYKB>' },
   { name: 'Shehzad Akbar', id: '<@U02CP37DEU8>' },
   { name: 'Jacob Haller-Roby', id: '<@U01NQDVRW0Z>' },
+  { name: 'Liz Parody', id: '<@U02EJPA1MCJ>' },
 ];
 
 (async () => {
