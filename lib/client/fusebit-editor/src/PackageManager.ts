@@ -143,7 +143,18 @@ export async function downloadAndExtractInternalPackage(
           const packageJsonContent = new TextDecoder().decode(new DataView(packageJson.buffer));
           const { dependencies } = JSON.parse(packageJsonContent);
           for (const dependency in dependencies) {
-            if (!FUSEBIT_INT_PACKAGE_REGEX.test(dependency)) {
+            // Download internal package dependency
+            if (FUSEBIT_INT_PACKAGE_REGEX.test(dependency)) {
+              downloadAndExtractInternalPackage(
+                {
+                  name: dependency,
+                  version: dependencies[dependency],
+                  registry: packageInfo.registry,
+                },
+                sdkStatements,
+                settings
+              );
+            } else {
               // Fire a package download asynchronously, no exceptions will be thrown from here.
               downloadPackageFromCDN({
                 name: dependency,
