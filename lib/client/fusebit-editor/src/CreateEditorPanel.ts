@@ -51,6 +51,7 @@ export function createEditorPanel(element: HTMLElement, editorContext: EditorCon
     minimap: {
       enabled: false,
     },
+    wordBasedSuggestions: false,
   };
 
   const editor = (editorContext._monaco = Monaco.editor.create(element, monacoOptions));
