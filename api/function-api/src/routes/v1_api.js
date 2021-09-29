@@ -112,6 +112,18 @@ router.get(
   analytics.finished
 );
 
+router.options('/account/:accountId', cors(corsManagementOptions));
+router.patch(
+  '/account/:accountId',
+  analytics.enterHandler(analytics.Modes.Administration),
+  cors(corsManagementOptions),
+  express.json(),
+  validate_schema({ params: require('./validation/api_params') }),
+  authorize({ operation: AccountActions.updateAccount }),
+  account.accountPatch(),
+  analytics.finished
+);
+
 router.options('/account/:accountId/audit', cors(corsManagementOptions));
 router.get(
   '/account/:accountId/audit',
