@@ -141,13 +141,15 @@ export async function downloadAndExtractInternalPackage(
         const packageJson = extractedFiles.find((file: IExtractedFile) => file.name == 'package/package.json');
         if (packageJson) {
           const packageJsonContent = new TextDecoder().decode(new DataView(packageJson.buffer));
-          const { dependencies, main } = JSON.parse(packageJsonContent);
+          const { dependencies } = JSON.parse(packageJsonContent);
           for (const dependency in dependencies) {
-            // Fire a package download asynchronously, no exceptions will be thrown from here.
-            downloadPackageFromCDN({
-              name: dependency,
-              version: dependencies[dependency],
-            });
+            if (!FUSEBIT_INT_PACKAGE_REGEX.test(dependency)) {
+              // Fire a package download asynchronously, no exceptions will be thrown from here.
+              downloadPackageFromCDN({
+                name: dependency,
+                version: dependencies[dependency],
+              });
+            }
           }
         }
       }
@@ -157,7 +159,11 @@ export async function downloadAndExtractInternalPackage(
         const typePath = `file:///node_modules/${packageInfo.name}${typeFile.name.replace('package/libc', '')}`;
         let fileContent = new TextDecoder().decode(new DataView(typeFile.buffer));
         // Special case for framework only: Inject dynamic typings for SDK methods by extending Tenant class Typings, defined at Integration.d.ts
-        if (packageInfo.name === '@fusebit-int/framework' && typeFile.name.includes('client/Integration.d.ts') && sdkStatements?.length) {
+        if (
+          packageInfo.name === '@fusebit-int/framework' &&
+          typeFile.name.includes('client/Integration.d.ts') &&
+          sdkStatements?.length
+        ) {
           fileContent = getDynamicSdkTypings(fileContent, sdkStatements);
         }
         Monaco.languages.typescript.javascriptDefaults.addExtraLib(fileContent, typePath);
