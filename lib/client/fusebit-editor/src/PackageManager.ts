@@ -112,6 +112,7 @@ export function resolveMainFolderFromPackage(mainFolder: string): string {
 export async function downloadAndExtractInternalPackage(
   packageInfo: IInternalPackage,
   sdkStatements: ISdkStatement[],
+  fallbackToDefinitelyTyped = true,
   settings: IDownloadPackageSettings = { requestTimeout: 60000 }
 ): Promise<void> {
   try {
@@ -143,24 +144,14 @@ export async function downloadAndExtractInternalPackage(
           const packageJsonContent = new TextDecoder().decode(new DataView(packageJson.buffer));
           const { dependencies } = JSON.parse(packageJsonContent);
           for (const dependency in dependencies) {
-            // Download internal package dependency
-            if (FUSEBIT_INT_PACKAGE_REGEX.test(dependency)) {
-              downloadAndExtractInternalPackage(
-                {
-                  name: dependency,
-                  version: dependencies[dependency],
-                  registry: packageInfo.registry,
-                },
-                sdkStatements,
-                settings
-              );
-            } else {
-              // Fire a package download asynchronously, no exceptions will be thrown from here.
-              downloadPackageFromCDN({
-                name: dependency,
-                version: dependencies[dependency],
-              });
-            }
+            downloadAndInstallTypes(
+              dependency,
+              dependencies[dependency],
+              packageInfo.registry,
+              sdkStatements,
+              fallbackToDefinitelyTyped,
+              settings
+            );
           }
         }
       }
@@ -301,6 +292,31 @@ async function getTypingsFilesFromCDN(
       maxSatisfyingVersion: maxSatisfyingVersion,
       mainFolder: resolveMainFolderFromPackage(main),
     };
+  }
+}
+
+export async function downloadAndInstallTypes(
+  name: string,
+  version: string,
+  registry: IRegistryInfo,
+  sdkStatements: ISdkStatement[],
+  fallbackToDefinitelyTyped = true,
+  settings: IDownloadPackageSettings = { requestTimeout: 60000 }
+): Promise<void> {
+  // Resolve internal fusebit packages
+  if (FUSEBIT_INT_PACKAGE_REGEX.test(name)) {
+    downloadAndExtractInternalPackage(
+      {
+        name,
+        version,
+        registry,
+      },
+      sdkStatements,
+      fallbackToDefinitelyTyped,
+      settings
+    );
+  } else {
+    downloadPackageFromCDN({ name, version }, fallbackToDefinitelyTyped, settings);
   }
 }
 

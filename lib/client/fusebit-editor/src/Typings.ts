@@ -8,6 +8,7 @@ import {
   downloadPackageFromCDN,
   downloadPackageFromDefinitelyTyped,
   FUSEBIT_INT_PACKAGE_REGEX,
+  downloadAndInstallTypes,
 } from './PackageManager';
 import { IRegistryInfo } from './Server';
 
@@ -181,26 +182,5 @@ export function updateDependencyTypings(
       dependencyTypings[name].typings = undefined;
     }
     downloadAndInstallTypes(name, dependencies[name], registry, sdkStatementsTree);
-  }
-
-  function downloadAndInstallTypes(
-    name: string,
-    version: string,
-    registry: IRegistryInfo,
-    sdkStatements: ISdkStatement[]
-  ) {
-    // Resolve internal fusebit packages
-    if (FUSEBIT_INT_PACKAGE_REGEX.test(name)) {
-      downloadAndExtractInternalPackage(
-        {
-          name,
-          version,
-          registry,
-        },
-        sdkStatements
-      );
-    } else {
-      downloadPackageFromCDN({ name, version });
-    }
   }
 }
