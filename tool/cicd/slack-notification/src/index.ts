@@ -36,7 +36,7 @@ const successWebhook = 'https://hooks.slack.com/services/TDFBLCJV9/B02ETT25989/f
       type: 'section',
       text: {
         type: 'plain_text',
-        text: `${test.name.split('/var/lib/jenkins/workspace/fusebit-test-suite/api/function-api/test/v1/')[1]} Failed`,
+        text: `${test.name.split('/var/lib/jenkins/workspace/fusebit-test-suite/api/function-api/test/')[1]} Failed`,
       },
     });
   }
