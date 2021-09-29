@@ -17,6 +17,12 @@ All public releases of the Fusebit HTTP API are documented here, including notab
 <!-- 1. TOC
 {:toc} -->
 
+## Version 1.23.14
+
+_Released 9/29/21_
+
+- **Enhancement.** Now our HTTP API will raise an error when the caller requests static IP for a function on a subscription that doesn't have the feature flag enabled.
+
 ## Version 1.23.11
 
 _Released 9/21/21_
