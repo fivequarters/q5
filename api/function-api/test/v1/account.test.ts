@@ -79,10 +79,9 @@ describe('Account Management', () => {
       displayName: `${currentAccountDetails} ${Date.now()}`,
     };
     const response = await patchAccount(account, patchedAccountDetails);
-    expect(response).toBeHttp({ statusCode: 200 });
+    expect(response).toBeHttp({ statusCode: 400 });
 
-    const { data: updatedAccountDetails } = await getAccount(account);
-    expect(updatedAccountDetails.id).toBe(currentId);
-    expect(updatedAccountDetails.displayName).toBe(patchedAccountDetails.displayName);
+    const { data: afterUpdateAttempt } = await getAccount(account);
+    expect(afterUpdateAttempt.displayName).toBe(currentAccountDetails.displayName);
   });
 });

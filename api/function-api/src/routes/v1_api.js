@@ -120,6 +120,7 @@ router.patch(
   express.json(),
   validate_schema({ params: require('./validation/api_params') }),
   authorize({ operation: AccountActions.updateAccount }),
+  validate_schema({ body: require('./validation/update_account') }),
   account.accountPatch(),
   analytics.finished
 );
