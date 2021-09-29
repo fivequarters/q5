@@ -325,30 +325,12 @@ describe('Subscription with staticIp=false', () => {
     await setSubscriptionStaticIpFlag(subscription, 'false');
   }, 120000);
 
-  test('Static IP should be false if flag on subscription is false', async () => {
+  test("Raise an error if caller requests staticIp when subscription doesn't have access to the feature", async () => {
     // create a new function, asking for static ip
     let response = await putFunction(account, boundaryId, function1Id, helloWorldWithStaticIp);
-    expect(response).toBeHttp({ statusCode: 200 });
-
-    // validate that static ip is false instead
-    response = await getFunction(account, boundaryId, function1Id, true);
-    expect(response).toBeHttp({ statusCode: 200 });
-    expect(response.data.compute).toEqual({ timeout: 30, memorySize: 128, staticIp: false });
-    expect(response.data.computeSerialized).toBe('staticIp=false\nmemorySize=128\ntimeout=30');
-
-    // validate that the VPC is not set
-    const options = {
-      subscriptionId: response.data.subscriptionId,
-      boundaryId: response.data.boundaryId,
-      functionId: response.data.id,
-    };
-    const functionName = Constants.get_user_function_name(options);
-    const functionConfig = await lambda.getFunctionConfiguration({ FunctionName: functionName }).promise();
-    expect(functionConfig).toBeDefined();
-    expect(functionConfig.VpcConfig).toBeUndefined();
-
-    // validate the execution role is the permissionless one
-    expect(functionConfig.Role).toBeDefined();
-    expect(functionConfig.Role).toBe(process.env.LAMBDA_USER_FUNCTION_PERMISSIONLESS_ROLE);
+    expect(response).toBeHttp({ statusCode: 400 });
+    expect(response.data.message).toBe(
+      "Static IP feature requested for a subscription that doesn't have access to it."
+    );
   }, 120000);
 });
