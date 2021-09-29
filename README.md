@@ -15,7 +15,7 @@ The repository uses the following frameworks and tools:
 - [Typescript](https://www.typescriptlang.org/): Javscript with type information and compiler errors; TypeScript 3.0 introduced **project references** which we take advantage of with yarn's **workspaces**.
 - [Jest](https://jestjs.io/en/): The testing library open-sourced by Facebook. It is feature rich and includes unit test coverage by default.
 - [Prettier](https://prettier.io/): Formats code in a reasonable way; we've configured it to format on saving a file
-- [Ts-Lint](https://palantir.github.io/tslint/): Linting for Typscript
+- [Ts-Lint](https://palantir.github.io/tslint/): Linting for TypeScript
 
 For web apps, this repository also uses the following additional frameworks and tools:
 

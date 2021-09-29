@@ -1,7 +1,8 @@
 import { EventEmitter } from '@5qtrs/event';
+import { IIntegrationComponent } from '@fusebit/schema';
 import { ServerResponse } from 'http';
 import * as Events from './Events';
-import { IBuildStatus, Server } from './Server';
+import { IBuildStatus, IRegistryInfo, Server } from './Server';
 
 export const DEFAULT_NODE_VERSION = '14';
 /**
@@ -75,6 +76,7 @@ export abstract class BaseEditorContext<ISpecType> extends EventEmitter {
   public abstract getConfiguration(): { [index: string]: string | number };
   public abstract getScheduleSettings(): string;
   public abstract getFileFromSpecification(fileName: string): string | object;
+  public abstract getComponents(): IIntegrationComponent[]; 
 
   /**
    * Creates a _EditorContext_ given the optional function specification. If you do not provide a function specification,
@@ -478,6 +480,14 @@ export abstract class BaseEditorContext<ISpecType> extends EventEmitter {
    */
   public getMetadata(): any {
     return this.metadata;
+  }
+
+  public getRegistry(): IRegistryInfo {
+    const { account } = this._server;
+    return  {
+      baseUrl: `${account?.baseUrl}v1/account/${account?.accountId}/registry/default/npm/`,
+      token: account?.accessToken,
+    };
   }
 }
 

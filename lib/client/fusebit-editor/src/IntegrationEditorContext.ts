@@ -3,6 +3,7 @@ import { EntityServer } from './EntityServer';
 import { BaseServer } from './Server';
 
 import { BaseEditorContext } from './EditorContext';
+import { IIntegrationComponent } from '@fusebit/schema';
 
 export class IntegrationEditorContext extends BaseEditorContext<IIntegrationSpecification> {
   /**
@@ -73,5 +74,9 @@ export class IntegrationEditorContext extends BaseEditorContext<IIntegrationSpec
   }
   public getScheduleSettings(): string {
     return '';
+  }
+
+  public getComponents(): IIntegrationComponent[] {
+    return this.specification.data.components;
   }
 }

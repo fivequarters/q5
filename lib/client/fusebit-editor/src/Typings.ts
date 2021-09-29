@@ -1,5 +1,16 @@
 import * as Monaco from 'monaco-editor/esm/vs/editor/editor.api.js';
 import * as Superagent from 'superagent';
+import { IIntegrationComponent } from '@fusebit/schema';
+import {
+  buildSdkStatementsTree,
+  downloadAndExtractInternalPackage,
+  ISdkStatement,
+  downloadPackageFromCDN,
+  downloadPackageFromDefinitelyTyped,
+  FUSEBIT_INT_PACKAGE_REGEX,
+  downloadAndInstallTypes,
+} from './PackageManager';
+import { IRegistryInfo } from './Server';
 
 Monaco.languages.typescript.javascriptDefaults.setDiagnosticsOptions({
   noSemanticValidation: true,
@@ -149,20 +160,18 @@ export function updateNodejsTypings(version: string) {
     lastNodejsTypings = undefined;
   }
 
-  getCdnTypes('node', version).then((res) => {
-    if (res) {
-      lastNodejsTypings = Monaco.languages.typescript.javascriptDefaults.addExtraLib(
-        res.text,
-        'node_modules/@types/node/index.d.ts'
-      );
-    }
-  });
+  downloadPackageFromDefinitelyTyped({ name: 'node', version }, '');
 }
 
 let dependencyTypings: { [property: string]: { version: string; typings: Monaco.IDisposable | undefined } } = {};
 
-export function updateDependencyTypings(dependencies: { [property: string]: string }) {
-  for (var name in dependencies) {
+export function updateDependencyTypings(
+  dependencies: { [property: string]: string },
+  registry: IRegistryInfo,
+  components: IIntegrationComponent[]
+) {
+  const sdkStatementsTree = buildSdkStatementsTree(dependencies, components);
+  for (const name in dependencies) {
     if (dependencyTypings[name] && dependencyTypings[name].version === dependencies[name]) {
       continue;
     }
@@ -172,34 +181,6 @@ export function updateDependencyTypings(dependencies: { [property: string]: stri
       (dependencyTypings[name].typings as Monaco.IDisposable).dispose();
       dependencyTypings[name].typings = undefined;
     }
-    downloadAndInstallTypes(name, dependencies[name]);
-  }
-
-  function downloadAndInstallTypes(name: string, version: string) {
-    getCdnTypes(name, version).then((res: Superagent.Response | undefined) => {
-      if (res) {
-        dependencyTypings[name].typings = Monaco.languages.typescript.javascriptDefaults.addExtraLib(
-          res.text,
-          `file:///node_modules/@types/${name}/index.d.ts`
-          // `node_modules/${name}/index.d.ts`
-        );
-      }
-    });
-  }
-}
-
-async function getCdnTypes(name: string, version: string): Promise<Superagent.Response | undefined> {
-  const jsdelvr: string = `https://cdn.jsdelivr.net/npm/@types/${name}@${version}/index.d.ts`;
-  const unpkg: string = `https://unpkg.com/@types/${name}@${version}/index.d.ts`;
-  const cdns: string[] = [jsdelvr, unpkg].sort(() => Math.random() - 0.5);
-  const deadline: number = 60000;
-
-  for (const cdn of cdns) {
-    try {
-      const res: Superagent.Response = await Superagent.get(cdn).timeout(deadline);
-      return res;
-    } catch (e) {
-      console.error(`Unable to install typings for module ${name}@${version} from ${cdn}:`, e);
-    }
+    downloadAndInstallTypes(name, dependencies[name], registry, sdkStatementsTree);
   }
 }
