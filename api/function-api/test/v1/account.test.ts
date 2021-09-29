@@ -3,7 +3,7 @@ import { IAccount as IAccountAPI } from '@5qtrs/account-data';
 
 import { IAccount } from './accountResolver';
 import * as Registry from './registry';
-import { addAccount, getAccount } from './sdk';
+import { addAccount, getAccount, patchAccount } from './sdk';
 import { getEnv } from './setup';
 
 let { account, boundaryId } = getEnv();
@@ -58,4 +58,31 @@ describe('Account Management', () => {
     const isAccountIdInNPMURL = newAccountConfig.url.includes(accountCreatedLocalProfile.accountId);
     expect(isAccountIdInNPMURL).toBe(true);
   }, 180000);
+
+  test('Patch existing', async () => {
+    const { data: currentAccountDetails } = await getAccount(account);
+    const patchedAccountDetails = {
+      displayName: `${currentAccountDetails} ${Date.now()}`,
+    };
+    const response = await patchAccount(account, patchedAccountDetails);
+    expect(response).toBeHttp({ statusCode: 200 });
+
+    const { data: updatedAccountDetails } = await getAccount(account);
+    expect(updatedAccountDetails.displayName).toBe(patchedAccountDetails.displayName);
+  });
+
+  test('Ignores id on the patch body', async () => {
+    const { data: currentAccountDetails } = await getAccount(account);
+    const currentId = currentAccountDetails.id;
+    const patchedAccountDetails = {
+      id: currentId.substring(0, currentId.length - 3) + 'zzz',
+      displayName: `${currentAccountDetails} ${Date.now()}`,
+    };
+    const response = await patchAccount(account, patchedAccountDetails);
+    expect(response).toBeHttp({ statusCode: 200 });
+
+    const { data: updatedAccountDetails } = await getAccount(account);
+    expect(updatedAccountDetails.id).toBe(currentId);
+    expect(updatedAccountDetails.displayName).toBe(patchedAccountDetails.displayName);
+  });
 });
