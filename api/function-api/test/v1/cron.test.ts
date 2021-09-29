@@ -9,7 +9,7 @@ beforeEach(() => {
   ({ account, boundaryId, function1Id, function2Id, function3Id, function4Id, function5Id } = getEnv());
 });
 
-describe('cron', () => {
+describe.skip('cron', () => {
   test(
     'cron executes on schedule',
     async () => {
