@@ -13,15 +13,16 @@ const successWebhook = 'https://hooks.slack.com/services/TDFBLCJV9/B02ETT25989/f
     await superagent.post(successWebhook).send({
       text: ':tada: Fusebit Test Suite Passed :tada:',
     });
+    return;
   }
   const failurePayload = {
-    text: ':alarm: Tests are failing :alarm:',
+    text: ':warning: Tests are failing :warning:',
     blocks: [
       {
         type: 'section',
         text: {
           type: 'mrkdwn',
-          text: `OOF ${outputJson.numFailedTestSuites} Suites have failed.`,
+          text: `:warning: :warning: :warning: ${outputJson.numFailedTestSuites} test suites have failed. :warning: :warning: :warning:`,
         },
       },
     ],
@@ -35,7 +36,7 @@ const successWebhook = 'https://hooks.slack.com/services/TDFBLCJV9/B02ETT25989/f
       type: 'section',
       text: {
         type: 'plain_text',
-        text: `${test.name} Failed`,
+        text: `${test.name.split('/var/lib/jenkins/workspace/fusebit-test-suite/api/function-api/test/v1/')[1]} Failed`,
       },
     });
   }
