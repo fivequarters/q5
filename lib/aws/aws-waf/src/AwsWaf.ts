@@ -56,12 +56,23 @@ export class AwsWaf extends AwsBase<typeof WAFV2> {
 
   private async configureWaf(wafConfigure: IAwsWafConfigure) {
     const wafSdk = await this.getAws();
-    await wafSdk
-      .associateWebACL({
-        WebACLArn: wafConfigure.wafArn,
-        ResourceArn: wafConfigure.lbArn,
-      })
-      .promise();
+    let success = false;
+    do {
+      try {
+        await wafSdk
+          .associateWebACL({
+            WebACLArn: wafConfigure.wafArn,
+            ResourceArn: wafConfigure.lbArn,
+          })
+          .promise();
+        success = true;
+      } catch (e) {
+        if (e && e.code === 'WAFUnavailableEntityException') {
+          continue;
+        }
+        throw e;
+      }
+    } while (success);
   }
 
   private async getWafOrUndefined(name: string): Promise<IAwsWaf | undefined> {
