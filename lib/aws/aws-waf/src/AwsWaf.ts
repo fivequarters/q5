@@ -2,6 +2,7 @@ import { AwsBase, IAwsConfig } from '@5qtrs/aws-base';
 import { WAFV2 } from 'aws-sdk';
 
 const wafPostfix = '-waf';
+const IPRuleSetPostFix = '-ip-set';
 
 export interface IAwsNewWaf {
   name: string;
@@ -18,6 +19,11 @@ export interface IAwsWafConfigure {
   lbArn: string;
 }
 
+export interface IAwsIpSet {
+  name: string;
+  arn: string;
+}
+
 export class AwsWaf extends AwsBase<typeof WAFV2> {
   public static async create(config: IAwsConfig) {
     return new AwsWaf(config);
@@ -31,6 +37,11 @@ export class AwsWaf extends AwsBase<typeof WAFV2> {
     let waf = await this.getWafOrUndefined(newWaf.name + wafPostfix);
     if (!waf) {
       waf = await this.createWaf(newWaf);
+    }
+
+    let ipset = await this.getAwsIpSetOrUndefined(newWaf);
+    if (!ipset) {
+      ipset = await this.createAwsIpSet(newWaf);
     }
     await this.configureWaf({
       lbArn: newWaf.lbArn,
@@ -63,7 +74,7 @@ export class AwsWaf extends AwsBase<typeof WAFV2> {
       return waf.Name === name;
     });
     if (waf) {
-      return { name: waf.Name, arn: waf.ARN };
+      return { name: waf.Name as string, arn: waf.ARN as string };
     } else {
       return undefined;
     }
@@ -91,5 +102,35 @@ export class AwsWaf extends AwsBase<typeof WAFV2> {
       },
     };
     return params;
+  }
+
+  private async getAwsIpSetOrUndefined(newWaf: IAwsNewWaf): Promise<IAwsIpSet | undefined> {
+    const wafSdk = await this.getAws();
+    const ruleSets = await wafSdk.listIPSets({ Scope: 'REGIONAL' }).promise();
+    const ipset = ruleSets?.IPSets?.find((ipset) => {
+      return ipset.Name === newWaf.name + IPRuleSetPostFix;
+    });
+    if (ipset) {
+      return { name: ipset.Name as string, arn: ipset.ARN as string };
+    } else {
+      return undefined;
+    }
+  }
+
+  private async createAwsIpSet(newWaf: IAwsNewWaf) {
+    const wafSdk = await this.getAws();
+    const ipset = await wafSdk
+      .createIPSet({
+        Name: newWaf.name + IPRuleSetPostFix,
+        IPAddressVersion: 'IPV4',
+        Scope: 'REGIONAL',
+        Addresses: [],
+      })
+      .promise();
+
+    return {
+      name: ipset.Summary?.Name as string,
+      arn: ipset.Summary?.ARN as string,
+    };
   }
 }
