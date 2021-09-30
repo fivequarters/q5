@@ -73,15 +73,30 @@ describe('Account Management', () => {
 
   test('Ignores id on the patch body', async () => {
     const { data: currentAccountDetails } = await getAccount(account);
-    const currentId = currentAccountDetails.id;
-    const patchedAccountDetails = {
-      id: currentId.substring(0, currentId.length - 3) + 'zzz',
+
+    // tries to update with id
+    let response = await patchAccount(account, {
+      id: 'acc-0000000000000000',
       displayName: `${currentAccountDetails} ${Date.now()}`,
-    };
-    const response = await patchAccount(account, patchedAccountDetails);
+    });
+    expect(response).toBeHttp({ statusCode: 400 });
+
+    // tries to update with primaryEmail
+    response = await patchAccount(account, {
+      displayName: `${currentAccountDetails} ${Date.now()}`,
+      primaryEmail: 'someone@somewhere.com',
+    });
+    expect(response).toBeHttp({ statusCode: 400 });
+
+    // tries to update with random param
+    response = await patchAccount(account, {
+      displayName: `${currentAccountDetails} ${Date.now()}`,
+      superAdmin: 'Saiyajin',
+    });
     expect(response).toBeHttp({ statusCode: 400 });
 
     const { data: afterUpdateAttempt } = await getAccount(account);
     expect(afterUpdateAttempt.displayName).toBe(currentAccountDetails.displayName);
+    expect(afterUpdateAttempt.primaryEmail).toBe(currentAccountDetails.primaryEmail);
   });
 });
