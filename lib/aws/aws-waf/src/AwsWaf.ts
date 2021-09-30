@@ -28,7 +28,7 @@ export class AwsWaf extends AwsBase<typeof WAFV2> {
   }
 
   public async ensureWaf(newWaf: IAwsNewWaf): Promise<IAwsWaf> {
-    let waf = await this.getWaforUndefined(newWaf.name + wafPostfix);
+    let waf = await this.getWafOrUndefined(newWaf.name + wafPostfix);
     if (!waf) {
       waf = await this.createWaf(newWaf);
     }
@@ -53,7 +53,7 @@ export class AwsWaf extends AwsBase<typeof WAFV2> {
       .promise();
   }
 
-  private async getWaforUndefined(name: string): Promise<IAwsWaf | undefined> {
+  private async getWafOrUndefined(name: string): Promise<IAwsWaf | undefined> {
     const wafSdk = await this.getAws();
     const wafs = await wafSdk.listWebACLs({ Scope: 'REGIONAL' }).promise();
     if (!wafs || !wafs?.WebACLs) {
