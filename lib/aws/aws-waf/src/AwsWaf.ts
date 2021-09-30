@@ -5,11 +5,17 @@ const wafPostfix = '-waf';
 
 export interface IAwsNewWaf {
   name: string;
+  lbArn: string;
 }
 
 export interface IAwsWaf {
   name: string;
   arn: string;
+}
+
+export interface IAwsWafConfigure {
+  wafArn: string;
+  lbArn: string;
 }
 
 export class AwsWaf extends AwsBase<typeof WAFV2> {
@@ -26,6 +32,10 @@ export class AwsWaf extends AwsBase<typeof WAFV2> {
     if (!waf) {
       waf = await this.createWaf(newWaf);
     }
+    await this.configureWaf({
+      lbArn: newWaf.lbArn,
+      wafArn: waf.arn,
+    });
     return waf;
   }
 
@@ -33,9 +43,19 @@ export class AwsWaf extends AwsBase<typeof WAFV2> {
     return new WAFV2(options);
   }
 
+  private async configureWaf(wafConfigure: IAwsWafConfigure) {
+    const wafSdk = await this.getAws();
+    await wafSdk
+      .associateWebACL({
+        WebACLArn: wafConfigure.wafArn,
+        ResourceArn: wafConfigure.lbArn,
+      })
+      .promise();
+  }
+
   private async getWaforUndefined(name: string): Promise<IAwsWaf | undefined> {
     const wafSdk = await this.getAws();
-    const wafs = await wafSdk.listWebACLs().promise();
+    const wafs = await wafSdk.listWebACLs({ Scope: 'REGIONAL' }).promise();
     if (!wafs || !wafs?.WebACLs) {
       return undefined;
     }

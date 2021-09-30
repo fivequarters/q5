@@ -1,1 +1,1 @@
-export { default as NewClass } from './NewClass';
+export { AwsWaf } from './AwsWaf';

@@ -49,6 +49,7 @@ export class OpsAlb extends DataSource {
 
   public async addAlb(deployment: IOpsDeployment): Promise<void> {
     const awsAlb = await this.provider.getAwsAlb(deployment.deploymentName, deployment.region);
+    const awsWaf = await this.provider.getAwsWaf(deployment.deploymentName, deployment.region);
     const network = await this.networkData.get(deployment.networkName, deployment.region);
     const hostName = this.getHostName(network.region, deployment);
 
@@ -67,7 +68,7 @@ export class OpsAlb extends DataSource {
     };
 
     const alb = await awsAlb.ensureAlb(options);
-
+    const waf = await awsWaf.ensureWaf({ name: `${deployment.deploymentName}`, lbArn: alb.arn });
     const route53 = await this.getRoute53(deployment.domainName);
     await route53.ensureRecord(deployment.domainName, { name: hostName, alias: alb.dns, type: 'A' });
   }
