@@ -3,12 +3,12 @@ import { WAFV2 } from 'aws-sdk';
 
 const wafPostfix = '-waf';
 const IPRuleSetPostFix = '-ip-set';
-
+const RuleGroupPostFix = '-group';
 export interface IAwsNewWaf {
   name: string;
   lbArn: string;
+  ipsetArn?: string;
 }
-
 export interface IAwsWaf {
   name: string;
   arn: string;
@@ -23,7 +23,6 @@ export interface IAwsIpSet {
   name: string;
   arn: string;
 }
-
 export class AwsWaf extends AwsBase<typeof WAFV2> {
   public static async create(config: IAwsConfig) {
     return new AwsWaf(config);
@@ -34,14 +33,16 @@ export class AwsWaf extends AwsBase<typeof WAFV2> {
   }
 
   public async ensureWaf(newWaf: IAwsNewWaf): Promise<IAwsWaf> {
-    let waf = await this.getWafOrUndefined(newWaf.name + wafPostfix);
-    if (!waf) {
-      waf = await this.createWaf(newWaf);
-    }
-
     let ipset = await this.getAwsIpSetOrUndefined(newWaf);
     if (!ipset) {
       ipset = await this.createAwsIpSet(newWaf);
+    }
+    let waf = await this.getWafOrUndefined(newWaf.name + wafPostfix);
+    if (!waf) {
+      waf = await this.createWaf({
+        ...newWaf,
+        ipsetArn: ipset.arn,
+      });
     }
     await this.configureWaf({
       lbArn: newWaf.lbArn,
@@ -56,25 +57,21 @@ export class AwsWaf extends AwsBase<typeof WAFV2> {
 
   private async configureWaf(wafConfigure: IAwsWafConfigure) {
     const wafSdk = await this.getAws();
-    let success = false;
-    do {
-      try {
-        await wafSdk
-          .associateWebACL({
-            WebACLArn: wafConfigure.wafArn,
-            ResourceArn: wafConfigure.lbArn,
-          })
-          .promise();
-        success = true;
-      } catch (e) {
-        if (e && e.code === 'WAFUnavailableEntityException') {
-          continue;
-        }
-        throw e;
-      }
-    } while (success);
+    await wafSdk
+      .associateWebACL({
+        WebACLArn: wafConfigure.wafArn,
+        ResourceArn: wafConfigure.lbArn,
+      })
+      .promise();
+  }
+  /**
+  private async configureIPSet(IPSetConfigure: IAwsIPSetConfigure, newWaf: IAwsNewWaf) {
+    const wafSdk = await this.getAws();
+    const wafs = await wafSdk.listWebACLs({ Scope: 'REGIONAL' }).promise();
+    const waf = wafs?.WebACLs?.find((waf) => waf.Name === IPSetConfigure.wafName);
   }
 
+*/
   private async getWafOrUndefined(name: string): Promise<IAwsWaf | undefined> {
     const wafSdk = await this.getAws();
     const wafs = await wafSdk.listWebACLs({ Scope: 'REGIONAL' }).promise();
@@ -93,12 +90,44 @@ export class AwsWaf extends AwsBase<typeof WAFV2> {
 
   private async createWaf(newWaf: IAwsNewWaf): Promise<IAwsWaf> {
     const wafSdk = await this.getAws();
-    const waf = await wafSdk.createWebACL(this.getWafParams(newWaf)).promise();
-    const newWafOut: IAwsWaf = {
+    const wafRuleGroup = await wafSdk.createRuleGroup({
+      Name: newWaf.name + RuleGroupPostFix,
+      Scope: 'REGIONAL',
+      Capacity: 20,
+      VisibilityConfig: {
+        CloudWatchMetricsEnabled: true,
+        SampledRequestsEnabled: true,
+        MetricName: `fusebit-waf-${newWaf.name + RuleGroupPostFix}`,
+      },
+    });
+    const waf = await wafSdk
+      .createWebACL({
+        ...this.getWafParams(newWaf),
+        Rules: [
+          {
+            Name: 'DisableIPRule',
+            Priority: 0,
+            Statement: {
+              IPSetReferenceStatement: {
+                ARN: newWaf.ipsetArn as string,
+              },
+            },
+            Action: {
+              Block: {},
+            },
+            VisibilityConfig: {
+              CloudWatchMetricsEnabled: true,
+              SampledRequestsEnabled: true,
+              MetricName: `fusebit-waf-rule-${newWaf.name + RuleGroupPostFix}`,
+            },
+          },
+        ],
+      })
+      .promise();
+    return {
       name: waf.Summary?.Name as string,
       arn: waf.Summary?.ARN as string,
     };
-    return newWafOut;
   }
 
   private getWafParams(newWaf: IAwsNewWaf) {
@@ -138,7 +167,6 @@ export class AwsWaf extends AwsBase<typeof WAFV2> {
         Addresses: [],
       })
       .promise();
-
     return {
       name: ipset.Summary?.Name as string,
       arn: ipset.Summary?.ARN as string,
