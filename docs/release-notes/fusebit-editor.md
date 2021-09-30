@@ -17,12 +17,15 @@ All public releases of the Fusebit editor are documented here, including notable
 <!-- 1. TOC
 {:toc} -->
 
+<<<<<<< HEAD
 ## Version 2.2.1
 
 _Released 10/01/21_
 
 - **Enhancement.** Update Monaco editor to v0.28.1
 
+=======
+>>>>>>> e5941bf7 (Remove wordBasedSuggestions settings (#1199))
 ## Version 2.1.1
 
 _Released 9/30/21_
