@@ -92,7 +92,7 @@ describe('Account Management', () => {
     response = await patchAccount(account, {
       displayName: `${currentAccountDetails} ${Date.now()}`,
       superAdmin: 'Saiyajin',
-    });
+    } as any);
     expect(response).toBeHttp({ statusCode: 400 });
 
     const { data: afterUpdateAttempt } = await getAccount(account);
