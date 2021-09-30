@@ -68,7 +68,7 @@ export class OpsAlb extends DataSource {
     };
 
     const alb = await awsAlb.ensureAlb(options);
-    const waf = await awsWaf.ensureWaf({ name: `${deployment.deploymentName}`, lbArn: alb.arn });
+    const waf = await awsWaf.ensureWaf({ name: deployment.deploymentName, lbArn: alb.arn });
     const route53 = await this.getRoute53(deployment.domainName);
     await route53.ensureRecord(deployment.domainName, { name: hostName, alias: alb.dns, type: 'A' });
   }
