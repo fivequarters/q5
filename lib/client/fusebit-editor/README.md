@@ -18,6 +18,13 @@ The Fusebit editor provides a browser-based IDE for editing Fusebit functions.
 
 ```
 
+2. In a separate terminal tab/window, run:
+
+```
+  yarn run serve
+
+```
+
 ### Opening the editor from fuse-cli
 
 ```
