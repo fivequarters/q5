@@ -21,7 +21,7 @@ All public releases of the Fusebit HTTP API are documented here, including notab
 
 _Released 9/29/21_
 
-- **Enhancement.** Add a new endpoint to enable users to patch their account desiplay name.
+- **Enhancement.** Adding a new endpoint to enable users to patch their account desiplay name.
 
 ## Version 1.23.14
 
