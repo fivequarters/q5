@@ -75,6 +75,41 @@ paths:
                 $ref: '#/components/schemas/Error'
       security:
         - AccessToken: []
+    patch:
+      tags:
+        - Accounts
+      summary: Patches an account
+      operationId: patchAccount
+      description: |
+        Updates the display name of the given account.
+      requestBody:
+        description: An object with the new display name of the account
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/AccountPatch'
+      responses:
+        200:
+          description: The account that was patched
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Account'
+        400:
+          description: Malformed request body
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        403:
+          description: Not authorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+      security:
+        - AccessToken: []
 
   /v1/account/{accountId}/subscription:
     parameters:
@@ -2845,6 +2880,16 @@ components:
           type: string
           description: Account owner primary email
           example: john.doe@abc-compnay.com
+
+    AccountPatch:
+      type: object
+      required:
+        - displayName
+      properties:
+        displayName:
+          type: string
+          description: Account display name
+          example: ABC Company
 
     AccountAudit:
       type: object

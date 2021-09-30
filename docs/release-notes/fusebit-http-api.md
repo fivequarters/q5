@@ -17,6 +17,12 @@ All public releases of the Fusebit HTTP API are documented here, including notab
 <!-- 1. TOC
 {:toc} -->
 
+## Version 1.23.15
+
+_Released 9/29/21_
+
+- **Enhancement.** Adding a new endpoint to enable users to patch their accounts display name.
+
 ## Version 1.23.14
 
 _Released 9/29/21_
