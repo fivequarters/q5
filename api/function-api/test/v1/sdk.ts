@@ -685,6 +685,21 @@ export async function getAccount(account: IAccount, accountId?: string) {
   });
 }
 
+export async function patchAccount(account: IAccount, patchedAccount: Partial<IAccountAPI>) {
+  const headers: IHttpRequest['headers'] = {
+    Authorization: `Bearer ${account.accessToken}`,
+    'Content-Type': 'application/json',
+    'user-agent': account.userAgent,
+  };
+
+  return request({
+    method: 'PATCH',
+    headers,
+    url: `${account.baseUrl}/v1/account/${account.accountId}`,
+    data: JSON.stringify(patchedAccount),
+  });
+}
+
 export async function addClient(account: IAccount, data: any) {
   const response = await request({
     method: 'POST',

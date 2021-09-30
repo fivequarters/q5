@@ -3,7 +3,7 @@ import { IAccount as IAccountAPI } from '@5qtrs/account-data';
 
 import { IAccount } from './accountResolver';
 import * as Registry from './registry';
-import { addAccount, getAccount } from './sdk';
+import { addAccount, getAccount, patchAccount } from './sdk';
 import { getEnv } from './setup';
 
 let { account, boundaryId } = getEnv();
@@ -58,4 +58,45 @@ describe('Account Management', () => {
     const isAccountIdInNPMURL = newAccountConfig.url.includes(accountCreatedLocalProfile.accountId);
     expect(isAccountIdInNPMURL).toBe(true);
   }, 180000);
+
+  test('Patch existing', async () => {
+    const { data: currentAccountDetails } = await getAccount(account);
+    const patchedAccountDetails = {
+      displayName: `${currentAccountDetails} ${Date.now()}`,
+    };
+    const response = await patchAccount(account, patchedAccountDetails);
+    expect(response).toBeHttp({ statusCode: 200 });
+
+    const { data: updatedAccountDetails } = await getAccount(account);
+    expect(updatedAccountDetails.displayName).toBe(patchedAccountDetails.displayName);
+  });
+
+  test('Ignores id on the patch body', async () => {
+    const { data: currentAccountDetails } = await getAccount(account);
+
+    // tries to update with id
+    let response = await patchAccount(account, {
+      id: 'acc-0000000000000000',
+      displayName: `${currentAccountDetails} ${Date.now()}`,
+    });
+    expect(response).toBeHttp({ statusCode: 400 });
+
+    // tries to update with primaryEmail
+    response = await patchAccount(account, {
+      displayName: `${currentAccountDetails} ${Date.now()}`,
+      primaryEmail: 'someone@somewhere.com',
+    });
+    expect(response).toBeHttp({ statusCode: 400 });
+
+    // tries to update with random param
+    response = await patchAccount(account, {
+      displayName: `${currentAccountDetails} ${Date.now()}`,
+      superAdmin: 'Saiyajin',
+    } as any);
+    expect(response).toBeHttp({ statusCode: 400 });
+
+    const { data: afterUpdateAttempt } = await getAccount(account);
+    expect(afterUpdateAttempt.displayName).toBe(currentAccountDetails.displayName);
+    expect(afterUpdateAttempt.primaryEmail).toBe(currentAccountDetails.primaryEmail);
+  });
 });
