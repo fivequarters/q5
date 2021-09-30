@@ -59,15 +59,14 @@ export class AwsWaf extends AwsBase<typeof WAFV2> {
     if (!wafs || !wafs?.WebACLs) {
       return undefined;
     }
-    for (const waf of wafs.WebACLs as WAFV2.WebACLSummaries) {
-      if (waf.Name === name) {
-        return {
-          arn: waf.ARN as string,
-          name: waf.Name as string,
-        };
-      }
+    const waf = wafs.WebACLs?.find((waf) => {
+      return waf.Name === name;
+    });
+    if (waf) {
+      return { name: waf.Name, arn: waf.ARN };
+    } else {
+      return undefined;
     }
-    return undefined;
   }
 
   private async createWaf(newWaf: IAwsNewWaf): Promise<IAwsWaf> {
