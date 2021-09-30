@@ -9,7 +9,6 @@ function accountPatch() {
     const accountId = req.params.accountId;
     const currentAccount = await accountContext.account.get(resolvedAgent, accountId);
 
-    delete req.body.id;
     const patchedAccount = {
       ...currentAccount,
       ...req.body,
