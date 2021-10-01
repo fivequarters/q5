@@ -53,7 +53,7 @@ paths:
       summary: Get an account
       operationId: getAccount
       description: |
-        Returns details about the given account.
+        Returns details of the given account.
       responses:
         200:
           description: The account
@@ -74,7 +74,7 @@ paths:
               schema:
                 $ref: '#/components/schemas/Error'
       security:
-        - AccessToken: []
+        - AccessToken: ['account:get']
     patch:
       tags:
         - Accounts
