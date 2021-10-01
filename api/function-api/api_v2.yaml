@@ -192,7 +192,7 @@ paths:
     post:
       tags:
         - Connector
-      summary: Create a new entity of the specified type
+      summary: Create a new connector
       operationId: postConnector
       requestBody:
         $ref: '#/components/requestBodies/PostConnectorBody'
@@ -206,7 +206,7 @@ paths:
         404:
           $ref: '#/components/responses/404'
       security:
-        - AccessToken: []
+        - AccessToken: ['connector:put']
     get:
       tags:
         - Connector
@@ -910,7 +910,15 @@ components:
 
     OperationErrorCode:
       type: string
-      enum: ['OK', 'InvalidParameterValue', 'UnauthorizedOperation', 'VersionConflict', 'InternalError', 'RequestLimitExceeded']
+      enum:
+        [
+          'OK',
+          'InvalidParameterValue',
+          'UnauthorizedOperation',
+          'VersionConflict',
+          'InternalError',
+          'RequestLimitExceeded',
+        ]
       example: OK
 
     OperationStatusObject:
