@@ -59,9 +59,9 @@ window.MonacoEnvironment = {
   getWorkerUrl: function (workerId: string, label: string) {
     return `data:text/javascript;charset=utf-8,${encodeURIComponent(`
       self.MonacoEnvironment = {
-        baseUrl: 'https://cdnjs.cloudflare.com/ajax/libs/monaco-editor/0.15.6/min/'
+        baseUrl: 'https://cdnjs.cloudflare.com/ajax/libs/monaco-editor/0.28.1/min/'
       };
-      importScripts('https://cdnjs.cloudflare.com/ajax/libs/monaco-editor/0.15.6/min/vs/base/worker/workerMain.js');`)}`;
+      importScripts('https://cdnjs.cloudflare.com/ajax/libs/monaco-editor/0.28.1/min/vs/base/worker/workerMain.js');`)}`;
   },
 };
 
