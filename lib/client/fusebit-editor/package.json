@@ -1,10 +1,14 @@
 {
   "name": "@5qtrs/fusebit-editor",
 <<<<<<< HEAD
+<<<<<<< HEAD
   "version": "2.2.1",
 =======
   "version": "2.1.1",
 >>>>>>> e5941bf7 (Remove wordBasedSuggestions settings (#1199))
+=======
+  "version": "2.2.1",
+>>>>>>> 46751cff (Update monaco editor to latest version, fixes worker issues and moved codeicons to CDN to improve the overall experience from the editor (#1200))
   "description": "",
   "main": "libm/index.js",
   "browser": "libm/index.js",
