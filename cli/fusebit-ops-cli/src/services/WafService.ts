@@ -41,7 +41,7 @@ export class WafService {
     });
   }
 
-  private getRegionOfDeployment(deploymentName: string) {
+  private async getRegionOfDeployment(deploymentName: string) {
     const dynamoSdk = await this.getDynamoSDK({
       region: this.config.region,
     });
