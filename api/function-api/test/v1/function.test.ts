@@ -230,7 +230,8 @@ describe('Function', () => {
   test('PUT fails with unsupported node.js version 8', async () => {
     const response = await putFunction(account, boundaryId, function1Id, helloWorldWithNode8JavaScript);
     expect(response).toBeHttp({ statusCode: 400 });
-  }, 120000);
+    await new Promise(res => setTimeout(res, 1200)); 
+  }, 120);
 
   test('PUT succeeds with supported node.js version 10', async () => {
     const response = await putFunction(account, boundaryId, function1Id, helloWorldWithNode10JavaScript);

@@ -1,26 +1,25 @@
 import { Command, ICommand } from '@5qtrs/cli';
-import { WafCommand } from './waf/WafCommand';
+
 // ------------------
 // Internal Constants
 // ------------------
 
 const commands: ICommand = {
-  name: 'Security',
-  cmd: 'security',
-  summary: 'Update Fusebit security configuration',
-  description: 'Update the configuration of Fusebit WAF',
+  name: 'Waf',
+  cmd: 'waf',
+  summary: 'Update Fusebit WAF configuration',
+  description: 'Update the configuration of Fusebit WAF.',
 };
 
 // ----------------
 // Exported Classes
 // ----------------
 
-export class SecurityCommand extends Command {
+export class WafCommand extends Command {
   public static async create() {
     const subCommands: any[] = [];
-    subCommands.push(WafCommand.create());
     commands.subCommands = subCommands;
-    return new SecurityCommand(commands);
+    return new WafCommand(commands);
   }
 
   private constructor(command: ICommand) {
