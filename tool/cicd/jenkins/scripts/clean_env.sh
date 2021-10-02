@@ -7,7 +7,7 @@ FUSE_CLI="node cli/fusebit-cli/libc/index.js"
 
 # In fusebit cli, some resources does expose a item count, however function ls doesn't :/
 # Therefore, to keep with consistency, the rest will also use the raw list as the thing to compare for.
-
+: '
 while true; do
   RESOURCES=`${FUSE_CLI} integration ls --output json`
   LEFTOVER_RESOURCES=$(echo $RESOURCES | jq -r .items)
@@ -44,3 +44,4 @@ SECRET_ARN=arn:aws:secretsmanager:us-east-2:749775346857:secret:rds-db-credentia
 DATABASE_ARN=arn:aws:rds:us-east-2:749775346857:cluster:fusebit-db-jenkins
 
 aws --region $REGION rds-data execute-statement --database fusebit --secret-arn $SECRET_ARN --resource-arn $DATABASE_ARN --sql "DROP SCHEMA public CASCADE; CREATE SCHEMA public;"
+'
