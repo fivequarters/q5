@@ -104,6 +104,10 @@ class RDS implements IRds {
   }
 
   public updateHealth = async () => {
+    // Queue up the next health check
+    setTimeout(this.updateHealth, this.RDS_HEALTH_CHECK_TTL);
+
+    // Check the ability to read and write to the database
     const entity = {
       accountId: this.RDS_HEALTH_TEST_ACC_ID,
       subscriptionId: this.RDS_HEALTH_TEST_SUB_ID,
@@ -114,7 +118,9 @@ class RDS implements IRds {
     try {
       const update = await this.DAO.storage.createEntity(entity);
       const get = await this.DAO.storage.getEntity(entity);
-      if (update.data && get.data && update.data.checked == get.data.checked) {
+
+      // Validate that the write was committed successfully
+      if (update.data && get.data && update.data.checked === get.data.checked) {
         this.lastHealth = true;
         this.lastHealthExecution = get.data.checked;
       } else {
@@ -124,7 +130,11 @@ class RDS implements IRds {
       this.healthError = e;
       this.lastHealth = false;
     }
-    return setTimeout(this.updateHealth, this.RDS_HEALTH_CHECK_TTL);
+    if (Date.now() - entity.data.checked > this.RDS_HEALTH_MAX_ACCEPTABLE_TTL) {
+      console.log(`HEALTHCHECK RDS ERROR: Started: ${entity.data.checked - Date.now()} ms`);
+    } else {
+      console.log(`HEALTHCHECK RDS SUCCESS: Started: ${entity.data.checked - Date.now()} ms`);
+    }
   };
 
   public async ensureRDSLiveliness() {
