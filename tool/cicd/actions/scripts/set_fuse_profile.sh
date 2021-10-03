@@ -4,6 +4,7 @@
 set +x
 
 PROF_VAR=$1
+FUSE_CMD=${FUSE_CMD:="node cli/fusebit-cli/libc/index.js"}
 
 if [ "${PROF_VAR}" = "" ]; then
   echo Usage: $0 [ENV_VAR_WITH_PROFILE]
@@ -15,7 +16,7 @@ if [ "${!PROF_VAR}" == "" ]; then
   exit -1
 fi
 
-echo ${!PROF_VAR} | fuse profile import ${PROF_VAR}
+echo ${!PROF_VAR} | ${FUSE_CMD} profile import ${PROF_VAR}
 
-fuse profile set ${PROF_VAR}
-fuse profile get
+${FUSE_CMD} profile set ${PROF_VAR}
+${FUSE_CMD} profile get
