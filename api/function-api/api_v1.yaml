@@ -7,7 +7,7 @@ servers:
     description: Production
     variables:
       region:
-        description: The region where the API is deployed, for example `'us-east-1'`
+        description: The region where the API is deployed, for example `'us-east-1x'`
         default: 'us-east-1'
 
 info:
