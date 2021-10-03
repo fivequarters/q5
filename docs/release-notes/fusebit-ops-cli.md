@@ -18,6 +18,12 @@ All public releases of the Fusebit Operations CLI are documented here, including
 {:toc}
 -->
 
+## Version 1.32.2
+
+_Released 10/11/21_
+
+- **Enhancement.** Small quality-of-life change in `fuse-ops stack ls` output
+
 ## Version 1.32.1
 
 _Released 10/07/21_

@@ -914,7 +914,15 @@ components:
 
     OperationErrorCode:
       type: string
-      enum: ['OK', 'InvalidParameterValue', 'UnauthorizedOperation', 'VersionConflict', 'InternalError', 'RequestLimitExceeded']
+      enum:
+        [
+          'OK',
+          'InvalidParameterValue',
+          'UnauthorizedOperation',
+          'VersionConflict',
+          'InternalError',
+          'RequestLimitExceeded',
+        ]
       example: OK
 
     OperationStatusObject:
