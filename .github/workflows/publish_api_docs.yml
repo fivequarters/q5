@@ -23,6 +23,12 @@ jobs:
           echo "Versions: function_api/${{env.VERSION_FUNCTION_API}}
           fuse-cli/${{env.VERSION_FUSEBIT_CLI}}
           fuse-ops/${{env.VERSION_FUSEBIT_OPS_CLI}}"
+      - name: Publish the OpenAPI docs for v1 to Readme.Com
+        uses: readmeio/github-readme-sync@v2
+        with:
+          readme-oas-key: ${{secrets.README_COM_OAS_KEY}}
+          oas-file-path: ./api/function-api/api_v1.yaml
+          api-version: v1
       - name: Publish the OpenAPI docs for v2 to Readme.Com
         uses: readmeio/github-readme-sync@v2
         with:
