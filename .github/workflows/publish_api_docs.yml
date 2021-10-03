@@ -26,7 +26,7 @@ jobs:
       - name: Publish the OpenAPI docs for v1 to Readme.Com
         uses: readmeio/github-readme-sync@v2
         with:
-          readme-oas-key: ${{secrets.README_COM_OAS_KEY}}
+          readme-oas-key: ${{secrets.README_COM_V1_OAS_KEY}}
           oas-file-path: ./api/function-api/api_v1.yaml
           api-version: v2
       - name: Publish the OpenAPI docs for v2 to Readme.Com
