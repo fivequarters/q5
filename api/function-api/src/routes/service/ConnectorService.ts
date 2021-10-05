@@ -80,7 +80,7 @@ class ConnectorService extends SessionedEntityService<Model.IConnector, Model.II
           resource: '/account/{{accountId}}/subscription/{{subscriptionId}}/storage/connector/{{functionId}}/',
         },
         {
-          action: v2Permissions.putSession,
+          action: v2Permissions.updateSession,
           resource: '/account/{{accountId}}/subscription/{{subscriptionId}}/connector/{{functionId}}/session/',
         },
         {

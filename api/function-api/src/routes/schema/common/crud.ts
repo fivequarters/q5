@@ -34,7 +34,7 @@ const router = (
             params: Validation.EntityIdParams,
             body: Validation.Entities[EntityService.entityType].PostEntity,
           },
-          authorize: { operation: v2Permissions[EntityService.entityType].put },
+          authorize: { operation: v2Permissions[EntityService.entityType].add },
         }),
         async (
           req: express.Request & { resolvedAgent?: IAgent },
@@ -92,7 +92,7 @@ const router = (
           params: Validation.EntityIdParams,
           body: Validation.Entities[EntityService.entityType].Entity,
         },
-        authorize: { operation: v2Permissions[EntityService.entityType].put },
+        authorize: { operation: v2Permissions[EntityService.entityType].update },
       }),
       async (req: express.Request & { resolvedAgent?: IAgent }, res: express.Response, next: express.NextFunction) => {
         try {

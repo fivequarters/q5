@@ -15,7 +15,8 @@
   },
   "keywords": [],
   "dependencies": {
-    "http-errors": "^1.8.0"
+    "http-errors": "^1.8.0",
+    "@fusebit/schema": "^1.0.0"
   },
   "devDependencies": {
     "@types/express": "^4.17.8"

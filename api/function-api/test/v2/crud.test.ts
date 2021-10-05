@@ -495,9 +495,9 @@ const performTests = (testEntityType: TestableEntityTypes, sampleEntityMap: Samp
         };
       });
 
-    const basicPutToken = await AuthZ.getTokenByPerm({
+    const basicPostToken = await AuthZ.getTokenByPerm({
       allow: [
-        { action: v2Permissions[testEntityType].put, resource: '/' },
+        { action: v2Permissions[testEntityType].add, resource: '/' },
         { action: v2Permissions[testEntityType].get, resource: '/' },
       ],
     });
@@ -506,7 +506,7 @@ const performTests = (testEntityType: TestableEntityTypes, sampleEntityMap: Samp
       ...validEntitys.map(async (entity) => ApiRequestMap[testEntityType].postAndWait(account, entity.id, entity)),
       ...invalidEntitys.map(async (entity) => {
         const result = await ApiRequestMap[testEntityType].postAndWait(account, entity.id, entity, undefined, {
-          authz: basicPutToken,
+          authz: basicPostToken,
         });
         expect(result).toBeHttp({
           statusCode: 200,
@@ -787,9 +787,9 @@ const performIntegrationTest = (sampleEntitiesMap: SampleEntityMap) => {
         "const { Integration } = require('@fusebit-int/framework');",
         '',
         'const integration = new Integration();',
-        'const router = integration.router;',
+        'const event = integration.event;',
         '',
-        "router.on('/form/manual/testEvent', async (ctx) => {",
+        "event.on('/form/manual/testEvent', async (ctx) => {",
         '  ctx.body = { answer: ctx.req.body.data.tasty + " and mango"};',
         '});',
         '',
@@ -817,8 +817,8 @@ const performIntegrationTest = (sampleEntitiesMap: SampleEntityMap) => {
             data: { tasty: 'banana' },
             eventType: 'testEvent',
             entityId: entity.id,
-            webhookEventId: '',
-            webhookAuthId: '',
+            webhookEventId: 'eventId',
+            webhookAuthId: 'authId',
           },
         ],
       },
