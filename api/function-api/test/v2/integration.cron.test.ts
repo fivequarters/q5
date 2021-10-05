@@ -79,9 +79,8 @@ const getIntegrationCode = ({ accountId, subscriptionId }: typeof account) => {
     const { Integration } = require('@fusebit-int/framework');
     
     const integration = new Integration();
-    const router = integration.router;
     
-    router.cron('/api/scheduled', async (ctx) => {
+    integration.cron.on('/api/scheduled', async (ctx) => {
       const storageUrl = '${baseUrl}/v1/account/${accountId}/subscription/${subscriptionId}/storage/integration/${boundaryId}/';
       const token = ctx.state.params.functionAccessToken;
 

@@ -1,3 +1,14 @@
+import { EntityType } from '@fusebit/schema';
+
+/*
+ * Convention notes:
+ *  - create an entity → add
+ *  - update an entity → update
+ *  - upsert and entitity → put
+ *  - get/list → get
+ *  - delete → delete
+ */
+
 export enum Permissions {
   allPermissions = '*',
 
@@ -52,7 +63,8 @@ export enum Permissions {
 
 interface IPermissionSet {
   get: string;
-  put: string;
+  add: string;
+  update: string;
   delete: string;
   putTag: string;
   execute: string;
@@ -61,21 +73,43 @@ interface IPermissionSet {
 
 const makePermissionSet = (prefix: string): IPermissionSet => ({
   get: `${prefix}:get`,
-  put: `${prefix}:put`,
+  add: `${prefix}:add`,
+  update: `${prefix}:update`,
   delete: `${prefix}:delete`,
   putTag: `${prefix}:put-tag`,
   execute: `${prefix}:execute`,
   all: `${prefix}:*`,
 });
 
-export const v2Permissions: any = {
+const makeInvalidPermissionSet = (): IPermissionSet => makePermissionSet('invalid');
+
+export interface IV2Permissions {
+  integration: IPermissionSet;
+  instance: IPermissionSet;
+  connector: IPermissionSet;
+  identity: IPermissionSet;
+  storage: IPermissionSet;
+  session: IPermissionSet;
+  postSession: string;
+  updateSession: string;
+  getSession: string;
+  commitSession: string;
+}
+
+export const v2Permissions: IV2Permissions = {
   integration: makePermissionSet('integration'),
   instance: makePermissionSet('instance'),
   connector: makePermissionSet('connector'),
   identity: makePermissionSet('identity'),
-  putOperation: 'operation:put',
+
+  // Include storage and session primarily to keep other parts of the system from yelling when a generic
+  // EntityType is used.  Currently the storage permissions are exposed via v1, and session has it's own
+  // explicit set. below.
+  storage: makeInvalidPermissionSet(),
+  session: makeInvalidPermissionSet(),
+
   postSession: 'session:post',
-  putSession: 'session:put',
+  updateSession: 'session:update',
   getSession: 'session:get',
   commitSession: 'session:commit',
 };

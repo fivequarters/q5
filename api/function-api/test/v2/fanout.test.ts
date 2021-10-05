@@ -19,10 +19,9 @@ const getTestIntegrationFile = () => {
   const { Integration } = require('@fusebit-int/framework');
 
   const integration = new Integration();
-  const router = integration.router;
 
   // @ts-ignore
-  router.on('/:sourceEntityId/:eventType/:eventCode', async (ctx) => {
+  integration.event.on('/:sourceEntityId/:eventType/:eventCode', async (ctx) => {
     const event = ctx.req.body;
     const storage = await integration.storage.getData(ctx, event.data.storageKey);
     await integration.storage.setData(ctx, event.data.storageKey, {
@@ -85,6 +84,8 @@ describe('Fan Out Endpoint Tests', () => {
       integrationId,
       createIntegrationEntity(connectorId, integrationId, sharedTag)
     );
+    response = await ApiRequestMap.integration.dispatch(account, integrationId, RequestMethod.get, '/api/health');
+    expect(response).toBeHttp({ statusCode: 200 });
 
     // Create two instances with the same tag
     const instanceIds = [];

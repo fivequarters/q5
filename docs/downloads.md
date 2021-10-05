@@ -15,7 +15,7 @@ This page contains download links for the components of the Fusebit platform. A 
 [Release notes]({{ site.baseurl }}{% link release-notes/release-notes.md %})
 
 - Fusebit CLI: `npm install -g @fusebit/cli`
-- Fusebit Operations CLI: <https://cdn.fusebit.io/fusebit/cli/fusebit-ops-cli-v1.28.tgz>
+- Fusebit Operations CLI: <https://cdn.fusebit.io/fusebit/cli/fusebit-ops-cli-v1.31.tgz>
 - Fusebit Operations Guide: <https://cdn.fusebit.io/fusebit/docs/fusebit-ops-guide-v1.pdf>
 - Fusebit Editor: <https://cdn.fusebit.io/fusebit/js/fusebit-editor/latest/fusebit-editor.min.js><br/>
   More information about the Fusebit CDN URL structure [here](https://fusebit.io/docs/integrator-guide/editor-integration/#including-the-fusebit-library)

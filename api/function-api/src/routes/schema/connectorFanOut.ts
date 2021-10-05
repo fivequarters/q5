@@ -30,6 +30,7 @@ export interface IWebhookEvent {
   entityId: string;
   webhookEventId: string;
   webhookAuthId: string;
+  instanceIds?: string[];
 }
 export type IWebhookEvents = IWebhookEvent[];
 
