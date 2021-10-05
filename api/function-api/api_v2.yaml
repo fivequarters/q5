@@ -146,6 +146,8 @@ paths:
           $ref: '#/components/responses/403'
         404:
           $ref: '#/components/responses/404'
+      security:
+        - AccessToken: ['session:commit']
 
   #############################################################################
   # Connector
