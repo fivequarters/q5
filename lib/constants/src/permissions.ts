@@ -1,5 +1,14 @@
 import { EntityType } from '@fusebit/schema';
 
+/*
+ * Convention notes:
+ *  - create an entity → add
+ *  - update an entity → update
+ *  - upsert and entitity → put
+ *  - get/list → get
+ *  - delete → delete
+ */
+
 export enum Permissions {
   allPermissions = '*',
 
