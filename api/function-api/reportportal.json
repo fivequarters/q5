@@ -1,6 +1,0 @@
-{
-  "token": "283ba365-46b8-4f47-b6dc-c4577936e4f4",
-  "endpoint": "https://testbot.dev.fusebit.io/api/v1",
-  "project": "fusebit-q5",
-  "launch": "jenkins"
-}
