@@ -117,7 +117,7 @@ class IntegrationService extends SessionedEntityService<Model.IIntegration, Mode
             resource: '/account/{{accountId}}/subscription/{{subscriptionId}}/storage/integration/{{functionId}}/',
           },
           {
-            action: v2Permissions.putSession,
+            action: v2Permissions.updateSession,
             resource: '/account/{{accountId}}/subscription/{{subscriptionId}}/integration/{{functionId}}/session/',
           },
           {
