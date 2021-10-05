@@ -434,7 +434,7 @@ export async function listFunctions(
 }
 
 export async function deleteAllFunctions(account: IAccount, boundaryId?: string) {
-  let response = await listFunctions(account, boundaryId);
+  const response = await listFunctions(account, boundaryId);
   expect(response).toBeHttp({ statusCode: 200 });
   return Promise.all(
     response.data.items.map((x: { boundaryId: string; functionId: string }) =>
