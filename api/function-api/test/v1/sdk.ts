@@ -434,11 +434,14 @@ export async function listFunctions(
 }
 
 export async function deleteAllFunctions(account: IAccount, boundaryId?: string) {
-  const response = await listFunctions(account, boundaryId);
+  let response = await listFunctions(account, boundaryId);
   expect(response).toBeHttp({ statusCode: 200 });
   return Promise.all(
     response.data.items.map((x: { boundaryId: string; functionId: string }) =>
-      deleteFunction(account, x.boundaryId, x.functionId)
+      Promise.all([
+        deleteFunction(account, x.boundaryId, x.functionId),
+        removeStorage(account, `boundary/${x.boundaryId}/function/${x.functionId}`),
+      ])
     )
   );
 }
