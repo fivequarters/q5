@@ -52,7 +52,7 @@ describe('Integration Permissions', () => {
     const allowedTable = [
       { action: Permissions.allStorage, resource: `${basePath}/storage${integWart}/some/path` },
       {
-        action: v2Permissions.putSession,
+        action: v2Permissions.updateSession,
         resource: `${basePath}${integWart}/session/123e4567-e89b-12d3-a456-426614174000`,
       },
       {
@@ -78,7 +78,7 @@ describe('Integration Permissions', () => {
     // Create a token that has permissions to write integrations but nothing else.
     const basicPutToken = await AuthZ.getTokenByPerm({
       allow: [
-        { action: v2Permissions.integration.put, resource: '/' },
+        { action: v2Permissions.integration.add, resource: '/' },
         { action: v2Permissions.integration.get, resource: '/' },
       ],
     });
@@ -108,10 +108,10 @@ describe('Integration Permissions', () => {
 
     const simplePutToken = await AuthZ.getTokenByPerm({
       allow: [
-        { action: v2Permissions.integration.put, resource: '/' },
+        { action: v2Permissions.integration.add, resource: '/' },
         { action: v2Permissions.integration.get, resource: '/' },
         { action: Permissions.allStorage, resource: '/' },
-        { action: v2Permissions.putSession, resource: '/' },
+        { action: v2Permissions.updateSession, resource: '/' },
         { action: v2Permissions.getSession, resource: '/' },
         { action: v2Permissions.instance.all, resource: '/' },
       ],
@@ -150,10 +150,10 @@ describe('Integration Permissions', () => {
     integEntity.id = `${boundaryId}-integ-2`;
 
     const basePerms = [
-      { action: v2Permissions.integration.put, resource: '/' },
+      { action: v2Permissions.integration.add, resource: '/' },
       { action: v2Permissions.integration.get, resource: '/' },
       { action: Permissions.allStorage, resource: '/' },
-      { action: v2Permissions.putSession, resource: '/' },
+      { action: v2Permissions.updateSession, resource: '/' },
       { action: v2Permissions.getSession, resource: '/' },
       { action: v2Permissions.instance.all, resource: '/' },
     ];
