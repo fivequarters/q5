@@ -406,7 +406,7 @@ paths:
               schema:
                 $ref: '#/components/schemas/Error'
       security:
-        - AccessToken: ['good access token']
+        - AccessToken: []
 
   /v1/account/{accountId}/issuer:
     parameters:
