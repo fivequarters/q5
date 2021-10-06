@@ -90,7 +90,7 @@ export class OAuthProxyService implements IOAuthProxyService {
     JSON.parse(Buffer.from(state, 'base64').toString('utf8'));
   public getAuthorizeUrl = (query: Record<string, string>) => {
     const url = new URL(this.configuration.authorizationUrl);
-    let oldState;
+    let originalState;
 
     Object.entries(query).forEach(([key, value]: [string, unknown]) => {
       if (typeof value !== 'string') {
@@ -98,18 +98,18 @@ export class OAuthProxyService implements IOAuthProxyService {
       }
 
       if (key === 'state') {
-        oldState = value;
+        originalState = value;
       }
 
       url.searchParams.append(key, value);
     });
 
-    if (!oldState) {
+    if (!originalState) {
       throw http_error(400, 'Missing state');
     }
 
     // Overload with the internal parameters
-    url.searchParams.set('state', this.getProxyState(oldState));
+    url.searchParams.set('state', this.getProxyState(originalState));
     url.searchParams.set('client_id', this.configuration.clientId);
     url.searchParams.set('redirect_uri', process.env.API_SERVER + this.getProxyCallbackPath());
 
