@@ -23,7 +23,7 @@ jobs:
 
           yarn --frozen-lockfile install
 
-          yarn build fusebit-cli
+          yarn build
 
           yarn package fusebit-cli
       - name: Use Node.js
