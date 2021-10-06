@@ -8,35 +8,33 @@ jobs:
       - name: Use Node.js
         uses: actions/setup-node@v1
         with:
-          node-version: 15.13
+          node-version: 14.17.2
       - name: Install yarn
         run: npm i -g yarn
       - name: Checkout
         uses: actions/checkout@v2
         with:
           fetch-depth: 0
-      - name: Install and run CLI
+      - name: Package CLI
         run: >
-          yarn package fusebit-cli
+          yarn set version 1.21.1
 
+          yarn --frozen-lockfile setup
+
+          yarn --frozen-lockfile install
+
+          yarn build
+
+          yarn package fusebit-cli
+      - name: Install and test CLI
+        run: >
+          echo 'Installing n version manager'
+          npm install -g n
+
+          echo 'Install npm 7'
+          n install 15.13
+
+          echo 'Installing n version manager'
           npm install -g cli/fusebit-cli/package
 
           fuse
-      - name: Notify slack success
-        if: success()
-        env:
-          SLACK_BOT_TOKEN: ${{ secrets.SLACK_NOTIFICATIONS_BOT_TOKEN }}
-        uses: voxmedia/github-action-slack-notify-build@v1
-        with:
-          channel: pr-review
-          status: SUCCESS
-          color: good
-      - name: Notify slack fail
-        if: failure()
-        env:
-          SLACK_BOT_TOKEN: ${{ secrets.SLACK_NOTIFICATIONS_BOT_TOKEN }}
-        uses: voxmedia/github-action-slack-notify-build@v1
-        with:
-          channel: pr-review
-          status: FAILED
-          color: danger
