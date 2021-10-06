@@ -26,12 +26,19 @@ export const CallbackRequest = {
   ...commonParams,
   query: Joi.object()
     .keys({
-      state: Common.sessionId.required(),
+      state: Joi.string().required(),
       code: Joi.string(),
       error: Joi.string(),
     })
     .unknown(),
 };
+
+export const CallbackState = Joi.object().keys({
+  accountId: Common.accountId.required(),
+  subscriptionId: Common.subscriptionId.required(),
+  connectorId: Common.entityId.required(),
+  state: Common.sessionId.required(),
+});
 
 export const TokenRequest = {
   ...commonParams,
