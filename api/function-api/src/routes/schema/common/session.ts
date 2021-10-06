@@ -17,7 +17,7 @@ const createSessionRouter = (SessionService: SessionedEntityService<any, any>) =
     '/',
     common.management({
       validate: { params: ValidationCommon.EntityIdParams, body: Validation.SessionCreate },
-      authorize: { operation: v2Permissions.sessionPost },
+      authorize: { operation: v2Permissions.postSession },
     }),
     async (req: express.Request, res: express.Response, next: express.NextFunction) => {
       try {
@@ -50,7 +50,7 @@ const createSessionRouter = (SessionService: SessionedEntityService<any, any>) =
     .get(
       common.management({
         validate: { params: ValidationCommon.EntityIdParams },
-        authorize: { operation: v2Permissions.sessionGet },
+        authorize: { operation: v2Permissions.getSession },
       }),
       async (req: express.Request, res: express.Response, next: express.NextFunction) => {
         try {
@@ -77,7 +77,7 @@ const createSessionRouter = (SessionService: SessionedEntityService<any, any>) =
     .put(
       common.management({
         validate: { params: ValidationCommon.EntityIdParams, body: Validation.SessionPut },
-        authorize: { operation: v2Permissions.sessionPut },
+        authorize: { operation: v2Permissions.updateSession },
       }),
       async (req: express.Request, res: express.Response, next: express.NextFunction) => {
         try {
@@ -171,7 +171,7 @@ const createSessionRouter = (SessionService: SessionedEntityService<any, any>) =
     .post(
       common.management({
         validate: { params: ValidationCommon.EntityIdParams },
-        authorize: { operation: v2Permissions.sessionCommit },
+        authorize: { operation: v2Permissions.commitSession },
       }),
       async (req: express.Request, res: express.Response, next: express.NextFunction) => {
         try {

@@ -71,7 +71,7 @@ const getTestIntegrationFile = () => {
   });
 
   // @ts-ignore
-  router.on('/con/webhook/increment', async (ctx) => {
+  integration.event.on('/con/webhook/increment', async (ctx) => {
     const event = ctx.req.body;
     const num = event.data.value;
     const getResult = await integration.storage.getData(ctx, storageKey);
@@ -82,7 +82,7 @@ const getTestIntegrationFile = () => {
   });
 
   // @ts-ignore
-  router.on('/con/webhook/decrement', async (ctx) => {
+  integration.event.on('/con/webhook/decrement', async (ctx) => {
     const event = ctx.req.body;
     const num = event.data.value;
     const getResult = await integration.storage.getData(ctx, storageKey);

@@ -18,6 +18,12 @@ All public releases of the Fusebit Operations CLI are documented here, including
 {:toc}
 -->
 
+## Version 1.31.1
+
+_Released 10/04/21_
+
+- **Bugfix.** Increase memory allocatin and timeout settings for the CRON executor to improve stability and precision.
+
 ## Version 1.31.0
 
 _Released 09/28/21_
