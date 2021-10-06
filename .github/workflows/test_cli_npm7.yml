@@ -23,18 +23,21 @@ jobs:
 
           yarn --frozen-lockfile install
 
-          yarn build
+          yarn build fusebit-cli
 
           yarn package fusebit-cli
       - name: Install and test CLI
         run: >
           echo 'Installing n version manager'
+
           npm install -g n
 
           echo 'Install npm 7'
+
           n install 15.13
 
           echo 'Installing n version manager'
+
           npm install -g cli/fusebit-cli/package
 
           fuse
