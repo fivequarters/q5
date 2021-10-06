@@ -26,17 +26,13 @@ jobs:
           yarn build fusebit-cli
 
           yarn package fusebit-cli
+      - name: Use Node.js
+        uses: actions/setup-node@v1
+        with:
+          node-version: 15.13
       - name: Install and test CLI
         run: >
-          echo 'Installing n version manager'
-
-          npm install -g n
-
-          echo 'Install npm 7'
-
-          n install 15.13
-
-          echo 'Installing n version manager'
+          echo 'Installing fuse'
 
           npm install -g cli/fusebit-cli/package
 
