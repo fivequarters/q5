@@ -121,7 +121,7 @@ paths:
         404:
           $ref: '#/components/responses/404'
       security:
-        - AccessToken: ['session:put']
+        - AccessToken: ['session:update']
 
   /v2/account/{accountId}/subscription/{subscriptionId}/{entityType}/{entityId}/session/{sessionId}/commit:
     parameters:
@@ -208,7 +208,7 @@ paths:
         404:
           $ref: '#/components/responses/404'
       security:
-        - AccessToken: ['connector:put']
+        - AccessToken: ['connector:add']
     get:
       tags:
         - Connector
@@ -246,7 +246,7 @@ paths:
         404:
           $ref: '#/components/responses/404'
       security:
-        - AccessToken: ['connector:put']
+        - AccessToken: ['connector:update']
     delete:
       tags:
         - Connector
@@ -353,7 +353,7 @@ paths:
         404:
           $ref: '#/components/responses/404'
       security:
-        - AccessToken: ['identity:put']
+        - AccessToken: ['identity:update']
     delete:
       tags:
         - Identity
@@ -430,7 +430,7 @@ paths:
         404:
           $ref: '#/components/responses/404'
       security:
-        - AccessToken: ['integration:put']
+        - AccessToken: ['integration:add']
     get:
       tags:
         - Integration
@@ -468,7 +468,7 @@ paths:
         404:
           $ref: '#/components/responses/404'
       security:
-        - AccessToken: ['integration:put']
+        - AccessToken: ['integration:update']
     delete:
       tags:
         - Integration
@@ -575,7 +575,7 @@ paths:
         404:
           $ref: '#/components/responses/404'
       security:
-        - AccessToken: ['instance:put']
+        - AccessToken: ['instance:update']
     delete:
       tags:
         - Instance
