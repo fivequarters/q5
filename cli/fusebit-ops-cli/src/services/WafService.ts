@@ -159,6 +159,42 @@ export class WafService {
     return ipsets.IPSets?.find((ipset) => ipset.Name === deploymentName + IPRuleSetPostFix);
   }
 
+  private async removeRegexRuleSet(deploymentName: string, region: string, regexString: string) {
+    if (!this.validateRegex(regexString)) {
+      throw Error('Invalid RegEx string inputed.');
+    }
+
+    const waf = await this.getWafOrUndefined(deploymentName, region);
+    if (!waf) {
+      throw Error('Can not find WAF, please re-run fuse-ops deployment add to ensure WAF is enabled');
+    }
+
+    const wafSdk = await this.getWafSdk({
+      region,
+    });
+
+    const wafDetails = await wafSdk
+      .getWebACL({
+        Scope: 'REGIONAL',
+        Name: waf.Name as string,
+        Id: waf.Id as string,
+      })
+      .promise();
+    let rules = wafDetails.WebACL?.Rules as WAFV2.Rules;
+    rules = rules.filter((rule) => rule.Statement.RegexMatchStatement?.RegexString === regexString);
+    await wafSdk
+      .updateWebACL({
+        Rules: rules,
+        Name: wafDetails.WebACL?.Name as string,
+        Id: wafDetails.WebACL?.Id as string,
+        DefaultAction: wafDetails.WebACL?.DefaultAction as WAFV2.DefaultAction,
+        VisibilityConfig: wafDetails.WebACL?.VisibilityConfig as WAFV2.VisibilityConfig,
+        Scope: 'REGIONAL',
+        LockToken: wafDetails.LockToken as string,
+      })
+      .promise();
+  }
+
   private async updateRegexRuleSet(deploymentName: string, region: string, regexString: string) {
     if (!this.validateRegex(regexString)) {
       throw Error('Invalid RegEx string inputed.');
@@ -214,6 +250,30 @@ export class WafService {
         errorHeader: 'Blocking the IP failed',
       },
       () => this.blockIP(deploymentName, correctRegion, ip)
+    );
+  }
+
+  public async blockRegExFromWaf(deploymentName: string, regex: string, region?: string) {
+    let correctRegion = await this.ensureRegionOrError(deploymentName, region);
+    return this.executeService.execute(
+      {
+        header: 'Blocking RegEx from the Fusebit platform',
+        message: 'Blocking the path RegEx from the Fusebit platform',
+        errorHeader: 'Blocking the RegEx failed',
+      },
+      () => this.updateRegexRuleSet(deploymentName, correctRegion, regex)
+    );
+  }
+
+  public async unblockRegExFromWaf(deploymentName: string, regex: string, region?: string) {
+    let correctRegion = await this.ensureRegionOrError(deploymentName, region);
+    return this.executeService.execute(
+      {
+        header: 'Blocking RegEx from the Fusebit platform',
+        message: 'Blocking the path RegEx from the Fusebit platform',
+        errorHeader: 'Blocking the RegEx failed',
+      },
+      () => this.removeRegexRuleSet(deploymentName, correctRegion, regex)
     );
   }
 
