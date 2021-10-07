@@ -38,12 +38,14 @@ export interface IDispatchOptions {
 
 interface IWaitForCompletionParams {
   getAfter: boolean;
+  allowFailure: boolean;
   waitMs: number;
   pollMs: number;
 }
 
 export const DefaultWaitForCompletionParams: IWaitForCompletionParams = {
   getAfter: true,
+  allowFailure: false,
   waitMs: 180000,
   pollMs: 100,
 };
@@ -91,23 +93,39 @@ export const waitForCompletion = async (
   entityType: Model.EntityType,
   entityId: string,
   subordinateId?: string,
-  waitOptions: IWaitForCompletionParams = DefaultWaitForCompletionParams,
+  waitOpts?: Partial<IWaitForCompletionParams>,
   options?: IRequestOptions
 ) => {
   const startTime = Date.now();
   let response: any;
-  waitOptions = { ...DefaultWaitForCompletionParams, ...waitOptions };
+
+  // Add defaults to waitOptions
+  const waitOptions: IWaitForCompletionParams = { ...DefaultWaitForCompletionParams, ...(waitOpts || {}) };
+
   do {
     response = subordinateId
       ? await ApiRequestMap[entityType].get(account, entityId, subordinateId, options)
       : await ApiRequestMap[entityType].get(account, entityId, options);
     if (!response.data.operationState || response.data.operationState.status !== Model.OperationStatus.processing) {
-      return response;
+      break;
     }
     await new Promise((resolve) => setTimeout(resolve, waitOptions.pollMs));
   } while (startTime + waitOptions.waitMs > Date.now());
 
-  console.log(`WARNING: Failed to complete ${entityId} wait after ${waitOptions.waitMs} ms, aborting wait...`);
+  if (startTime + waitOptions.waitMs < Date.now()) {
+    console.log(`WARNING: Failed to complete ${entityId} wait after ${waitOptions.waitMs} ms, aborting wait...`);
+    return response;
+  }
+
+  if (waitOptions.allowFailure) {
+    return response;
+  }
+
+  if (!response.data.operationState) {
+    return response;
+  }
+
+  expect(response).toBeHttp({ statusCode: 200, data: { operationState: { status: Model.OperationStatus.success } } });
 
   return response;
 };
@@ -115,11 +133,14 @@ export const waitForCompletion = async (
 export const waitForCompletionTargetUrl = async (
   account: IAccount,
   targetUrl: string,
-  waitOptions: IWaitForCompletionParams = DefaultWaitForCompletionParams
+  waitOpts?: Partial<IWaitForCompletionParams>
 ) => {
   const startTime = Date.now();
   let response: any;
-  waitOptions = { ...DefaultWaitForCompletionParams, ...waitOptions };
+
+  // Add defaults to waitOptions
+  const waitOptions: IWaitForCompletionParams = { ...DefaultWaitForCompletionParams, ...(waitOpts || {}) };
+
   do {
     response = await v2Request(account, {
       uri: targetUrl,
@@ -161,7 +182,7 @@ interface ISdkForEntity {
     account: IAccount,
     entityId: string,
     body: Optional<Model.ISdkEntity, 'id'>,
-    waitOptions?: IWaitForCompletionParams,
+    waitOptions?: Partial<IWaitForCompletionParams>,
     options?: IRequestOptions
   ) => Promise<IHttpResponse>;
   put: (
@@ -174,14 +195,14 @@ interface ISdkForEntity {
     account: IAccount,
     entityId: string,
     body: Model.ISdkEntity,
-    waitOptions?: IWaitForCompletionParams,
+    waitOptions?: Partial<IWaitForCompletionParams>,
     options?: IRequestOptions
   ) => Promise<IHttpResponse>;
   delete: (account: IAccount, entityId: string, options?: IRequestOptions) => Promise<IHttpResponse>;
   deleteAndWait: (
     account: IAccount,
     entityId: string,
-    waitOptions?: IWaitForCompletionParams,
+    waitOptions?: Partial<IWaitForCompletionParams>,
     options?: IRequestOptions
   ) => Promise<IHttpResponse>;
   dispatch: (
@@ -289,9 +310,12 @@ const createSdk = (entityType: Model.EntityType): ISdkForEntity => ({
     account: IAccount,
     entityId: string,
     body: Optional<Model.ISdkEntity, 'id'>,
-    waitOptions: IWaitForCompletionParams = DefaultWaitForCompletionParams,
+    waitOpts?: Partial<IWaitForCompletionParams>,
     options?: IRequestOptions
   ) => {
+    // Add defaults to waitOptions
+    const waitOptions: IWaitForCompletionParams = { ...DefaultWaitForCompletionParams, ...(waitOpts || {}) };
+
     const op = await ApiRequestMap[entityType].post(account, entityId, body, options);
     expect(op).toBeHttp({
       statusCode: [202, 200],
@@ -317,9 +341,12 @@ const createSdk = (entityType: Model.EntityType): ISdkForEntity => ({
     account: IAccount,
     entityId: string,
     body: Model.ISdkEntity,
-    waitOptions: IWaitForCompletionParams = DefaultWaitForCompletionParams,
+    waitOpts?: Partial<IWaitForCompletionParams>,
     options?: IRequestOptions
   ) => {
+    // Add defaults to waitOptions
+    const waitOptions: IWaitForCompletionParams = { ...DefaultWaitForCompletionParams, ...(waitOpts || {}) };
+
     const op = await ApiRequestMap[entityType].put(account, entityId, body);
     if (op.status !== 200) {
       return op;
@@ -339,9 +366,12 @@ const createSdk = (entityType: Model.EntityType): ISdkForEntity => ({
   deleteAndWait: async (
     account: IAccount,
     entityId: string,
-    waitOptions: IWaitForCompletionParams = DefaultWaitForCompletionParams,
+    waitOpts?: Partial<IWaitForCompletionParams>,
     options?: IRequestOptions
   ) => {
+    // Add defaults to waitOptions
+    const waitOptions: IWaitForCompletionParams = { ...DefaultWaitForCompletionParams, ...(waitOpts || {}) };
+
     let wait: any;
     do {
       const op = await ApiRequestMap[entityType].delete(account, entityId);
