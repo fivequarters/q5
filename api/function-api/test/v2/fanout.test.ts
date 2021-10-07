@@ -58,7 +58,7 @@ const createIntegrationEntity = (connectorId: string, integrationId: string, sha
 });
 
 describe('Fan Out Endpoint Tests', () => {
-  test('Fan out to some but not all instances works', async () => {
+  test('Fan out to some but not all installs works', async () => {
     const connectorId = `${boundaryId}-con`;
     const integrationId = `${boundaryId}-int`;
     const authId = 'testAuthId';
@@ -87,25 +87,25 @@ describe('Fan Out Endpoint Tests', () => {
     response = await ApiRequestMap.integration.dispatch(account, integrationId, RequestMethod.get, '/api/health');
     expect(response).toBeHttp({ statusCode: 200 });
 
-    // Create two instances with the same tag
-    const instanceIds = [];
-    const invalidInstanceIds = [];
+    // Create two installs with the same tag
+    const installIds = [];
+    const invalidInstallIds = [];
     for (let i = 0; i < 2; i++) {
-      response = await ApiRequestMap.instance.post(account, integrationId, {
+      response = await ApiRequestMap.install.post(account, integrationId, {
         tags: { [sharedTag]: null, 'fusebit.parentEntityId': integrationId },
         data: {},
       });
       expect(response).toBeHttp({ statusCode: 200 });
-      instanceIds.push(response.data.id);
+      installIds.push(response.data.id);
     }
 
-    // Create an instance without the tag
-    response = await ApiRequestMap.instance.post(account, integrationId, {
+    // Create an install without the tag
+    response = await ApiRequestMap.install.post(account, integrationId, {
       tags: { 'fusebit.parentEntityId': integrationId },
       data: {},
     });
     expect(response).toBeHttp({ statusCode: 200 });
-    invalidInstanceIds.push(response.data.id);
+    invalidInstallIds.push(response.data.id);
 
     // Perform fan_out
     response = await ApiRequestMap.connector.dispatch(
@@ -117,7 +117,7 @@ describe('Fan Out Endpoint Tests', () => {
     );
     expect(response).toBeHttp({ statusCode: 200 });
 
-    // Verify just two of the three instances ids were supplied on invocation
+    // Verify just two of the three installs ids were supplied on invocation
     response = await getStorage(account, actualStorageKey);
     expect(response).toBeHttp({
       statusCode: 200,
@@ -147,7 +147,7 @@ describe('Fan Out Endpoint Tests', () => {
       },
     });
 
-    expect(response.data.data.data.events[0].event.instanceIds.sort()).toEqual(instanceIds.sort());
+    expect(response.data.data.data.events[0].event.installIds.sort()).toEqual(installIds.sort());
   }, 180000);
 
   test('Missing permissions for fan_out call fails', async () => {
@@ -176,7 +176,7 @@ describe('Fan Out Endpoint Tests', () => {
     expect(response).toBeHttp({ statusCode: 403 });
   }, 180000);
 
-  test('Default integration receives event when no matching instances', async () => {
+  test('Default integration receives event when no matching installs', async () => {
     const connectorId = `${boundaryId}-con`;
     const integrationId = `${boundaryId}-int`;
     const authId = 'testAuthId';
@@ -192,15 +192,15 @@ describe('Fan Out Endpoint Tests', () => {
       createIntegrationEntity(connectorId, integrationId, sharedTag)
     );
 
-    // Create three instances
-    const instanceIds = [];
+    // Create three installs
+    const installIds = [];
     for (let i = 0; i < 3; i++) {
-      response = await ApiRequestMap.instance.post(account, integrationId, {
+      response = await ApiRequestMap.install.post(account, integrationId, {
         tags: { 'fusebit.parentEntityId': integrationId },
         data: {},
       });
       expect(response).toBeHttp({ statusCode: 200 });
-      instanceIds.push(response.data.id);
+      installIds.push(response.data.id);
     }
 
     const payload: IWebhookEvents = [
@@ -237,7 +237,7 @@ describe('Fan Out Endpoint Tests', () => {
                   },
                   entityId: connectorId,
                   eventType: 'example',
-                  instanceIds: ['00000000-0000-0000-0000-000000000000'],
+                  installIds: ['ins-00000000000000000000000000000000'],
                   webhookAuthId: 'unknown',
                   webhookEventId: 'someEventId',
                 },

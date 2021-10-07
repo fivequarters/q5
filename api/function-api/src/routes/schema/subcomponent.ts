@@ -34,7 +34,7 @@ const subcomponentRouter = (
       }),
       async (req: express.Request, res: express.Response, next: express.NextFunction) => {
         try {
-          // Fetch the parent, to filter for instances under this connector.
+          // Fetch the parent, to filter for entities under this parent.
           const parentEntity = await RDS.DAO[parentEntityType].getEntity({
             accountId: req.params.accountId,
             subscriptionId: req.params.subscriptionId,
@@ -68,7 +68,7 @@ const subcomponentRouter = (
           if (!req.resolvedAgent) {
             throw new Error('missing agent');
           }
-          // Fetch the parent, to filter for instances under this connector.
+          // Fetch the parent, to filter for entities under this parent.
           const parentEntity = await RDS.DAO[parentEntityType].getEntity({
             accountId: req.params.accountId,
             subscriptionId: req.params.subscriptionId,

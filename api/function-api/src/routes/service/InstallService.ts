@@ -6,11 +6,11 @@ import BaseEntityService from './BaseEntityService';
 
 import * as Function from '../functions';
 
-class InstanceService extends BaseEntityService<Model.IInstance, Model.IInstance> {
+class InstallService extends BaseEntityService<Model.IInstall, Model.IInstall> {
   public readonly entityType: Model.EntityType;
   constructor() {
-    super(RDS.DAO.instance);
-    this.entityType = Model.EntityType.instance;
+    super(RDS.DAO.install);
+    this.entityType = Model.EntityType.install;
   }
 
   public sanitizeEntity = (entity: Model.IEntity): Model.IEntity => {
@@ -27,12 +27,12 @@ class InstanceService extends BaseEntityService<Model.IInstance, Model.IInstance
 
   public loadDependentEntities = async (
     integrationArg: Model.IEntity,
-    instanceArg: Model.IEntity
+    installArg: Model.IEntity
   ): Promise<Model.IEntity> => {
     const integration = await RDS.DAO.integration.getEntity(integrationArg);
     return {
-      ...instanceArg,
-      id: `/integration/${integration.__databaseId}/${instanceArg.id}`,
+      ...installArg,
+      id: `/integration/${integration.__databaseId}/${installArg.id}`,
     };
   };
 
@@ -58,4 +58,4 @@ class InstanceService extends BaseEntityService<Model.IInstance, Model.IInstance
   };
 }
 
-export default InstanceService;
+export default InstallService;

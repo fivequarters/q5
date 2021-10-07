@@ -42,6 +42,6 @@ describe('Identity', () => {
   performTests(Model.EntityType.identity, (pair: { connectorId: string }) => pair.connectorId);
 });
 
-describe('Instance', () => {
-  performTests(Model.EntityType.instance, (pair: { integrationId: string }) => pair.integrationId);
+describe('Install', () => {
+  performTests(Model.EntityType.install, (pair: { integrationId: string }) => pair.integrationId);
 });

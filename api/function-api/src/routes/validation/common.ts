@@ -10,7 +10,9 @@ export const clientId = Joi.string().regex(/^clt-[a-g0-9]{16}$/);
 export const issuerId = Joi.string().regex(new RegExp(`^((?!${RUNAS_SYSTEM_ISSUER_SUFFIX}$).)*$`));
 export const initId = Joi.string().regex(/^int-[a-g0-9]{16}$/);
 export const userId = Joi.string().regex(/^usr-[a-g0-9]{16}$/);
-export const sessionId = Joi.string().guid();
+export const installId = Joi.string().regex(/^ins-[a-g0-9]{32}$/);
+export const identityId = Joi.string().regex(/^idn-[a-g0-9]{32}$/);
+export const sessionId = Joi.string().regex(/^sid-[a-g0-9]{32}$/);
 export const npmPackageName = Joi.string().regex(/^(@[a-z0-9-~][a-z0-9-._~]*\/)?[a-z0-9-~][a-z0-9-._~]*$/);
 
 export const tagValue = /^[a-zA-Z0-9_\-\.\/]*$/;

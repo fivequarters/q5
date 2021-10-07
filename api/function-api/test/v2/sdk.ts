@@ -490,7 +490,7 @@ export const ApiRequestMap: {
     fanOut: (account: IAccount, entityId: string, path: string, options?: IDispatchOptions) => Promise<IHttpResponse>;
   };
   integration: ISdkForEntity;
-  instance: any;
+  install: any;
   identity: any;
   [key: string]: any;
 } = {
@@ -500,11 +500,11 @@ export const ApiRequestMap: {
       v2Request(account, { method: RequestMethod.post, uri: `/connector/${entityId}/fan_out/${path}`, ...options }),
   },
   integration: createSdk(Model.EntityType.integration),
-  instance: {
+  install: {
     get: async (account: IAccount, entityId: string, subordinateId: string, options?: IRequestOptions) => {
       const response = await v2Request(account, {
         method: RequestMethod.get,
-        uri: `/integration/${encodeURI(entityId)}/instance/${subordinateId}`,
+        uri: `/integration/${encodeURI(entityId)}/install/${subordinateId}`,
         ...options,
       });
       if (response.status < 300) {
@@ -515,7 +515,7 @@ export const ApiRequestMap: {
     delete: async (account: IAccount, entityId: string, subordinateId: string, options?: IRequestOptions) => {
       const response = await v2Request(account, {
         method: RequestMethod.delete,
-        uri: `/integration/${encodeURI(entityId)}/instance/${subordinateId}`,
+        uri: `/integration/${encodeURI(entityId)}/install/${subordinateId}`,
         ...options,
       });
       return response;
@@ -533,7 +533,7 @@ export const ApiRequestMap: {
     ) => {
       const response = await v2Request(account, {
         method: RequestMethod.post,
-        uri: `/integration/${encodeURI(entityId)}/instance/`,
+        uri: `/integration/${encodeURI(entityId)}/install/`,
         body,
         ...options,
       });
@@ -569,7 +569,7 @@ export const ApiRequestMap: {
       });
       return v2Request(account, {
         method: RequestMethod.get,
-        uri: `/integration/${entityId}/instance/?${querystring.stringify(queryParams)}`,
+        uri: `/integration/${entityId}/install/?${querystring.stringify(queryParams)}`,
         ...options,
       });
     },

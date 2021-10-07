@@ -40,10 +40,10 @@ const defaultIntegration: Model.IIntegrationData = {
 
 const selfEntityIdReplacement = '{{integration}}';
 
-class IntegrationService extends SessionedEntityService<Model.IIntegration, Model.IInstance> {
+class IntegrationService extends SessionedEntityService<Model.IIntegration, Model.IInstall> {
   public readonly entityType: Model.EntityType;
   constructor() {
-    super(RDS.DAO.integration, RDS.DAO.instance);
+    super(RDS.DAO.integration, RDS.DAO.install);
     this.entityType = Model.EntityType.integration;
   }
 
@@ -125,7 +125,7 @@ class IntegrationService extends SessionedEntityService<Model.IIntegration, Mode
             resource: '/account/{{accountId}}/subscription/{{subscriptionId}}/integration/{{functionId}}/session/',
           },
           {
-            action: v2Permissions.instance.all,
+            action: v2Permissions.install.all,
             resource: '/account/{{accountId}}/subscription/{{subscriptionId}}/integration/{{functionId}}/',
           },
         ],

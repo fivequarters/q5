@@ -32,7 +32,7 @@ tags:
       A managed credential for a remote service, on behalf of a customer
   - name: Integration
     description: The logic necessary to integrate between two services
-  - name: Instance
+  - name: Install
     description: A fully configured integration for a customer
 
 paths:
@@ -134,7 +134,7 @@ paths:
       tags:
         - Session
       summary: Commit a session
-      description: Commit the session, creating the necessary instance and identity
+      description: Commit the session, creating the necessary install and identity
         entities, or updating the configuration of existing entities as necessary.
       operationId: postSession
       responses:
@@ -483,8 +483,8 @@ paths:
         - AccessToken: []
 
   #############################################################################
-  # Instance
-  /v2/account/{accountId}/subscription/{subscriptionId}/integration/{integrationId}/instance/:
+  # Install
+  /v2/account/{accountId}/subscription/{subscriptionId}/integration/{integrationId}/install/:
     parameters:
       - $ref: '#/components/parameters/Account'
       - $ref: '#/components/parameters/Subscription'
@@ -495,9 +495,9 @@ paths:
           $ref: '#/components/schemas/EntityId'
     get:
       tags:
-        - Instance
+        - Install
       summary: Search for and retrieve entities of the specified type
-      operationId: searchInstances
+      operationId: searchInstalls
       parameters:
         - $ref: '#/components/parameters/SearchCount'
         - $ref: '#/components/parameters/SearchNext'
@@ -508,7 +508,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/InstanceList'
+                $ref: '#/components/schemas/InstallList'
         400:
           $ref: '#/components/responses/400'
         403:
@@ -518,7 +518,7 @@ paths:
       security:
         - AccessToken: []
 
-  /v2/account/{accountId}/subscription/{subscriptionId}/integration/{integrationId}/instance/{instanceId}:
+  /v2/account/{accountId}/subscription/{subscriptionId}/integration/{integrationId}/install/{installId}:
     parameters:
       - $ref: '#/components/parameters/Account'
       - $ref: '#/components/parameters/Subscription'
@@ -527,23 +527,23 @@ paths:
         required: true
         schema:
           $ref: '#/components/schemas/EntityId'
-      - name: instanceId
+      - name: installId
         in: path
         required: true
         schema:
-          $ref: '#/components/schemas/InstanceId'
+          $ref: '#/components/schemas/InstallId'
     get:
       tags:
-        - Instance
-      summary: Get an instance
-      operationId: getInstance
+        - Install
+      summary: Get an install
+      operationId: getInstall
       responses:
         200:
           description: The requested entity
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/InstanceEntity'
+                $ref: '#/components/schemas/InstallEntity'
         400:
           $ref: '#/components/responses/400'
         403:
@@ -554,18 +554,18 @@ paths:
         - AccessToken: []
     put:
       tags:
-        - Instance
-      summary: Update an instance
-      operationId: putInstance
+        - Install
+      summary: Update an install
+      operationId: putInstall
       requestBody:
-        $ref: '#/components/requestBodies/PostInstanceBody'
+        $ref: '#/components/requestBodies/PostInstallBody'
       responses:
         200:
           description: The requested entity
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/InstanceEntity'
+                $ref: '#/components/schemas/InstallEntity'
         400:
           $ref: '#/components/responses/400'
         403:
@@ -576,9 +576,9 @@ paths:
         - AccessToken: []
     delete:
       tags:
-        - Instance
-      summary: Delete an instance
-      operationId: deleteInstance
+        - Install
+      summary: Delete an install
+      operationId: deleteInstall
       responses:
         204:
           description: The entity deletion succeeded
@@ -694,12 +694,12 @@ components:
           schema:
             $ref: '#/components/schemas/IntegrationPostEntity'
 
-    PostInstanceBody:
+    PostInstallBody:
       description: Upload a new entity
       content:
         application/json:
           schema:
-            $ref: '#/components/schemas/InstanceEntity'
+            $ref: '#/components/schemas/InstallEntity'
 
     PostSessionBody:
       description: Create a new session on an integration
@@ -718,12 +718,12 @@ components:
                 items:
                   type: string
               tags:
-                description: A collection of tags that will be added to instance entities created during this session.
+                description: A collection of tags that will be added to install entities created during this session.
                 allOf:
                   - $ref: '#/components/schemas/EntityTags'
               extendTags:
                 description: If set to `true`, add the tags present on the integration in the `data.componentTags` field
-                  to any instances created during this session. If set to `false`, only use the tags specified on the
+                  to any installs created during this session. If set to `false`, only use the tags specified on the
                   session directly.
                 default: false
               input:
@@ -732,10 +732,10 @@ components:
                 type: string
                 description: The URL in your infrastructure that the user should return to
                   after completing the session.
-              instanceId:
+              installId:
                 type: string
                 description: Used when reconfiguring an existing user. Specifies the
-                  instance associated with that user.
+                  install associated with that user.
 
     PutSessionBody:
       description: The results of a configuration action, such as a form.
@@ -768,8 +768,8 @@ components:
             $ref: '#/components/schemas/IntegrationEntity'
 
     Session202:
-      description: The instance creation is in progress. To check its status, use the `targetUrl` endpoint
-        returned by this call. While the `operationState.status` value of the instance is
+      description: The install creation is in progress. To check its status, use the `targetUrl` endpoint
+        returned by this call. While the `operationState.status` value of the install is
         `processing`, the entity is still being created. Once the `operationState.status` value is
         `success`, the entity becomes available for use.
 
@@ -783,7 +783,7 @@ components:
             properties:
               targetUrl:
                 type: string
-                description: The endpoint where you can find the instance being created
+                description: The endpoint where you can find the install being created
 
     400:
       description: The request submitted is invalid. Please, check the documentation and
@@ -880,17 +880,19 @@ components:
 
           This parameter is optional. When not supplied, it defaults to the current entity's id.
 
-    InstanceId:
+    InstallId:
       type: string
-      format: uuid
+      description: Install id
+      example: 'ins-01234567890123456789012345678912'
 
     IdentityId:
       type: string
-      format: uuid
+      description: Identity id
+      example: 'ins-01234567890123456789012345678912'
 
     EntityType:
       type: string
-      enum: [connector, integration, identity, instance]
+      enum: [connector, integration, identity, install]
       example: connector
 
     EntityState:
@@ -961,8 +963,8 @@ components:
 
     SessionId:
       type: string
-      format: uuid
-      description: The id of the session
+      description: Session id
+      example: 'sid-01234567890123456789012345678912'
 
     Session:
       type: object
@@ -998,13 +1000,13 @@ components:
         slack-integration:
           channel: '#general'
       description: A collection of output configuration elements created by the various
-        steps, and stored on the instance for use in the integration.
+        steps, and stored on the install for use in the integration.
 
-    SessionInstanceIdResponse:
+    SessionInstallIdResponse:
       type: object
       properties:
-        instanceId:
-          $ref: '#/components/schemas/InstanceId'
+        installId:
+          $ref: '#/components/schemas/InstallId'
 
     EntityLocation:
       type: object
@@ -1171,7 +1173,7 @@ components:
             `handler` field.
         componentTags:
           type: object
-          description: These tags are added to instances and identities created through
+          description: These tags are added to installs and identities created through
             this integration.
         components:
           type: array
@@ -1230,7 +1232,7 @@ components:
           example: './integration'
         componentTags:
           type: object
-          description: These tags are added to instances and identities created through
+          description: These tags are added to installs and identities created through
             this integration.
         components:
           type: array
@@ -1358,23 +1360,23 @@ components:
           type: number
           description: The total number of entities of this type.
 
-    InstanceEntity:
+    InstallEntity:
       type: object
       properties:
         id:
-          $ref: '#/components/schemas/InstanceId'
+          $ref: '#/components/schemas/InstallId'
         data:
           type: object
           description: A hash of configuration objects key'ed by the `name` in the
             `data.components` object under the integration. A configuration object
-            that refers to a integration form will contain the configured value,
+            that refers to an integration form will contain the configured value,
             whereas a configuration object that refers to a connector will refer
-            to the identity entity used by this instance.
+            to the identity entity used by this install.
           example:
             slack:
               tags:
                 tenantId: client-15251
-              entityId: f31bc788-1a15-4d6d-b10e-bb754bbf555d
+              entityId: idn-012345678901234567890123456789012
               accountId: acc-12de369f2f0c4982
               entityType: identity
               parentEntityId: slack-connector
@@ -1393,14 +1395,14 @@ components:
         dateModified:
           $ref: '#/components/schemas/DateModified'
 
-    InstanceList:
+    InstallList:
       type: object
       properties:
         items:
           type: array
           description: An array of the matching entities of this component type
           items:
-            $ref: '#/components/schemas/InstanceEntity'
+            $ref: '#/components/schemas/InstallEntity'
         next:
           type: string
           description: The key to use when accessing the next block of entries

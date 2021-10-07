@@ -36,9 +36,9 @@ const EntityIdParams = Joi.object().keys({
   accountId: Common.accountId,
   subscriptionId: Common.subscriptionId,
   entityId: Common.entityId,
-  instanceId: Joi.string().guid(),
-  identityId: Joi.string().guid(),
-  sessionId: Joi.string().guid(),
+  installId: Common.installId,
+  identityId: Common.identityId,
+  sessionId: Common.sessionId,
   tagKey: Common.tagValue,
   tagValue: Common.tagValue,
 });

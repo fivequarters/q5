@@ -6,7 +6,7 @@ export enum EntityType {
   integration = 'integration',
   connector = 'connector',
   storage = 'storage',
-  instance = 'instance',
+  install = 'install',
   identity = 'identity',
   session = 'session',
 }
@@ -252,6 +252,6 @@ export interface IIdentity extends IEntity {
   data: any;
 }
 
-export interface IInstance extends IEntity {
+export interface IInstall extends IEntity {
   data: any;
 }

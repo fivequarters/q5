@@ -212,7 +212,7 @@ describe('Sessions', () => {
     expect(response).toBeHttp({ statusCode: 400 });
   }, 180000);
 
-  test('Overwrite an existing instance and identity', async () => {
+  test('Overwrite an existing install and identity', async () => {
     const { integrationId, connectorId, steps } = await createPair(account, boundaryId, {
       components: [
         {
@@ -237,8 +237,8 @@ describe('Sessions', () => {
     const createIdentityResponse = await ApiRequestMap.identity.post(account, connectorId, { data: {} });
     expect(createIdentityResponse).toBeHttp({ statusCode: 200 });
     const identityId = createIdentityResponse.data.id;
-    // create instance, with identity pre-attached
-    const createInstanceResponse = await ApiRequestMap.instance.post(account, integrationId, {
+    // create install, with identity pre-attached
+    const createInstallResponse = await ApiRequestMap.install.post(account, integrationId, {
       data: {
         [steps[0]]: {
           entityId: createIdentityResponse.data.id,
@@ -246,10 +246,10 @@ describe('Sessions', () => {
         },
       },
     });
-    const instanceId = createInstanceResponse.data.id;
+    const installId = createInstallResponse.data.id;
     let response = await ApiRequestMap.integration.session.post(account, integrationId, {
       redirectUrl: demoRedirectUrl,
-      instanceId,
+      installId,
     });
     const parentSessionId = response.data.id;
 
@@ -259,26 +259,26 @@ describe('Sessions', () => {
     // Call the callback to move to the next step
     response = await ApiRequestMap[loc.entityType].session.callback(account, loc.entityId, loc.sessionId);
 
-    // get session results to verify current data matches data on instance/identity
+    // get session results to verify current data matches data on install/identity
     response = await ApiRequestMap.integration.session.getResult(account, integrationId, parentSessionId);
     const identitySessionId = Model.decomposeSubordinateId(response.data.components[0].childSessionId).entityId;
-    const instanceSessionId = Model.decomposeSubordinateId(response.data.components[1].childSessionId).entityId;
+    const installSessionId = Model.decomposeSubordinateId(response.data.components[1].childSessionId).entityId;
 
     // put new data to sessions
-    const instanceData = { newData: 'for instance' };
+    const installData = { newData: 'for install' };
     const identityData = { newData: 'for identity' };
-    await ApiRequestMap.integration.session.put(account, integrationId, instanceSessionId, { output: instanceData });
+    await ApiRequestMap.integration.session.put(account, integrationId, installSessionId, { output: installData });
     await ApiRequestMap.connector.session.put(account, connectorId, identitySessionId, { output: identityData });
 
     // finalize session to write session data to entities
     await ApiRequestMap.integration.session.commitSession(account, integrationId, parentSessionId);
     const sessionResult = await ApiRequestMap.integration.session.getResult(account, integrationId, parentSessionId);
-    expect(instanceId).toBe(sessionResult.data.replacementTargetId);
-    await waitForCompletion(account, Model.EntityType.instance, integrationId, instanceId);
+    expect(installId).toBe(sessionResult.data.replacementTargetId);
+    await waitForCompletion(account, Model.EntityType.install, integrationId, installId);
 
-    // verify that pre-existing identity and instance have been updated
-    response = await ApiRequestMap.instance.get(account, integrationId, instanceId);
-    expect(response).toBeHttp({ statusCode: 200, data: { data: { form: instanceData } } });
+    // verify that pre-existing identity and install have been updated
+    response = await ApiRequestMap.install.get(account, integrationId, installId);
+    expect(response).toBeHttp({ statusCode: 200, data: { data: { form: installData } } });
     response = await ApiRequestMap.identity.get(account, connectorId, identityId);
     expect(response).toBeHttp({ statusCode: 200, data: { data: identityData } });
   }, 180000);
@@ -299,18 +299,18 @@ describe('Sessions', () => {
     const formOneInitialData = { initialData: 'formOne' };
     const formTwoInitialData = { intiialData: 'formTwo' };
 
-    // create instance, with identity pre-attached
-    const createInstanceResponse = await ApiRequestMap.instance.post(account, integrationId, {
+    // create install, with identity pre-attached
+    const createInstallResponse = await ApiRequestMap.install.post(account, integrationId, {
       data: {
         formOne: formOneInitialData,
         formTwo: formTwoInitialData,
       },
     });
-    const instanceId = createInstanceResponse.data.id;
+    const installId = createInstallResponse.data.id;
 
     let response = await ApiRequestMap.integration.session.post(account, integrationId, {
       redirectUrl: demoRedirectUrl,
-      instanceId,
+      installId,
     });
     const parentSessionId = response.data.id;
 
@@ -320,7 +320,7 @@ describe('Sessions', () => {
     // Call the callback to move to the next step
     response = await ApiRequestMap[loc.entityType].session.callback(account, loc.entityId, loc.sessionId);
 
-    // get session results to verify current data matches data on instance/identity
+    // get session results to verify current data matches data on install/identity
     response = await ApiRequestMap.integration.session.getResult(account, integrationId, parentSessionId);
     const formOneSessionId = Model.decomposeSubordinateId(response.data.components[0].childSessionId).entityId;
 
@@ -333,18 +333,18 @@ describe('Sessions', () => {
     // finalize session
     await ApiRequestMap.integration.session.commitSession(account, integrationId, parentSessionId);
     const sessionResult = await ApiRequestMap.integration.session.getResult(account, integrationId, parentSessionId);
-    expect(instanceId).toBe(sessionResult.data.replacementTargetId);
-    await waitForCompletion(account, Model.EntityType.instance, integrationId, instanceId);
+    expect(installId).toBe(sessionResult.data.replacementTargetId);
+    await waitForCompletion(account, Model.EntityType.install, integrationId, installId);
 
-    // verify that pre-existing instance has been updated while preserving skipped formTwo data
-    response = await ApiRequestMap.instance.get(account, integrationId, instanceId);
+    // verify that pre-existing install has been updated while preserving skipped formTwo data
+    response = await ApiRequestMap.install.get(account, integrationId, installId);
     expect(response).toBeHttp({
       statusCode: 200,
       data: { data: { formOne: formOneNewData, formTwo: formTwoInitialData } },
     });
   }, 180000);
 
-  test('Create a session with an instanceId to pull existing data', async () => {
+  test('Create a session with an installId to pull existing data', async () => {
     const { integrationId, connectorId, steps } = await createPair(account, boundaryId, {
       components: [
         {
@@ -365,7 +365,7 @@ describe('Sessions', () => {
       ],
     });
 
-    const instanceTestData = { testData: 'instance' };
+    const installTestData = { testData: 'install' };
     const identityTestData = { testData: 'identity' };
 
     // create identity
@@ -376,21 +376,21 @@ describe('Sessions', () => {
         data: identityTestData,
       },
     });
-    // create instance, with identity pre-attached
-    const createInstanceResponse = await ApiRequestMap.instance.post(account, integrationId, {
+    // create install, with identity pre-attached
+    const createInstallResponse = await ApiRequestMap.install.post(account, integrationId, {
       data: {
         [steps[0]]: {
           entityId: createIdentityResponse.data.id,
           parentEntityId: connectorId,
         },
-        [steps[1]]: instanceTestData,
+        [steps[1]]: installTestData,
       },
     });
-    const instance = createInstanceResponse.data;
+    const install = createInstallResponse.data;
 
     let response = await ApiRequestMap.integration.session.post(account, integrationId, {
       redirectUrl: demoRedirectUrl,
-      instanceId: instance.id,
+      installId: install.id,
     });
     const parentSessionId = response.data.id;
 
@@ -400,23 +400,23 @@ describe('Sessions', () => {
     // Call the callback to move to the next step
     await ApiRequestMap[loc.entityType].session.callback(account, loc.entityId, loc.sessionId);
 
-    // get session results to verify current data matches data on instance/identity
+    // get session results to verify current data matches data on install/identity
     response = await ApiRequestMap.integration.session.getResult(account, integrationId, parentSessionId);
     const identitySessionId = Model.decomposeSubordinateId(response.data.components[0].childSessionId).entityId;
-    const instanceSessionId = Model.decomposeSubordinateId(response.data.components[1].childSessionId).entityId;
+    const installSessionId = Model.decomposeSubordinateId(response.data.components[1].childSessionId).entityId;
 
     const identitySessionResponse = await ApiRequestMap.connector.session.getResult(
       account,
       connectorId,
       identitySessionId
     );
-    const instanceSessionResponse = await ApiRequestMap.integration.session.getResult(
+    const installSessionResponse = await ApiRequestMap.integration.session.getResult(
       account,
       integrationId,
-      instanceSessionId
+      installSessionId
     );
     expect(identitySessionResponse.data).toMatchObject({ output: identityTestData });
-    expect(instanceSessionResponse.data).toMatchObject({ output: instanceTestData });
+    expect(installSessionResponse.data).toMatchObject({ output: installTestData });
   }, 1800000);
 
   test('Full result session on a step includes output and no ids', async () => {
@@ -581,22 +581,22 @@ describe('Sessions', () => {
     // Commit the parent session.
     response = await ApiRequestMap.integration.session.commitSession(account, integrationId, parentSessionId);
 
-    // Wait for the instance to be fully available.
+    // Wait for the install to be fully available.
     response = await waitForCompletionTargetUrl(account, response.data.targetUrl);
-    const instanceId = response.data.id;
-    expect(instanceId).toBeUUID();
+    const installId = response.data.id;
+    expect(installId).toBeUUID();
     expect(response.data.state).toBe(EntityState.active);
 
-    // Returns the identity and instance id's.
+    // Returns the identity and install id's.
     response = await ApiRequestMap.integration.session.getResult(account, integrationId, parentSessionId);
     expect(response.data).toMatchObject({
       output: {
         tags: {
           'session.master': parentSessionId,
         },
-        entityId: instanceId,
+        entityId: installId,
         accountId: account.accountId,
-        entityType: Model.EntityType.instance,
+        entityType: Model.EntityType.install,
         parentEntityId: integrationId,
         parentEntityType: Model.EntityType.integration,
         subscriptionId: account.subscriptionId,
@@ -616,11 +616,11 @@ describe('Sessions', () => {
     expect(childSessionId).toBeUUID();
     expect(response.data.components[0]).not.toHaveProperty('output');
 
-    const instance = response.data.output;
-    expect(instance.entityId).toBe(instanceId);
+    const install = response.data.output;
+    expect(install.entityId).toBe(installId);
 
-    // Validate the instance is created
-    response = await ApiRequestMap.instance.get(account, instance.parentEntityId, instance.entityId);
+    // Validate the install is created
+    response = await ApiRequestMap.install.get(account, install.parentEntityId, install.entityId);
     expect(response).toBeHttp({ statusCode: 200, data: { tags: { 'session.master': parentSessionId } } });
 
     const identity = response.data.data.conn;
@@ -681,7 +681,7 @@ describe('Sessions', () => {
     ).toBe(0);
   }, 180000);
 
-  test('Tags specified on the session get persisted to identities and instances', async () => {
+  test('Tags specified on the session get persisted to identities and installs', async () => {
     const { integrationId } = await createPair(account, boundaryId);
     const tenantId = 'exampleTenantId';
     let response = await ApiRequestMap.integration.session.post(account, integrationId, {
@@ -702,21 +702,21 @@ describe('Sessions', () => {
     // Commit the parent session.
     response = await ApiRequestMap.integration.session.commitSession(account, integrationId, parentSessionId);
 
-    // Wait for the instance to be fully available.
+    // Wait for the install to be fully available.
     response = await waitForCompletionTargetUrl(account, response.data.targetUrl);
-    const instanceId = response.data.id;
+    const installId = response.data.id;
 
     // Verify Operation Id
     response = await ApiRequestMap.integration.session.getResult(account, integrationId, parentSessionId);
 
-    expect(response.data.output.entityId).toBe(instanceId);
+    expect(response.data.output.entityId).toBe(installId);
 
-    // Get the instance, and validate it has the tag specified
-    response = await ApiRequestMap.instance.get(account, integrationId, instanceId);
+    // Get the install, and validate it has the tag specified
+    response = await ApiRequestMap.install.get(account, integrationId, installId);
     expect(response).toBeHttp({ statusCode: 200, data: { tags: { tenantId } } });
   }, 180000);
 
-  test('Tags specified on the integration get extended to instances and identities', async () => {
+  test('Tags specified on the integration get extended to installs and identities', async () => {
     const integTag = 'anIntegrationTag';
 
     const { integrationId, connectorId } = await createPair(account, boundaryId, { componentTags: { integTag } });
@@ -740,18 +740,18 @@ describe('Sessions', () => {
     // Post to finish
     response = await ApiRequestMap.integration.session.commitSession(account, integrationId, parentSessionId);
 
-    // Wait for the instance to be fully available.
+    // Wait for the install to be fully available.
     response = await waitForCompletionTargetUrl(account, response.data.targetUrl);
-    const instanceId = response.data.id;
-    expect(instanceId).toBeUUID();
+    const installId = response.data.id;
+    expect(installId).toBeUUID();
     expect(response.data.state).toBe(EntityState.active);
 
     // Verify Operation Id
     response = await ApiRequestMap.integration.session.getResult(account, integrationId, parentSessionId);
-    expect(response.data.output.entityId).toBe(instanceId);
+    expect(response.data.output.entityId).toBe(installId);
 
-    // Get the instance, and validate it has the tag specified
-    response = await ApiRequestMap.instance.get(account, integrationId, instanceId);
+    // Get the install, and validate it has the tag specified
+    response = await ApiRequestMap.install.get(account, integrationId, installId);
     expect(response).toBeHttp({ statusCode: 200, data: { tags: { tenantId, integTag } } });
 
     const identityId = response.data.data.conn.entityId;
