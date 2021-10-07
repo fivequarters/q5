@@ -90,7 +90,7 @@ export interface IV2Permissions {
   identity: IPermissionSet;
   storage: IPermissionSet;
   session: IPermissionSet;
-  postSession: string;
+  addSession: string;
   updateSession: string;
   getSession: string;
   commitSession: string;
@@ -108,7 +108,7 @@ export const v2Permissions: IV2Permissions = {
   storage: makeInvalidPermissionSet(),
   session: makeInvalidPermissionSet(),
 
-  postSession: 'session:post',
+  addSession: 'session:add',
   updateSession: 'session:update',
   getSession: 'session:get',
   commitSession: 'session:commit',
