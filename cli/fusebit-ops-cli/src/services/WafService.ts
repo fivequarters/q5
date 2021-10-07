@@ -67,17 +67,6 @@ export class WafService {
     return waf;
   }
 
-  private async addRuleGroup(deploymentName: string, ruleGroupArn: string) {}
-
-  private async getRuleGroupFromName(region: string, ruleGroupName: string) {
-    const wafSdk = await this.getWafSdk({
-      region,
-    });
-
-    const RuleGroups = await wafSdk.listRuleGroups({ Scope: 'REGIONAL' }).promise();
-    return RuleGroups.RuleGroups?.find((ruleGroup) => ruleGroup.Name === ruleGroupName);
-  }
-
   private async unblockIP(deploymentName: string, region: string, ipaddr: string) {
     const wafSdk = await this.getWafSdk({
       region,
@@ -193,6 +182,25 @@ export class WafService {
         LockToken: wafDetails.LockToken as string,
       })
       .promise();
+  }
+
+  private async getRegExRuleSets(deploymentName: string, region: string) {
+    const wafSdk = await this.getWafSdk({
+      region,
+    });
+    let waf = await this.getWafOrUndefined(deploymentName, region);
+    if (!waf) {
+      throw Error('Can not find WAF, please re-run fuse-ops deployment add to ensure WAF is enabled.');
+    }
+    const wafDetails = await wafSdk
+      .getWebACL({ Scope: 'REGIONAL', Name: waf.Name as string, Id: waf.Id as string })
+      .promise();
+    await this.input.io.writeLine('Regex filters applied to the Fusebit platform.');
+    wafDetails.WebACL?.Rules?.forEach(async (rule) => {
+      if (rule.Statement?.RegexMatchStatement?.RegexString) {
+        await this.input.io.writeLine(`- ${rule.Statement.RegexMatchStatement.RegexString}`);
+      }
+    });
   }
 
   private async updateRegexRuleSet(deploymentName: string, region: string, regexString: string) {
