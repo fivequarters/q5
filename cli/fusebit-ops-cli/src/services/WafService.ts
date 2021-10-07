@@ -95,8 +95,8 @@ export class WafService {
       })
       .promise();
 
-    const IPs = ipsetDetails.IPSet?.Addresses;
-    IPs?.filter((ip) => ip !== ipaddr);
+    let IPs = ipsetDetails.IPSet?.Addresses;
+    IPs = IPs?.filter((ip) => ip !== ipaddr);
     await wafSdk
       .updateIPSet({
         Scope: 'REGIONAL',
@@ -214,6 +214,18 @@ export class WafService {
         errorHeader: 'Blocking the IP failed',
       },
       () => this.blockIP(deploymentName, correctRegion, ip)
+    );
+  }
+
+  public async unblockIPFromWaf(deploymentName: string, ip: string, region?: string) {
+    let correctRegion = await this.ensureRegionOrError(deploymentName, region);
+    return this.executeService.execute(
+      {
+        header: 'Unblocking IP from the Fusebit platform',
+        message: 'Unblocking the IP from the Fusebit platform',
+        errorHeader: 'Unblocking the IP failed',
+      },
+      () => this.unblockIP(deploymentName, correctRegion, ip)
     );
   }
 
