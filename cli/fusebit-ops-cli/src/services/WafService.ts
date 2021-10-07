@@ -222,15 +222,17 @@ export class WafService {
       },
       VisibilityConfig: { CloudWatchMetricsEnabled: false, SampledRequestsEnabled: false, MetricName: uuidv4() },
     });
-    await wafSdk.updateWebACL({
-      Name: wafDetails.WebACL?.Name as string,
-      LockToken: wafDetails.LockToken as string,
-      DefaultAction: wafDetails.WebACL?.DefaultAction as WAFV2.DefaultAction,
-      Rules: wafDetails.WebACL?.Rules as WAFV2.Rules,
-      Scope: 'REGIONAL',
-      Id: wafDetails.WebACL?.Id as string,
-      VisibilityConfig: wafDetails.WebACL?.VisibilityConfig as WAFV2.VisibilityConfig,
-    });
+    await wafSdk
+      .updateWebACL({
+        Name: wafDetails.WebACL?.Name as string,
+        LockToken: wafDetails.LockToken as string,
+        DefaultAction: wafDetails.WebACL?.DefaultAction as WAFV2.DefaultAction,
+        Rules: rules as WAFV2.Rules,
+        Scope: 'REGIONAL',
+        Id: wafDetails.WebACL?.Id as string,
+        VisibilityConfig: wafDetails.WebACL?.VisibilityConfig as WAFV2.VisibilityConfig,
+      })
+      .promise();
   }
   private validateRegex(regexString: string) {
     try {

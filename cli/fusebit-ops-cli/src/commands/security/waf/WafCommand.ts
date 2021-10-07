@@ -1,6 +1,7 @@
 import { Command, ICommand } from '@5qtrs/cli';
 import { GetWafCommand } from './GetWafCommand';
 import { IPCommand } from './ip/IPCommand';
+import { RegExCommand } from './regex/RegExCommand';
 
 // ------------------
 // Internal Constants
@@ -22,6 +23,7 @@ export class WafCommand extends Command {
     const subCommands: any[] = [];
     subCommands.push(await GetWafCommand.create());
     subCommands.push(await IPCommand.create());
+    subCommands.push(await RegExCommand.create());
     commands.subCommands = subCommands;
     return new WafCommand(commands);
   }

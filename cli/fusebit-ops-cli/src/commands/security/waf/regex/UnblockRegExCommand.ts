@@ -3,7 +3,7 @@ import { WafService } from '../../../../services';
 
 const command: ICommand = {
   name: 'Unblock RegEx',
-  cmd: 'block',
+  cmd: 'unblock',
   summary: 'Unblock RegEx from Fusebit platform',
   description: 'This unblocks a regex path from the Fusebit platform.',
   arguments: [
@@ -24,9 +24,9 @@ const command: ICommand = {
   ],
 };
 
-export class BlockRegExCommand extends Command {
+export class UnblockRegExCommand extends Command {
   public static async create() {
-    return new BlockRegExCommand();
+    return new UnblockRegExCommand();
   }
 
   private constructor() {
