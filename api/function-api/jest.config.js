@@ -16,8 +16,6 @@ module.exports = {
           [
             '@reportportal/agent-js-jest',
             {
-	      mode: "DEBUG",
-	      debug: true,
               token: reportportal.token,
               endpoint: reportportal.endpoint,
               project: reportportal.project,
