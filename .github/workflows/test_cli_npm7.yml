@@ -1,4 +1,6 @@
-on: pull_request
+on:
+  schedule:
+    - cron: "30 3 * * *"
 name: Test CLI on NPM 7
 jobs:
   deploy:
