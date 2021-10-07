@@ -51,7 +51,7 @@ export class WafService {
     if ((deployments.Count as number) === 0) {
       return undefined;
     }
-    const item = deployments.Items?.filter((item) => item.DeploymentName.S === deploymentName);
+    const item = deployments.Items?.filter((item) => item.deploymentName.S === deploymentName);
     if (!item || item.length === 0 || item.length > 1) {
       return undefined;
     }
@@ -78,6 +78,35 @@ export class WafService {
     return RuleGroups.RuleGroups?.find((ruleGroup) => ruleGroup.Name === ruleGroupName);
   }
 
+  private async unblockIP(deploymentName: string, region: string, ipaddr: string) {
+    const wafSdk = await this.getWafSdk({
+      region,
+    });
+
+    const IPSet = await this.getIPSetOrUndefined(deploymentName, region);
+    if (!IPSet) {
+      throw Error('Can not find the IPSet, please re-run deployment add.');
+    }
+    const ipsetDetails = await wafSdk
+      .getIPSet({
+        Scope: 'REGIONAL',
+        Name: IPSet.Name as string,
+        Id: IPSet.Id as string,
+      })
+      .promise();
+
+    const IPs = ipsetDetails.IPSet?.Addresses;
+    IPs?.filter((ip) => ip !== ipaddr);
+    await wafSdk
+      .updateIPSet({
+        Scope: 'REGIONAL',
+        Name: IPSet.Name as string,
+        Id: IPSet.Id as string,
+        Addresses: IPs as WAFV2.IPAddresses,
+        LockToken: ipsetDetails.LockToken as string,
+      })
+      .promise();
+  }
   private async blockIP(deploymentName: string, region: string, ip: string) {
     const wafSdk = await this.getWafSdk({
       region,
@@ -174,5 +203,44 @@ export class WafService {
     } catch (_) {
       return false;
     }
+  }
+
+  public async blockIPFromWaf(deploymentName: string, ip: string, region?: string) {
+    let correctRegion = await this.ensureRegionOrError(deploymentName, region);
+    return this.executeService.execute(
+      {
+        header: 'Blocking IP from the Fusebit platform',
+        message: 'Blocking the IP from the Fusebit platform',
+        errorHeader: 'Blocking the IP failed',
+      },
+      () => this.blockIP(deploymentName, correctRegion, ip)
+    );
+  }
+
+  public async getWaf(deploymentName: string, region?: string) {
+    let correctRegion = await this.ensureRegionOrError(deploymentName, region);
+    return this.executeService.execute(
+      {
+        header: 'Get WAF Information',
+        message: 'Getting the information of the AWS WAF resource.',
+        errorHeader: 'WAF Error',
+      },
+      () => this.getWafJson(deploymentName, correctRegion)
+    );
+  }
+
+  private async ensureRegionOrError(deploymentName?: string, region?: string) {
+    if (region) {
+      return region;
+    }
+
+    if (deploymentName) {
+      const reg = await this.getRegionOfDeployment(deploymentName);
+      if (reg) {
+        return reg;
+      }
+    }
+
+    throw Error('Deployment region not found.');
   }
 }

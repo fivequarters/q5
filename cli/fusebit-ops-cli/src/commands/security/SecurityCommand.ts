@@ -18,7 +18,7 @@ const commands: ICommand = {
 export class SecurityCommand extends Command {
   public static async create() {
     const subCommands: any[] = [];
-    subCommands.push(WafCommand.create());
+    subCommands.push(await WafCommand.create());
     commands.subCommands = subCommands;
     return new SecurityCommand(commands);
   }
