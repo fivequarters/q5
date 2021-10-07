@@ -1744,7 +1744,7 @@ paths:
               schema:
                 $ref: '#/components/schemas/Error'
       security:
-        - AccessToken: ['function:out']
+        - AccessToken: ['function:get']
 
   /v1/account/{accountId}/subscription/{subscriptionId}/boundary/{boundaryId}/function/{functionId}/log:
     parameters:
