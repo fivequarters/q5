@@ -24,3 +24,5 @@ jobs:
           echo 'Installing fuse'
 
           node -v
+
+          npm -v
