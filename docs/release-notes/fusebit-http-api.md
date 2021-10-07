@@ -17,6 +17,12 @@ All public releases of the Fusebit HTTP API are documented here, including notab
 <!-- 1. TOC
 {:toc} -->
 
+## Version 1.25.0
+
+_Released 10/7/21_
+
+- **Bugfix.** Migrate session POST to use the 'session:add' permission.
+
 ## Version 1.24.0
 
 _Released 10/5/21_

@@ -17,7 +17,7 @@ const createSessionRouter = (SessionService: SessionedEntityService<any, any>) =
     '/',
     common.management({
       validate: { params: ValidationCommon.EntityIdParams, body: Validation.SessionCreate },
-      authorize: { operation: v2Permissions.postSession },
+      authorize: { operation: v2Permissions.addSession },
     }),
     async (req: express.Request, res: express.Response, next: express.NextFunction) => {
       try {
