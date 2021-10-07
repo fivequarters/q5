@@ -67,7 +67,7 @@ paths:
         404:
           $ref: '#/components/responses/404'
       security:
-        - AccessToken: ['session:post']
+        - AccessToken: ['session:add']
 
   /v2/account/{accountId}/subscription/{subscriptionId}/{entityType}/{entityId}/session/{sessionId}:
     parameters:
