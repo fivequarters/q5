@@ -8,27 +8,6 @@ jobs:
       - name: Use Node.js
         uses: actions/setup-node@v1
         with:
-          node-version: 14.17.2
-      - name: Install yarn
-        run: npm i -g yarn
-      - name: Checkout
-        uses: actions/checkout@v2
-        with:
-          fetch-depth: 0
-      - name: Package CLI
-        run: >
-          yarn set version 1.21.1
-
-          yarn --frozen-lockfile setup
-
-          yarn --frozen-lockfile install
-
-          yarn build
-
-          yarn package fusebit-cli
-      - name: Use Node.js
-        uses: actions/setup-node@v1
-        with:
           node-version: 15.13
       - name: Install and test CLI
         run: >
@@ -38,6 +17,6 @@ jobs:
 
           npm -v
 
-          npm install -g cli/fusebit-cli/package
+          npm install -g @fusebit/cli
 
           fuse
