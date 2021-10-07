@@ -181,7 +181,7 @@ export class WafService {
       })
       .promise();
     let rules = wafDetails.WebACL?.Rules as WAFV2.Rules;
-    rules = rules.filter((rule) => rule.Statement.RegexMatchStatement?.RegexString === regexString);
+    rules = rules.filter((rule) => rule.Statement.RegexMatchStatement?.RegexString !== regexString);
     await wafSdk
       .updateWebACL({
         Rules: rules,
@@ -212,14 +212,15 @@ export class WafService {
     const rules = wafDetails.WebACL?.Rules as WAFV2.Rules;
     rules.push({
       Name: uuidv4(),
-      Priority: 420,
+      Priority: Math.floor(Math.random() * 999),
       Statement: {
         RegexMatchStatement: {
           RegexString: regexString,
           FieldToMatch: { UriPath: {} },
-          TextTransformations: [{ Priority: 0, Type: 'None' }],
+          TextTransformations: [{ Priority: 0, Type: 'NONE' }],
         },
       },
+      Action: { Block: {} },
       VisibilityConfig: { CloudWatchMetricsEnabled: false, SampledRequestsEnabled: false, MetricName: uuidv4() },
     });
     await wafSdk
@@ -227,7 +228,7 @@ export class WafService {
         Name: wafDetails.WebACL?.Name as string,
         LockToken: wafDetails.LockToken as string,
         DefaultAction: wafDetails.WebACL?.DefaultAction as WAFV2.DefaultAction,
-        Rules: rules as WAFV2.Rules,
+        Rules: rules,
         Scope: 'REGIONAL',
         Id: wafDetails.WebACL?.Id as string,
         VisibilityConfig: wafDetails.WebACL?.VisibilityConfig as WAFV2.VisibilityConfig,
