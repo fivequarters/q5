@@ -1,5 +1,6 @@
 import { Command, ICommand } from '@5qtrs/cli';
 import { BlockIPCommand } from './blockIPCommand';
+import { ListIPCommand } from './ListIPCommand';
 import { UnblockIPCommand } from './unblockIPCommand';
 
 const commands: ICommand = {
@@ -14,6 +15,7 @@ export class IPCommand extends Command {
     const subCommands: any[] = [];
     subCommands.push(await BlockIPCommand.create());
     subCommands.push(await UnblockIPCommand.create());
+    subCommands.push(await ListIPCommand.create());
     commands.subCommands = subCommands;
     return new IPCommand();
   }

@@ -7,8 +7,8 @@ import { WafCommand } from './waf/WafCommand';
 const commands: ICommand = {
   name: 'Security',
   cmd: 'security',
-  summary: 'Update Fusebit security configuration',
-  description: 'Update the configuration of Fusebit WAF',
+  summary: 'Manage Fusebit security configuration',
+  description: 'Manage the configuration of Fusebit WAF',
 };
 
 // ----------------

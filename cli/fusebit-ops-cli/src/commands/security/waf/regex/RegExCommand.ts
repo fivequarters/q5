@@ -1,5 +1,6 @@
 import { Command, ICommand } from '@5qtrs/cli';
 import { BlockRegExCommand } from './BlockRegExCommand';
+import { ListRegExCommand } from './ListRegExCommand';
 import { UnblockRegExCommand } from './UnblockRegExCommand';
 
 const commands: ICommand = {
@@ -14,6 +15,7 @@ export class RegExCommand extends Command {
     const subCommands: any[] = [];
     subCommands.push(await BlockRegExCommand.create());
     subCommands.push(await UnblockRegExCommand.create());
+    subCommands.push(await ListRegExCommand.create());
     commands.subCommands = subCommands;
     return new RegExCommand();
   }

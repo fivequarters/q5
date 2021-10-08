@@ -184,7 +184,7 @@ export class WafService {
       .promise();
   }
 
-  private async getRegExRuleSets(deploymentName: string, region: string) {
+  private async getRegExRules(deploymentName: string, region: string) {
     const wafSdk = await this.getWafSdk({
       region,
     });
@@ -200,6 +200,26 @@ export class WafService {
       if (rule.Statement?.RegexMatchStatement?.RegexString) {
         await this.input.io.writeLine(`- ${rule.Statement.RegexMatchStatement.RegexString}`);
       }
+    });
+  }
+
+  private async getIPRules(deploymentName: string, region: string) {
+    const wafSdk = await this.getWafSdk({ region });
+    const ipset = await this.getIPSetOrUndefined(deploymentName, region);
+    if (!ipset) {
+      throw Error('Can not find WAF, please re-run fuse-ops deployment add to ensure WAF is enabled.');
+    }
+    const ipsetDetails = await wafSdk
+      .getIPSet({
+        Scope: 'REGIONAL',
+        Name: ipset.Name as string,
+        Id: ipset.Id as string,
+      })
+      .promise();
+
+    await this.input.io.writeLine('IP filters appLied to the Fusebit platform');
+    ipsetDetails.IPSet?.Addresses.forEach(async (ip) => {
+      await this.input.io.writeLine(`- ${ip}`);
     });
   }
 
@@ -280,11 +300,35 @@ export class WafService {
     let correctRegion = await this.ensureRegionOrError(deploymentName, region);
     return this.executeService.execute(
       {
-        header: 'Blocking RegEx from the Fusebit platform',
-        message: 'Blocking the path RegEx from the Fusebit platform',
-        errorHeader: 'Blocking the RegEx failed',
+        header: 'Unblocking RegEx from the Fusebit platform',
+        message: 'Unblocking the path RegEx from the Fusebit platform',
+        errorHeader: 'Unblocking the RegEx failed',
       },
       () => this.removeRegexRuleSet(deploymentName, correctRegion, regex)
+    );
+  }
+
+  public async ListRegExFromWaf(deploymentName: string, region?: string) {
+    let correctRegion = await this.ensureRegionOrError(deploymentName, region);
+    return this.executeService.execute(
+      {
+        header: 'Listing RegEx filters from the Fusebit platform',
+        message: 'Listing the path RegEx filters from the Fusebit platform',
+        errorHeader: 'Listing the RegEx failed',
+      },
+      () => this.getRegExRules(deploymentName, correctRegion)
+    );
+  }
+
+  public async ListIPFromWaf(deploymentName: string, region?: string) {
+    let correctRegion = await this.ensureRegionOrError(deploymentName, region);
+    return this.executeService.execute(
+      {
+        header: 'Listing IP filters from the Fusebit platform',
+        message: 'Listing the IP filters from the Fusebit platform',
+        errorHeader: 'Listing the IP failed',
+      },
+      () => this.getIPRules(deploymentName, correctRegion)
     );
   }
 
