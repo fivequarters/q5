@@ -1,7 +1,6 @@
 import http_error from 'http-errors';
-import { v4 as uuidv4 } from 'uuid';
 
-import { EPHEMERAL_ENTITY_EXPIRATION } from '@5qtrs/constants';
+import { createUniqueIdentifier, EPHEMERAL_ENTITY_EXPIRATION } from '@5qtrs/constants';
 import RDS, { Model } from '@5qtrs/db';
 
 import BaseEntityService, { IServiceResult } from './BaseEntityService';
@@ -70,7 +69,7 @@ export default abstract class SessionedEntityService<
     // Get the components
     let stepList: Model.IStep[];
     let tags: Model.ITags;
-    const sessionId = uuidv4();
+    const sessionId = createUniqueIdentifier(Model.EntityType.session);
 
     // If there's a specific order or subset specified, use that instead of the full list.
     const dagCheck: { [step: string]: boolean } = {};
@@ -117,7 +116,7 @@ export default abstract class SessionedEntityService<
       subscriptionId: entity.subscriptionId,
       id: Model.createSubordinateId(this.entityType, entity.id, sessionId),
       data: {
-        replacementTargetId: sessionDetails.instanceId,
+        replacementTargetId: sessionDetails.installId,
         mode: Model.SessionMode.trunk,
         components: stepList,
         redirectUrl: sessionDetails.redirectUrl,
@@ -136,7 +135,7 @@ export default abstract class SessionedEntityService<
   public createLeafSession = async (
     parentSession: Model.ITrunkSession,
     step: Model.IStep,
-    instance?: Model.IInstance
+    install?: Model.IInstall
   ): Promise<IServiceResult> => {
     if (step.childSessionId) {
       const childEntity = await this.sessionDao.getEntity({
@@ -147,7 +146,7 @@ export default abstract class SessionedEntityService<
       return { statusCode: 200, result: childEntity };
     }
 
-    const sessionId = uuidv4();
+    const sessionId = createUniqueIdentifier(Model.EntityType.session);
 
     // Calculate 'dependsOn' based on previous session ids
     const dependsOn = step.dependsOn
@@ -169,12 +168,12 @@ export default abstract class SessionedEntityService<
 
     let replacementTargetId: string | undefined;
     let previousOutput;
-    if (!!parentSession.data.replacementTargetId && !!instance) {
+    if (!!parentSession.data.replacementTargetId && !!install) {
       if (step.entityType === Model.EntityType.integration) {
-        replacementTargetId = instance.id;
-        previousOutput = instance.data[step.name];
+        replacementTargetId = install.id;
+        previousOutput = install.data[step.name];
       } else {
-        const stepEntity = instance.data[step.name];
+        const stepEntity = install.data[step.name];
         replacementTargetId = stepEntity.entityId;
 
         const connector = await this.connectorService.dao.getEntity({
@@ -249,7 +248,7 @@ export default abstract class SessionedEntityService<
     return { statusCode: 200, result: session };
   };
 
-  private getSessionInstance = async (trunkSession: Model.ITrunkSession): Promise<Model.IInstance | undefined> => {
+  private getSessionInstall = async (trunkSession: Model.ITrunkSession): Promise<Model.IInstall | undefined> => {
     if (!trunkSession.data.replacementTargetId) {
       return undefined;
     }
@@ -259,32 +258,32 @@ export default abstract class SessionedEntityService<
       id: Model.decomposeSubordinateId(trunkSession.id).parentEntityId,
     };
     const parentIntegration = await this.integrationService.dao.getEntity(parentIntegrationParams);
-    const instanceId = Model.createSubordinateId(
+    const installId = Model.createSubordinateId(
       Model.EntityType.integration,
       parentIntegration.__databaseId as string,
       trunkSession.data.replacementTargetId as string
     );
-    const instanceParams = {
-      id: instanceId,
+    const installParams = {
+      id: installId,
       accountId: trunkSession.accountId,
       subscriptionId: trunkSession.subscriptionId,
     };
-    const instance = await this.integrationService.subDao!.getEntity(instanceParams);
-    return instance;
+    const install = await this.integrationService.subDao!.getEntity(installParams);
+    return install;
   };
 
   public startSession = async (entity: Model.IEntity): Promise<IServiceResult> => {
     const parentSession = await this.sessionDao.getEntity(entity);
     this.ensureSessionTrunk(parentSession, 'cannot start a session in progress', 400);
 
-    // Get instance if needed
-    const instance = await this.getSessionInstance(parentSession);
+    // Get install if needed
+    const install = await this.getSessionInstall(parentSession);
 
     // Get the first step
     const step = parentSession.data.components[0];
 
     // Create a session
-    const leafSession = await this.createLeafSession(parentSession, step, instance);
+    const leafSession = await this.createLeafSession(parentSession, step, install);
 
     // Return a 302 to the new session target
     return { statusCode: 302, result: this.getTargetElements(leafSession.result, leafSession.result.data) };
@@ -331,10 +330,10 @@ export default abstract class SessionedEntityService<
       };
     }
 
-    // Get instance if needed
-    const instance = await this.getSessionInstance(parentSession);
+    // Get install if needed
+    const install = await this.getSessionInstall(parentSession);
     // Start a new step session and redirect.
-    const stepSession = await this.createLeafSession(parentSession, step, instance);
+    const stepSession = await this.createLeafSession(parentSession, step, install);
 
     // Return a 302 to the new session target
     return {
@@ -363,7 +362,7 @@ export default abstract class SessionedEntityService<
       }
     }
 
-    const instanceId = session.data.replacementTargetId || uuidv4();
+    const installId = session.data.replacementTargetId || createUniqueIdentifier(Model.EntityType.install);
 
     const masterSessionId = Model.decomposeSubordinateId(session.id);
 
@@ -373,29 +372,29 @@ export default abstract class SessionedEntityService<
       id: masterSessionId.parentEntityId,
     });
 
-    const instance: Model.IInstance = {
+    const install: Model.IInstall = {
       accountId: session.accountId,
       subscriptionId: session.subscriptionId,
-      id: Model.createSubordinateId(this.entityType, parentEntity.__databaseId as string, instanceId),
+      id: Model.createSubordinateId(this.entityType, parentEntity.__databaseId as string, installId),
       data: null,
     };
 
     if (!session.data.replacementTargetId) {
-      instance.state = EntityState.creating;
-      instance.operationState = {
+      install.state = EntityState.creating;
+      install.operationState = {
         operation: OperationType.creating,
         status: OperationStatus.processing,
       };
-      await this.subDao!.createEntity(instance);
+      await this.subDao!.createEntity(install);
 
-      session.data.replacementTargetId = instanceId;
+      session.data.replacementTargetId = installId;
       session = await this.sessionDao.updateEntity(session);
     } else {
-      instance.operationState = {
+      install.operationState = {
         operation: OperationType.updating,
         status: OperationStatus.processing,
       };
-      await this.subDao!.updateEntity(instance);
+      await this.subDao!.updateEntity(install);
     }
 
     setImmediate(async () => {
@@ -404,32 +403,32 @@ export default abstract class SessionedEntityService<
           session as Model.ITrunkSession,
           masterSessionId,
           parentEntity,
-          instance,
-          instanceId
+          install,
+          installId
         );
       } catch (error) {
         console.log(error);
-        const brokenInstance = await this.subDao!.getEntity(instance);
-        brokenInstance.state =
-          instance.state === Model.EntityState.creating ? Model.EntityState.invalid : brokenInstance.state;
-        brokenInstance.operationState = {
-          operation: instance.operationState!.operation,
+        const brokenInstall = await this.subDao!.getEntity(install);
+        brokenInstall.state =
+          install.state === Model.EntityState.creating ? Model.EntityState.invalid : brokenInstall.state;
+        brokenInstall.operationState = {
+          operation: install.operationState!.operation,
           status: OperationStatus.failed,
         };
-        await this.subDao!.updateEntity(brokenInstance);
-        // Future: Mark other identities or instances created here as invalid, as appropriate.
+        await this.subDao!.updateEntity(brokenInstall);
+        // Future: Mark other identities or installs created here as invalid, as appropriate.
       }
     });
 
-    return instanceId;
+    return installId;
   };
 
   protected persistTrunkSession = async (
     session: Model.ITrunkSession,
     masterSessionId: Model.ISubordinateId,
     parentEntity: Model.IEntity,
-    instance: Model.IInstance,
-    instanceId: string
+    install: Model.IInstall,
+    installId: string
   ): Promise<void> => {
     return RDS.inTransaction(async (daos) => {
       if (this.entityType !== Model.EntityType.integration) {
@@ -485,18 +484,18 @@ export default abstract class SessionedEntityService<
         }
       });
 
-      // Update instance operation state.
-      instance.state = EntityState.active;
-      instance.operationState = {
-        operation: instance.operationState?.operation || OperationType.creating,
+      // Update install operation state.
+      install.state = EntityState.active;
+      install.operationState = {
+        operation: install.operationState?.operation || OperationType.creating,
         status: OperationStatus.success,
       };
 
       // Grab up-to-date information to use as basis.
-      const existingEntity = await this.subDao!.getEntity(instance);
+      const existingEntity = await this.subDao!.getEntity(install);
 
-      // Update instance tags.
-      instance.tags = {
+      // Update install tags.
+      install.tags = {
         ...existingEntity.tags,
         ...session.tags,
         'session.master': masterSessionId.entityId,
@@ -504,13 +503,13 @@ export default abstract class SessionedEntityService<
         'fusebit.parentEntityId': parentEntity.id,
       };
 
-      // Update instance with identity information.
-      instance.data = { ...existingEntity.data, ...instance.data, ...leafSessionResults };
+      // Update install with identity information.
+      install.data = { ...existingEntity.data, ...install.data, ...leafSessionResults };
 
       const subDao = daos[this.subDao!.getDaoType()];
-      await subDao.updateEntity(instance);
+      await subDao.updateEntity(install);
 
-      // Record the successfully created instance in the master session.
+      // Record the successfully created install in the master session.
       session.data.output = {
         ...session.data.output,
         accountId: session.accountId,
@@ -518,8 +517,8 @@ export default abstract class SessionedEntityService<
         parentEntityType: this.entityType,
         parentEntityId: masterSessionId.parentEntityId,
         entityType: this.subDao!.getDaoType(),
-        entityId: instanceId,
-        tags: instance.tags,
+        entityId: installId,
+        tags: install.tags,
       };
       await daos[Model.EntityType.session].updateEntity(session);
     });
@@ -532,7 +531,7 @@ export default abstract class SessionedEntityService<
     parentEntityId: string
   ): Promise<IServiceResult> => {
     if (session.data.entityType === Model.EntityType.integration || session.data.output?.error) {
-      // Form output is supplied directly to the master instance, since it will be used by the integration
+      // Form output is supplied directly to the master install, since it will be used by the integration
       // directly.
       //
       // This must change if forms from other integrations require their own isolation boundaries, but that's
@@ -551,7 +550,7 @@ export default abstract class SessionedEntityService<
       id: parentEntityId,
     });
 
-    const leafId = session.data.replacementTargetId || uuidv4();
+    const leafId = session.data.replacementTargetId || createUniqueIdentifier(Model.EntityType.identity);
 
     const leafEntity: Model.IEntity = {
       accountId: session.accountId,

@@ -113,8 +113,8 @@ describe('Workflow', () => {
       "  response = await superagent.get(`${ctx.state.params.baseUrl}/session/${ctx.query.session}`).set('Authorization', `Bearer ${ctx.state.params.functionAccessToken}`);",
       '  ctx.body = response.body;',
       '});',
-      "router.get('/api/:instanceId/getToken', async (ctx) => {",
-      "  const response = await integration.service.getSdk(ctx, 'conn1', ctx.params.instanceId);",
+      "router.get('/api/:installId/getToken', async (ctx) => {",
+      "  const response = await integration.service.getSdk(ctx, 'conn1', ctx.params.installId);",
       '  ctx.body = response;',
       '});',
       "router.get('/api/aForm', async (ctx) => {",
@@ -122,7 +122,7 @@ describe('Workflow', () => {
       '  ctx.redirect(`${ctx.state.params.baseUrl}/session/${ctx.query.session}/callback`);',
       '});',
       "router.get('/api/doASessionThing/:sessionId', async (ctx) => { ctx.body = 'doASessionThing'; });",
-      "router.get('/api/doAThing/:instanceId', async (ctx) => { ctx.body = 'doAThing'; });",
+      "router.get('/api/doAThing/:installId', async (ctx) => { ctx.body = 'doAThing'; });",
       'module.exports = integration;',
     ].join('\n');
     const pkgJson = JSON.parse(integration.data.data.files['package.json']);
@@ -256,14 +256,14 @@ describe('Workflow', () => {
     url = new URL(response.headers.location);
     expect(url.searchParams.get('session')).toBe(parentSessionId);
 
-    // Commit session to instantiate the instances/identities.
+    // Commit session to instantiate the installs/identities.
     response = await ApiRequestMap.integration.session.commitSession(account, integrationId, parentSessionId);
     expect(response).toBeHttp({ statusCode: 202 });
 
     // Wait for the entities to be fully created.
     response = await waitForCompletionTargetUrl(account, response.data.targetUrl);
-    let instanceId = response.data.id;
-    expect(instanceId).toBeUUID();
+    let installId = response.data.id;
+    expect(installId).toBeInstallId();
 
     // Get the completed session with the output details
     response = await ApiRequestMap.integration.session.getResult(account, integrationId, parentSessionId);
@@ -273,7 +273,7 @@ describe('Workflow', () => {
           'session.master': parentSessionId,
         },
         accountId: account.accountId,
-        entityType: Model.EntityType.instance,
+        entityType: Model.EntityType.install,
         parentEntityId: integrationId,
         parentEntityType: Model.EntityType.integration,
         subscriptionId: account.subscriptionId,
@@ -294,12 +294,12 @@ describe('Workflow', () => {
         },
       ],
     });
-    expect(Model.decomposeSubordinateId(response.data.components[0].childSessionId).entityId).toBeUUID();
-    expect(Model.decomposeSubordinateId(response.data.components[1].childSessionId).entityId).toBeUUID();
-    expect(response.data.output.entityId).toBeUUID();
-    expect(response.data.output.entityId).toBe(instanceId);
+    expect(Model.decomposeSubordinateId(response.data.components[0].childSessionId).entityId).toBeSessionId();
+    expect(Model.decomposeSubordinateId(response.data.components[1].childSessionId).entityId).toBeSessionId();
+    expect(response.data.output.entityId).toBeInstallId();
+    expect(response.data.output.entityId).toBe(installId);
 
-    response = await ApiRequestMap.instance.get(account, integrationId, instanceId);
+    response = await ApiRequestMap.install.get(account, integrationId, installId);
 
     const identityId = response.data.data.conn1.entityId;
     const identity = await ApiRequestMap.identity.get(account, response.data.data.conn1.parentEntityId, identityId);
@@ -331,12 +331,12 @@ describe('Workflow', () => {
     // TODO: Modify the form page to query the connector with the contents of the session's 'dependsOn' field, and
     //       related sessionId, and ensure that it gets back a valid token.
     //         Requires the connector to support looking up the contents by a sessionId instead of by a
-    //         instanceId.
-    response = await ApiRequestMap.instance.get(account, integrationId, instanceId);
+    //         installId.
+    response = await ApiRequestMap.install.get(account, integrationId, installId);
     expect(response).toBeHttp({
       statusCode: 200,
       data: {
-        id: instanceId,
+        id: installId,
         data: {
           form: {
             hello: 'world',
@@ -358,13 +358,13 @@ describe('Workflow', () => {
         },
       },
     });
-    expect(response.data.data.conn1.entityId).toBeUUID();
+    expect(response.data.data.conn1.entityId).toBeIdentityId();
 
     response = await ApiRequestMap.integration.dispatch(
       account,
       integrationId,
       RequestMethod.get,
-      `/api/${instanceId}/getToken`
+      `/api/${installId}/getToken`
     );
     expect(response).toBeHttp({
       statusCode: 200,
@@ -378,7 +378,7 @@ describe('Workflow', () => {
     // Create a session
     response = await ApiRequestMap.integration.session.post(account, integrationId, {
       redirectUrl: finalUrl,
-      instanceId,
+      installId,
       extendTags: true,
     });
     expect(response).toBeHttp({ statusCode: 200 });
@@ -425,7 +425,7 @@ describe('Workflow', () => {
     // Call the session endpoint to complete this session.
     await nextSessionStep(nextUrl);
 
-    // Commit session to instantiate the instances/identities.
+    // Commit session to instantiate the installs/identities.
     response = await ApiRequestMap.integration.session.commitSession(
       account,
       integrationId,
@@ -435,13 +435,13 @@ describe('Workflow', () => {
 
     // Wait for the entities to be fully created.
     response = await waitForCompletionTargetUrl(account, response.data.targetUrl);
-    instanceId = response.data.id;
+    installId = response.data.id;
 
     // Get the completed session with the output details
     response = await ApiRequestMap.integration.session.getResult(account, integrationId, replacementParentSessionId);
-    expect(response.data.output.entityId).toBe(instanceId);
+    expect(response.data.output.entityId).toBe(installId);
 
-    response = await ApiRequestMap.instance.get(account, integrationId, instanceId);
+    response = await ApiRequestMap.install.get(account, integrationId, installId);
     expect(response.data.data.conn1.entityId).toBe(identityId);
 
     // verify identity is healthy

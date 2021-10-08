@@ -6,7 +6,7 @@ export enum EntityType {
   integration = 'integration',
   connector = 'connector',
   storage = 'storage',
-  instance = 'instance',
+  install = 'install',
   identity = 'identity',
   session = 'session',
 }
@@ -192,7 +192,7 @@ export interface ISessionParameters {
   extendTags: boolean;
   input?: Record<string, any>;
   redirectUrl: string;
-  instanceId?: string;
+  installId?: string;
 }
 
 export interface IStep extends IIntegrationComponent {
@@ -215,7 +215,7 @@ export interface ITrunkSessionData {
 
   replacementTargetId?: string;
 
-  // Instance created as a result of a session POST.
+  // Install created as a result of a session POST.
   output?: {
     accountId: string;
     subscriptionId: string;
@@ -252,6 +252,6 @@ export interface IIdentity extends IEntity {
   data: any;
 }
 
-export interface IInstance extends IEntity {
+export interface IInstall extends IEntity {
   data: any;
 }

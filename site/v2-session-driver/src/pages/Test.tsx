@@ -1,6 +1,6 @@
 import React, { ReactElement } from 'react';
 import { Button, CircularProgress, TextField } from '@material-ui/core';
-import { getAccount, getInstance } from '../api/LocalStorage';
+import { getAccount, getInstall } from '../api/LocalStorage';
 import { useParams } from 'react-router-dom';
 import superagent from 'superagent';
 import HttpRadioButton, { HttpMethod } from '../components/HttpRadioButton';
@@ -13,9 +13,9 @@ const sendTestRequest = async (
   body?: object
 ) => {
   const account = getAccount();
-  const instance = getInstance(tenantId);
+  const install = getInstall(tenantId);
   const tenantEndpoint = endpoint.replace(':tenantId', tenantId);
-  return superagent[method](`${instance.integrationBaseUrl}${tenantEndpoint}`)
+  return superagent[method](`${install.integrationBaseUrl}${tenantEndpoint}`)
     .set('Authorization', `Bearer ${account.accessToken}`)
     .send(body);
 };

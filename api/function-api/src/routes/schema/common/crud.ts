@@ -2,7 +2,7 @@ import express from 'express';
 const Joi = require('joi');
 
 import { IAgent } from '@5qtrs/account-data';
-import { v2Permissions, getAuthToken } from '@5qtrs/constants';
+import { v2Permissions } from '@5qtrs/constants';
 
 import { Model } from '@5qtrs/db';
 
@@ -11,11 +11,22 @@ import * as common from '../../middleware/common';
 import { BaseEntityService } from '../../service';
 
 import pathParams from '../../handlers/pathParams';
-import body from '../../handlers/body';
 
 import Validation from '../../validation/component';
 import query from '../../handlers/query';
 import requestToEntity from '../../handlers/requestToEntity';
+
+const entityFromBody = (
+  req: express.Request
+): {
+  id: string;
+  tags: Record<string, string | null>;
+  expires: string;
+  data: Record<string, string>;
+} => {
+  const { id, tags, data, expires } = req.body;
+  return { id: id as string, tags: tags as Record<string, string>, data: data as any, expires: expires as string };
+};
 
 const router = (
   EntityService: BaseEntityService<Model.IEntity, Model.IEntity>,
@@ -52,7 +63,7 @@ const router = (
 
             const { statusCode, result } = await EntityService.createEntity(req.resolvedAgent, {
               ...pathParams.accountAndSubscription(req),
-              ...body.entity(req, EntityService.entityType),
+              ...entityFromBody(req),
             });
             res.status(statusCode).json(result);
           } catch (e) {
@@ -73,7 +84,7 @@ const router = (
       async (req: express.Request, res: express.Response, next: express.NextFunction) => {
         try {
           const entity = await requestToEntity(EntityService, paramIdNames, req);
-          const { statusCode, result } = await EntityService.getEntity(entity);
+          const { result } = await EntityService.getEntity(entity);
           let status = 200;
 
           if (result.state === Model.EntityState.creating) {
@@ -100,12 +111,7 @@ const router = (
           if (!req.resolvedAgent) {
             throw new Error('missing agent');
           }
-          const entity = await requestToEntity(
-            EntityService,
-            paramIdNames,
-            req,
-            body.entity(req, EntityService.entityType)
-          );
+          const entity = await requestToEntity(EntityService, paramIdNames, req, entityFromBody(req));
 
           // Entity id is optional; reinforce it from the url parameter.
           entity.id = req.params.entityId;

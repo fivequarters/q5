@@ -1,4 +1,4 @@
-import { ConnectorService, InstanceService, IntegrationService } from '../service';
+import { ConnectorService, InstallService, IntegrationService } from '../service';
 
 import { v2Permissions, getAuthToken } from '@5qtrs/constants';
 import { Model } from '@5qtrs/db';
@@ -30,14 +30,14 @@ export interface IWebhookEvent {
   entityId: string;
   webhookEventId: string;
   webhookAuthId: string;
-  instanceIds?: string[];
+  installIds?: string[];
 }
 export type IWebhookEvents = IWebhookEvent[];
 
 const router = (
   connectorService: ConnectorService,
   integrationService: IntegrationService,
-  instanceService: InstanceService
+  installService: InstallService
 ) => {
   const fanOutRouter = express.Router({ mergeParams: true });
   fanOutRouter.route('/:entityId/fan_out/:subPath(*)').post(
@@ -46,11 +46,11 @@ const router = (
       authorize: { operation: v2Permissions[Model.EntityType.connector].get },
     }),
     async (req: express.Request, res: express.Response) => {
-      const instances: Model.IInstance[] = [];
+      const installs: Model.IInstall[] = [];
       let next = '0';
 
       do {
-        const instanceResponse = await instanceService.dao.listEntities(
+        const installResponse = await installService.dao.listEntities(
           {
             accountId: req.params.accountId,
             subscriptionId: req.params.subscriptionId,
@@ -61,11 +61,11 @@ const router = (
             next,
           }
         );
-        instances.push(...instanceResponse.items);
-        next = instanceResponse.next || '';
+        installs.push(...installResponse.items);
+        next = installResponse.next || '';
       } while (next);
 
-      const instancesByIntegrationId = instances.reduce<Record<string, string[]>>((acc, cur) => {
+      const installsByIntegrationId = installs.reduce<Record<string, string[]>>((acc, cur) => {
         const integrationId = cur.tags?.['fusebit.parentEntityId'];
         if (!integrationId) {
           return acc;
@@ -78,9 +78,9 @@ const router = (
         return acc;
       }, {});
 
-      if (instances.length === 0 && req.query.default) {
-        // No instances identified; send to the default target with an invalid instanceId of all 0's
-        instancesByIntegrationId[req.query.default as string] = ['00000000-0000-0000-0000-000000000000'];
+      if (installs.length === 0 && req.query.default) {
+        // No installs identified; send to the default target with an invalid installId of all 0's
+        installsByIntegrationId[req.query.default as string] = ['ins-00000000000000000000000000000000'];
       }
 
       const dispatch = getDispatchToIntegration(req);
@@ -88,8 +88,8 @@ const router = (
       const dispatchResponses: AllSettledResult = await (Promise as typeof Promise & {
         allSettled: Function;
       }).allSettled(
-        Object.entries(instancesByIntegrationId).map(async ([integrationId, instanceIds]) =>
-          dispatch(integrationId, instanceIds)
+        Object.entries(installsByIntegrationId).map(async ([integrationId, installIds]) =>
+          dispatch(integrationId, installIds)
         )
       );
 
@@ -106,7 +106,7 @@ const router = (
     }
   );
 
-  const getDispatchToIntegration = (req: express.Request) => (integrationId: string, instanceIds: string[]) =>
+  const getDispatchToIntegration = (req: express.Request) => (integrationId: string, installIds: string[]) =>
     integrationService.dispatch(
       {
         ...pathParams.EntityById(req),
@@ -118,7 +118,7 @@ const router = (
         token: getAuthToken(req),
         headers: req.headers,
         body: {
-          payload: req.body.payload.map((event: IWebhookEvents) => ({ ...event, instanceIds })),
+          payload: req.body.payload.map((event: IWebhookEvents) => ({ ...event, installIds })),
         },
         query: req.query,
         originalUrl: req.originalUrl,

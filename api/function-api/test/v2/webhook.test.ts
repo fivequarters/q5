@@ -44,11 +44,11 @@ const createEntities = async () => {
   response = await ApiRequestMap.integration.dispatch(account, integrationId, RequestMethod.get, '/api/health');
   expect(response).toBeHttp({ statusCode: 200 });
 
-  const createInstanceResponse = await ApiRequestMap.instance.post(account, integrationId, {
+  const createInstallResponse = await ApiRequestMap.install.post(account, integrationId, {
     tags: { [sharedTag]: null, 'fusebit.parentEntityId': integrationId },
     data: {},
   });
-  expect(createInstanceResponse).toBeHttp({ statusCode: 200 });
+  expect(createInstallResponse).toBeHttp({ statusCode: 200 });
   await resetCounter();
 };
 
@@ -237,7 +237,7 @@ const testDispatch = async () => {
 };
 
 describe('Connector webhook test suite', () => {
-  test('Connector webhook fires a fan_out to the target integration instances', async () => {
+  test('Connector webhook fires a fan_out to the target integration installs', async () => {
     await createEntities();
     let localCounter = 0;
 

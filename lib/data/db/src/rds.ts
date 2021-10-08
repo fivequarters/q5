@@ -8,7 +8,7 @@ import Integration from './daos/integration';
 import Storage from './daos/storage';
 import Session from './daos/session';
 import Identity from './daos/identity';
-import Instance from './daos/instance';
+import Install from './daos/install';
 import { random } from '@5qtrs/random';
 
 class RDS implements IRds {
@@ -255,7 +255,7 @@ class RDS implements IRds {
         storage: this.DAO.storage.createTransactional(transactionId),
         session: this.DAO.session.createTransactional(transactionId),
         identity: this.DAO.identity.createTransactional(transactionId),
-        instance: this.DAO.instance.createTransactional(transactionId),
+        install: this.DAO.install.createTransactional(transactionId),
       };
 
       const result = await func(transactionalDaos);
@@ -273,7 +273,7 @@ class RDS implements IRds {
     storage: new Storage(this),
     session: new Session(this),
     identity: new Identity(this),
-    instance: new Instance(this),
+    install: new Install(this),
   };
 
   public ensureRecords(

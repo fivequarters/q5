@@ -29,7 +29,7 @@ const entityOptions = {
   plural: 'installs',
   capitalPlural: 'Installs',
   parentEntityUrlSegment: 'integration',
-  entityUrlSegment: 'instance',
+  entityUrlSegment: 'install',
 };
 
 // ------------------

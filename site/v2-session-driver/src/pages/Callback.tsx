@@ -3,8 +3,6 @@ import { Button, CircularProgress } from '@material-ui/core';
 import { completeSession } from '../api/completeSession';
 import { pollSessionStatus } from '../api/pollSessionStatus';
 import { Link } from 'react-router-dom';
-import { fetchInstance } from '../api/fetchInstance';
-import { getSession, saveInstance, saveSession } from '../api/LocalStorage';
 
 export function Callback(): ReactElement {
   const [complete, setComplete] = React.useState(false);
@@ -16,8 +14,8 @@ export function Callback(): ReactElement {
   const handleCommit = async () => {
     const sessionId = getSessionId();
     await completeSession(sessionId);
-    const instance = await pollSessionStatus(sessionId);
-    setTenantId(instance['fusebit.tenantId']);
+    const install = await pollSessionStatus(sessionId);
+    setTenantId(install['fusebit.tenantId']);
     setComplete(true);
   };
 
