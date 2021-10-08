@@ -74,7 +74,7 @@ paths:
               schema:
                 $ref: '#/components/schemas/Error'
       security:
-        - AccessToken: []
+        - AccessToken: ['account:get']
     patch:
       tags:
         - Accounts
@@ -109,7 +109,7 @@ paths:
               schema:
                 $ref: '#/components/schemas/Error'
       security:
-        - AccessToken: []
+        - AccessToken: ['account:patch']
 
   /v1/account/{accountId}/subscription:
     parameters:
@@ -163,7 +163,7 @@ paths:
               schema:
                 $ref: '#/components/schemas/Error'
       security:
-        - AccessToken: []
+        - AccessToken: ['subscription:get']
 
   /v1/account/{accountId}/subscription/{subscriptionId}:
     parameters:
@@ -212,7 +212,7 @@ paths:
               schema:
                 $ref: '#/components/schemas/Error'
       security:
-        - AccessToken: []
+        - AccessToken: ['subscription:get']
 
   /v1/account/{accountId}/audit:
     parameters:
@@ -359,7 +359,7 @@ paths:
               schema:
                 $ref: '#/components/schemas/Error'
       security:
-        - AccessToken: []
+        - AccessToken: ['audit:get']
 
   /v1/account/{accountId}/init:
     parameters:
@@ -468,7 +468,7 @@ paths:
               schema:
                 $ref: '#/components/schemas/Error'
       security:
-        - AccessToken: []
+        - AccessToken: ['issuer:get']
 
   /v1/account/{accountId}/issuer/{issuerId}:
     parameters:
@@ -517,7 +517,7 @@ paths:
               schema:
                 $ref: '#/components/schemas/Error'
       security:
-        - AccessToken: []
+        - AccessToken: ['issuer:get']
     post:
       tags:
         - Issuers
@@ -552,7 +552,7 @@ paths:
               schema:
                 $ref: '#/components/schemas/Error'
       security:
-        - AccessToken: []
+        - AccessToken: ['issuer:add']
     patch:
       tags:
         - Issuers
@@ -593,7 +593,7 @@ paths:
               schema:
                 $ref: '#/components/schemas/Error'
       security:
-        - AccessToken: []
+        - AccessToken: ['issuer:update']
     delete:
       tags:
         - Issuers
@@ -623,7 +623,7 @@ paths:
               schema:
                 $ref: '#/components/schemas/Error'
       security:
-        - AccessToken: []
+        - AccessToken: ['issuer:delete']
 
   /v1/account/{accountId}/client:
     parameters:
@@ -713,7 +713,7 @@ paths:
                 $ref: '#/components/schemas/Error'
 
       security:
-        - AccessToken: []
+        - AccessToken: ['client:get']
     post:
       tags:
         - Clients
@@ -748,7 +748,7 @@ paths:
               schema:
                 $ref: '#/components/schemas/Error'
       security:
-        - AccessToken: []
+        - AccessToken: ['client:add']
 
   /v1/account/{accountId}/client/{clientId}:
     parameters:
@@ -797,7 +797,7 @@ paths:
               schema:
                 $ref: '#/components/schemas/Error'
       security:
-        - AccessToken: []
+        - AccessToken: ['client:get']
     patch:
       tags:
         - Clients
@@ -838,7 +838,7 @@ paths:
               schema:
                 $ref: '#/components/schemas/Error'
       security:
-        - AccessToken: []
+        - AccessToken: ['client:update']
     delete:
       tags:
         - Clients
@@ -868,7 +868,7 @@ paths:
               schema:
                 $ref: '#/components/schemas/Error'
       security:
-        - AccessToken: []
+        - AccessToken: ['client:delete']
 
   /v1/account/{accountId}/client/{clientId}/init:
     parameters:
@@ -926,7 +926,7 @@ paths:
               schema:
                 $ref: '#/components/schemas/Error'
       security:
-        - AccessToken: []
+        - AccessToken: ['client:init']
 
   /v1/account/{accountId}/user:
     parameters:
@@ -1023,7 +1023,7 @@ paths:
               schema:
                 $ref: '#/components/schemas/Error'
       security:
-        - AccessToken: []
+        - AccessToken: ['user:get']
     post:
       tags:
         - Users
@@ -1058,7 +1058,7 @@ paths:
               schema:
                 $ref: '#/components/schemas/Error'
       security:
-        - AccessToken: []
+        - AccessToken: ['user:add']
 
   /v1/account/{accountId}/user/{userId}:
     parameters:
@@ -1107,7 +1107,7 @@ paths:
               schema:
                 $ref: '#/components/schemas/Error'
       security:
-        - AccessToken: []
+        - AccessToken: ['user:get']
     patch:
       tags:
         - Users
@@ -1148,7 +1148,7 @@ paths:
               schema:
                 $ref: '#/components/schemas/Error'
       security:
-        - AccessToken: []
+        - AccessToken: ['user:update']
     delete:
       tags:
         - Users
@@ -1178,7 +1178,7 @@ paths:
               schema:
                 $ref: '#/components/schemas/Error'
       security:
-        - AccessToken: []
+        - AccessToken: ['user:delete']
 
   /v1/account/{accountId}/user/{userId}/init:
     parameters:
@@ -1236,7 +1236,7 @@ paths:
               schema:
                 $ref: '#/components/schemas/Error'
       security:
-        - AccessToken: []
+        - AccessToken: ['user:init']
 
   /v1/account/{accountId}/subscription/{subscriptionId}/function:
     parameters:
@@ -1339,7 +1339,7 @@ paths:
               schema:
                 $ref: '#/components/schemas/Error'
       security:
-        - AccessToken: []
+        - AccessToken: ['function:get']
 
   /v1/account/{accountId}/subscription/{subscriptionId}/boundary/{boundaryId}/function:
     parameters:
@@ -1448,7 +1448,7 @@ paths:
               schema:
                 $ref: '#/components/schemas/Error'
       security:
-        - AccessToken: []
+        - AccessToken: ['function:get']
 
   /v1/account/{accountId}/subscription/{subscriptionId}/boundary/{boundaryId}/log:
     parameters:
@@ -1500,7 +1500,7 @@ paths:
               schema:
                 $ref: '#/components/schemas/Error'
       security:
-        - AccessToken: []
+        - AccessToken: ['function:get-log']
 
   /v1/account/{accountId}/subscription/{subscriptionId}/boundary/{boundaryId}/function/{functionId}:
     parameters:
@@ -1571,7 +1571,7 @@ paths:
               schema:
                 $ref: '#/components/schemas/Error'
       security:
-        - AccessToken: []
+        - AccessToken: ['function:get']
     put:
       tags:
         - Functions
@@ -1637,7 +1637,7 @@ paths:
               schema:
                 $ref: '#/components/schemas/Error'
       security:
-        - AccessToken: []
+        - AccessToken: ['function:put']
 
     delete:
       tags:
@@ -1668,7 +1668,7 @@ paths:
               schema:
                 $ref: '#/components/schemas/Error'
       security:
-        - AccessToken: []
+        - AccessToken: ['function:delete']
 
   /v1/account/{accountId}/subscription/{subscriptionId}/boundary/{boundaryId}/function/{functionId}/build:
     parameters:
@@ -1744,7 +1744,7 @@ paths:
               schema:
                 $ref: '#/components/schemas/Error'
       security:
-        - AccessToken: []
+        - AccessToken: ['function:get']
 
   /v1/account/{accountId}/subscription/{subscriptionId}/boundary/{boundaryId}/function/{functionId}/log:
     parameters:
@@ -1801,7 +1801,7 @@ paths:
               schema:
                 $ref: '#/components/schemas/Error'
       security:
-        - AccessToken: []
+        - AccessToken: ['function:get-log']
 
   /v1/account/{accountId}/subscription/{subscriptionId}/boundary/{boundaryId}/function/{functionId}/location:
     parameters:
@@ -1862,7 +1862,7 @@ paths:
               schema:
                 $ref: '#/components/schemas/Error'
       security:
-        - AccessToken: []
+        - AccessToken: ['function:get']
 
   /v1/account/{accountId}/subscription/{subscriptionId}/boundary/{boundaryId}/function/{functionId}/build/{buildId}:
     parameters:
@@ -1944,7 +1944,7 @@ paths:
               schema:
                 $ref: '#/components/schemas/Error'
       security:
-        - AccessToken: []
+        - AccessToken: ['function:get']
 
   #  /v1/account/{accountId}/subscription/{subscriptionId}/boundary/{boundaryId}/statistics/codeactivityhg:
   #    parameters:
@@ -2452,7 +2452,7 @@ paths:
               schema:
                 $ref: '#/components/schemas/Error'
       security:
-        - AccessToken: []
+        - AccessToken: ['registry:get']
     put:
       tags:
         - Registry
@@ -2483,7 +2483,7 @@ paths:
               schema:
                 $ref: '#/components/schemas/Error'
       security:
-        - AccessToken: []
+        - AccessToken: ['registry-config:put']
 
   /v1/account/{accountId}/registry/default/npm:
     parameters:
@@ -2556,7 +2556,7 @@ paths:
               schema:
                 $ref: '#/components/schemas/Error'
       security:
-        - AccessToken: []
+        - AccessToken: ['storage:get']
   /v1/account/{accountId}/subscription/{subscriptionId}/storage/{storageId}:
     parameters:
       - in: path
@@ -2617,7 +2617,7 @@ paths:
               schema:
                 $ref: '#/components/schemas/Error'
       security:
-        - AccessToken: []
+        - AccessToken: ['storage:get']
     put:
       parameters:
         - in: header
@@ -2679,7 +2679,7 @@ paths:
               schema:
                 $ref: '#/components/schemas/Error'
       security:
-        - AccessToken: []
+        - AccessToken: ['storage:put']
     delete:
       parameters:
         - in: header
@@ -2730,7 +2730,7 @@ paths:
               schema:
                 $ref: '#/components/schemas/StorageData'
       security:
-        - AccessToken: []
+        - AccessToken: ['storage:delete']
   /v1/account/{accountId}/subscription/{subscriptionId}/storage/{storageId}/*:
     parameters:
       - in: path
@@ -2798,7 +2798,7 @@ paths:
               schema:
                 $ref: '#/components/schemas/Error'
       security:
-        - AccessToken: []
+        - AccessToken: ['storage:get']
     delete:
       tags:
         - Storage
@@ -2829,7 +2829,7 @@ paths:
               schema:
                 $ref: '#/components/schemas/Error'
       security:
-        - AccessToken: []
+        - AccessToken: ['storage:delete']
 
 components:
   securitySchemes:
