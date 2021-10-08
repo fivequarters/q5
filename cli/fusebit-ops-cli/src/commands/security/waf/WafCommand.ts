@@ -10,7 +10,7 @@ import { RegExCommand } from './regex/RegExCommand';
 const commands: ICommand = {
   name: 'Waf',
   cmd: 'waf',
-  summary: 'manage Fusebit WAF configuration',
+  summary: 'Manage Fusebit WAF configuration',
   description: 'Manage the configuration of Fusebit WAF.',
 };
 
