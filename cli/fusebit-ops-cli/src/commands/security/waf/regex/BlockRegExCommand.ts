@@ -11,15 +11,23 @@ const command: ICommand = {
       name: 'deploymentName',
       description: 'The name of the deployment.',
     },
+  ],
+  options: [
     {
       name: 'regex',
       description: 'The RegEx that you want to block from the Fusebit platform',
     },
-  ],
-  options: [
     {
       name: 'region',
       description: 'the region of the deployment.',
+    },
+    {
+      name: 'accountName',
+      description: 'The account to disable.',
+    },
+    {
+      name: 'subscriptionName',
+      description: 'The subscription to disable.',
     },
   ],
 };
@@ -34,7 +42,17 @@ export class BlockRegExCommand extends Command {
   }
 
   protected async onExecute(input: IExecuteInput): Promise<number> {
-    const [deploymentName, regex] = input.arguments as string[];
+    const [deploymentName] = input.arguments as string[];
+    let regex: string;
+    if (typeof input.options.regex === 'string') {
+      regex = input.options.regex as string;
+    } else if (typeof input.options.accountName === 'string') {
+      regex = `^.*${input.options.accountName}.*$`;
+    } else if (typeof input.options.subscriptionName === 'string') {
+      regex = `^.*${input.options.subscriptionName}.*$`;
+    } else {
+      throw Error('No regex input detected');
+    }
     const region = input.options.region as string | undefined;
     const svc = await WafService.create(input);
     await svc.blockRegExFromWaf(deploymentName, regex, region);
