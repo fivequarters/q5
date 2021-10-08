@@ -17,6 +17,12 @@ All public releases of the Fusebit CLI are documented here, including notable ch
 <!-- 1. TOC
 {:toc} -->
 
+## Version 1.15.0
+
+_Released 10/08/21_
+
+- **Enhancement.** Rename 'instance' to 'install'.
+
 ## Version 1.14.4
 
 _Released 09/18/21_
