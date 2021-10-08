@@ -336,16 +336,16 @@ function buildSdkByTenantType(sdk?: ISdkStatement): string {
     sdk?.connectorName ? `'${sdk.connectorName}'` : 'string'
   }, tenantId: string):Promise<${sdk?.importName || 'any'}>;
   
-  /** Get an authenticated SDK for the specified Connector, using a given Instance
+  /** Get an authenticated SDK for the specified Connector, using a given Install
    * @param ctx The context object provided by the route function
    * @param {string} connectorName The name of the Connector from the service to interact with
-   * @param {string} instanceId The identifier of the Instance to get the associated Connector
+   * @param {string} installId The identifier of the Install to get the associated Connector
    * @returns {Promise<${sdk?.importName || 'any'}>} Returns an authenticated SDK you would use to interact with the
    * Connector service on behalf of your user
    */
     getSdk(ctx: RouterContext, connectorName: ${
       sdk?.connectorName ? `'${sdk.connectorName}'` : 'string'
-    }, instanceId: string): Promise<${sdk?.importName || 'any'}>
+    }, installId: string): Promise<${sdk?.importName || 'any'}>
     
   `;
 }

@@ -109,7 +109,7 @@ const idToSpec: Record<EntityType, { prefix: string; len: number }> = {
 
 const createUniqueIdentifier = (entityType: EntityType) => {
   const id = idToSpec[entityType];
-  if (!id || id.len === 0) {
+  if (!id?.len) {
     throw new Error(`Invalid entity type: ${entityType}`);
   }
 
