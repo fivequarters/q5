@@ -18,6 +18,14 @@ All public releases of the Fusebit Operations CLI are documented here, including
 {:toc}
 -->
 
+## Version 1.32.1
+
+_Released 10/07/21_
+
+WARNING: Unavoidable database wipe.
+
+- **Enhancement.** Renames 'instances' to 'installs'.
+
 ## Version 1.31.1
 
 _Released 10/04/21_
