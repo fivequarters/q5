@@ -64,14 +64,7 @@ export class AwsWaf extends AwsBase<typeof WAFV2> {
       })
       .promise();
   }
-  /**
-  private async configureIPSet(IPSetConfigure: IAwsIPSetConfigure, newWaf: IAwsNewWaf) {
-    const wafSdk = await this.getAws();
-    const wafs = await wafSdk.listWebACLs({ Scope: 'REGIONAL' }).promise();
-    const waf = wafs?.WebACLs?.find((waf) => waf.Name === IPSetConfigure.wafName);
-  }
 
-*/
   private async getWafOrUndefined(name: string): Promise<IAwsWaf | undefined> {
     const wafSdk = await this.getAws();
     const wafs = await wafSdk.listWebACLs({ Scope: 'REGIONAL' }).promise();
