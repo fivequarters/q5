@@ -2,7 +2,7 @@ import express from 'express';
 import { DynamoDB } from 'aws-sdk';
 import http_error from 'http-errors';
 
-import RDS from '@5qtrs/db';
+import RDS, { Model } from '@5qtrs/db';
 import { request } from '@5qtrs/request';
 import { Defaults } from '@5qtrs/account';
 import * as Constants from '@5qtrs/constants';
@@ -314,7 +314,9 @@ describe('Proxy', () => {
     await createConnector();
 
     const response = await request({
-      url: `${connectorUrl}/proxy/slack/oauth/authorize?response_type=code&scope=&state=00000000-0000-0000-0000-000000000000&client_id=aaa&redirect_uri=monkey`,
+      url: `${connectorUrl}/proxy/slack/oauth/authorize?response_type=code&scope=&state=${Constants.createUniqueIdentifier(
+        Model.EntityType.session
+      )}&client_id=aaa&redirect_uri=monkey`,
     });
     expect(response).toBeHttp({ statusCode: 403 });
   }, 180000);
@@ -360,7 +362,9 @@ describe('Proxy', () => {
 
     // Validate that the proxy rejects due to an invalid session_id
     response = await request({
-      url: `${connectorUrl}/proxy/slack/oauth/authorize?client_id=${localIdentity.clientId}&state=00000000-0000-0000-0000-000000000000&redirect_uri=${connectorUrl}/api/callback`,
+      url: `${connectorUrl}/proxy/slack/oauth/authorize?client_id=${
+        localIdentity.clientId
+      }&state=${Constants.createUniqueIdentifier(Model.EntityType.session)}&redirect_uri=${connectorUrl}/api/callback`,
       maxRedirects: 0,
     });
     expect(response).toBeHttp({ statusCode: 403 });

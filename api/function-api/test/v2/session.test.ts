@@ -584,7 +584,7 @@ describe('Sessions', () => {
     // Wait for the install to be fully available.
     response = await waitForCompletionTargetUrl(account, response.data.targetUrl);
     const installId = response.data.id;
-    expect(installId).toBeUUID();
+    expect(installId).toBeInstallId();
     expect(response.data.state).toBe(EntityState.active);
 
     // Returns the identity and install id's.
@@ -610,10 +610,10 @@ describe('Sessions', () => {
         },
       ],
     });
-    expect(response.data.output.entityId).toBeUUID();
+    expect(response.data.output.entityId).toBeInstallId();
 
     const childSessionId = Model.decomposeSubordinateId(response.data.components[0].childSessionId).entityId;
-    expect(childSessionId).toBeUUID();
+    expect(childSessionId).toBeSessionId();
     expect(response.data.components[0]).not.toHaveProperty('output');
 
     const install = response.data.output;
@@ -743,7 +743,7 @@ describe('Sessions', () => {
     // Wait for the install to be fully available.
     response = await waitForCompletionTargetUrl(account, response.data.targetUrl);
     const installId = response.data.id;
-    expect(installId).toBeUUID();
+    expect(installId).toBeInstallId();
     expect(response.data.state).toBe(EntityState.active);
 
     // Verify Operation Id

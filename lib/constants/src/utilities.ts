@@ -2,6 +2,10 @@ import * as path from 'path';
 import http_error from 'http-errors';
 import * as express from 'express';
 
+import * as crypto from 'crypto';
+
+import { EntityType } from '@fusebit/schema';
+
 const DYNAMO_BACKOFF_TRIES_MAX = 5;
 const DYNAMO_BACKOFF_DELAY = 300;
 
@@ -94,6 +98,24 @@ const isUuid = (str: string) => {
   return /^[0-9a-f]{8}-[0-9a-f]{4}-[0-5][0-9a-f]{3}-[089ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(str);
 };
 
+const idToSpec: Record<EntityType, { prefix: string; len: number }> = {
+  integration: { prefix: 'int', len: 0 }, // Not used
+  connector: { prefix: 'con', len: 0 }, // Not used
+  storage: { prefix: 'str', len: 0 }, // Not used
+  identity: { prefix: 'idn', len: 16 },
+  install: { prefix: 'ins', len: 16 },
+  session: { prefix: 'sid', len: 16 },
+};
+
+const createUniqueIdentifier = (entityType: EntityType) => {
+  const id = idToSpec[entityType];
+  if (!id || id.len === 0) {
+    throw new Error(`Invalid entity type: ${entityType}`);
+  }
+
+  return `${id.prefix}-${crypto.randomBytes(id.len).toString('hex')}`;
+};
+
 const getAuthToken = (req: express.Request): string | undefined => {
   if (!req.headers.authorization) {
     return undefined;
@@ -144,4 +166,15 @@ const mergeDeep = (lhs: any, source: any, isMergingArrays: boolean = false) => {
   return target;
 };
 
-export { dynamoScanTable, expBackoff, asyncPool, duplicate, safePath, safePathMap, isUuid, getAuthToken, mergeDeep };
+export {
+  dynamoScanTable,
+  expBackoff,
+  asyncPool,
+  duplicate,
+  safePath,
+  safePathMap,
+  isUuid,
+  getAuthToken,
+  mergeDeep,
+  createUniqueIdentifier,
+};

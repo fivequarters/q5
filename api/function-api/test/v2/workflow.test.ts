@@ -263,7 +263,7 @@ describe('Workflow', () => {
     // Wait for the entities to be fully created.
     response = await waitForCompletionTargetUrl(account, response.data.targetUrl);
     let installId = response.data.id;
-    expect(installId).toBeUUID();
+    expect(installId).toBeInstallId();
 
     // Get the completed session with the output details
     response = await ApiRequestMap.integration.session.getResult(account, integrationId, parentSessionId);
@@ -294,9 +294,9 @@ describe('Workflow', () => {
         },
       ],
     });
-    expect(Model.decomposeSubordinateId(response.data.components[0].childSessionId).entityId).toBeUUID();
-    expect(Model.decomposeSubordinateId(response.data.components[1].childSessionId).entityId).toBeUUID();
-    expect(response.data.output.entityId).toBeUUID();
+    expect(Model.decomposeSubordinateId(response.data.components[0].childSessionId).entityId).toBeSessionId();
+    expect(Model.decomposeSubordinateId(response.data.components[1].childSessionId).entityId).toBeSessionId();
+    expect(response.data.output.entityId).toBeInstallId();
     expect(response.data.output.entityId).toBe(installId);
 
     response = await ApiRequestMap.install.get(account, integrationId, installId);
@@ -358,7 +358,7 @@ describe('Workflow', () => {
         },
       },
     });
-    expect(response.data.data.conn1.entityId).toBeUUID();
+    expect(response.data.data.conn1.entityId).toBeIdentityId();
 
     response = await ApiRequestMap.integration.dispatch(
       account,

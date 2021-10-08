@@ -40,6 +40,6 @@ describe('Identity', () => {
     response = await ApiRequestMap.identity.get(account, connectorId, entityId);
     expect(response).toBeHttp({ statusCode: 404 });
     response = await ApiRequestMap.install.delete(account, connectorId, entityId);
-    expect(response).toBeHttp({ statusCode: 404 });
+    expect(response).toBeHttp({ statusCode: 400 });
   }, 180000);
 });

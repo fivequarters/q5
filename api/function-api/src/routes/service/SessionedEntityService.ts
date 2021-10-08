@@ -1,7 +1,6 @@
 import http_error from 'http-errors';
-import { v4 as uuidv4 } from 'uuid';
 
-import { EPHEMERAL_ENTITY_EXPIRATION } from '@5qtrs/constants';
+import { createUniqueIdentifier, EPHEMERAL_ENTITY_EXPIRATION } from '@5qtrs/constants';
 import RDS, { Model } from '@5qtrs/db';
 
 import BaseEntityService, { IServiceResult } from './BaseEntityService';
@@ -70,7 +69,7 @@ export default abstract class SessionedEntityService<
     // Get the components
     let stepList: Model.IStep[];
     let tags: Model.ITags;
-    const sessionId = uuidv4();
+    const sessionId = createUniqueIdentifier(Model.EntityType.session);
 
     // If there's a specific order or subset specified, use that instead of the full list.
     const dagCheck: { [step: string]: boolean } = {};
@@ -147,7 +146,7 @@ export default abstract class SessionedEntityService<
       return { statusCode: 200, result: childEntity };
     }
 
-    const sessionId = uuidv4();
+    const sessionId = createUniqueIdentifier(Model.EntityType.session);
 
     // Calculate 'dependsOn' based on previous session ids
     const dependsOn = step.dependsOn
@@ -363,7 +362,7 @@ export default abstract class SessionedEntityService<
       }
     }
 
-    const installId = session.data.replacementTargetId || uuidv4();
+    const installId = session.data.replacementTargetId || createUniqueIdentifier(Model.EntityType.install);
 
     const masterSessionId = Model.decomposeSubordinateId(session.id);
 
@@ -551,7 +550,7 @@ export default abstract class SessionedEntityService<
       id: parentEntityId,
     });
 
-    const leafId = session.data.replacementTargetId || uuidv4();
+    const leafId = session.data.replacementTargetId || createUniqueIdentifier(Model.EntityType.identity);
 
     const leafEntity: Model.IEntity = {
       accountId: session.accountId,

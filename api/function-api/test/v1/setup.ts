@@ -201,6 +201,21 @@ function toBeUUID(received: string) {
   return { message: () => `Not a valid UUID: ${received}`, pass };
 }
 
+function toBeSessionId(received: string) {
+  const pass: boolean = /^sid-[0-9a-f]{32}$/.test(received);
+  return { message: () => `Not a valid session id: ${received}`, pass };
+}
+
+function toBeInstallId(received: string) {
+  const pass: boolean = /^ins-[0-9a-f]{32}$/.test(received);
+  return { message: () => `Not a valid install id: ${received}`, pass };
+}
+
+function toBeIdentityId(received: string) {
+  const pass: boolean = /^idn-[0-9a-f]{32}$/.test(received);
+  return { message: () => `Not a valid identity id: ${received}`, pass };
+}
+
 /*
  * toExtend usage: expect(received).toExtend(expected);
  *
@@ -286,6 +301,9 @@ const matchers = {
   toBeStorageConflict,
   toBeStorageNotFound,
   toBeUUID,
+  toBeInstallId,
+  toBeIdentityId,
+  toBeSessionId,
   toExtend,
 };
 
@@ -310,6 +328,9 @@ declare global {
       toBeStorageConflict: (storageId: string, etag: string, isUpdate?: boolean, storagePath?: string) => R;
       toBeStorageNotFound: (storageId: string, storagePath?: string) => R;
       toBeUUID: () => R;
+      toBeInstallId: () => R;
+      toBeIdentityId: () => R;
+      toBeSessionId: () => R;
       toExtend: (expected: T) => R;
     }
   }
