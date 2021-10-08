@@ -3,7 +3,7 @@ export interface ISession {
   tenantId: string;
   sessionId: string;
   target?: string;
-  instanceId?: string;
+  installId?: string;
   completed?: boolean;
 }
 
@@ -14,8 +14,8 @@ export interface IAccount {
   accessToken: string;
 }
 
-export interface IInstance {
-  instanceId: string;
+export interface IInstall {
+  installId: string;
   'fusebit.tenantId': string;
   integrationBaseUrl: string;
 }
@@ -27,7 +27,7 @@ export interface IIntegration {
 enum LocalStorageKeys {
   sessions = 'sessions',
   account = 'account',
-  instance = 'instances',
+  install = 'installs',
   integration = 'integration',
 }
 
@@ -93,17 +93,17 @@ export function getIntegrationBaseUrl(integration: string): string {
   return `${account.endpoint}/v2/account/${account.accountId}/subscription/${account.subscriptionId}/integration/${integration}`;
 }
 
-export function saveInstance(instance: IInstance) {
-  const localInstances = JSON.parse(window.localStorage.getItem(LocalStorageKeys.instance) || '{}');
-  localInstances[instance['fusebit.tenantId']] = instance;
-  const instanceString = JSON.stringify(localInstances);
-  window.localStorage.setItem(LocalStorageKeys.instance, instanceString);
+export function saveInstall(install: IInstall) {
+  const localInstalls = JSON.parse(window.localStorage.getItem(LocalStorageKeys.install) || '{}');
+  localInstalls[install['fusebit.tenantId']] = install;
+  const installString = JSON.stringify(localInstalls);
+  window.localStorage.setItem(LocalStorageKeys.install, installString);
 }
 
-export function getInstance(tenantId: string): IInstance {
-  const localInstances = JSON.parse(window.localStorage.getItem(LocalStorageKeys.instance) || '{}');
-  const instance = localInstances[tenantId];
-  return instance;
+export function getInstall(tenantId: string): IInstall {
+  const localInstalls = JSON.parse(window.localStorage.getItem(LocalStorageKeys.install) || '{}');
+  const install = localInstalls[tenantId];
+  return install;
 }
 
 export function listIntegrations(): IIntegration[] {
