@@ -323,6 +323,7 @@ export async function downloadAndInstallTypes(
 function buildSdkByTenantType(sdk?: ISdkStatement): string {
   return ` /**
   * Get an authenticated ${sdk?.integrationType || ''} SDK for the specified Connector, using a given Tenant ID
+  *
   * @param ctx The context object provided by the route function
   * @param {string} connectorName The name of the Connector from the service to interact with
   * @param {string} tenantId Represents a single user of this Integration,
@@ -336,7 +337,9 @@ function buildSdkByTenantType(sdk?: ISdkStatement): string {
     sdk?.connectorName ? `'${sdk.connectorName}'` : 'string'
   }, tenantId: string):Promise<${sdk?.importName || 'any'}>;
   
-  /** Get an authenticated SDK for the specified Connector, using a given Install
+  /**
+   * Get an authenticated SDK for the specified Connector, using a given Install
+   *
    * @param ctx The context object provided by the route function
    * @param {string} connectorName The name of the Connector from the service to interact with
    * @param {string} installId The identifier of the Install to get the associated Connector
