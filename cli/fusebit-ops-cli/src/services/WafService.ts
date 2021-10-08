@@ -122,8 +122,9 @@ export class WafService {
       })
       .promise();
   }
-  private async getWafJson(deploymentName: string, region: string) {
-    const waf = await this.getWafOrUndefined(deploymentName, region);
+  public async getWafJson(deploymentName: string, region?: string) {
+    const correctRegion = await this.ensureRegionOrError(deploymentName, region);
+    const waf = await this.getWafOrUndefined(deploymentName, correctRegion);
     if (!waf) {
       await this.input.io.write('{}');
       return;
@@ -134,6 +135,14 @@ export class WafService {
         id: waf.Id as string,
       })
     );
+  }
+  private async getWafPretty(deploymentName: string, region: string) {
+    const waf = await this.getWafOrUndefined(deploymentName, region);
+    await this.input.io.writeLine('Waf details:');
+    if (!waf) {
+      return;
+    }
+    await this.input.io.write(`The name of the waf is ${waf.Name} and id ${waf.Id}`);
   }
   private async getIPSetOrUndefined(deploymentName: string, region: string) {
     const wafSdk = await this.getWafSdk({
@@ -346,13 +355,17 @@ export class WafService {
 
   public async getWaf(deploymentName: string, region?: string) {
     let correctRegion = await this.ensureRegionOrError(deploymentName, region);
+    if (this.input.options?.output === 'json') {
+      await this.getWafJson(deploymentName, correctRegion);
+      return;
+    }
     return this.executeService.execute(
       {
         header: 'Get WAF Information',
         message: 'Getting the information of the AWS WAF resource.',
         errorHeader: 'WAF Error',
       },
-      () => this.getWafJson(deploymentName, correctRegion)
+      () => this.getWafPretty(deploymentName, correctRegion)
     );
   }
 

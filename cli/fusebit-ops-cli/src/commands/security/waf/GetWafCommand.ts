@@ -17,6 +17,12 @@ const command: ICommand = {
       name: 'region',
       description: 'The region of the deployment',
     },
+    {
+      name: 'output',
+      aliases: ['o'],
+      description: "The format to display the output: 'pretty', 'json'",
+      default: 'pretty',
+    },
   ],
 };
 
