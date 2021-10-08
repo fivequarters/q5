@@ -93,14 +93,14 @@ export const waitForCompletion = async (
   entityType: Model.EntityType,
   entityId: string,
   subordinateId?: string,
-  waitOpts?: Partial<IWaitForCompletionParams>,
+  waitOpts: Partial<IWaitForCompletionParams> = {},
   options?: IRequestOptions
 ) => {
   const startTime = Date.now();
   let response: any;
 
   // Add defaults to waitOptions
-  const waitOptions: IWaitForCompletionParams = { ...DefaultWaitForCompletionParams, ...(waitOpts || {}) };
+  const waitOptions: IWaitForCompletionParams = { ...DefaultWaitForCompletionParams, ...waitOpts };
 
   do {
     response = subordinateId
@@ -133,13 +133,13 @@ export const waitForCompletion = async (
 export const waitForCompletionTargetUrl = async (
   account: IAccount,
   targetUrl: string,
-  waitOpts?: Partial<IWaitForCompletionParams>
+  waitOpts: Partial<IWaitForCompletionParams> = {}
 ) => {
   const startTime = Date.now();
   let response: any;
 
   // Add defaults to waitOptions
-  const waitOptions: IWaitForCompletionParams = { ...DefaultWaitForCompletionParams, ...(waitOpts || {}) };
+  const waitOptions: IWaitForCompletionParams = { ...DefaultWaitForCompletionParams, ...waitOpts };
 
   do {
     response = await v2Request(account, {
@@ -310,11 +310,11 @@ const createSdk = (entityType: Model.EntityType): ISdkForEntity => ({
     account: IAccount,
     entityId: string,
     body: Optional<Model.ISdkEntity, 'id'>,
-    waitOpts?: Partial<IWaitForCompletionParams>,
+    waitOpts: Partial<IWaitForCompletionParams> = {},
     options?: IRequestOptions
   ) => {
     // Add defaults to waitOptions
-    const waitOptions: IWaitForCompletionParams = { ...DefaultWaitForCompletionParams, ...(waitOpts || {}) };
+    const waitOptions: IWaitForCompletionParams = { ...DefaultWaitForCompletionParams, ...waitOpts };
 
     const op = await ApiRequestMap[entityType].post(account, entityId, body, options);
     expect(op).toBeHttp({
@@ -341,11 +341,11 @@ const createSdk = (entityType: Model.EntityType): ISdkForEntity => ({
     account: IAccount,
     entityId: string,
     body: Model.ISdkEntity,
-    waitOpts?: Partial<IWaitForCompletionParams>,
+    waitOpts: Partial<IWaitForCompletionParams> = {},
     options?: IRequestOptions
   ) => {
     // Add defaults to waitOptions
-    const waitOptions: IWaitForCompletionParams = { ...DefaultWaitForCompletionParams, ...(waitOpts || {}) };
+    const waitOptions: IWaitForCompletionParams = { ...DefaultWaitForCompletionParams, ...waitOpts };
 
     const op = await ApiRequestMap[entityType].put(account, entityId, body);
     if (op.status !== 200) {
@@ -366,11 +366,11 @@ const createSdk = (entityType: Model.EntityType): ISdkForEntity => ({
   deleteAndWait: async (
     account: IAccount,
     entityId: string,
-    waitOpts?: Partial<IWaitForCompletionParams>,
+    waitOpts: Partial<IWaitForCompletionParams> = {},
     options?: IRequestOptions
   ) => {
     // Add defaults to waitOptions
-    const waitOptions: IWaitForCompletionParams = { ...DefaultWaitForCompletionParams, ...(waitOpts || {}) };
+    const waitOptions: IWaitForCompletionParams = { ...DefaultWaitForCompletionParams, ...waitOpts };
 
     let wait: any;
     do {
@@ -800,7 +800,7 @@ export const attachLogger = async (account: IAccount, entityType: Model.EntityTy
   return { logsPromise };
 };
 
-export const createTestFile = (getTestFile: () => any, replacements?: Record<string, string>): string => {
+export const createTestFile = (getTestFile: () => any, replacements: Record<string, string> = {}): string => {
   let stringFunc = String(getTestFile);
   let stringArray = stringFunc.split('}');
   stringArray.pop();
@@ -808,7 +808,7 @@ export const createTestFile = (getTestFile: () => any, replacements?: Record<str
   stringArray = stringFunc.split('{');
   stringArray.shift();
   stringFunc = stringArray.join('{');
-  Object.entries(replacements || {}).forEach(([find, replace]) => {
+  Object.entries(replacements).forEach(([find, replace]) => {
     stringFunc = stringFunc.replace(new RegExp(find, 'g'), replace);
   });
   return stringFunc;
