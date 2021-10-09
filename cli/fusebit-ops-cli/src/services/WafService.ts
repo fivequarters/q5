@@ -226,7 +226,7 @@ export class WafService {
       })
       .promise();
 
-    await this.input.io.writeLine('IP filters appLied to the Fusebit platform');
+    await this.input.io.writeLine('IP filters applied to the Fusebit platform');
     ipsetDetails.IPSet?.Addresses.forEach(async (ip) => {
       await this.input.io.writeLine(`- ${ip}`);
     });
