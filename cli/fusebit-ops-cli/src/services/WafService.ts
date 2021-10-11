@@ -59,9 +59,7 @@ export class WafService {
   }
 
   private async getWafOrError(deploymentName: string, region: string) {
-    const wafSdk = await this.getWafSdk({
-      region,
-    });
+    const wafSdk = await this.getWafSdk({ region });
     const wafs = await wafSdk.listWebACLs({ Scope: 'REGIONAL' }).promise();
     let waf = wafs.WebACLs?.find((waf) => waf.Name === deploymentName + wafPostfix);
     if (!waf) {
@@ -77,9 +75,7 @@ export class WafService {
   }
 
   private async unblockIP(deploymentName: string, region: string, ipaddr: string) {
-    const wafSdk = await this.getWafSdk({
-      region,
-    });
+    const wafSdk = await this.getWafSdk({ region });
 
     const IPSet = await this.getIPSetOrError(deploymentName, region);
     let IPs = IPSet.IPSet.Addresses;
@@ -95,9 +91,7 @@ export class WafService {
       .promise();
   }
   private async blockIP(deploymentName: string, region: string, ip: string) {
-    const wafSdk = await this.getWafSdk({
-      region,
-    });
+    const wafSdk = await this.getWafSdk({ region });
     const IPSet = await this.getIPSetOrError(deploymentName, region);
     await wafSdk
       .updateIPSet({
@@ -125,9 +119,7 @@ export class WafService {
     await this.input.io.write(`The name of the waf is ${waf.WAF.Name} and id ${waf.WAF.Id}`);
   }
   private async getIPSetOrError(deploymentName: string, region: string) {
-    const wafSdk = await this.getWafSdk({
-      region,
-    });
+    const wafSdk = await this.getWafSdk({ region });
     const ipsets = await wafSdk
       .listIPSets({
         Scope: 'REGIONAL',
@@ -168,9 +160,7 @@ export class WafService {
   }
 
   private async getRegExRules(deploymentName: string, region: string) {
-    const wafSdk = await this.getWafSdk({
-      region,
-    });
+    const wafSdk = await this.getWafSdk({ region });
     let waf = await this.getWafOrError(deploymentName, region);
     await this.input.io.writeLine('Regex filters applied to the Fusebit platform.');
     waf.WAF.Rules?.forEach(async (rule) => {
@@ -194,9 +184,7 @@ export class WafService {
       throw Error('Invalid RegEx string inputed.');
     }
     const waf = await this.getWafOrError(deploymentName, region);
-    const wafSdk = await this.getWafSdk({
-      region,
-    });
+    const wafSdk = await this.getWafSdk({ region });
     const rules = waf.WAF.Rules as WAFV2.Rules;
     rules.push({
       Name: uuidv4(),
