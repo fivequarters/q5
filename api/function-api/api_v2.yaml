@@ -15,7 +15,7 @@ info:
   description: Fusebit HTTP API for the management and execution of Fusebit
     accounts, users, functions and more
   version: '1.0.0'
-  title: 'Fusebit HTTP API - v2'
+  title: 'Fusebit HTTP API - Integrations'
   contact:
     email: contact@fusebit.io
   license:
