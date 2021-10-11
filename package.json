@@ -205,7 +205,8 @@
       "site/v2-session-driver",
       "tool/cicd/jenkins",
       "tool/cicd/slack-notification",
-      "lib/aws/aws-waf"
+      "lib/aws/aws-waf",
+      "tool/lambda-nuke"
     ]
   }
 }
