@@ -1,41 +1,17 @@
 on: pull_request
-name: Test CLI on NPM 7
+name: Test NPM Install
 jobs:
-  deploy:
-    name: Install
+  test-npm-install:
+    name: NPM Install
     runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        node-version: [12.22.6, 14.17.2, 15.13.0, 16.11.0]
     steps:
-      - name: Use Node.js
+      - name: Use Node.js ${{ matrix.os }}
         uses: actions/setup-node@v1
         with:
-          node-version: 14.17.2
-      - name: Install yarn
-        run: npm i -g yarn
-      - name: Checkout
-        uses: actions/checkout@v2
-        with:
-          fetch-depth: 0
-      - name: Package CLI
-        run: >
-          yarn set version 1.21.1
-
-          yarn --frozen-lockfile setup
-
-          yarn --frozen-lockfile install
-
-          yarn build
-
-          yarn package fusebit-cli
-
-          cd cli/fusebit-cli/package
-
-          ls -la
-
-          npm pack
-      - name: Use Node.js
-        uses: actions/setup-node@v1
-        with:
-          node-version: 15.13
+          node-version: ${{ matrix.os }}
       - name: Install and test CLI
         run: >
           echo 'Installing fuse'
@@ -44,12 +20,6 @@ jobs:
 
           npm -v
 
-          echo 'install tgz'
-
-          npm i -g fusebit-cli-*.tgz
-
-          echo 'install dir'
-
-          npm install -g cli/fusebit-cli/package
+          npm i -g @fusebit/cli
 
           fuse
