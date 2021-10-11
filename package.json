@@ -65,7 +65,10 @@
     "yarn": "^1.12.3"
   },
   "workspaces": {
-    "nohoist": ["**/lambda-*", "**/lambda-*/**"],
+    "nohoist": [
+      "**/lambda-*",
+      "**/lambda-*/**"
+    ],
     "packages": [
       "tool/tool-config",
       "tool/workspace",
@@ -201,7 +204,8 @@
       "site/catalog",
       "site/v2-session-driver",
       "tool/cicd/jenkins",
-      "tool/cicd/slack-notification"
+      "tool/cicd/slack-notification",
+      "lib/aws/aws-waf"
     ]
   }
 }
