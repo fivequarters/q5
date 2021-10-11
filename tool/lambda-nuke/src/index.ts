@@ -7,7 +7,7 @@ import AWS from 'aws-sdk';
   do {
     const lambdas = await lambdaSdk.listFunctions().promise();
     if (lambdas.Functions?.length === 0) {
-      console.log(`All lambda functions within ${process.env.REGION} have been deleted`);
+      console.log(`All lambda functions within ${process.env.REGION} have been deleted.`);
       break;
     }
     for (const lambda of lambdas.Functions as AWS.Lambda.FunctionList) {
