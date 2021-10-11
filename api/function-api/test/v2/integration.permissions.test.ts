@@ -84,9 +84,15 @@ describe('Integration Permissions', () => {
     });
 
     // Test with basic permissions, but not enough
-    let response = await ApiRequestMap.integration.postAndWait(account, integEntity.id, integEntity, undefined, {
-      authz: basicPutToken,
-    });
+    let response = await ApiRequestMap.integration.postAndWait(
+      account,
+      integEntity.id,
+      integEntity,
+      { allowFailure: true },
+      {
+        authz: basicPutToken,
+      }
+    );
     expect(response).toBeHttp({
       statusCode: 200,
       data: {
@@ -113,7 +119,7 @@ describe('Integration Permissions', () => {
         { action: Permissions.allStorage, resource: '/' },
         { action: v2Permissions.updateSession, resource: '/' },
         { action: v2Permissions.getSession, resource: '/' },
-        { action: v2Permissions.instance.all, resource: '/' },
+        { action: v2Permissions.install.all, resource: '/' },
       ],
     });
 
@@ -155,7 +161,7 @@ describe('Integration Permissions', () => {
       { action: Permissions.allStorage, resource: '/' },
       { action: v2Permissions.updateSession, resource: '/' },
       { action: v2Permissions.getSession, resource: '/' },
-      { action: v2Permissions.instance.all, resource: '/' },
+      { action: v2Permissions.install.all, resource: '/' },
     ];
     const simplePutToken = await AuthZ.getTokenByPerm({ allow: basePerms });
 
@@ -164,9 +170,15 @@ describe('Integration Permissions', () => {
     });
 
     // Test with no execute fails
-    let response = await ApiRequestMap.integration.postAndWait(account, integEntity.id, integEntity, undefined, {
-      authz: simplePutToken,
-    });
+    let response = await ApiRequestMap.integration.postAndWait(
+      account,
+      integEntity.id,
+      integEntity,
+      { allowFailure: true },
+      {
+        authz: simplePutToken,
+      }
+    );
     expect(response).toBeHttp({
       statusCode: 200,
       data: {

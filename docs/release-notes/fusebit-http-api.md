@@ -17,6 +17,19 @@ All public releases of the Fusebit HTTP API are documented here, including notab
 <!-- 1. TOC
 {:toc} -->
 
+## Version 1.26.0
+
+_Released 10/9/21_
+
+- **Enhancement.** Rename 'instance' to 'install'.
+- **Enhancement.** Change the primary key for installs, identities, and sessions to a `prefix-random{32}` format.
+
+## Version 1.25.0
+
+_Released 10/7/21_
+
+- **Bugfix.** Migrate session POST to use the 'session:add' permission.
+
 ## Version 1.24.0
 
 _Released 10/5/21_

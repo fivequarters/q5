@@ -18,11 +18,19 @@ All public releases of the Fusebit Operations CLI are documented here, including
 {:toc}
 -->
 
-## Version 1.32.0
+## Version 1.33.0
 
 _Released 10/11/21_
 
 - **Enhancement.** Implement AWS WAF on the Fusebit platform to allow disabling tenants and blacklisting IP ranges.
+
+## Version 1.32.1
+
+_Released 10/07/21_
+
+WARNING: Unavoidable database wipe.
+
+- **Enhancement.** Renames 'instances' to 'installs'.
 
 ## Version 1.31.1
 

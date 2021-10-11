@@ -17,7 +17,7 @@ const createSessionRouter = (SessionService: SessionedEntityService<any, any>) =
     '/',
     common.management({
       validate: { params: ValidationCommon.EntityIdParams, body: Validation.SessionCreate },
-      authorize: { operation: v2Permissions.postSession },
+      authorize: { operation: v2Permissions.addSession },
     }),
     async (req: express.Request, res: express.Response, next: express.NextFunction) => {
       try {
@@ -175,14 +175,14 @@ const createSessionRouter = (SessionService: SessionedEntityService<any, any>) =
       }),
       async (req: express.Request, res: express.Response, next: express.NextFunction) => {
         try {
-          const instanceId = await SessionService.commitSession({
+          const installId = await SessionService.commitSession({
             accountId: req.params.accountId,
             subscriptionId: req.params.subscriptionId,
-            // Sessions use the non-unique component name, but instances and identities use the database id.
+            // Sessions use the non-unique component name, but installs and identities use the database id.
             id: Model.createSubordinateId(SessionService.entityType, req.params.entityId, req.params.sessionId),
           });
           res.status(202).json({
-            targetUrl: `${Constants.API_PUBLIC_ENDPOINT}/v2/account/${req.params.accountId}/subscription/${req.params.subscriptionId}/${SessionService.entityType}/${req.params.entityId}/instance/${instanceId}/`,
+            targetUrl: `${Constants.API_PUBLIC_ENDPOINT}/v2/account/${req.params.accountId}/subscription/${req.params.subscriptionId}/${SessionService.entityType}/${req.params.entityId}/install/${installId}/`,
           });
         } catch (error) {
           console.log(error);

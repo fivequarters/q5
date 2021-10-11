@@ -6,14 +6,14 @@ import * as integration from './integration';
 import * as connector from './connector';
 import * as entities from './entities';
 import * as identity from './identity';
-import * as instance from './instance';
+import * as install from './install';
 
 const Entities: Record<Model.EntityType, { Entity: any; PostEntity: any; Data: any }> = {
   integration,
   connector,
 
   storage: { Entity: Joi.any(), PostEntity: Joi.any(), Data: Joi.any() },
-  instance,
+  install,
   identity,
   session: { Entity: Joi.any(), PostEntity: Joi.any(), Data: Joi.any() },
 };

@@ -85,12 +85,12 @@ const makeInvalidPermissionSet = (): IPermissionSet => makePermissionSet('invali
 
 export interface IV2Permissions {
   integration: IPermissionSet;
-  instance: IPermissionSet;
+  install: IPermissionSet;
   connector: IPermissionSet;
   identity: IPermissionSet;
   storage: IPermissionSet;
   session: IPermissionSet;
-  postSession: string;
+  addSession: string;
   updateSession: string;
   getSession: string;
   commitSession: string;
@@ -98,7 +98,7 @@ export interface IV2Permissions {
 
 export const v2Permissions: IV2Permissions = {
   integration: makePermissionSet('integration'),
-  instance: makePermissionSet('instance'),
+  install: makePermissionSet('install'),
   connector: makePermissionSet('connector'),
   identity: makePermissionSet('identity'),
 
@@ -108,7 +108,7 @@ export const v2Permissions: IV2Permissions = {
   storage: makeInvalidPermissionSet(),
   session: makeInvalidPermissionSet(),
 
-  postSession: 'session:post',
+  addSession: 'session:add',
   updateSession: 'session:update',
   getSession: 'session:get',
   commitSession: 'session:commit',

@@ -70,20 +70,46 @@ export class OAuthProxyService implements IOAuthProxyService {
   // Some utility methods; these will have to change if the connector contract changes, for example.
   public getBasePath = (): string =>
     `/v2/account/${this.accountId}/subscription/${this.subscriptionId}/connector/${this.connectorId}`;
+  public getMasterBasePath = (): string =>
+    `/v2/account/${this.configuration.accountId}/subscription/${this.configuration.subscriptionId}/connector/oauth-proxy-callback`;
   public getPeerCallbackPath = (): string => `${this.getBasePath()}/api/callback`;
-  public getProxyCallbackPath = (): string => `${this.getBasePath()}/proxy/${this.name}/oauth/callback`;
-
+  public getProxyCallbackPath = (): string => `${this.getMasterBasePath()}/proxy/${this.name}/oauth/callback`;
+  public getProxyState = (state: string): string =>
+    Buffer.from(
+      JSON.stringify({
+        accountId: this.accountId,
+        subscriptionId: this.subscriptionId,
+        connectorId: this.connectorId,
+        state,
+      }),
+      'utf8'
+    ).toString('base64');
+  public static getPeerFromState = (
+    state: string
+  ): { accountId: string; subscriptionId: string; connectorId: string; state: string } =>
+    JSON.parse(Buffer.from(state, 'base64').toString('utf8'));
   public getAuthorizeUrl = (query: Record<string, string>) => {
     const url = new URL(this.configuration.authorizationUrl);
+    let originalState;
+
     Object.entries(query).forEach(([key, value]: [string, unknown]) => {
       if (typeof value !== 'string') {
         throw http_error(400, `Invalid parameter ${key}`);
       }
 
+      if (key === 'state') {
+        originalState = value;
+      }
+
       url.searchParams.append(key, value);
     });
 
+    if (!originalState) {
+      throw http_error(400, 'Missing state');
+    }
+
     // Overload with the internal parameters
+    url.searchParams.set('state', this.getProxyState(originalState));
     url.searchParams.set('client_id', this.configuration.clientId);
     url.searchParams.set('redirect_uri', process.env.API_SERVER + this.getProxyCallbackPath());
 

@@ -11,6 +11,7 @@ import {
   isUuid,
   getAuthToken,
   mergeDeep,
+  createUniqueIdentifier,
 } from './utilities';
 
 interface IModuleSpec {
@@ -332,4 +333,5 @@ export {
   isUuid,
   getAuthToken,
   mergeDeep,
+  createUniqueIdentifier,
 };

@@ -1,9 +1,7 @@
 import express from 'express';
 
-import { v4 as uuidv4 } from 'uuid';
-
 import { IAgent } from '@5qtrs/account-data';
-import { v2Permissions } from '@5qtrs/constants';
+import { createUniqueIdentifier, v2Permissions } from '@5qtrs/constants';
 import RDS, { Model } from '@5qtrs/db';
 
 import * as common from '../middleware/common';
@@ -34,7 +32,7 @@ const subcomponentRouter = (
       }),
       async (req: express.Request, res: express.Response, next: express.NextFunction) => {
         try {
-          // Fetch the parent, to filter for instances under this connector.
+          // Fetch the parent, to filter for entities under this parent.
           const parentEntity = await RDS.DAO[parentEntityType].getEntity({
             accountId: req.params.accountId,
             subscriptionId: req.params.subscriptionId,
@@ -68,7 +66,7 @@ const subcomponentRouter = (
           if (!req.resolvedAgent) {
             throw new Error('missing agent');
           }
-          // Fetch the parent, to filter for instances under this connector.
+          // Fetch the parent, to filter for entities under this parent.
           const parentEntity = await RDS.DAO[parentEntityType].getEntity({
             accountId: req.params.accountId,
             subscriptionId: req.params.subscriptionId,
@@ -77,7 +75,11 @@ const subcomponentRouter = (
           const leafEntity = {
             accountId: req.params.accountId,
             subscriptionId: req.params.subscriptionId,
-            id: Model.createSubordinateId(parentEntityType, parentEntity.__databaseId as string, uuidv4()),
+            id: Model.createSubordinateId(
+              parentEntityType,
+              parentEntity.__databaseId as string,
+              createUniqueIdentifier(service.entityType)
+            ),
             data: req.body.data,
             tags: { ...req.body.tags },
           };

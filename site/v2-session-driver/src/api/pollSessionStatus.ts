@@ -1,9 +1,9 @@
-import { getAccount, getSession, ISession, saveInstance } from './LocalStorage';
+import { getAccount, getSession, ISession, saveInstall } from './LocalStorage';
 import superagent from 'superagent';
-import { fetchInstance } from './fetchInstance';
+import { fetchInstall } from './fetchInstall';
 
 export async function pollSessionStatus(sessionId: string) {
-  // Wait up to 10s for the creation of the integration instance to complete
+  // Wait up to 10s for the creation of the integration install to complete
 
   const session = getSession(sessionId);
   const account = getAccount();
@@ -22,17 +22,17 @@ export async function pollSessionStatus(sessionId: string) {
     await new Promise((resolve) => setTimeout(resolve, 1000));
   }
   if (!success) {
-    throw new Error('Timed out waiting 10s for the integration instance to be initialized.');
+    throw new Error('Timed out waiting 10s for the integration install to be initialized.');
   }
 
-  const instanceId = result?.body.items[0].id;
-  const instance = await fetchInstance(instanceId, session.integrationBaseUrl);
-  const localInstance = {
+  const installId = result?.body.items[0].id;
+  const install = await fetchInstall(installId, session.integrationBaseUrl);
+  const localInstall = {
     integrationBaseUrl: session.integrationBaseUrl,
-    instanceId,
-    'fusebit.tenantId': instance.tags['fusebit.tenantId'],
+    installId,
+    'fusebit.tenantId': install.tags['fusebit.tenantId'],
   };
-  saveInstance(localInstance);
+  saveInstall(localInstall);
 
-  return localInstance;
+  return localInstall;
 }

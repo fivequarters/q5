@@ -46,7 +46,7 @@ export interface IDaoCollection extends IDaoCollectionIndex {
   storage: IEntityDao<Schema.IStorageItem>;
   session: IEntityDao<Schema.ISession>;
   identity: IEntityDao<Schema.IIdentity>;
-  instance: IEntityDao<Schema.IInstance>;
+  install: IEntityDao<Schema.IInstall>;
 }
 
 export interface IRdsCredentials {

@@ -1,5 +1,6 @@
 import http_error from 'http-errors';
 import express from 'express';
+const Joi = require('joi');
 
 import { SubscriptionCache, SubscriptionCacheTypes } from '@5qtrs/account';
 import * as Subscription from '../middleware/subscription';
@@ -84,6 +85,64 @@ export const createProxyRouter = (subscriptionCache: SubscriptionCache): express
     return next();
   };
 
+  // The /callback endpoint always runs on the 'master' account/subscription so as to provide a consistent
+  // endpoint for the remote SaaS's configuration.  This function parses the state and applies the discovered
+  // elements to the params object, thus "mapping" the /callback back to the original connector.
+  //
+  // Further validation verifies the association of the 'state' parameter with this mapped connector to avoid
+  // accidentally influencing other connectors.
+  const useProxyForCallback = async (req: ProxyRequest, res: express.Response, next: express.NextFunction) => {
+    if (!req.subscription) {
+      return next(http_error(500, 'Missing subscription for request'));
+    }
+
+    if (!req.subscription.proxy?.accountId || !req.subscription.proxy?.subscriptionId) {
+      return next(http_error(500, 'Proxy is not configured'));
+    }
+
+    if (
+      req.params.accountId !== req.subscription.proxy.accountId ||
+      req.params.subscriptionId !== req.subscription.proxy.subscriptionId
+    ) {
+      return next(http_error(403, 'Invalid account or subscription for callback request'));
+    }
+
+    if (!req.query.state) {
+      return next(http_error(400, 'Missing state parameter'));
+    }
+
+    try {
+      const params = OAuthProxyService.getPeerFromState(req.query.state as string);
+      Joi.attempt(params, Validation.CallbackState);
+      req.params.accountId = params.accountId;
+      req.params.subscriptionId = params.subscriptionId;
+      req.params.entityId = params.connectorId;
+      req.query.state = params.state;
+    } catch (err) {
+      return next(http_error(400, 'Invalid state from peer'));
+    }
+
+    /*
+     * Use the subscription configuration to get the accountId and subscriptionId to pull the proxy
+     * constants from.
+     */
+    try {
+      req.proxy = new OAuthProxyService(
+        req.params.accountId,
+        req.params.subscriptionId,
+        req.params.entityId,
+        req.params.proxyType,
+        await OAuthProxyConfig.get<IOAuthProxyConfiguration>(req.params.proxyType, {
+          accountId: req.subscription.proxy.accountId,
+          subscriptionId: req.subscription.proxy.subscriptionId,
+        })
+      );
+    } catch (error) {
+      return next(error);
+    }
+    return next();
+  };
+
   // Router endpoints
   router.options('/authorize', common.cors());
   router.get(
@@ -121,8 +180,8 @@ export const createProxyRouter = (subscriptionCache: SubscriptionCache): express
   router.get(
     '/callback',
     Subscription.get(subscriptionCache),
-    useProxy,
     common.management({ validate: { ...Validation.CallbackRequest } }),
+    useProxyForCallback,
     async (req: ProxyRequest, res: express.Response, next: express.NextFunction) => {
       // Validate that the session is a valid session
       try {

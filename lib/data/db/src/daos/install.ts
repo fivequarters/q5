@@ -1,18 +1,18 @@
 import Entity from './entity';
-import { IInstance, IRds } from '../model';
+import { IInstall, IRds } from '../model';
 
 // --------------------------------
-// Instances
+// Installs
 // --------------------------------
 
-class Instance extends Entity<IInstance> {
+class Install extends Entity<IInstall> {
   constructor(RDS: IRds, transactionId?: string) {
     super({
       RDS,
-      entityType: Entity.EntityType.instance,
+      entityType: Entity.EntityType.install,
       transactionId,
     });
   }
 }
 
-export default Instance;
+export default Install;

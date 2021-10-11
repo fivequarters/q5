@@ -5,7 +5,7 @@ import { Model } from '@5qtrs/db';
 import { subscriptionCache } from '../globals';
 
 import common from './common';
-import { IdentityService, InstanceService, ConnectorService, IntegrationService } from '../service';
+import { IdentityService, InstallService, ConnectorService, IntegrationService } from '../service';
 import SubcomponentRouter from './subcomponent';
 
 import * as analytics from '../middleware/analytics';
@@ -17,7 +17,7 @@ const router = express.Router({ mergeParams: true });
 
 const connectorService = new ConnectorService();
 const integrationService = new IntegrationService();
-const instanceService = new InstanceService();
+const installService = new InstallService();
 const identityService = new IdentityService();
 
 connectorService.addService(integrationService);
@@ -30,14 +30,14 @@ router.use('/connector/:entityId/proxy/:proxyType/oauth', createProxyRouter(subs
 router.use(
   '/connector',
   common(connectorService),
-  connectorFanOut(connectorService, integrationService, instanceService),
+  connectorFanOut(connectorService, integrationService, installService),
   SubcomponentRouter(identityService, ['entityId', 'identityId'], Model.EntityType.connector)
 );
 
 router.use(
   '/integration',
   common(integrationService),
-  SubcomponentRouter(instanceService, ['entityId', 'instanceId'], Model.EntityType.integration)
+  SubcomponentRouter(installService, ['entityId', 'installId'], Model.EntityType.integration)
 );
 
 export default router;

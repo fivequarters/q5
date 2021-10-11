@@ -505,9 +505,15 @@ const performTests = (testEntityType: TestableEntityTypes, sampleEntityMap: Samp
     await Promise.all([
       ...validEntitys.map(async (entity) => ApiRequestMap[testEntityType].postAndWait(account, entity.id, entity)),
       ...invalidEntitys.map(async (entity) => {
-        const result = await ApiRequestMap[testEntityType].postAndWait(account, entity.id, entity, undefined, {
-          authz: basicPostToken,
-        });
+        const result = await ApiRequestMap[testEntityType].postAndWait(
+          account,
+          entity.id,
+          entity,
+          { allowFailure: true },
+          {
+            authz: basicPostToken,
+          }
+        );
         expect(result).toBeHttp({
           statusCode: 200,
           data: {
