@@ -2,11 +2,13 @@ import { IAwsConfig } from '@5qtrs/aws-base';
 import { WAFV2, DynamoDB } from 'aws-sdk';
 import { AwsCreds, IAwsCredentials } from '@5qtrs/aws-cred';
 import { IExecuteInput, Confirm } from '@5qtrs/cli';
-import { ExecuteService } from '.';
+import { ExecuteService } from './';
 import { OpsService } from './OpsService';
 import { v4 as uuidv4 } from 'uuid';
+
 const wafPostfix = '-waf';
 const IPRuleSetPostFix = '-ip-set';
+
 export class WafService {
   public static async create(input: IExecuteInput) {
     const opsSvc = await OpsService.create(input);

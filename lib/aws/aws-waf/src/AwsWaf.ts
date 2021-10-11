@@ -1,9 +1,9 @@
 import { AwsBase, IAwsConfig } from '@5qtrs/aws-base';
 import { WAFV2 } from 'aws-sdk';
 
-const wafPostfix = '-waf';
-const IPRuleSetPostFix = '-ip-set';
-const RuleGroupPostFix = '-group';
+const wafSuffix = '-waf';
+const IPRuleSetSuffix = '-ip-set';
+
 export interface IAwsNewWaf {
   name: string;
   lbArn: string;
@@ -23,9 +23,18 @@ export interface IAwsIpSet {
   name: string;
   arn: string;
 }
+
 export class AwsWaf extends AwsBase<typeof WAFV2> {
   public static async create(config: IAwsConfig) {
     return new AwsWaf(config);
+  }
+
+  private getWafName(wafName: string): string {
+    return wafName + wafSuffix;
+  }
+
+  private getIPSetName(ipsetName: string): string {
+    return ipsetName + IPRuleSetSuffix;
   }
 
   private constructor(config: IAwsConfig) {
@@ -37,7 +46,7 @@ export class AwsWaf extends AwsBase<typeof WAFV2> {
     if (!ipset) {
       ipset = await this.createAwsIpSet(newWaf);
     }
-    let waf = await this.getWafOrUndefined(newWaf.name + wafPostfix);
+    let waf = await this.getWafOrUndefined(newWaf.name + wafSuffix);
     if (!waf) {
       waf = await this.createWaf({
         ...newWaf,
@@ -95,16 +104,6 @@ export class AwsWaf extends AwsBase<typeof WAFV2> {
 
   private async createWaf(newWaf: IAwsNewWaf): Promise<IAwsWaf> {
     const wafSdk = await this.getAws();
-    const wafRuleGroup = await wafSdk.createRuleGroup({
-      Name: newWaf.name + RuleGroupPostFix,
-      Scope: 'REGIONAL',
-      Capacity: 20,
-      VisibilityConfig: {
-        CloudWatchMetricsEnabled: true,
-        SampledRequestsEnabled: true,
-        MetricName: `fusebit-waf-${newWaf.name + RuleGroupPostFix}`,
-      },
-    });
     const waf = await wafSdk
       .createWebACL({
         ...this.getWafParams(newWaf),
@@ -123,7 +122,7 @@ export class AwsWaf extends AwsBase<typeof WAFV2> {
             VisibilityConfig: {
               CloudWatchMetricsEnabled: true,
               SampledRequestsEnabled: true,
-              MetricName: `fusebit-waf-rule-${newWaf.name + RuleGroupPostFix}`,
+              MetricName: `fusebit-waf-rule-${this.getIPSetName(newWaf.name)}`,
             },
           },
         ],
@@ -137,13 +136,13 @@ export class AwsWaf extends AwsBase<typeof WAFV2> {
 
   private getWafParams(newWaf: IAwsNewWaf) {
     const params: WAFV2.CreateWebACLRequest = {
-      Name: newWaf.name + wafPostfix,
+      Name: this.getWafName(newWaf.name),
       Scope: 'REGIONAL',
       DefaultAction: { Allow: {} },
       VisibilityConfig: {
         CloudWatchMetricsEnabled: true,
         SampledRequestsEnabled: true,
-        MetricName: `fusebit-waf-${newWaf.name + wafPostfix}`,
+        MetricName: `fusebit-waf-${this.getWafName(newWaf.name)}`,
       },
     };
     return params;
@@ -153,7 +152,7 @@ export class AwsWaf extends AwsBase<typeof WAFV2> {
     const wafSdk = await this.getAws();
     const ruleSets = await wafSdk.listIPSets({ Scope: 'REGIONAL' }).promise();
     const ipset = ruleSets?.IPSets?.find((ipset) => {
-      return ipset.Name === newWaf.name + IPRuleSetPostFix;
+      return ipset.Name === newWaf.name + IPRuleSetSuffix;
     });
     if (ipset) {
       return { name: ipset.Name as string, arn: ipset.ARN as string };
@@ -166,7 +165,7 @@ export class AwsWaf extends AwsBase<typeof WAFV2> {
     const wafSdk = await this.getAws();
     const ipset = await wafSdk
       .createIPSet({
-        Name: newWaf.name + IPRuleSetPostFix,
+        Name: newWaf.name + IPRuleSetSuffix,
         IPAddressVersion: 'IPV4',
         Scope: 'REGIONAL',
         Addresses: [],
