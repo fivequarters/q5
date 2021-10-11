@@ -2,7 +2,7 @@ import { Command, ICommand, IExecuteInput } from '@5qtrs/cli';
 import { WafService } from '../../../services';
 
 const command: ICommand = {
-  name: 'Get Waf',
+  name: 'Get WAF',
   cmd: 'get',
   summary: 'Get Fusebit Waf',
   description: 'Get information about the Fusebit WAF',
