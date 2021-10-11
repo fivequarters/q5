@@ -6,8 +6,8 @@ import { UnblockIPCommand } from './UnblockIPCommand';
 const commands: ICommand = {
   name: 'Ip',
   cmd: 'ip',
-  summary: 'Manage IPs that fusebit blacklist',
-  description: 'Update the condfiguration of Fusebit IPSets',
+  summary: 'Manage IPs that are blocked from accessing this deployment.',
+  description: 'Update the configuration of Fusebit IPSets.',
 };
 
 export class IPCommand extends Command {
