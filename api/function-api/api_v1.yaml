@@ -13,7 +13,7 @@ servers:
 info:
   description: 'Fusebit HTTP API for the management and execution of Fusebit accounts, users, functions and more'
   version: '1.0.0'
-  title: 'Fusebit HTTP API - v1'
+  title: 'Fusebit HTTP API - Core'
   contact:
     email: contact@fusebit.io
   license:
