@@ -3,6 +3,7 @@ import { AwsDynamo } from '@5qtrs/aws-dynamo';
 import { AwsNetwork } from '@5qtrs/aws-network';
 import { AwsRoute53 } from '@5qtrs/aws-route53';
 import { AwsAlb } from '@5qtrs/aws-alb';
+import { AwsWaf } from '@5qtrs/aws-waf';
 import { OpsDataAwsConfig } from './OpsDataAwsConfig';
 import { AccountTable } from './tables/AccountTable';
 import { DomainTable } from './tables/DomainTable';
@@ -135,6 +136,11 @@ export class OpsDataAwsProvider {
   public async getAwsAlb(deploymentName: string, region: string): Promise<AwsAlb> {
     const config = await this.getAwsConfigForDeployment(deploymentName, region);
     return AwsAlb.create(config);
+  }
+
+  public async getAwsWaf(deploymentName: string, region: string): Promise<AwsWaf> {
+    const config = await this.getAwsConfigForDeployment(deploymentName, region);
+    return AwsWaf.create(config);
   }
 
   public async getAwsAlbForConfig(config: IAwsConfig): Promise<AwsAlb> {
