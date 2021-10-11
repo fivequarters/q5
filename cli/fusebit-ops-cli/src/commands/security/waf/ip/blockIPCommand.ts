@@ -1,4 +1,4 @@
-import { Command, ICommand, IExecuteInput } from '@5qtrs/cli';
+import { Command, ICommand, IExecuteInput, ArgType } from '@5qtrs/cli';
 import { WafService } from '../../../../services';
 
 const command: ICommand = {
@@ -21,6 +21,13 @@ const command: ICommand = {
       name: 'region',
       description: 'the region of the deployment.',
     },
+    {
+      name: 'confirm',
+      aliases: ['c'],
+      description: 'If set to true, prompts for confirmation before blocking the IP from the Fusebit platform',
+      type: ArgType.boolean,
+      default: 'true',
+    },
   ],
 };
 
@@ -37,6 +44,9 @@ export class BlockIPCommand extends Command {
     const [deploymentName, ip] = input.arguments as string[];
     const region = input.options.region as string | undefined;
     const svc = await WafService.create(input);
+    if (input.options.confirm as boolean) {
+      await svc.confirmBlockIP(ip);
+    }
     await svc.blockIPFromWaf(deploymentName, ip, region);
     return 0;
   }

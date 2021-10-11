@@ -1,4 +1,4 @@
-import { Command, ICommand, IExecuteInput } from '@5qtrs/cli';
+import { Command, ICommand, IExecuteInput, ArgType } from '@5qtrs/cli';
 import { WafService } from '../../../../services';
 
 const command: ICommand = {
@@ -29,6 +29,13 @@ const command: ICommand = {
       name: 'subscriptionName',
       description: 'The subscription to disable.',
     },
+    {
+      name: 'confirm',
+      aliases: ['c'],
+      description: 'If set to true, prompts for confirmation before applying the RegEx filter to the Fusebit platform',
+      type: ArgType.boolean,
+      default: 'true',
+    },
   ],
 };
 
@@ -55,6 +62,9 @@ export class BlockRegExCommand extends Command {
     }
     const region = input.options.region as string | undefined;
     const svc = await WafService.create(input);
+    if (input.options.confirm as boolean) {
+      await svc.confirmBlockRegex(regex);
+    }
     await svc.blockRegExFromWaf(deploymentName, regex, region);
     return 0;
   }

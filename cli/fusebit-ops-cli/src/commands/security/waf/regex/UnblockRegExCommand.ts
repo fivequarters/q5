@@ -1,4 +1,4 @@
-import { Command, ICommand, IExecuteInput } from '@5qtrs/cli';
+import { Command, ICommand, IExecuteInput, ArgType } from '@5qtrs/cli';
 import { WafService } from '../../../../services';
 
 const command: ICommand = {
@@ -11,15 +11,34 @@ const command: ICommand = {
       name: 'deploymentName',
       description: 'The name of the deployment.',
     },
-    {
-      name: 'regex',
-      description: 'The RegEx that you want to unblock from the Fusebit platform',
-    },
   ],
   options: [
     {
       name: 'region',
       description: 'the region of the deployment.',
+    },
+    {
+      name: 'regex',
+      description: 'The RegEx that you want to block from the Fusebit platform',
+    },
+    {
+      name: 'region',
+      description: 'the region of the deployment.',
+    },
+    {
+      name: 'accountName',
+      description: 'The account to disable.',
+    },
+    {
+      name: 'subscriptionName',
+      description: 'The subscription to disable.',
+    },
+    {
+      name: 'confirm',
+      aliases: ['c'],
+      description: 'If set to true, prompts for confirmation before removing the RegEx filter to the Fusebit platform',
+      type: ArgType.boolean,
+      default: 'true',
     },
   ],
 };
@@ -34,9 +53,22 @@ export class UnblockRegExCommand extends Command {
   }
 
   protected async onExecute(input: IExecuteInput): Promise<number> {
-    const [deploymentName, regex] = input.arguments as string[];
+    const [deploymentName] = input.arguments as string[];
     const region = input.options.region as string | undefined;
     const svc = await WafService.create(input);
+    let regex: string;
+    if (typeof input.options.regex === 'string') {
+      regex = input.options.regex as string;
+    } else if (typeof input.options.accountName === 'string') {
+      regex = `^.*${input.options.accountName}.*$`;
+    } else if (typeof input.options.subscriptionName === 'string') {
+      regex = `^.*${input.options.subscriptionName}.*$`;
+    } else {
+      throw Error('No regex input detected');
+    }
+    if (input.options.confirm) {
+      await svc.confirmUnblockRegex(regex);
+    }
     await svc.unblockRegExFromWaf(deploymentName, regex, region);
     return 0;
   }

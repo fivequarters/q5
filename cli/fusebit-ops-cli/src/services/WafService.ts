@@ -1,7 +1,7 @@
 import { IAwsConfig } from '@5qtrs/aws-base';
 import { WAFV2, DynamoDB } from 'aws-sdk';
-import { AwsCreds, IAwsCredentials } from 'lib/aws/aws-cred/src/AwsCreds';
-import { IExecuteInput } from 'lib/node/cli/src/Command';
+import { AwsCreds, IAwsCredentials } from '@5qtrs/aws-cred';
+import { IExecuteInput, Confirm } from '@5qtrs/cli';
 import { ExecuteService } from '.';
 import { OpsService } from './OpsService';
 import { v4 as uuidv4 } from 'uuid';
@@ -367,6 +367,66 @@ export class WafService {
       },
       () => this.getWafPretty(deploymentName, correctRegion)
     );
+  }
+
+  public async confirmBlockRegex(regex: string) {
+    const confirmPrompt = await Confirm.create({
+      header: 'Apply the RegEx filter to the Fusebit platform?',
+      details: [{ name: 'RegEx filter', value: regex }],
+    });
+    const confirmed = await confirmPrompt.prompt(this.input.io);
+    if (!confirmed) {
+      await this.executeService.warning(
+        'RegEx filter apply canceled',
+        'Applying the RegEx filter to the Fusebit platform was canceled.'
+      );
+      throw Error('RegEx Filter Canceled');
+    }
+  }
+
+  public async confirmUnblockRegex(regex: string) {
+    const confirmPrompt = await Confirm.create({
+      header: 'Remove the RegEx filter to the Fusebit platform?',
+      details: [{ name: 'RegEx filter', value: regex }],
+    });
+    const confirmed = await confirmPrompt.prompt(this.input.io);
+    if (!confirmed) {
+      await this.executeService.warning(
+        'RegEx filter removal canceled',
+        'Removing the RegEx filter to the Fusebit platform was canceled.'
+      );
+      throw Error('RegEx Filter Removal Canceled');
+    }
+  }
+
+  public async confirmBlockIP(ip: string) {
+    const confirmPrompt = await Confirm.create({
+      header: 'Apply the IP subnet filter to the Fusebit platform?',
+      details: [{ name: 'IP', value: ip }],
+    });
+    const confirmed = await confirmPrompt.prompt(this.input.io);
+    if (!confirmed) {
+      await this.executeService.warning(
+        'IP filter apply canceled',
+        'Applying the IP filter to the Fusebit platform was canceled.'
+      );
+      throw Error('IP Filter Canceled');
+    }
+  }
+
+  public async confirmUnblockIP(ip: string) {
+    const confirmPrompt = await Confirm.create({
+      header: 'Remove the IP subnet filter to the Fusebit platform?',
+      details: [{ name: 'IP', value: ip }],
+    });
+    const confirmed = await confirmPrompt.prompt(this.input.io);
+    if (!confirmed) {
+      await this.executeService.warning(
+        'IP filter removal canceled',
+        'Removing the IP filter to the Fusebit platform was canceled.'
+      );
+      throw Error('IP Filter Removal Canceled');
+    }
   }
 
   private async ensureRegionOrError(deploymentName?: string, region?: string) {

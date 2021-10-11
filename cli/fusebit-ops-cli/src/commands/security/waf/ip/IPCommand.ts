@@ -1,7 +1,7 @@
 import { Command, ICommand } from '@5qtrs/cli';
 import { BlockIPCommand } from './blockIPCommand';
 import { ListIPCommand } from './ListIPCommand';
-import { UnblockIPCommand } from './unblockIPCommand';
+import { UnblockIPCommand } from './UnblockIPCommand';
 
 const commands: ICommand = {
   name: 'Ip',
