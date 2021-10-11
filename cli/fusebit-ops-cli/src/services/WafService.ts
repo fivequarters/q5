@@ -46,18 +46,11 @@ export class WafService {
   }
 
   private async getRegionOfDeployment(deploymentName: string): Promise<string | undefined> {
-    const dynamoSdk = await this.getDynamoSDK({
-      region: this.config.region,
+    const opsData = await this.opsService.getOpsDataContext({
+      deploymentName: deploymentName,
     });
-    const deployments = await dynamoSdk.scan({ TableName: 'ops.deployment' }).promise();
-    if ((deployments.Count as number) === 0) {
-      return undefined;
-    }
-    const item = deployments.Items?.filter((item) => item.deploymentName.S === deploymentName);
-    if (!item || item.length === 0 || item.length > 1) {
-      return undefined;
-    }
-    return item[0].region.S;
+    const deployments = await opsData.deploymentData.listAll(deploymentName);
+    return deployments.length === 1 ? deployments[0].region : undefined;
   }
 
   private async getWafOrError(deploymentName: string, region: string) {
