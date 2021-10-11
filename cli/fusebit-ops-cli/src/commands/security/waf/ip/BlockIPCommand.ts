@@ -13,7 +13,8 @@ const command: ICommand = {
     },
     {
       name: 'ip',
-      description: 'The IP/Subnet that you want to block from the Fusebit platform',
+      description:
+        'The subnet that you want to block from the Fusebit platform, subnet mask is required. eg: 1.2.3.4/32',
     },
   ],
   options: [
