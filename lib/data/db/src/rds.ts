@@ -104,6 +104,10 @@ class RDS implements IRds {
   }
 
   public updateHealth = async () => {
+    // Queue up the next health check
+    setTimeout(this.updateHealth, this.RDS_HEALTH_CHECK_TTL);
+
+    // Check the ability to read and write to the database
     const entity = {
       accountId: this.RDS_HEALTH_TEST_ACC_ID,
       subscriptionId: this.RDS_HEALTH_TEST_SUB_ID,
@@ -114,23 +118,38 @@ class RDS implements IRds {
     try {
       const update = await this.DAO.storage.createEntity(entity);
       const get = await this.DAO.storage.getEntity(entity);
-      if (update.data && get.data && update.data.checked == get.data.checked) {
+
+      // Validate that the write was committed successfully
+      if (update.data && get.data && update.data.checked === get.data.checked) {
         this.lastHealth = true;
-        this.lastHealthExecution = get.data.checked;
+        this.healthError = null;
+        this.lastHealthExecution = Date.now();
       } else {
-        throw new Error('RDS failure was detected when trying to insert entity.');
+        throw new Error('RDS ERROR: Failure was detected when trying to insert entity.');
       }
     } catch (e) {
-      this.healthError = e;
-      this.lastHealth = false;
+      if (this.lastHealthExecution < entity.data.checked + this.RDS_HEALTH_ENTITY_EXPIRE) {
+        // Only record errors when the last success happened prior to the start time + expiration. This
+        // captures situations where a request goes away for a long time, the subsequent getEntity expires,
+        // but successful tests have happened in between those two points.
+        this.lastHealth = false;
+        this.healthError = e;
+      }
     }
-    return setTimeout(this.updateHealth, this.RDS_HEALTH_CHECK_TTL);
   };
 
   public async ensureRDSLiveliness() {
     const timeDifference = Date.now() - this.lastHealthExecution;
     if (!this.lastHealth || !this.lastHealthExecution || timeDifference > this.RDS_HEALTH_MAX_ACCEPTABLE_TTL) {
-      throw this.healthError;
+      if (this.healthError) {
+        throw this.healthError;
+      }
+
+      if (!this.lastHealthExecution) {
+        throw new Error('RDS ERROR: No successful connection to database');
+      }
+
+      throw new Error(`RDS ERROR: ${timeDifference} exceeded threshold of ${this.RDS_HEALTH_MAX_ACCEPTABLE_TTL}`);
     }
   }
 

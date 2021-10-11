@@ -76,7 +76,7 @@ export abstract class BaseEditorContext<ISpecType> extends EventEmitter {
   public abstract getConfiguration(): { [index: string]: string | number };
   public abstract getScheduleSettings(): string;
   public abstract getFileFromSpecification(fileName: string): string | object;
-  public abstract getComponents(): IIntegrationComponent[]; 
+  public abstract getComponents(): IIntegrationComponent[];
 
   /**
    * Creates a _EditorContext_ given the optional function specification. If you do not provide a function specification,
@@ -484,7 +484,7 @@ export abstract class BaseEditorContext<ISpecType> extends EventEmitter {
 
   public getRegistry(): IRegistryInfo {
     const { account } = this._server;
-    return  {
+    return {
       baseUrl: `${account?.baseUrl}v1/account/${account?.accountId}/registry/default/npm/`,
       token: account?.accessToken,
     };
