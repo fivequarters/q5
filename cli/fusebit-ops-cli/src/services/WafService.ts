@@ -58,13 +58,22 @@ export class WafService {
     return item[0].region.S;
   }
 
-  private async getWafOrUndefined(deploymentName: string, region: string) {
+  private async getWafOrError(deploymentName: string, region: string) {
     const wafSdk = await this.getWafSdk({
       region,
     });
     const wafs = await wafSdk.listWebACLs({ Scope: 'REGIONAL' }).promise();
-    const waf = wafs.WebACLs?.find((waf) => waf.Name === deploymentName + wafPostfix);
-    return waf;
+    let waf = wafs.WebACLs?.find((waf) => waf.Name === deploymentName + wafPostfix);
+    if (!waf) {
+      throw Error('WAF not found, please re-run fuse-ops deployment add to ensure the WAF feature is enabled.');
+    }
+    let wafDetails = await wafSdk
+      .getWebACL({ Scope: 'REGIONAL', Id: waf.Id as string, Name: waf.Name as string })
+      .promise();
+    return {
+      WAF: wafDetails.WebACL as WAFV2.WebACL,
+      LockToken: wafDetails.LockToken as string,
+    };
   }
 
   private async unblockIP(deploymentName: string, region: string, ipaddr: string) {
@@ -72,27 +81,16 @@ export class WafService {
       region,
     });
 
-    const IPSet = await this.getIPSetOrUndefined(deploymentName, region);
-    if (!IPSet) {
-      throw Error('Can not find the IPSet, please re-run deployment add.');
-    }
-    const ipsetDetails = await wafSdk
-      .getIPSet({
-        Scope: 'REGIONAL',
-        Name: IPSet.Name as string,
-        Id: IPSet.Id as string,
-      })
-      .promise();
-
-    let IPs = ipsetDetails.IPSet?.Addresses;
+    const IPSet = await this.getIPSetOrError(deploymentName, region);
+    let IPs = IPSet.IPSet.Addresses;
     IPs = IPs?.filter((ip) => ip !== ipaddr);
     await wafSdk
       .updateIPSet({
         Scope: 'REGIONAL',
-        Name: IPSet.Name as string,
-        Id: IPSet.Id as string,
+        Name: IPSet.IPSet.Name as string,
+        Id: IPSet.IPSet.Id as string,
         Addresses: IPs as WAFV2.IPAddresses,
-        LockToken: ipsetDetails.LockToken as string,
+        LockToken: IPSet.LockToken as string,
       })
       .promise();
   }
@@ -100,51 +98,33 @@ export class WafService {
     const wafSdk = await this.getWafSdk({
       region,
     });
-    const IPSet = await this.getIPSetOrUndefined(deploymentName, region);
-    if (!IPSet) {
-      throw Error('Can not find the IPSet, please re run deployment add.');
-    }
-    const ipsetDetails = await wafSdk
-      .getIPSet({
-        Scope: 'REGIONAL',
-        Name: IPSet.Name as string,
-        Id: IPSet.Id as string,
-      })
-      .promise();
-
+    const IPSet = await this.getIPSetOrError(deploymentName, region);
     await wafSdk
       .updateIPSet({
         Scope: 'REGIONAL',
-        Name: ipsetDetails.IPSet?.Name as string,
-        Id: ipsetDetails.IPSet?.Id as string,
-        Addresses: [...(ipsetDetails.IPSet?.Addresses as WAFV2.IPAddresses), ip],
-        LockToken: ipsetDetails.LockToken as string,
+        Name: IPSet.IPSet?.Name as string,
+        Id: IPSet.IPSet?.Id as string,
+        Addresses: [...(IPSet.IPSet?.Addresses as WAFV2.IPAddresses), ip],
+        LockToken: IPSet.LockToken as string,
       })
       .promise();
   }
   public async getWafJson(deploymentName: string, region?: string) {
     const correctRegion = await this.ensureRegionOrError(deploymentName, region);
-    const waf = await this.getWafOrUndefined(deploymentName, correctRegion);
-    if (!waf) {
-      await this.input.io.write('{}');
-      return;
-    }
+    const waf = await this.getWafOrError(deploymentName, correctRegion);
     await this.input.io.write(
       JSON.stringify({
-        name: waf.Name as string,
-        id: waf.Id as string,
+        name: waf.WAF.Name as string,
+        id: waf.WAF.Id as string,
       })
     );
   }
   private async getWafPretty(deploymentName: string, region: string) {
-    const waf = await this.getWafOrUndefined(deploymentName, region);
+    const waf = await this.getWafOrError(deploymentName, region);
     await this.input.io.writeLine('Waf details:');
-    if (!waf) {
-      return;
-    }
-    await this.input.io.write(`The name of the waf is ${waf.Name} and id ${waf.Id}`);
+    await this.input.io.write(`The name of the waf is ${waf.WAF.Name} and id ${waf.WAF.Id}`);
   }
-  private async getIPSetOrUndefined(deploymentName: string, region: string) {
+  private async getIPSetOrError(deploymentName: string, region: string) {
     const wafSdk = await this.getWafSdk({
       region,
     });
@@ -153,42 +133,36 @@ export class WafService {
         Scope: 'REGIONAL',
       })
       .promise();
-
-    return ipsets.IPSets?.find((ipset) => ipset.Name === deploymentName + IPRuleSetPostFix);
+    const ipset = ipsets.IPSets?.find((ipset) => ipset.Name === deploymentName + IPRuleSetPostFix);
+    if (ipset) {
+      const ipsetDetails = await wafSdk
+        .getIPSet({ Scope: 'REGIONAL', Name: ipset.Name as string, Id: ipset.Id as string })
+        .promise();
+      return {
+        IPSet: ipsetDetails.IPSet as WAFV2.IPSet,
+        LockToken: ipsetDetails.LockToken as string,
+      };
+    }
+    throw Error('IPSet not found, please re-run fuse-ops deployment add to ensure the WAF feature is enabled.');
   }
 
   private async removeRegexRuleSet(deploymentName: string, region: string, regexString: string) {
     if (!this.validateRegex(regexString)) {
       throw Error('Invalid RegEx string inputed.');
     }
-
-    const waf = await this.getWafOrUndefined(deploymentName, region);
-    if (!waf) {
-      throw Error('Can not find WAF, please re-run fuse-ops deployment add to ensure WAF is enabled');
-    }
-
-    const wafSdk = await this.getWafSdk({
-      region,
-    });
-
-    const wafDetails = await wafSdk
-      .getWebACL({
-        Scope: 'REGIONAL',
-        Name: waf.Name as string,
-        Id: waf.Id as string,
-      })
-      .promise();
-    let rules = wafDetails.WebACL?.Rules as WAFV2.Rules;
+    const wafSdk = await this.getWafSdk({ region });
+    const waf = await this.getWafOrError(deploymentName, region);
+    let rules = waf.WAF.Rules as WAFV2.Rules;
     rules = rules.filter((rule) => rule.Statement.RegexMatchStatement?.RegexString !== regexString);
     await wafSdk
       .updateWebACL({
         Rules: rules,
-        Name: wafDetails.WebACL?.Name as string,
-        Id: wafDetails.WebACL?.Id as string,
-        DefaultAction: wafDetails.WebACL?.DefaultAction as WAFV2.DefaultAction,
-        VisibilityConfig: wafDetails.WebACL?.VisibilityConfig as WAFV2.VisibilityConfig,
+        Name: waf.WAF.Name as string,
+        Id: waf.WAF.Id as string,
+        DefaultAction: waf.WAF.DefaultAction as WAFV2.DefaultAction,
+        VisibilityConfig: waf.WAF.VisibilityConfig as WAFV2.VisibilityConfig,
         Scope: 'REGIONAL',
-        LockToken: wafDetails.LockToken as string,
+        LockToken: waf.LockToken as string,
       })
       .promise();
   }
@@ -197,15 +171,9 @@ export class WafService {
     const wafSdk = await this.getWafSdk({
       region,
     });
-    let waf = await this.getWafOrUndefined(deploymentName, region);
-    if (!waf) {
-      throw Error('Can not find WAF, please re-run fuse-ops deployment add to ensure WAF is enabled.');
-    }
-    const wafDetails = await wafSdk
-      .getWebACL({ Scope: 'REGIONAL', Name: waf.Name as string, Id: waf.Id as string })
-      .promise();
+    let waf = await this.getWafOrError(deploymentName, region);
     await this.input.io.writeLine('Regex filters applied to the Fusebit platform.');
-    wafDetails.WebACL?.Rules?.forEach(async (rule) => {
+    waf.WAF.Rules?.forEach(async (rule) => {
       if (rule.Statement?.RegexMatchStatement?.RegexString) {
         await this.input.io.writeLine(`- ${rule.Statement.RegexMatchStatement.RegexString}`);
       }
@@ -214,20 +182,9 @@ export class WafService {
 
   private async getIPRules(deploymentName: string, region: string) {
     const wafSdk = await this.getWafSdk({ region });
-    const ipset = await this.getIPSetOrUndefined(deploymentName, region);
-    if (!ipset) {
-      throw Error('Can not find WAF, please re-run fuse-ops deployment add to ensure WAF is enabled.');
-    }
-    const ipsetDetails = await wafSdk
-      .getIPSet({
-        Scope: 'REGIONAL',
-        Name: ipset.Name as string,
-        Id: ipset.Id as string,
-      })
-      .promise();
-
+    const ipset = await this.getIPSetOrError(deploymentName, region);
     await this.input.io.writeLine('IP filters applied to the Fusebit platform');
-    ipsetDetails.IPSet?.Addresses.forEach(async (ip) => {
+    ipset.IPSet?.Addresses.forEach(async (ip) => {
       await this.input.io.writeLine(`- ${ip}`);
     });
   }
@@ -236,17 +193,11 @@ export class WafService {
     if (!this.validateRegex(regexString)) {
       throw Error('Invalid RegEx string inputed.');
     }
-    const waf = await this.getWafOrUndefined(deploymentName, region);
-    if (!waf) {
-      throw Error('Can not find WAF, please re-run fuse-ops deployment add to ensure WAF is enabled.');
-    }
+    const waf = await this.getWafOrError(deploymentName, region);
     const wafSdk = await this.getWafSdk({
       region,
     });
-    const wafDetails = await wafSdk
-      .getWebACL({ Scope: 'REGIONAL', Name: waf.Name as string, Id: waf.Id as string })
-      .promise();
-    const rules = wafDetails.WebACL?.Rules as WAFV2.Rules;
+    const rules = waf.WAF.Rules as WAFV2.Rules;
     rules.push({
       Name: uuidv4(),
       Priority: Math.floor(Math.random() * 999),
@@ -262,13 +213,13 @@ export class WafService {
     });
     await wafSdk
       .updateWebACL({
-        Name: wafDetails.WebACL?.Name as string,
-        LockToken: wafDetails.LockToken as string,
-        DefaultAction: wafDetails.WebACL?.DefaultAction as WAFV2.DefaultAction,
+        Name: waf.WAF.Name as string,
+        LockToken: waf.LockToken as string,
+        DefaultAction: waf.WAF.DefaultAction as WAFV2.DefaultAction,
         Rules: rules,
         Scope: 'REGIONAL',
-        Id: wafDetails.WebACL?.Id as string,
-        VisibilityConfig: wafDetails.WebACL?.VisibilityConfig as WAFV2.VisibilityConfig,
+        Id: waf.WAF.Id as string,
+        VisibilityConfig: waf.WAF.VisibilityConfig as WAFV2.VisibilityConfig,
       })
       .promise();
   }
