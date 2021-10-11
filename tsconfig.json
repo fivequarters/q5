@@ -146,7 +146,8 @@
       "@5qtrs/catalog": ["site/catalog/src"],
       "@5qtrs/jenkins": ["tool/cicd/jenkins/src"],
       "@5qtrs/slack-notification": ["tool/cicd/slack-notification/src"],
-      "@5qtrs/aws-waf": ["lib/aws/aws-waf/src"]
+      "@5qtrs/aws-waf": ["lib/aws/aws-waf/src"],
+      "@5qtrs/lambda-nuke": ["tool/lambda-nuke/src"]
     }
   }
 }
