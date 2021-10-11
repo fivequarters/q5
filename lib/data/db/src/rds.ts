@@ -123,7 +123,7 @@ class RDS implements IRds {
       if (update.data && get.data && update.data.checked === get.data.checked) {
         this.lastHealth = true;
         this.healthError = null;
-        this.lastHealthExecution = get.data.checked;
+        this.lastHealthExecution = Date.now();
       } else {
         throw new Error('RDS ERROR: Failure was detected when trying to insert entity.');
       }
