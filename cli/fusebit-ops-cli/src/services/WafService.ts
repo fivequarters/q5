@@ -139,9 +139,7 @@ export class WafService {
   }
 
   private async removeRegexRuleSet(deploymentName: string, region: string, regexString: string) {
-    if (!this.validateRegex(regexString)) {
-      throw Error('Invalid RegEx string inputed.');
-    }
+    this.validateRegex(regexString);
     const wafSdk = await this.getWafSdk({ region });
     const waf = await this.getWafOrError(deploymentName, region);
     let rules = waf.WAF.Rules as WAFV2.Rules;
@@ -180,9 +178,7 @@ export class WafService {
   }
 
   private async updateRegexRuleSet(deploymentName: string, region: string, regexString: string) {
-    if (!this.validateRegex(regexString)) {
-      throw Error('Invalid RegEx string inputed.');
-    }
+    this.validateRegex(regexString);
     const waf = await this.getWafOrError(deploymentName, region);
     const wafSdk = await this.getWafSdk({ region });
     const rules = waf.WAF.Rules as WAFV2.Rules;
@@ -214,9 +210,8 @@ export class WafService {
   private validateRegex(regexString: string) {
     try {
       new RegExp(regexString);
-      return true;
-    } catch (_) {
-      return false;
+    } catch (e) {
+      throw Error('Invalid RegEx is inputted, please validate your RegEx.');
     }
   }
 
