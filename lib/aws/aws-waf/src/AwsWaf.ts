@@ -143,7 +143,7 @@ export class AwsWaf extends AwsBase<typeof WAFV2> {
       VisibilityConfig: {
         CloudWatchMetricsEnabled: true,
         SampledRequestsEnabled: true,
-        MetricName: `fusebit-waf-${this.getWafName(newWaf.name)}`,
+        MetricName: `fusebit-waf-${getWafName(newWaf.name)}`,
       },
     };
     return params;

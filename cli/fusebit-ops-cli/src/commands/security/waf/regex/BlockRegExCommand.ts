@@ -51,10 +51,8 @@ export class BlockRegExCommand extends Command {
   protected async onExecute(input: IExecuteInput): Promise<number> {
     const [deploymentName] = input.arguments as string[];
     let regex =
-      (input.options.regex as string) ||
-      `^.*${input.options.accountName}.*$` ||
-      `^.*${input.options.subscriptionName}.*$`;
-    if (regex === '') {
+      (input.options.regex as string) || `^.*${input.options.accountName || input.options.subscriptionName}.*$`;
+    if (regex === '^.*undefined.*$') {
       throw Error('No regex input detected');
     }
     const region = input.options.region as string | undefined;

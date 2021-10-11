@@ -53,10 +53,8 @@ export class UnblockRegExCommand extends Command {
     const region = input.options.region as string | undefined;
     const svc = await WafService.create(input);
     let regex =
-      (input.options.regex as string) ||
-      `^.*${input.options.accountName}.*$` ||
-      `^.*${input.options.subscriptionName}.*$`;
-    if (regex === '') {
+      (input.options.regex as string) || `^.*${input.options.accountName || input.options.subscriptionName}.*$`;
+    if (regex === '^.*.*$') {
       throw Error('No regex input detected');
     }
     if (input.options.confirm) {

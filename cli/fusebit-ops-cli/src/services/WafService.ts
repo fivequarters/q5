@@ -34,15 +34,6 @@ export class WafService {
     });
   }
 
-  private async getDynamoSDK(config: any) {
-    return new DynamoDB({
-      ...config,
-      accessKeyId: this.creds.accessKeyId as string,
-      secretAccessKey: this.creds.secretAccessKey as string,
-      sessionToken: this.creds.sessionToken as string,
-    });
-  }
-
   private async getRegionOfDeployment(deploymentName: string): Promise<string | undefined> {
     const opsData = await this.opsService.getOpsDataContext({
       deploymentName: deploymentName,
