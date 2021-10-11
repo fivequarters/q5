@@ -19,7 +19,7 @@ const command: ICommand = {
   options: [
     {
       name: 'region',
-      description: 'the region of the deployment.',
+      description: 'The region of the deployment.',
     },
     {
       name: 'confirm',

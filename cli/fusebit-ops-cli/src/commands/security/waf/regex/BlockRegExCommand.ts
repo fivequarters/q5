@@ -19,7 +19,7 @@ const command: ICommand = {
     },
     {
       name: 'region',
-      description: 'the region of the deployment.',
+      description: 'The region of the deployment.',
     },
     {
       name: 'accountName',
@@ -50,14 +50,11 @@ export class BlockRegExCommand extends Command {
 
   protected async onExecute(input: IExecuteInput): Promise<number> {
     const [deploymentName] = input.arguments as string[];
-    let regex: string;
-    if (typeof input.options.regex === 'string') {
-      regex = input.options.regex as string;
-    } else if (typeof input.options.accountName === 'string') {
-      regex = `^.*${input.options.accountName}.*$`;
-    } else if (typeof input.options.subscriptionName === 'string') {
-      regex = `^.*${input.options.subscriptionName}.*$`;
-    } else {
+    let regex =
+      (input.options.regex as string) ||
+      `^.*${input.options.accountName}.*$` ||
+      `^.*${input.options.subscriptionName}.*$`;
+    if (regex === '') {
       throw Error('No regex input detected');
     }
     const region = input.options.region as string | undefined;

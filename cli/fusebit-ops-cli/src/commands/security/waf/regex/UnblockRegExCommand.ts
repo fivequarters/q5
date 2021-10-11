@@ -14,16 +14,12 @@ const command: ICommand = {
   ],
   options: [
     {
-      name: 'region',
-      description: 'the region of the deployment.',
-    },
-    {
       name: 'regex',
       description: 'The RegEx that you want to block from the Fusebit platform',
     },
     {
       name: 'region',
-      description: 'the region of the deployment.',
+      description: 'The region of the deployment.',
     },
     {
       name: 'accountName',
@@ -56,14 +52,11 @@ export class UnblockRegExCommand extends Command {
     const [deploymentName] = input.arguments as string[];
     const region = input.options.region as string | undefined;
     const svc = await WafService.create(input);
-    let regex: string;
-    if (typeof input.options.regex === 'string') {
-      regex = input.options.regex as string;
-    } else if (typeof input.options.accountName === 'string') {
-      regex = `^.*${input.options.accountName}.*$`;
-    } else if (typeof input.options.subscriptionName === 'string') {
-      regex = `^.*${input.options.subscriptionName}.*$`;
-    } else {
+    let regex =
+      (input.options.regex as string) ||
+      `^.*${input.options.accountName}.*$` ||
+      `^.*${input.options.subscriptionName}.*$`;
+    if (regex === '') {
       throw Error('No regex input detected');
     }
     if (input.options.confirm) {
