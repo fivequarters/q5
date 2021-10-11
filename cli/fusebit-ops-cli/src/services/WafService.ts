@@ -117,8 +117,8 @@ export class WafService {
   }
   private async getWafPretty(deploymentName: string, region: string) {
     const waf = await this.getWafOrError(deploymentName, region);
-    await this.input.io.writeLine('Waf details:');
-    await this.input.io.write(`The name of the waf is ${waf.WAF.Name} and id ${waf.WAF.Id}`);
+    await this.input.io.writeLine('WAF details:');
+    await this.input.io.write(`The name of the WAF is ${waf.WAF.Name} and id ${waf.WAF.Id}.`);
   }
   private async getIPSetOrError(deploymentName: string, region: string) {
     const wafSdk = await this.getWafSdk({ region });
