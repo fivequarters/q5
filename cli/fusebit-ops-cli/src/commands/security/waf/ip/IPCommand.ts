@@ -1,5 +1,5 @@
 import { Command, ICommand } from '@5qtrs/cli';
-import { BlockIPCommand } from './blockIPCommand';
+import { BlockIPCommand } from './BlockIPCommand';
 import { ListIPCommand } from './ListIPCommand';
 import { UnblockIPCommand } from './UnblockIPCommand';
 
