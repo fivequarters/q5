@@ -125,16 +125,11 @@ class RDS implements IRds {
         this.healthError = null;
         this.lastHealthExecution = get.data.checked;
       } else {
-        throw new Error('RDS failure was detected when trying to insert entity.');
+        throw new Error('RDS ERROR: Failure was detected when trying to insert entity.');
       }
     } catch (e) {
       this.lastHealth = false;
       this.healthError = e;
-    }
-    if (Date.now() - entity.data.checked > this.RDS_HEALTH_MAX_ACCEPTABLE_TTL) {
-      console.log(`HEALTHCHECK RDS ERROR: Started: ${entity.data.checked - Date.now()} ms`);
-    } else {
-      console.log(`HEALTHCHECK RDS SUCCESS: Started: ${entity.data.checked - Date.now()} ms`);
     }
   };
 
