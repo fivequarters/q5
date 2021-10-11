@@ -128,8 +128,13 @@ class RDS implements IRds {
         throw new Error('RDS ERROR: Failure was detected when trying to insert entity.');
       }
     } catch (e) {
-      this.lastHealth = false;
-      this.healthError = e;
+      if (this.lastHealthExecution < entity.data.checked + this.RDS_HEALTH_ENTITY_EXPIRE) {
+        // Only record errors when the last success happened prior to the start time + expiration. This
+        // captures situations where a request goes away for a long time, the subsequent getEntity expires,
+        // but successful tests have happened in between those two points.
+        this.lastHealth = false;
+        this.healthError = e;
+      }
     }
   };
 
