@@ -1,8 +1,16 @@
 import { AwsBase, IAwsConfig } from '@5qtrs/aws-base';
 import { WAFV2 } from 'aws-sdk';
 
-const wafSuffix = '-waf';
-const IPRuleSetSuffix = '-ip-set';
+export const wafSuffix = '-waf';
+export const IPRuleSetSuffix = '-ip-set';
+
+export const getWafName = (deploymentName: string): string => {
+  return deploymentName + wafSuffix;
+};
+
+export const getIPSetName = (deploymentName: string): string => {
+  return deploymentName + IPRuleSetSuffix;
+};
 
 export interface IAwsNewWaf {
   name: string;
@@ -29,14 +37,6 @@ export class AwsWaf extends AwsBase<typeof WAFV2> {
     return new AwsWaf(config);
   }
 
-  private getWafName(wafName: string): string {
-    return wafName + wafSuffix;
-  }
-
-  private getIPSetName(ipsetName: string): string {
-    return ipsetName + IPRuleSetSuffix;
-  }
-
   private constructor(config: IAwsConfig) {
     super(config);
   }
@@ -46,7 +46,8 @@ export class AwsWaf extends AwsBase<typeof WAFV2> {
     if (!ipset) {
       ipset = await this.createAwsIpSet(newWaf);
     }
-    let waf = await this.getWafOrUndefined(newWaf.name + wafSuffix);
+    let wafName = getWafName(newWaf.name);
+    let waf = await this.getWafOrUndefined(wafName);
     if (!waf) {
       waf = await this.createWaf({
         ...newWaf,
@@ -122,7 +123,7 @@ export class AwsWaf extends AwsBase<typeof WAFV2> {
             VisibilityConfig: {
               CloudWatchMetricsEnabled: true,
               SampledRequestsEnabled: true,
-              MetricName: `fusebit-waf-rule-${this.getIPSetName(newWaf.name)}`,
+              MetricName: `fusebit-waf-rule-${getIPSetName(newWaf.name)}`,
             },
           },
         ],
@@ -136,7 +137,7 @@ export class AwsWaf extends AwsBase<typeof WAFV2> {
 
   private getWafParams(newWaf: IAwsNewWaf) {
     const params: WAFV2.CreateWebACLRequest = {
-      Name: this.getWafName(newWaf.name),
+      Name: getWafName(newWaf.name),
       Scope: 'REGIONAL',
       DefaultAction: { Allow: {} },
       VisibilityConfig: {

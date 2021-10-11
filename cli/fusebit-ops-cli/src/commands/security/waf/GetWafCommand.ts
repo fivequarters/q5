@@ -4,7 +4,7 @@ import { WafService } from '../../../services';
 const command: ICommand = {
   name: 'Get WAF',
   cmd: 'get',
-  summary: 'Get Fusebit Waf',
+  summary: 'Get Fusebit WAF',
   description: 'Get information about the Fusebit WAF',
   arguments: [
     {

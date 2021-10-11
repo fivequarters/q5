@@ -5,9 +5,7 @@ import { IExecuteInput, Confirm } from '@5qtrs/cli';
 import { ExecuteService } from './';
 import { OpsService } from './OpsService';
 import { v4 as uuidv4 } from 'uuid';
-
-const wafPostfix = '-waf';
-const IPRuleSetPostFix = '-ip-set';
+import { getWafName, getIPSetName } from '@5qtrs/aws-waf';
 
 export class WafService {
   public static async create(input: IExecuteInput) {
@@ -56,7 +54,7 @@ export class WafService {
   private async getWafOrError(deploymentName: string, region: string) {
     const wafSdk = await this.getWafSdk({ region });
     const wafs = await wafSdk.listWebACLs({ Scope: 'REGIONAL' }).promise();
-    let waf = wafs.WebACLs?.find((waf) => waf.Name === deploymentName + wafPostfix);
+    let waf = wafs.WebACLs?.find((waf) => waf.Name === getWafName(deploymentName));
     if (!waf) {
       throw Error('WAF not found, please re-run fuse-ops deployment add to ensure the WAF feature is enabled.');
     }
@@ -85,6 +83,7 @@ export class WafService {
       })
       .promise();
   }
+
   private async blockIP(deploymentName: string, region: string, ip: string) {
     const wafSdk = await this.getWafSdk({ region });
     const IPSet = await this.getIPSetOrError(deploymentName, region);
@@ -98,6 +97,7 @@ export class WafService {
       })
       .promise();
   }
+
   public async getWafJson(deploymentName: string, region?: string) {
     const correctRegion = await this.ensureRegionOrError(deploymentName, region);
     const waf = await this.getWafOrError(deploymentName, correctRegion);
@@ -108,11 +108,13 @@ export class WafService {
       })
     );
   }
+
   private async getWafPretty(deploymentName: string, region: string) {
     const waf = await this.getWafOrError(deploymentName, region);
     await this.input.io.writeLine('WAF details:');
     await this.input.io.write(`The name of the WAF is ${waf.WAF.Name} and id ${waf.WAF.Id}.`);
   }
+
   private async getIPSetOrError(deploymentName: string, region: string) {
     const wafSdk = await this.getWafSdk({ region });
     const ipsets = await wafSdk
@@ -120,7 +122,7 @@ export class WafService {
         Scope: 'REGIONAL',
       })
       .promise();
-    const ipset = ipsets.IPSets?.find((ipset) => ipset.Name === deploymentName + IPRuleSetPostFix);
+    const ipset = ipsets.IPSets?.find((ipset) => ipset.Name === getIPSetName(deploymentName));
     if (ipset) {
       const ipsetDetails = await wafSdk
         .getIPSet({ Scope: 'REGIONAL', Name: ipset.Name as string, Id: ipset.Id as string })
@@ -202,12 +204,9 @@ export class WafService {
       })
       .promise();
   }
+
   private validateRegex(regexString: string) {
-    try {
-      new RegExp(regexString);
-    } catch (e) {
-      throw Error('Invalid RegEx is inputted, please validate your RegEx.');
-    }
+    new RegExp(regexString);
   }
 
   public async blockIPFromWaf(deploymentName: string, ip: string, region?: string) {

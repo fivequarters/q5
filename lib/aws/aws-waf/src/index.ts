@@ -1,1 +1,1 @@
-export { AwsWaf } from './AwsWaf';
+export * from './AwsWaf';
