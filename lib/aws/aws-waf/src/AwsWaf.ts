@@ -56,7 +56,7 @@ export class AwsWaf extends AwsBase<typeof WAFV2> {
     }
     await this.configureWaf({
       lbArn: newWaf.lbArn,
-      wafArn: waf.arn as string,
+      wafArn: waf.arn,
     });
     return waf;
   }
