@@ -56,9 +56,9 @@ export class AwsWaf extends AwsBase<typeof WAFV2> {
     }
     await this.configureWaf({
       lbArn: newWaf.lbArn,
-      wafArn: waf.arn,
+      wafArn: waf?.arn as string,
     });
-    return waf;
+    return waf as IAwsWaf;
   }
 
   protected onGetAws(options: any) {
@@ -103,36 +103,48 @@ export class AwsWaf extends AwsBase<typeof WAFV2> {
     }
   }
 
-  private async createWaf(newWaf: IAwsNewWaf): Promise<IAwsWaf> {
+  private async createWaf(newWaf: IAwsNewWaf): Promise<IAwsWaf | undefined> {
     const wafSdk = await this.getAws();
-    const waf = await wafSdk
-      .createWebACL({
-        ...this.getWafParams(newWaf),
-        Rules: [
-          {
-            Name: 'DisableIPRule',
-            Priority: 0,
-            Statement: {
-              IPSetReferenceStatement: {
-                ARN: newWaf.ipsetArn as string,
+    let success = false;
+    do {
+      try {
+        const waf = await wafSdk
+          .createWebACL({
+            ...this.getWafParams(newWaf),
+            Rules: [
+              {
+                Name: 'DisableIPRule',
+                Priority: 0,
+                Statement: {
+                  IPSetReferenceStatement: {
+                    ARN: newWaf.ipsetArn as string,
+                  },
+                },
+                Action: {
+                  Block: {},
+                },
+                VisibilityConfig: {
+                  CloudWatchMetricsEnabled: true,
+                  SampledRequestsEnabled: true,
+                  MetricName: `fusebit-waf-rule-${getIPSetName(newWaf.name)}`,
+                },
               },
-            },
-            Action: {
-              Block: {},
-            },
-            VisibilityConfig: {
-              CloudWatchMetricsEnabled: true,
-              SampledRequestsEnabled: true,
-              MetricName: `fusebit-waf-rule-${getIPSetName(newWaf.name)}`,
-            },
-          },
-        ],
-      })
-      .promise();
-    return {
-      name: waf.Summary?.Name as string,
-      arn: waf.Summary?.ARN as string,
-    };
+            ],
+          })
+          .promise();
+        success = true;
+        return {
+          name: waf.Summary?.Name as string,
+          arn: waf.Summary?.ARN as string,
+        };
+      } catch (e) {
+        if (e && (e.code === 'WAFUnavailableEntityException' || e.code === 'ThrottlingException')) {
+          await new Promise((res) => setTimeout(res, 1000));
+        } else {
+          throw e;
+        }
+      }
+    } while (!success);
   }
 
   private getWafParams(newWaf: IAwsNewWaf) {

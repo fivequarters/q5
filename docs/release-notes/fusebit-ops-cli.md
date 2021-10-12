@@ -18,6 +18,12 @@ All public releases of the Fusebit Operations CLI are documented here, including
 {:toc}
 -->
 
+## Version 1.33.2
+
+_Released 10/12/21_
+
+- **BugFix.** Add auto retry on the creation of WAF for `fuse-ops deployment add` to improve reliability.
+
 ## Version 1.33.1
 
 _Released 10/11/21_
