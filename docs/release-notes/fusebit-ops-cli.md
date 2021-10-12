@@ -48,7 +48,7 @@ WARNING: Unavoidable database wipe.
 
 _Released 10/04/21_
 
-- **Bugfix.** Increase memory allocatin and timeout settings for the CRON executor to improve stability and precision.
+- **Bugfix.** Increase memory allocation and timeout settings for the CRON executor to improve stability and precision.
 
 ## Version 1.31.0
 
