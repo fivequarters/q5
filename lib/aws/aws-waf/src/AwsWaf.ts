@@ -56,9 +56,9 @@ export class AwsWaf extends AwsBase<typeof WAFV2> {
     }
     await this.configureWaf({
       lbArn: newWaf.lbArn,
-      wafArn: waf?.arn as string,
+      wafArn: waf.arn as string,
     });
-    return waf as IAwsWaf;
+    return waf;
   }
 
   protected onGetAws(options: any) {
@@ -103,12 +103,13 @@ export class AwsWaf extends AwsBase<typeof WAFV2> {
     }
   }
 
-  private async createWaf(newWaf: IAwsNewWaf): Promise<IAwsWaf | undefined> {
+  private async createWaf(newWaf: IAwsNewWaf): Promise<IAwsWaf> {
     const wafSdk = await this.getAws();
     let success = false;
+    let waf;
     do {
       try {
-        const waf = await wafSdk
+        waf = await wafSdk
           .createWebACL({
             ...this.getWafParams(newWaf),
             Rules: [
@@ -133,10 +134,6 @@ export class AwsWaf extends AwsBase<typeof WAFV2> {
           })
           .promise();
         success = true;
-        return {
-          name: waf.Summary?.Name as string,
-          arn: waf.Summary?.ARN as string,
-        };
       } catch (e) {
         if (e && (e.code === 'WAFUnavailableEntityException' || e.code === 'ThrottlingException')) {
           await new Promise((res) => setTimeout(res, 1000));
@@ -145,6 +142,10 @@ export class AwsWaf extends AwsBase<typeof WAFV2> {
         }
       }
     } while (!success);
+    return {
+      name: waf?.Summary?.Name as string,
+      arn: waf?.Summary?.ARN as string,
+    };
   }
 
   private getWafParams(newWaf: IAwsNewWaf) {
