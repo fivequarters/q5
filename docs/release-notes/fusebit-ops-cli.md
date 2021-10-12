@@ -18,6 +18,12 @@ All public releases of the Fusebit Operations CLI are documented here, including
 {:toc}
 -->
 
+## Version 1.33.2
+
+_Released 10/12/21_
+
+- **BugFix.** Add auto retry on the creation of WAF for `fuse-ops deployment add` to improve reliability.
+
 ## Version 1.33.1
 
 _Released 10/11/21_
@@ -42,7 +48,7 @@ WARNING: Unavoidable database wipe.
 
 _Released 10/04/21_
 
-- **Bugfix.** Increase memory allocatin and timeout settings for the CRON executor to improve stability and precision.
+- **Bugfix.** Increase memory allocation and timeout settings for the CRON executor to improve stability and precision.
 
 ## Version 1.31.0
 

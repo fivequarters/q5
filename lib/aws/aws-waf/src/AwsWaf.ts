@@ -105,33 +105,46 @@ export class AwsWaf extends AwsBase<typeof WAFV2> {
 
   private async createWaf(newWaf: IAwsNewWaf): Promise<IAwsWaf> {
     const wafSdk = await this.getAws();
-    const waf = await wafSdk
-      .createWebACL({
-        ...this.getWafParams(newWaf),
-        Rules: [
-          {
-            Name: 'DisableIPRule',
-            Priority: 0,
-            Statement: {
-              IPSetReferenceStatement: {
-                ARN: newWaf.ipsetArn as string,
+    let success = false;
+    let waf;
+    do {
+      try {
+        waf = await wafSdk
+          .createWebACL({
+            ...this.getWafParams(newWaf),
+            Rules: [
+              {
+                Name: 'DisableIPRule',
+                Priority: 0,
+                Statement: {
+                  IPSetReferenceStatement: {
+                    ARN: newWaf.ipsetArn as string,
+                  },
+                },
+                Action: {
+                  Block: {},
+                },
+                VisibilityConfig: {
+                  CloudWatchMetricsEnabled: true,
+                  SampledRequestsEnabled: true,
+                  MetricName: `fusebit-waf-rule-${getIPSetName(newWaf.name)}`,
+                },
               },
-            },
-            Action: {
-              Block: {},
-            },
-            VisibilityConfig: {
-              CloudWatchMetricsEnabled: true,
-              SampledRequestsEnabled: true,
-              MetricName: `fusebit-waf-rule-${getIPSetName(newWaf.name)}`,
-            },
-          },
-        ],
-      })
-      .promise();
+            ],
+          })
+          .promise();
+        success = true;
+      } catch (e) {
+        if (e && (e.code === 'WAFUnavailableEntityException' || e.code === 'ThrottlingException')) {
+          await new Promise((res) => setTimeout(res, 1000));
+        } else {
+          throw e;
+        }
+      }
+    } while (!success);
     return {
-      name: waf.Summary?.Name as string,
-      arn: waf.Summary?.ARN as string,
+      name: waf?.Summary?.Name as string,
+      arn: waf?.Summary?.ARN as string,
     };
   }
 
