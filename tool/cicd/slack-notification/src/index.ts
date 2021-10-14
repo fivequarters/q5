@@ -41,7 +41,6 @@ const nameToMention = [
       },
     ],
   };
-
   for (const test of outputJson.testResults) {
     if (test.status !== Status.Failed) {
       continue;
