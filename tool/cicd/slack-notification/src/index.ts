@@ -41,6 +41,7 @@ const nameToMention = [
       },
     ],
   };
+
   for (const test of outputJson.testResults) {
     if (test.status !== Status.Failed) {
       continue;
@@ -63,15 +64,17 @@ const nameToMention = [
   });
 
   const commit = await fs.readFile('/var/lib/jenkins/workspace/fusebit-test-suite/commit.txt', 'utf8');
+  const commit_hash = await fs.readFile('/var/lib/jenkins/workspace/fusebit-test-suite/commit_hash.txt', 'utf8');
   const commiters = commit.split('\n');
-  for (const commiter of commiters) {
+  const commit_hashes = commit_hash.split('\n');
+  for (const [index, commiter] of commiters.entries()) {
     for (const person of nameToMention) {
       if (commiter.includes(person.name)) {
         failurePayload.blocks.push({
           type: 'section',
           text: {
             type: 'mrkdwn',
-            text: `${person.id} is one of the last commiters.`,
+            text: `${person.id} is one of the last commiters, commit: https://github.com/fivequarters/q5/commit/${commit_hashes[index]}`,
           },
         });
       }
