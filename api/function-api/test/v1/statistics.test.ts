@@ -391,5 +391,4 @@ describe.skip('Statistics', () => {
     expect(response.data.items[0]).toHaveProperty('304', 1);
     expect(response.data.items[0]).toHaveProperty('key');
   }, 180000);
-  test.todo('cron function invocation event');
 });
