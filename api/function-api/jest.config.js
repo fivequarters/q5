@@ -13,6 +13,7 @@ module.exports = {
   ...(reportportal
     ? {
         reporters: [
+          'default',
           [
             '@reportportal/agent-js-jest',
             {
