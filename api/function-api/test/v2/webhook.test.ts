@@ -6,7 +6,7 @@ import { getEnv } from '../v1/setup';
 
 // Pull from function.utils so that keyStore.shutdown() and terminate_garbage_collection() get run, otherwise
 // the jest process hangs.
-import { defaultFrameworkSemver } from '../v1/function.utils';
+import { defaultFrameworkSemver, defaultOAuthConnectorSemver } from '../v1/function.utils';
 
 let { account, boundaryId } = getEnv();
 beforeEach(async () => {
@@ -109,40 +109,60 @@ const getTestIntegrationFile = () => {
 
 const getTestConnectorFile = () => {
   const { Connector } = require('@fusebit-int/framework');
+  const { OAuthConnector } = require('@fusebit-int/oauth-connector');
 
-  const connector = new Connector();
+  class Service extends OAuthConnector.Service {
+    // @ts-ignore
+    protected getEventsFromPayload(ctx) {
+      return [ctx.req.body];
+    }
+
+    // @ts-ignore
+    protected getAuthIdFromEvent(event) {
+      return 'authId';
+    }
+
+    // @ts-ignore
+    protected getWebhookEventType(event) {
+      return event.action;
+    }
+
+    // @ts-ignore
+    protected async createWebhookResponse(ctx, processPromise) {
+      await processPromise;
+      ctx.body = {
+        status: 'success',
+        message: 'Webhook Processed',
+      };
+    }
+
+    protected validateWebhookEvent() {
+      return true;
+    }
+    protected initializationChallenge() {
+      return false;
+    }
+  }
 
   // @ts-ignore
-  connector.service.setGetEventsFromPayload((ctx) => {
-    return [ctx.req.body];
-  });
+  class ServiceConnector extends OAuthConnector {
+    public static Service = Service;
 
-  // @ts-ignore
-  connector.service.setGetAuthIdFromEvent((event) => {
-    return 'authId';
-  });
+    protected createService() {
+      return new ServiceConnector.Service();
+    }
 
-  // @ts-ignore
-  connector.service.setGetWebhookEventType((event) => {
-    return event.action;
-  });
+    public constructor() {
+      super();
 
-  // @ts-ignore
-  connector.service.setCreateWebhookResponse(async (ctx, processPromise) => {
-    await processPromise;
-    ctx.body = {
-      status: 'success',
-      message: 'Webhook Processed',
-    };
-  });
+      // @ts-ignore
+      this.router.get('/api/test', (ctx) => {
+        ctx.body = { test: 'this' };
+      });
+    }
+  }
 
-  connector.service.setValidateWebhookEvent(() => true);
-  connector.service.setInitializationChallenge(() => false);
-
-  // @ts-ignore
-  connector.router.get('/api/test', (ctx) => {
-    ctx.body = { test: 'this' };
-  });
+  const connector = new ServiceConnector();
 
   module.exports = connector;
 };
@@ -155,6 +175,7 @@ const connectorEntity = {
         scripts: {},
         dependencies: {
           ['@fusebit-int/framework']: defaultFrameworkSemver,
+          ['@fusebit-int/oauth-connector']: defaultOAuthConnectorSemver,
         },
         files: ['./connector.js'],
         engines: {
