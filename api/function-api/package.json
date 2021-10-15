@@ -60,7 +60,7 @@
     "@5qtrs/request": "^0.0.1",
     "@fusebit/tunnel": "^3.2.5",
     "@npm/types": "^1.0.1",
-    "@reportportal/agent-js-jest": "^5.0.3",
+    "@reportportal/agent-js-jest": "git+https://github.com/matthewzhaocc/agent-js-jest.git",
     "@types/aws-sdk": "^2.7.0",
     "@types/cors": "^2.8.10",
     "@types/debug": "^4.1.2",
