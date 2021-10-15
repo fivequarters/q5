@@ -3,12 +3,12 @@ security:
   - AccessToken: []
 
 servers:
-  - url: https://api.{region}.fusebit.io
+  - url: https://api.{region}.on.fusebit.io
     description: Production
     variables:
       region:
-        description: The region where the API is deployed, for example `'us-east-1'`
-        default: 'us-east-1'
+        description: The region where the API is deployed, for example `'us-west-1'`
+        default: 'us-west-1'
 
 info:
   description: 'Fusebit HTTP API for the management and execution of Fusebit accounts, users, functions and more'
