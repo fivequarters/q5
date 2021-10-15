@@ -36,7 +36,7 @@ function toItem(deployment: IOpsDeployment) {
   }
 
   // Support clearing the Segment Key parameter using an empty string.
-  if (deployment.segmentKey?.length === 0) {
+  if (!deployment.segmentKey) {
     delete item.segmentKey;
   } else {
     item.segmentKey = { S: deployment.segmentKey };
