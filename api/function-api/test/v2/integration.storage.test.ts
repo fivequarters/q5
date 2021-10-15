@@ -3,13 +3,11 @@ import { resolve } from 'path';
 import faker, { fake } from 'faker';
 import { ApiRequestMap, cleanupEntities, RequestMethod } from './sdk';
 import { getEnv } from '../v1/setup';
-export const defaultFrameworkSemver = '>5.2.0';
+import { defaultFrameworkSemver } from '../v1/function.utils';
 
 let createdIntegrationId: string;
 
 const TEST_TIMEOUT_IN_MS = 60 * 3 * 1000;
-
-const SHARED_BUCKET_NAME = 'fusebit-bucket';
 
 let { account, boundaryId } = getEnv();
 
@@ -72,42 +70,44 @@ const getIntegrationEntity = (nodeVersion: string) => {
   };
 };
 
-describe('Integration Storage SDK test suite', () => {
-  test(
-    'When the integration is created, it should respond to the health check successfully',
-    async () => {
-      const integrationSetDataResponse = await ApiRequestMap.integration.dispatch(
-        account,
-        createdIntegrationId,
-        RequestMethod.get,
-        '/api/health'
-      );
-      expect(integrationSetDataResponse).toBeHttp({ statusCode: 200 });
+const createBucket = async (bucketName: string, bucketItemName: string) => {
+  const bucketData = [
+    {
+      bucket: bucketItemName,
+      data: [faker.random.alphaNumeric(10), faker.random.alphaNumeric(10), faker.random.alphaNumeric(10)],
     },
-    TEST_TIMEOUT_IN_MS
+  ];
+
+  const response = await ApiRequestMap.integration.dispatch(
+    account,
+    createdIntegrationId,
+    RequestMethod.post,
+    `/api/storage/${bucketName}`,
+    {
+      body: bucketData,
+    }
   );
 
+  return { response, bucketData };
+};
+
+const generateRandomData = () => {
+  return [
+    {
+      bucket: 'emails',
+      data: [faker.internet.email(), faker.internet.email()],
+    },
+  ];
+};
+
+describe('Integration Storage SDK test suite', () => {
   test(
     'When creating a new bucket, should save it in the storage',
     async () => {
-      const bucketData = [
-        {
-          bucket: 'colors',
-          data: ['orange', 'yellow', 'green'],
-        },
-      ];
-      const response = await ApiRequestMap.integration.dispatch(
-        account,
-        createdIntegrationId,
-        RequestMethod.post,
-        `/api/storage/${SHARED_BUCKET_NAME}`,
-        {
-          body: bucketData,
-        }
-      );
-      const expectedResult = [{ bucket: 'colors', data: ['orange', 'yellow', 'green'] }];
+      const bucketName = faker.random.alphaNumeric(10);
+      const { response, bucketData } = await createBucket(bucketName, faker.random.alphaNumeric(10));
       expect(response).toBeHttp({ statusCode: 200 });
-      expect(response.data).toStrictEqual(expectedResult);
+      expect(response.data).toStrictEqual(bucketData);
     },
     TEST_TIMEOUT_IN_MS
   );
@@ -115,31 +115,35 @@ describe('Integration Storage SDK test suite', () => {
   test(
     'Should return the saved items from an existing bucket',
     async () => {
-      const bucketItemsName = 'colors';
-      const bucketKey = `${SHARED_BUCKET_NAME}/${bucketItemsName}`;
-      const response = await ApiRequestMap.integration.dispatch(
+      const bucketName = faker.random.alphaNumeric(10);
+      const bucketItemsName = faker.random.alphaNumeric(10);
+      const bucketKeyPair = `${bucketName}/${bucketItemsName}`;
+
+      const { response, bucketData } = await createBucket(bucketName, bucketItemsName);
+
+      expect(response).toBeHttp({ statusCode: 200 });
+
+      const getBucketResponse = await ApiRequestMap.integration.dispatch(
         account,
         createdIntegrationId,
         RequestMethod.get,
-        `/api/storage/${bucketKey}`
+        `/api/storage/${bucketKeyPair}`
       );
-
-      const { storageId, data } = response.data;
-      const expectedResponse = {
-        storageId: bucketKey,
-        data: ['orange', 'yellow', 'green'],
-      };
-      expect(response).toBeHttp({ statusCode: 200 });
-      expect({ storageId, data }).toStrictEqual(expectedResponse);
+      const { storageId, data } = getBucketResponse.data;
+      const expectedBucket = bucketData.find((item) => item.bucket === bucketItemsName);
+      expect(getBucketResponse).toBeHttp({ statusCode: 200 });
+      expect(storageId).toStrictEqual(bucketKeyPair);
+      expect(data).toStrictEqual(expectedBucket?.data);
     },
     TEST_TIMEOUT_IN_MS
   );
 
   test(
-    'Should return empty content (204) for unkown bucket item name',
+    'Should return empty content (204) for unknown bucket item name',
     async () => {
+      const bucketName = faker.random.alphaNumeric(10);
       const bucketItemsName = 'the-void';
-      const bucketKey = `${SHARED_BUCKET_NAME}/${bucketItemsName}`;
+      const bucketKey = `${bucketName}/${bucketItemsName}`;
       const response = await ApiRequestMap.integration.dispatch(
         account,
         createdIntegrationId,
@@ -289,12 +293,7 @@ describe('Integration Storage SDK test suite', () => {
       'Should allow to add new items to an existing bucket',
       async () => {
         const bucketName = faker.random.alphaNumeric(10);
-        const bucketData = [
-          {
-            bucket: 'emails',
-            data: [faker.internet.email(), faker.internet.email()],
-          },
-        ];
+        const bucketData = generateRandomData();
         const createdBucket = await ApiRequestMap.integration.dispatch(
           account,
           createdIntegrationId,
@@ -333,12 +332,7 @@ describe('Integration Storage SDK test suite', () => {
       'Should allow to replace items completely from an existing bucket',
       async () => {
         const bucketName = faker.random.alphaNumeric(10);
-        const bucketData = [
-          {
-            bucket: 'emails',
-            data: [faker.internet.email(), faker.internet.email()],
-          },
-        ];
+        const bucketData = generateRandomData();
         const createdBucket = await ApiRequestMap.integration.dispatch(
           account,
           createdIntegrationId,
@@ -375,12 +369,7 @@ describe('Integration Storage SDK test suite', () => {
       'Should handle version conflicts and prevent saving data',
       async () => {
         const bucketName = faker.random.alphaNumeric(10);
-        const bucketData = [
-          {
-            bucket: 'emails',
-            data: [faker.internet.email(), faker.internet.email()],
-          },
-        ];
+        const bucketData = generateRandomData();
         const createdBucket = await ApiRequestMap.integration.dispatch(
           account,
           createdIntegrationId,
@@ -416,12 +405,7 @@ describe('Integration Storage SDK test suite', () => {
       'Should allow to remove a bucket item',
       async () => {
         const bucketName = faker.random.alphaNumeric(10);
-        const bucketData = [
-          {
-            bucket: 'emails',
-            data: [faker.internet.email(), faker.internet.email()],
-          },
-        ];
+        const bucketData = generateRandomData();
         const createdBucket = await ApiRequestMap.integration.dispatch(
           account,
           createdIntegrationId,
@@ -450,12 +434,7 @@ describe('Integration Storage SDK test suite', () => {
       'Should allow to remove a specific bucket item version',
       async () => {
         const bucketName = faker.random.alphaNumeric(10);
-        const bucketData = [
-          {
-            bucket: 'emails',
-            data: [faker.internet.email(), faker.internet.email()],
-          },
-        ];
+        const bucketData = generateRandomData();
         const createdBucket = await ApiRequestMap.integration.dispatch(
           account,
           createdIntegrationId,
@@ -538,12 +517,7 @@ describe('Integration Storage SDK test suite', () => {
       async () => {
         const bucket1 = faker.random.alphaNumeric(10);
         const bucket2 = faker.random.alphaNumeric(10);
-        const bucketData = [
-          {
-            bucket: 'emails',
-            data: [faker.internet.email(), faker.internet.email()],
-          },
-        ];
+        const bucketData = generateRandomData();
         const createdBucket1 = await ApiRequestMap.integration.dispatch(
           account,
           createdIntegrationId,
@@ -583,12 +557,7 @@ describe('Integration Storage SDK test suite', () => {
       'Should prevent to remove completely all the subscription buckets if recursive is not explicitly set',
       async () => {
         const bucket = faker.random.alphaNumeric(10);
-        const bucketData = [
-          {
-            bucket: 'emails',
-            data: [faker.internet.email(), faker.internet.email()],
-          },
-        ];
+        const bucketData = generateRandomData();
         const createdBucket = await ApiRequestMap.integration.dispatch(
           account,
           createdIntegrationId,
