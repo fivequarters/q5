@@ -5,6 +5,7 @@ RUN apk --update-cache upgrade
 # Install dependencies first
 RUN apk add zip
 RUN apk add libcap
+RUN apk add git
 # Give nodejs ability to listen to port 80
 RUN setcap 'cap_net_bind_service=+ep' /usr/local/bin/node
 # Add service user
