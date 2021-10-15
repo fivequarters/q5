@@ -18,12 +18,11 @@ All public releases of the Fusebit Operations CLI are documented here, including
 {:toc}
 -->
 
-
 ## Version 1.33.3
 
 _Released 10/14/21_
 
-- **BugFix.** Fixed an issue where a deployments would fail if not provided a segment key
+- **BugFix.** Fixed an issue where a deployments would fail if not provided a Segment Key
 
 ## Version 1.33.2
 
