@@ -2,6 +2,7 @@
  * Mocked integration used to interact with Storage SDK.
  */
 const { Integration } = require('@fusebit-int/framework');
+const packageFile = require('@fusebit-int/framework/package.json');
 
 const integration = new Integration();
 const router = integration.router;
@@ -73,6 +74,11 @@ router.delete('/api/storage/all', async (ctx) => {
 router.delete('/api/storage/:bucketName', async (ctx) => {
   const deleteDataResponse = await integration.storage.deletePrefixedData(ctx, ctx.params.bucketName);
   ctx.body = deleteDataResponse;
+});
+
+// Log framework version
+router.get('/api/framework-version', async (ctx) => {
+  ctx.body = packageFile.version;
 });
 
 module.exports = integration;
