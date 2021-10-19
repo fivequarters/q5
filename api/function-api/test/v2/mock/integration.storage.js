@@ -9,10 +9,13 @@ const router = integration.router;
 
 // Create a new Bucket with items
 router.post('/api/storage/:bucketName', async (ctx) => {
-  const { version } = ctx.query;
-  const bucketItems = ctx.req.body;
+  const { bucketItems, expires, version } = ctx.req.body;
   for await (const bucketItem of bucketItems) {
-    await integration.storage.setData(ctx, `${ctx.params.bucketName}/${bucketItem.bucket}`, bucketItem.data, version);
+    await integration.storage.setData(ctx, `${ctx.params.bucketName}/${bucketItem.bucket}`, {
+      data: bucketItem.data,
+      version,
+      expires,
+    });
   }
   ctx.body = bucketItems;
 });
@@ -36,19 +39,15 @@ router.put('/api/storage/:bucketName/:bucketItem', async (ctx) => {
   const currentData = await integration.storage.getData(ctx, `${ctx.params.bucketName}/${ctx.params.bucketItem}`);
   if (!replace) {
     const newData = [...currentData.data, ...ctx.req.body];
-    setDataResponse = await integration.storage.setData(
-      ctx,
-      `${ctx.params.bucketName}/${ctx.params.bucketItem}`,
-      newData,
-      version || currentData.version
-    );
+    setDataResponse = await integration.storage.setData(ctx, `${ctx.params.bucketName}/${ctx.params.bucketItem}`, {
+      data: newData,
+      version: version || currentData.version,
+    });
   } else {
-    setDataResponse = await integration.storage.setData(
-      ctx,
-      `${ctx.params.bucketName}/${ctx.params.bucketItem}`,
-      ctx.req.body,
-      version || currentData.version
-    );
+    setDataResponse = await integration.storage.setData(ctx, `${ctx.params.bucketName}/${ctx.params.bucketItem}`, {
+      data: ctx.req.body,
+      version: version || currentData.version,
+    });
   }
   ctx.body = setDataResponse;
 });
