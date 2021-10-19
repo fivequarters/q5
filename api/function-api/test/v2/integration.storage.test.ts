@@ -190,9 +190,7 @@ describe('Integration Storage SDK test suite', () => {
     async () => {
       const bucketName = randomChars();
       const data = [generateRandomBucketData()];
-      const expiresDate = new Date();
-      expiresDate.setDate(expiresDate.getDate() - 1);
-
+      const expiresDate = new Date(1);
       const createdBucketResponse = await createBucket(bucketName, data, undefined, expiresDate.toISOString());
 
       expect(createdBucketResponse).toBeHttp({ statusCode: 200 });
