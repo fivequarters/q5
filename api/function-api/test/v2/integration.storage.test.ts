@@ -23,7 +23,7 @@ const getIntegration = async (entityId: string) => {
 };
 
 const initializeIntegration = async () => {
-  const integrationEntity = getIntegrationEntity('14');
+  const integrationEntity = getIntegrationEntity();
   createdIntegrationId = integrationEntity.id;
   const integration = await getIntegration(integrationEntity.id);
   if (integration) {
@@ -46,13 +46,13 @@ afterAll(async () => {
   await cleanupEntities(account);
 }, TEST_TIMEOUT_IN_MS);
 
-const loadFile = (fileName: string) => {
+const loadFile = (fileName: string): string => {
   const filePath = resolve(__dirname, fileName);
-  const file = readFileSync(filePath);
-  return file.toString('utf-8');
+  const file = readFileSync(filePath, 'utf-8');
+  return file;
 };
 
-const getIntegrationEntity = (nodeVersion: string) => {
+const getIntegrationEntity = () => {
   return {
     data: {
       handler: './integration.js',
@@ -63,9 +63,6 @@ const getIntegrationEntity = (nodeVersion: string) => {
             '@fusebit-int/framework': defaultFrameworkSemver,
           },
           files: ['./integration.js'],
-          engines: {
-            node: nodeVersion,
-          },
         }),
         'integration.js': loadFile('mock/integration.storage.js'),
       },
