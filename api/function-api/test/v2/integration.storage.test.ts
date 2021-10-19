@@ -346,57 +346,5 @@ describe('Integration Storage SDK test suite', () => {
       },
       TEST_TIMEOUT_IN_MS
     );
-
-    test(
-      'Should allow to remove completely all the subscription buckets',
-      async () => {
-        const bucket1 = randomChars();
-        const bucket2 = randomChars();
-        const bucketData = [generateRandomBucketData()];
-        const createdBucket1 = await createBucket(bucket1, bucketData);
-        const createdBucket2 = await createBucket(bucket2, bucketData);
-
-        expect(createdBucket1).toBeHttp({ statusCode: 200 });
-        expect(createdBucket2).toBeHttp({ statusCode: 200 });
-
-        const deletedSubscriptionBuckets = await deleteBucket('all?recursive=true');
-
-        expect(deletedSubscriptionBuckets).toBeHttp({ statusCode: 200 });
-
-        const getBucket1 = await getBucket(bucket1);
-        const getBucket2 = await getBucket(bucket2);
-
-        const { total: bucket1Total, items: bucket1Items } = getBucket1.data;
-        const { total: bucket2Total, items: bucket2Items } = getBucket2.data;
-
-        expect(getBucket1).toBeHttp({ statusCode: 200 });
-        expect(getBucket2).toBeHttp({ statusCode: 200 });
-        expect(bucket1Total).toStrictEqual(0);
-        expect(bucket2Total).toStrictEqual(0);
-        expect(bucket1Items.length).toStrictEqual(0);
-        expect(bucket2Items.length).toStrictEqual(0);
-      },
-      TEST_TIMEOUT_IN_MS
-    );
-
-    test(
-      'Should prevent to remove completely all the subscription buckets if recursive is not explicitly set to true',
-      async () => {
-        const bucket = randomChars();
-        const bucketData = [generateRandomBucketData()];
-        const createdBucket = await createBucket(bucket, bucketData);
-
-        expect(createdBucket).toBeHttp({ statusCode: 200 });
-
-        const deletedSubscriptionBuckets = await deleteBucket('all');
-        const { message } = deletedSubscriptionBuckets.data;
-
-        expect(deletedSubscriptionBuckets).toBeHttp({ statusCode: 500 });
-        expect(message).toStrictEqual(
-          'You are attempting to recursively delete all storage objects in the Fusebit subscription. If this is your intent, please pass "true" as the argument in the call to deleteAll(forceRecursive).'
-        );
-      },
-      TEST_TIMEOUT_IN_MS
-    );
   });
 });

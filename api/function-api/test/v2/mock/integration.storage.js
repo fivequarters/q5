@@ -64,12 +64,6 @@ router.delete('/api/storage/:bucketName/:bucketItem', async (ctx) => {
   ctx.body = deleteDataResponse;
 });
 
-// Delete entire Subscription storage
-router.delete('/api/storage/all', async (ctx) => {
-  const deleteDataResponse = await integration.storage.deleteAllData(ctx, ctx.query.recursive);
-  ctx.body = deleteDataResponse;
-});
-
 // Delete entire Bucket
 router.delete('/api/storage/:bucketName', async (ctx) => {
   const deleteDataResponse = await integration.storage.deletePrefixedData(ctx, ctx.params.bucketName);
