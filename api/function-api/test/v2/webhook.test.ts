@@ -64,7 +64,7 @@ const getTestIntegrationFile = () => {
     try {
       await integration.storage.getData(ctx, storageKey);
     } catch (e) {
-      await integration.storage.setData(ctx, storageKey, { count: 0 });
+      await integration.storage.setData(ctx, storageKey, { data: { count: 0 } });
     } finally {
       await next();
     }
@@ -76,7 +76,9 @@ const getTestIntegrationFile = () => {
     const num = event.data.value;
     const getResult = await integration.storage.getData(ctx, storageKey);
     await integration.storage.setData(ctx, storageKey, {
-      count: getResult.data.count + num,
+      data: {
+        count: getResult.data.count + num,
+      },
     });
     ctx.body = 'success';
   });
@@ -87,7 +89,9 @@ const getTestIntegrationFile = () => {
     const num = event.data.value;
     const getResult = await integration.storage.getData(ctx, storageKey);
     await integration.storage.setData(ctx, storageKey, {
-      count: getResult.data.count - num,
+      data: {
+        count: getResult.data.count - num,
+      },
     });
     ctx.body = 'success';
   });
@@ -100,7 +104,9 @@ const getTestIntegrationFile = () => {
   // @ts-ignore
   router.put('resetCountPath', async (ctx) => {
     ctx.body = await integration.storage.setData(ctx, storageKey, {
-      count: 0,
+      data: {
+        count: 0,
+      },
     });
   });
 
