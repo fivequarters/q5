@@ -17,6 +17,12 @@ All public releases of the Fusebit HTTP API are documented here, including notab
 <!-- 1. TOC
 {:toc} -->
 
+## Version 1.27.0
+
+_Released 10/19/21_
+
+- **Bugfix.** Allow PUT operations on identity and install objects.
+
 ## Version 1.26.0
 
 _Released 10/9/21_
