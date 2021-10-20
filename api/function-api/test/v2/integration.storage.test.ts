@@ -71,14 +71,18 @@ const getIntegrationEntity = () => {
   };
 };
 
-const createBucket = async (bucketName: string, data: any) => {
+const createBucket = async (bucketName: string, data: any, version?: string, expires?: string) => {
   const response = await ApiRequestMap.integration.dispatch(
     account,
     createdIntegrationId,
     RequestMethod.post,
     `/api/storage/${bucketName}`,
     {
-      body: data,
+      body: {
+        bucketItems: data,
+        expires,
+        version,
+      },
     }
   );
 
@@ -164,15 +168,72 @@ describe('Integration Storage SDK test suite', () => {
   );
 
   test(
-    'Should return the saved items from an existing bucket',
+    'When creating a new bucket expiring in the future should return the bucket',
+    async () => {
+      const bucketName = randomChars();
+      const data = [generateRandomBucketData()];
+      const expiresDate = new Date();
+      expiresDate.setDate(expiresDate.getDate() + 1);
+
+      const createdBucketResponse = await createBucket(bucketName, data, undefined, expiresDate.toISOString());
+
+      expect(createdBucketResponse).toBeHttp({ statusCode: 200 });
+
+      const getBucketResponse = await getBucket(`${bucketName}/${data[0].bucket}`);
+      expect(getBucketResponse).toBeHttp({ statusCode: 200 });
+    },
+    TEST_TIMEOUT_IN_MS
+  );
+
+  test(
+    'When creating a new bucket already expired should not return the bucket',
+    async () => {
+      const bucketName = randomChars();
+      const data = [generateRandomBucketData()];
+      const expiresDate = new Date(1);
+      const createdBucketResponse = await createBucket(bucketName, data, undefined, expiresDate.toISOString());
+
+      expect(createdBucketResponse).toBeHttp({ statusCode: 200 });
+
+      const getBucketResponse = await getBucket(`${bucketName}/${data[0].bucket}`);
+      expect(getBucketResponse).toBeHttp({ statusCode: 204 });
+    },
+    TEST_TIMEOUT_IN_MS
+  );
+
+  test(
+    'When creating a new bucket with an empty or invalid expires date should not store the bucket',
+    async () => {
+      const bucketName = randomChars();
+      const data = [generateRandomBucketData()];
+      let createdBucketResponse = await createBucket(bucketName, data, undefined, '');
+
+      expect(createdBucketResponse).toBeHttp({ statusCode: 400 });
+
+      createdBucketResponse = await createBucket(bucketName, data, undefined, randomChars());
+
+      expect(createdBucketResponse).toBeHttp({ statusCode: 400 });
+    },
+    TEST_TIMEOUT_IN_MS
+  );
+
+  test(
+    'Should return the saved items from an existing bucket with the expected fields',
     async () => {
       const { bucketKeyPair, bucketData } = await createBucketAndTestItSucceeds();
       const getBucketResponse = await getBucket(bucketKeyPair);
       const { storageId, data } = getBucketResponse.data;
+      const expectedFields = ['storageId', 'data', 'tags', 'version', 'status', 'expires'];
 
       expect(getBucketResponse).toBeHttp({ statusCode: 200 });
       expect(storageId).toStrictEqual(bucketKeyPair);
       expect(data).toStrictEqual(bucketData[0]?.data);
+
+      const keys = Object.keys(getBucketResponse.data);
+
+      keys.forEach((field) => {
+        expect(expectedFields.includes(field)).toBeTruthy();
+      });
     },
     TEST_TIMEOUT_IN_MS
   );
