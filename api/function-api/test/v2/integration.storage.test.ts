@@ -218,15 +218,22 @@ describe('Integration Storage SDK test suite', () => {
   );
 
   test(
-    'Should return the saved items from an existing bucket',
+    'Should return the saved items from an existing bucket with the expected fields',
     async () => {
       const { bucketKeyPair, bucketData } = await createBucketAndTestItSucceeds();
       const getBucketResponse = await getBucket(bucketKeyPair);
       const { storageId, data } = getBucketResponse.data;
+      const expectedFields = ['storageId', 'data', 'tags', 'version', 'status', 'expires'];
 
       expect(getBucketResponse).toBeHttp({ statusCode: 200 });
       expect(storageId).toStrictEqual(bucketKeyPair);
       expect(data).toStrictEqual(bucketData[0]?.data);
+
+      const keys = Object.keys(getBucketResponse.data);
+
+      keys.forEach((field) => {
+        expect(expectedFields.includes(field)).toBeTruthy();
+      });
     },
     TEST_TIMEOUT_IN_MS
   );
