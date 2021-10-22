@@ -574,7 +574,7 @@ export abstract class BaseComponentService<IComponentType extends IBaseComponent
         }
         os = entity.operationState;
         msg = `${os.operation} ${os.errorCode || os.status}: ${os.errorDetails || os.message}`;
-        if (entity.operationState.status !== OperationStatus.success) {
+        if (os.status !== OperationStatus.success) {
           throw new Error(msg);
         }
       }
