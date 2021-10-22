@@ -18,6 +18,12 @@ All public releases of the Fusebit Operations CLI are documented here, including
 {:toc}
 -->
 
+## Version 1.33.3
+
+_Released 10/21/21_
+
+- **BugFix.** Correctly report an error when the function builder is unable to acquire a package.
+
 ## Version 1.33.2
 
 _Released 10/12/21_
