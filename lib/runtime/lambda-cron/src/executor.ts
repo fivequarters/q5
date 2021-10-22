@@ -84,7 +84,7 @@ async function checkCronStillExists(key: string) {
 
 async function executeFunction(ctx: any) {
   // Load the desired function summary from DynamoDB
-  let functionSummary;
+  let functionSummary: any;
   try {
     functionSummary = await loadFunctionSummary(ctx);
   } catch (e) {
@@ -127,7 +127,13 @@ async function executeFunction(ctx: any) {
   await new Promise((resolve, reject) =>
     Common.invoke_function(request, (error: any, response: any, meta: any) => {
       meta.metrics.cron = { deviation };
-      dispatchCronEvent({ request, error, response, meta });
+      dispatchCronEvent({
+        request,
+        error,
+        response,
+        meta,
+        persistLogs: !!(functionSummary && functionSummary['compute.persistLogs']),
+      });
 
       if (error) {
         reject(error);
@@ -194,6 +200,7 @@ function dispatchCronEvent(details: any) {
     request: details.request,
     metrics: details.meta.metrics,
     response: { statusCode: 200, headers: [] },
+    ...(details.persistLogs && details.meta.log ? { logs: details.meta.log } : {}),
     fusebit,
     error: details.meta.error || details.error, // The meta error always has more information.
   };

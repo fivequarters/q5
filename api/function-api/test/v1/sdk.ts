@@ -250,6 +250,64 @@ export async function getBuild(account: IAccount, build: { boundaryId: string; f
   });
 }
 
+export async function startLogQuery(
+  account: IAccount,
+  { subscriptionId, boundaryId, functionId }: { subscriptionId?: string; boundaryId?: string; functionId?: string },
+  data: any
+): Promise<[string, IHttpResponse]> {
+  const url = [
+    `${account.baseUrl}/v1/account/${account.accountId}`,
+    ...(subscriptionId ? [`/subscription/${subscriptionId}`] : []),
+    ...(boundaryId ? [`/boundary/${boundaryId}`] : []),
+    ...(functionId ? [`/function/${functionId}`] : []),
+    `/logs`,
+  ].join('');
+  const response = await request({
+    method: 'POST',
+    headers: {
+      Authorization: `Bearer ${account.accessToken}`,
+      'Content-Type': 'application/json',
+      'user-agent': account.userAgent,
+    },
+    url,
+    data,
+  });
+  return [url, response as IHttpResponse];
+}
+
+export async function waitForLogQuery(account: IAccount, url: string, queryId: string, timeout: number) {
+  let currentWait = 2;
+  let timeRemaining = timeout;
+  const queryStatusUrl = `${url}/${encodeURIComponent(queryId)}`;
+  while (true) {
+    await sleep(currentWait * 1000);
+    timeRemaining -= currentWait;
+    if (timeRemaining < 0) {
+      throw new Error(`The log query did not finish within the timeout.`);
+    }
+    if (timeout - timeRemaining > 20) {
+      currentWait = 10;
+    }
+    const response = await request({
+      method: 'GET',
+      url: queryStatusUrl,
+      headers: {
+        Authorization: `Bearer ${account.accessToken}`,
+        'user-agent': account.userAgent,
+      },
+    });
+    if (response.status !== 200) {
+      throw new Error(`Error running the logs query. Status code ${response.status}`);
+    }
+    if (response.data.status === 'complete') {
+      return response.data;
+    }
+    if (response.data.status !== 'scheduled' && response.data.status !== 'running') {
+      throw new Error(`Error running the logs query. Query status is '${response.data.status}'.`);
+    }
+  }
+}
+
 export async function getLogs(
   account: IAccount,
   boundaryId: string,

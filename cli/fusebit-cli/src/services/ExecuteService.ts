@@ -1,6 +1,6 @@
 import { Message, MessageKind, IExecuteInput } from '@5qtrs/cli';
 import { IText } from '@5qtrs/text';
-import { IHttpRequest, request as sendRequest } from '@5qtrs/request';
+import { IHttpRequest, IHttpResponse, request as sendRequest } from '@5qtrs/request';
 import { VersionService } from './VersionService';
 
 // -------------------
@@ -63,6 +63,24 @@ export class ExecuteService {
     }
   }
 
+  private validateSimpleResponse(response: IHttpResponse) {
+    if (response.status === 404) {
+      const message = 'The given entity does not exist';
+      throw new Error(message);
+    }
+    if (response.status === 403) {
+      const message = 'Access was not authorized; contact an account admin to request access';
+      throw new Error(message);
+    }
+    if (response.status >= 500) {
+      const message = 'An unknown error occured on the server';
+      throw new Error(message);
+    }
+    if (response.status >= 400) {
+      throw new Error(response.data.message);
+    }
+  }
+
   public async executeRequest<T>(messages: IExcuteMessages, request: IHttpRequest, retryOn201: boolean = false) {
     const headers = (request.headers = request.headers || {});
     const version = await this.versionService.getVersion();
@@ -84,21 +102,7 @@ export class ExecuteService {
         await new Promise((resolve) => setTimeout(resolve, 2000));
         return await func();
       }
-      if (response.status === 404) {
-        const message = 'The given entity does not exist';
-        throw new Error(message);
-      }
-      if (response.status === 403) {
-        const message = 'Access was not authorized; contact an account admin to request access';
-        throw new Error(message);
-      }
-      if (response.status >= 500) {
-        const message = 'An unknown error occured on the server';
-        throw new Error(message);
-      }
-      if (response.status >= 400) {
-        throw new Error(response.data.message);
-      }
+      this.validateSimpleResponse(response);
 
       return response.data;
     };
@@ -114,6 +118,26 @@ export class ExecuteService {
     }
     headers['User-Agent'] = `fusebit-cli/${version}`;
     return this.execute(messages, async (): Promise<any> => sendRequest(request));
+  }
+
+  public async simpleRequest(request: IHttpRequest) {
+    const headers = (request.headers = request.headers || {});
+    const version = await this.versionService.getVersion();
+    if (!headers['Content-Type'] && !headers['content-type']) {
+      headers['Content-Type'] = 'application/json';
+    }
+    headers['User-Agent'] = `fusebit-cli/${version}`;
+    const response = await sendRequest(request);
+    if (this.input.options.verbose) {
+      console.log('EXECUTE SERVICE REQUEST', request, '\nEXECUTE SERVICE RESPONSE', {
+        status: response.status,
+        headers: response.headers,
+        data: response.data,
+      });
+    }
+    this.validateSimpleResponse(response);
+
+    return response.data;
   }
 
   public async message(header: IText, message: IText, kind: MessageKind = MessageKind.result) {

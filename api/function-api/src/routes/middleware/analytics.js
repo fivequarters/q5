@@ -64,6 +64,7 @@ exports.enterHandler = (modality) => {
       delete reqProps.params.boundaryId;
       delete reqProps.params.functionId;
 
+      const logs = req.functionSummary && req.functionSummary['compute.persistLogs'] ? res.log : undefined;
       Runtime.dispatch_event({
         requestId: req.requestId,
         startTime: req._startTime,
@@ -73,6 +74,7 @@ exports.enterHandler = (modality) => {
         response: { statusCode: res.statusCode, headers: res.getHeaders() },
         fusebit: fusebit,
         error: res.error,
+        logs,
       });
     };
     next();
