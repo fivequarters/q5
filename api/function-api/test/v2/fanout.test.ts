@@ -123,31 +123,29 @@ describe('Fan Out Endpoint Tests', () => {
       statusCode: 200,
       data: {
         data: {
-          data: {
-            events: [
-              {
-                event: {
-                  data: {
-                    storageKey: `foo/bar/bah/${boundaryId}`,
-                  },
-                  entityId: connectorId,
-                  eventType: 'example',
-                  webhookAuthId: 'unknown',
-                  webhookEventId: 'someEventId',
+          events: [
+            {
+              event: {
+                data: {
+                  storageKey: `foo/bar/bah/${boundaryId}`,
                 },
-                params: {
-                  eventCode: 'example',
-                  eventType: 'webhook',
-                  sourceEntityId: 'con',
-                },
+                entityId: connectorId,
+                eventType: 'example',
+                webhookAuthId: 'unknown',
+                webhookEventId: 'someEventId',
               },
-            ],
-          },
+              params: {
+                eventCode: 'example',
+                eventType: 'webhook',
+                sourceEntityId: 'con',
+              },
+            },
+          ],
         },
       },
     });
 
-    expect(response.data.data.data.events[0].event.installIds.sort()).toEqual(installIds.sort());
+    expect(response.data.data.events[0].event.installIds.sort()).toEqual(installIds.sort());
   }, 180000);
 
   test('Missing permissions for fan_out call fails', async () => {
@@ -228,27 +226,25 @@ describe('Fan Out Endpoint Tests', () => {
       statusCode: 200,
       data: {
         data: {
-          data: {
-            events: [
-              {
-                event: {
-                  data: {
-                    storageKey: `foo/bar/bah/${boundaryId}`,
-                  },
-                  entityId: connectorId,
-                  eventType: 'example',
-                  installIds: ['ins-00000000000000000000000000000000'],
-                  webhookAuthId: 'unknown',
-                  webhookEventId: 'someEventId',
+          events: [
+            {
+              event: {
+                data: {
+                  storageKey: `foo/bar/bah/${boundaryId}`,
                 },
-                params: {
-                  eventCode: 'example',
-                  eventType: 'webhook',
-                  sourceEntityId: 'con',
-                },
+                entityId: connectorId,
+                eventType: 'example',
+                installIds: ['ins-00000000000000000000000000000000'],
+                webhookAuthId: 'unknown',
+                webhookEventId: 'someEventId',
               },
-            ],
-          },
+              params: {
+                eventCode: 'example',
+                eventType: 'webhook',
+                sourceEntityId: 'con',
+              },
+            },
+          ],
         },
       },
     });

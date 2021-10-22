@@ -195,7 +195,10 @@ export default abstract class BaseEntityService<E extends Model.IEntity, F exten
     return { statusCode: 202, result: entity };
   };
 
-  public createEntityOperation = async (resolvedAgent: IAgent, entity: Model.IEntity) => {
+  public createEntityOperation = async (
+    resolvedAgent: IAgent,
+    entity: Model.IEntity
+  ): Promise<Function.ICreateFunction> => {
     const params = {
       accountId: entity.accountId,
       subscriptionId: entity.subscriptionId,
@@ -203,11 +206,17 @@ export default abstract class BaseEntityService<E extends Model.IEntity, F exten
       functionId: entity.id,
     };
 
-    const result = await Function.createFunction(params, this.createFunctionSpecification(entity), resolvedAgent);
+    let result = await Function.createFunction(params, this.createFunctionSpecification(entity), resolvedAgent);
 
     if (result.code === 201 && result.buildId) {
-      await Function.waitForFunctionBuild(params, result.buildId, 100000);
+      result = await Function.waitForFunctionBuild(params, result.buildId, 100000);
     }
+
+    if (result.code > 299) {
+      throw result;
+    }
+
+    return result;
   };
 
   public updateEntity = async (resolvedAgent: IAgent, entity: Model.IEntity): Promise<IServiceResult> => {

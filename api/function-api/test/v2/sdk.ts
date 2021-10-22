@@ -539,6 +539,26 @@ export const ApiRequestMap: {
       });
       return response;
     },
+    put: async (
+      account: IAccount,
+      entityId: string,
+      subEntityId: string,
+      body: {
+        tags?: Model.ITags;
+        data?: any;
+        expires?: string;
+        version?: string;
+      },
+      options?: IRequestOptions
+    ) => {
+      const response = await v2Request(account, {
+        method: RequestMethod.put,
+        uri: `/integration/${encodeURI(entityId)}/install/${subEntityId}`,
+        body,
+        ...options,
+      });
+      return response;
+    },
     list: async (
       account: IAccount,
       entityId: string,
@@ -608,6 +628,26 @@ export const ApiRequestMap: {
       const response = await v2Request(account, {
         method: RequestMethod.post,
         uri: `/connector/${encodeURI(entityId)}/identity/`,
+        body,
+        ...options,
+      });
+      return response;
+    },
+    put: async (
+      account: IAccount,
+      entityId: string,
+      subEntityId: string,
+      body: {
+        tags?: Model.ITags;
+        data?: any;
+        expires?: string;
+        version?: string;
+      },
+      options?: IRequestOptions
+    ) => {
+      const response = await v2Request(account, {
+        method: RequestMethod.put,
+        uri: `/connector/${encodeURI(entityId)}/identity/${subEntityId}`,
         body,
         ...options,
       });

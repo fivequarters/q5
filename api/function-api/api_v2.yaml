@@ -8,8 +8,8 @@ servers:
     variables:
       region:
         description: |
-          The region where the API is deployed, for example `'us-east-1'`
-        default: 'us-east-1'
+          The region where the API is deployed, for example `'us-west-1'`
+        default: 'us-west-1'
 
 info:
   description: Fusebit HTTP API for the management and execution of Fusebit

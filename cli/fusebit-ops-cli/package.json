@@ -50,7 +50,5 @@
     "@types/jszip": "^3.4.1",
     "@types/rimraf": "^3.0.0"
   },
-  "bundledDependencies": [
-    "@fusebit/schema"
-  ]
+  "bundledDependencies": ["@fusebit/schema"]
 }

@@ -112,11 +112,8 @@ const router = (
             throw new Error('missing agent');
           }
           const entity = await requestToEntity(EntityService, paramIdNames, req, entityFromBody(req));
-
-          // Entity id is optional; reinforce it from the url parameter.
-          entity.id = req.params.entityId;
           const { statusCode, result } = await EntityService.updateEntity(req.resolvedAgent, entity);
-          res.status(statusCode).json(result);
+          res.status(statusCode).json(Model.entityToSdk(result));
         } catch (e) {
           next(e);
         }
