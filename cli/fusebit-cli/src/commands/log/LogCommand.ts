@@ -10,7 +10,7 @@ const command: ICommand = {
   name: 'Logs',
   cmd: 'log',
   summary: 'Access logs and statistics',
-  description: ['Access execution logs and statistics.'].join(' '),
+  description: 'Access execution logs and statistics.',
   options: [
     {
       name: 'profile',
@@ -49,14 +49,14 @@ const command: ICommand = {
       name: 'from',
       aliases: ['r'],
       description:
-        'The start time of the logging window. Specify absolute value in ISO format or relative value as +/-{seconds}',
+        'The start time of the logging window. Specify absolute value in ISO format or relative value as +/-{seconds}. For example "2021-10-23T09:42:07.413Z" or "-300".',
       defaultText: '5 minutes ago',
     },
     {
       name: 'to',
       aliases: ['t'],
       description:
-        'The end time of the logging window. Specify absolute value in ISO format or relative value as +/-{seconds}.',
+        'The end time of the logging window. Specify absolute value in ISO format or relative value as +/-{seconds}. For example "2021-10-23T09:42:07.413Z" or "+100".',
       defaultText: 'now',
     },
     {
@@ -69,7 +69,7 @@ const command: ICommand = {
     {
       name: 'output',
       aliases: ['o'],
-      description: "The format to display the output: 'pretty', 'json'",
+      description: "The format to display the output: 'pretty', 'raw', 'json'",
       default: 'pretty',
     },
   ],

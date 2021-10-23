@@ -31,7 +31,7 @@ describe('durable logs', () => {
             cron: '*/10 * * * * *', // run every 10s
           },
         });
-        expect(response).toBeHttp({ statusCode: [200] });
+        expect(response).toBeHttp({ statusCode: 200 });
         let url = response.data.location;
         response = await request(url);
         expect(response).toBeHttp({ statusCode: 200 });
@@ -42,11 +42,12 @@ describe('durable logs', () => {
         expect(data.results.length).toBeGreaterThanOrEqual(2);
         const methods: any = {};
         for (let i = 0; i < data.results.length; i++) {
+          expect(data.results[i]).toBeDefined();
           expect(data.results[i].request).toBeDefined();
-          expect(data.results[i].request.method).toBeDefined();
-          methods[data.results[i].request.method] = (methods[data.results[i].request.method] || 0) + 1;
+          const method = data.results[i].request.method;
+          expect(method).toBeDefined();
+          methods[method] = (methods[method] || 0) + 1;
           if (persistLogs) {
-            expect(data.results[i].logs).toBeDefined();
             expect(data.results[i].logs).toMatch(new RegExp(`STDOUT-${functionId}`));
             expect(data.results[i].logs).toMatch(new RegExp(`STDERR-${functionId}`));
           } else {

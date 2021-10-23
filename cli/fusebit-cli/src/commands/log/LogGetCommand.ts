@@ -36,7 +36,7 @@ export class LogGetCommand extends Command {
   }
 
   protected async onExecute(input: IExecuteInput): Promise<number> {
-    let filter: string | undefined = input.arguments[0] as string;
+    let filter: string | undefined = input.arguments[0] as string | undefined;
 
     if (filter === 'all') {
       filter = undefined;

@@ -144,10 +144,9 @@ const logRoutesPost = [
   '/account/:accountId/subscription/:subscriptionId/logs',
   '/account/:accountId/subscription/:subscriptionId/boundary/:boundaryId/logs',
   '/account/:accountId/subscription/:subscriptionId/boundary/:boundaryId/function/:functionId/logs',
-  '/account/:accountId/subscription/:subscriptionId/integration/:integrationId/logs',
-  '/account/:accountId/subscription/:subscriptionId/connector/:connectorId/logs',
 ];
 const logRoutesGet = logRoutesPost.map((r) => `${r}/:queryId`);
+
 router.options(logRoutesPost, cors(corsManagementOptions));
 router.post(
   logRoutesPost,
@@ -163,6 +162,7 @@ router.post(
   (req, res, next) => provider_handlers[req.provider].post_logs_query(req, res, next),
   analytics.finished
 );
+
 router.options(logRoutesGet, cors(corsManagementOptions));
 router.get(
   logRoutesGet,

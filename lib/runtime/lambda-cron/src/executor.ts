@@ -132,7 +132,7 @@ async function executeFunction(ctx: any) {
         error,
         response,
         meta,
-        persistLogs: !!(functionSummary && functionSummary['compute.persistLogs']),
+        persistLogs: !!functionSummary?.['compute.persistLogs'],
       });
 
       if (error) {

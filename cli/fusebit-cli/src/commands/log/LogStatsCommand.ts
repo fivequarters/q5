@@ -43,7 +43,7 @@ export class LogStatsCommand extends Command {
 
   protected async onExecute(input: IExecuteInput): Promise<number> {
     let filter: string | undefined = input.arguments[0] as string;
-    let stats: string | undefined = input.arguments[1] as string;
+    let stats: string | undefined = input.arguments[1] as string | undefined;
 
     if (filter === 'all') {
       filter = undefined;

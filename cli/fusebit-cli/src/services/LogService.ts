@@ -3,7 +3,8 @@ import { IFusebitExecutionProfile } from '@5qtrs/fusebit-profile-sdk';
 import { IExecuteInput, Message } from '@5qtrs/cli';
 import { ProfileService } from './ProfileService';
 import { ExecuteService } from './ExecuteService';
-import { Table } from '@5qtrs/table';
+import { IColumnConstraint, Table } from '@5qtrs/table';
+import { start } from 'repl';
 
 const queryTimeout = 2 * 60; // Max two minutes
 
@@ -17,23 +18,23 @@ export class LogService {
   private profileService: ProfileService;
   private executeService: ExecuteService;
   private input: IExecuteInput;
-  private from: string | undefined;
-  private to: string | undefined;
-  private limit: number | undefined;
-  private functionId: string | undefined;
-  private connectorId: string | undefined;
-  private integrationId: string | undefined;
+  private from?: string;
+  private to?: string;
+  private limit?: number;
+  private functionId?: string;
+  private connectorId?: string;
+  private integrationId?: string;
 
   private constructor(profileService: ProfileService, executeService: ExecuteService, input: IExecuteInput) {
     this.input = input;
     this.profileService = profileService;
     this.executeService = executeService;
-    this.from = input.options.from as string;
-    this.to = input.options.to as string;
-    this.limit = input.options.limit as number;
-    this.functionId = input.options.function as string;
-    this.connectorId = input.options.connector as string;
-    this.integrationId = input.options.integration as string;
+    this.from = input.options.from as string | undefined;
+    this.to = input.options.to as string | undefined;
+    this.limit = input.options.limit as number | undefined;
+    this.functionId = input.options.function as string | undefined;
+    this.connectorId = input.options.connector as string | undefined;
+    this.integrationId = input.options.integration as string | undefined;
   }
 
   public static async create(input: IExecuteInput) {
@@ -83,27 +84,33 @@ export class LogService {
       const details = [
         Text.dim('Account: '),
         profile.account,
-        ...(profile.subscription ? [Text.eol(), Text.dim('Subscription: '), profile.subscription] : []),
-        ...(profile.boundary && !this.integrationId && !this.connectorId
-          ? [Text.eol(), Text.dim('Boundary: '), profile.boundary]
-          : []),
-        ...(this.functionId && !this.integrationId && !this.connectorId
-          ? [Text.eol(), Text.dim('Function: '), this.functionId]
+        Text.eol(),
+        Text.dim('Subscription: '),
+        profile.subscription || 'unset',
+        ...(!this.integrationId && !this.connectorId
+          ? [
+              Text.eol(),
+              Text.dim('Boundary: '),
+              profile.boundary || Text.dim('unset'),
+              Text.eol(),
+              Text.dim('Function: '),
+              this.functionId || Text.dim('unset'),
+            ]
           : []),
         ...(this.integrationId ? [Text.eol(), Text.dim('Integration: '), this.integrationId] : []),
         ...(this.connectorId ? [Text.eol(), Text.dim('Connector: '), this.connectorId] : []),
         Text.eol(),
         Text.dim('From: '),
-        this.from || Text.dim('N/A'),
+        this.from || Text.dim('unset (default 5 mins ago)'),
         Text.eol(),
         Text.dim('To: '),
-        this.to || Text.dim('N/A'),
+        this.to || Text.dim('unset (default now)'),
         Text.eol(),
         Text.dim('Limit: '),
-        this.limit?.toString() || Text.dim('N/A'),
+        this.limit ? this.limit.toString() : Text.dim('unset (default 20)'),
         Text.eol(),
         Text.dim('Filter: '),
-        filter || Text.dim('N/A'),
+        filter || Text.dim('unset'),
         ...(stats ? [Text.eol(), Text.dim('Aggregation: '), stats] : []),
       ];
       await this.executeService.result(Text.bold(`Get ${stats ? 'Stats' : 'Logs'}`), Text.create(details));
@@ -114,7 +121,7 @@ export class LogService {
     if (this.input.options.output !== 'json') {
       const details = [
         Text.dim('Records matched: '),
-        (logs.recordsMatched && logs.recordsMatched.toString()) || '0',
+        logs.recordsMatched?.toString() || '0',
         Text.eol(),
         Text.dim('Records displayed: '),
         logs.results.length.toString(),
@@ -127,15 +134,17 @@ export class LogService {
       return;
     }
     for (let record of logs.results) {
-      const status = record.response?.statusCode || 0;
-      const line = [
-        Text.bold(new Date(record.timestamp).toISOString()),
-        ' ',
-        status >= 200 && status <= 300
+      const status = record.response?.statusCode;
+      const statusLine =
+        status >= 200 && status < 300
           ? Text.green(status.toString())
           : status >= 400
           ? Text.red(status.toString())
-          : (status || '???').toString(),
+          : (status || '???').toString();
+      const line = [
+        Text.bold(new Date(record.timestamp).toISOString()),
+        ' ',
+        statusLine,
         ' ',
         record.request?.method || '???',
         ' ',
@@ -161,32 +170,34 @@ export class LogService {
       console.log(JSON.stringify(logs, null, 2));
       return;
     }
-    const details = [Text.dim('Records matched: '), (logs.recordsMatched && logs.recordsMatched.toString()) || '0'];
+    const details = [Text.dim('Records matched: '), logs.recordsMatched?.toString() || '0'];
     await this.executeService.result(Text.bold('Results'), Text.create(details));
     if (this.input.options.output === 'raw') {
       console.log(JSON.stringify(logs, null, 2));
       return;
     }
     if (logs.results.length > 0) {
+      const fieldTypes: { [key: string]: string } = {};
       const textFields: string[] = [];
       const numFields: string[] = [];
-      const columns: any = [];
-      let largestRecord: any = logs.results[0];
       logs.results.forEach((r) => {
-        if (Object.keys(largestRecord).length < Object.keys(r).length) {
-          largestRecord = r;
-        }
+        Object.keys(r).forEach((f) => {
+          if (!fieldTypes[f]) {
+            fieldTypes[f] = typeof r[f];
+          }
+        });
       });
-      for (let field of Object.keys(largestRecord)) {
+      const columns: IColumnConstraint[] = [];
+      for (let field of Object.keys(fieldTypes)) {
         columns.push({ flexShrink: 1, flexGrow: 1 });
-        const isNumField = typeof largestRecord[field] === 'number' && field.indexOf('(') > 0;
+        const isNumField = fieldTypes[field] === 'number' && field.indexOf('(') > 0;
         if (isNumField) {
           numFields.push(field);
         } else {
           textFields.push(field);
         }
       }
-      const minmax: any = {};
+      const minmax: { [key: string]: { min: number; max: number } } = {};
       logs.results.forEach((r) => {
         numFields.forEach((f) => {
           if (!minmax[f]) {
@@ -225,24 +236,33 @@ export class LogService {
     }
   }
 
-  public async getLogs(filter: string | undefined, stats?: string): Promise<ILogsResult> {
+  public async getLogs(filter?: string, stats?: string): Promise<ILogsResult> {
     const profile = await this.validateAndNormalizeParams();
     const startQueryUrl = [
       `${profile.baseUrl}/v1/account/${profile.account}`,
-      ...(profile.subscription ? [`/subscription/${profile.subscription}`] : []),
-      ...(profile.boundary && !this.integrationId && !this.connectorId ? [`/boundary/${profile.boundary}`] : []),
-      ...(this.functionId ? [`/function/${this.functionId}`] : []),
-      ...(this.integrationId ? [`/integration/${this.integrationId}`] : []),
-      ...(this.connectorId ? [`/connector/${this.connectorId}`] : []),
+      profile.subscription
+        ? `/subscription/${profile.subscription}${
+            profile.boundary && !this.integrationId && !this.connectorId
+              ? `/boundary/${profile.boundary}${this.functionId ? `/function/${this.functionId}` : ``}`
+              : ``
+          }${this.integrationId ? `/boundary/integration/function/${this.integrationId}` : ``}${
+            this.connectorId ? `/boundary/connector/function/${this.connectorId}` : ``
+          }`
+        : ``,
       `/logs`,
     ].join('');
-    const startQueryData = {
-      ...(this.limit !== undefined ? { limit: this.limit } : {}),
-      ...(filter !== undefined ? { filter } : {}),
-      ...(stats !== undefined ? { stats } : {}),
-      ...(this.from !== undefined ? { from: this.from } : {}),
-      ...(this.to !== undefined ? { to: this.to } : {}),
+    let startQueryData: any = {
+      limit: this.limit,
+      filter,
+      stats,
+      from: this.from,
+      to: this.to,
     };
+    Object.keys(startQueryData).forEach((k) => {
+      if (startQueryData[k] === undefined) {
+        delete startQueryData[k];
+      }
+    });
     if (this.input.options.verbose) {
       console.log('STARTING LOGS QUERY', startQueryUrl, startQueryData);
     }

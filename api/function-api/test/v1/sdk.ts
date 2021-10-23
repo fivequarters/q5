@@ -253,13 +253,15 @@ export async function getBuild(account: IAccount, build: { boundaryId: string; f
 export async function startLogQuery(
   account: IAccount,
   { subscriptionId, boundaryId, functionId }: { subscriptionId?: string; boundaryId?: string; functionId?: string },
-  data: any
+  data: { limit?: number; from?: string; to?: string; stats?: string; filter?: string }
 ): Promise<[string, IHttpResponse]> {
   const url = [
     `${account.baseUrl}/v1/account/${account.accountId}`,
-    ...(subscriptionId ? [`/subscription/${subscriptionId}`] : []),
-    ...(boundaryId ? [`/boundary/${boundaryId}`] : []),
-    ...(functionId ? [`/function/${functionId}`] : []),
+    subscriptionId
+      ? `/subscription/${subscriptionId}${
+          boundaryId ? `/boundary/${boundaryId}${functionId ? `/function/${functionId}` : ``}` : ``
+        }`
+      : ``,
     `/logs`,
   ].join('');
   const response = await request({

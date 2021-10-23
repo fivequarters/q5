@@ -24,6 +24,4 @@ module.exports = Joi.object().keys({
   buildId: Joi.string(),
   name: Joi.string(),
   queryId: Joi.string(),
-  integrationId: Common.entityId,
-  connectorId: Common.entityId,
 });
