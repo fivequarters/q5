@@ -298,6 +298,7 @@ export async function waitForLogQuery(account: IAccount, url: string, queryId: s
         'user-agent': account.userAgent,
       },
     });
+    console.log('DURABLE POLL QUERY RESPONSE', response.statusCode, response.data);
     if (response.status !== 200) {
       throw new Error(`Error running the logs query. Status code ${response.status}`);
     }
