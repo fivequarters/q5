@@ -1,6 +1,6 @@
 const { v4: uuidv4 } = require('uuid');
 const Runtime = require('@5qtrs/runtime-common');
-const Constants = require('@5qtrs/constants');
+const { Constants } = require('@5qtrs/function-tags');
 
 const whitelistedReqFields = [
   'headers',
