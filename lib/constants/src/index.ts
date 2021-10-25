@@ -36,6 +36,8 @@ const valid_boundary_name = /^[A-Za-z0-9\-]{1,63}$/;
 
 const valid_function_name = /^[A-Za-z0-9\-]{1,64}$/;
 
+const traceIdHeader = 'x-fx-trace-id';
+
 // Stores status of a function build (async operation)
 // This prefix has 1 day TTL in S3
 const function_build_status_key_prefix = 'function-build-status';
@@ -334,4 +336,5 @@ export {
   getAuthToken,
   mergeDeep,
   createUniqueIdentifier,
+  traceIdHeader,
 };

@@ -1,7 +1,6 @@
 const { v4: uuidv4 } = require('uuid');
 const Runtime = require('@5qtrs/runtime-common');
-
-const traceIdHeader = 'x-fx-trace-id';
+const Constants = require('@5qtrs/constants');
 
 const whitelistedReqFields = [
   'headers',
@@ -28,9 +27,9 @@ exports.Modes = {
 exports.enterHandler = (modality) => {
   return (req, res, next) => {
     req.requestId = uuidv4();
-    req.traceId = req.headers[traceIdHeader];
+    req.traceId = req.headers[Constants.traceIdHeader];
     if (!req.traceId) {
-      req.headers[traceIdHeader] = req.traceId = req.requestId;
+      req.headers[Constants.traceIdHeader] = req.traceId = req.requestId;
     }
     res.metrics = {};
 

@@ -102,16 +102,19 @@ async function executeFunction(ctx: any) {
   const { startTime, deviation } = calculateCronDeviation(ctx.cron, ctx.timezone);
 
   // Generate a pseudo-request object to drive the invocation.
+  const requestId = uuidv4();
   const request = {
     method: 'CRON',
     url: `${Constants.get_function_path(ctx.subscriptionId, ctx.boundaryId, ctx.functionId)}`,
     body: ctx,
     originalUrl: `/v1${Constants.get_function_path(ctx.subscriptionId, ctx.boundaryId, ctx.functionId)}`,
     protocol: 'cron',
-    headers: {},
+    headers: {
+      [Constants.traceIdHeader]: requestId,
+    },
     query: {},
     params: ctx,
-    requestId: uuidv4(),
+    requestId,
     startTime,
     functionSummary,
   };
@@ -195,6 +198,7 @@ function dispatchCronEvent(details: any) {
 
   const event = {
     requestId: details.request.requestId,
+    traceId: details.request.requestId,
     startTime: details.request.startTime,
     endTime: Date.now(),
     request: details.request,
