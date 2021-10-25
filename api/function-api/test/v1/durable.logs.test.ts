@@ -84,6 +84,7 @@ describe('durable logs', () => {
         for (let n = 0; n < 5; n++) {
           let [url, response] = await startLogQuery(account, api, {
             limit: 100,
+            from: '-1800',
             filter: `fusebit.modality = 'execution' and fusebit.boundaryId = '${boundaryId}' and fusebit.functionId = '${functionId}'`,
             ...(stats ? { stats: 'count(*) by request.method' } : {}),
           });
