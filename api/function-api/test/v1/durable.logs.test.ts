@@ -88,7 +88,7 @@ describe('durable logs', () => {
             filter: `fusebit.modality = 'execution' and fusebit.boundaryId = '${boundaryId}' and fusebit.functionId = '${functionId}'`,
             ...(stats ? { stats: 'count(*) by request.method' } : {}),
           });
-          console.log('DURABLE START QUERY RESPONSE', response.status, JSON.stringify(response.data, null, 2));
+          // console.log('DURABLE START QUERY RESPONSE', response.status, JSON.stringify(response.data, null, 2));
           expect(response).toBeHttp({ statusCode: 200, has: ['queryId'] });
           let data = await waitForLogQuery(account, url, response.data.queryId, 45);
           expect(data.recordsMatched).toBeDefined();
