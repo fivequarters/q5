@@ -92,7 +92,7 @@ describe('durable logs', () => {
           expect(response).toBeHttp({ statusCode: 200, has: ['queryId'] });
           let data = await waitForLogQuery(account, url, response.data.queryId, 45);
           expect(data.recordsMatched).toBeDefined();
-          if (data.recordsMatched >= 2) {
+          if (data.recordsMatched >= 9) {
             validator(data, functionId, persistLogs);
             return;
           }
