@@ -35,6 +35,8 @@ LINEAR_SECRET_PAYLOAD="{\"data\":{\"clientId\":\"${PROXY_LINEAR_CLIENT_ID}\",\"c
 
 GITHUB_SECRET_PAYLOAD="{\"data\":{\"clientId\":\"${PROXY_GITHUB_CLIENT_ID}\",\"clientSecret\":\"${PROXY_GITHUB_CLIENT_SECRET}\",\"authorizationUrl\":\"https://github.com/login/oauth/authorize\",\"tokenUrl\":\"https://github.com/login/oauth/access_token\",\"revokeUrl\":\"https://api.github.com/applications/CLIENT_ID/token\"}}"
 
+GITHUB_APP_SECRET_PAYLOAD="{\"data\":{\"clientId\":\"${PROXY_GITHUB_APP_CLIENT_ID}\",\"clientSecret\":\"${PROXY_GITHUB_APP_CLIENT_SECRET}\",\"authorizationUrl\":\"https://github.com/login/oauth/authorize\",\"tokenUrl\":\"https://github.com/login/oauth/access_token\",\"revokeUrl\":\"https://api.github.com/applications/CLIENT_ID/token\"}}"
+
 ATLASSIAN_SECRET_PAYLOAD="{\"data\":{\"clientId\":\"${PROXY_ATLASSIAN_CLIENT_ID}\",\"clientSecret\":\"${PROXY_ATLASSIAN_CLIENT_SECRET}\",\"authorizationUrl\":\"https://auth.atlassian.com/oauth/authorize\",\"tokenUrl\":\"https://auth.atlassian.com/oauth/token\",\"revokeUrl\":\"https://auth.atlassian.com/oauth/revoke\"}}"
 
 # Publish to the designated accounts
@@ -45,5 +47,6 @@ for PROFILE in ${PROXY_SECRET_PUBLISH_PROFILE_LIST}; do
   echo ${SALESFORCE_SECRET_PAYLOAD} | fuse storage put - --storageId proxy/salesforce/configuration
   echo ${LINEAR_SECRET_PAYLOAD} | fuse storage put - --storageId proxy/linear/configuration
   echo ${GITHUB_SECRET_PAYLOAD} | fuse storage put - --storageId proxy/github/configuration
+  echo ${GITHUB_APP_SECRET_PAYLOAD} | fuse storage put - --storageId proxy/github-app/configuration
   echo ${ATLASSIAN_SECRET_PAYLOAD} | fuse storage put - --storageId proxy/atlassian/configuration
 done
