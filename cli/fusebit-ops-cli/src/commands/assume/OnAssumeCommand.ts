@@ -15,7 +15,7 @@ const command = {
     {
       name: 'defaults',
       description:
-        'The name of the defaults to use.  Currently supported are "manage", "stage", "develop", and "custom".  If "custom" is specified, then the hostname and deployment must also be specified.',
+        'The name of the defaults to use.  Currently supported are "manage", "stage", "develop", and "custom".  If "custom" is specified, then the deployment, region, and (if the action is not "jwt") hostname must also be specified.',
     },
     {
       name: 'accountId',
@@ -98,6 +98,11 @@ export class OnAssumeCommand extends Command {
         deploymentName: 'stage',
         region: 'us-west-2',
         hostname: 'https://stage-manage.fusebit.io',
+      },
+      develop: {
+        deploymentName: 'stage',
+        region: 'us-west-2',
+        hostname: 'https://develop-manage.fusebit.io',
       },
       custom: {
         deploymentName,
