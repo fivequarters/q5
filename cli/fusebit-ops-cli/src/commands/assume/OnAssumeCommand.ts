@@ -70,6 +70,7 @@ export class OnAssumeCommand extends Command {
   }
 
   protected async onExecute(input: IExecuteInput): Promise<number> {
+    const executeService = await ExecuteService.create(input);
     const [defaults, accountId, subscriptionId] = input.arguments as string[];
 
     let deploymentName = input.options.deployment as string;
@@ -81,6 +82,11 @@ export class OnAssumeCommand extends Command {
     const isActionJwt = action === 'jwt';
     const isActionUrl = action === 'url';
     const isActionManage = action === 'manage';
+
+    if (!isActionJwt && !isActionUrl && !isActionManage) {
+      executeService.error('Invalid Action', Text.create(`Action must be 'jwt', 'url', or 'manage'`));
+      throw new Error('Invalid Action');
+    }
 
     const defaultValues: Record<string, { deploymentName: string; region: string; hostname: string }> = {
       manage: {
@@ -105,7 +111,6 @@ export class OnAssumeCommand extends Command {
     hostname = hostname || defaultValues[defaults]?.hostname;
 
     if (!deploymentName || !region || !hostname) {
-      const executeService = await ExecuteService.create(input);
       executeService.error('Missing Parameters', Text.create(`The deployment, region, or hostname were missing.`));
       throw new Error('Missing parameters');
     }
