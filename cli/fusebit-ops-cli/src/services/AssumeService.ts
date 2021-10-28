@@ -2,7 +2,7 @@ import AWS from 'aws-sdk';
 import open from 'open';
 
 import { IExecuteInput } from '@5qtrs/cli';
-import { OpsService } from './OpsService';
+import { Text } from '@5qtrs/text';
 import { AwsCreds } from '@5qtrs/aws-config';
 import { AccountDataAwsContextFactory } from '@5qtrs/account-data-aws';
 
@@ -12,23 +12,36 @@ import { OpsDataAwsConfig } from '@5qtrs/ops-data-aws';
 import { AwsKeyStore } from '@5qtrs/runas';
 import * as Constants from '@5qtrs/constants';
 
+import { ExecuteService } from './ExecuteService';
+import { OpsService } from './OpsService';
+
 interface IManageOpenOptions {
   hostname: string;
   path: string;
 }
 
+interface IAuthBundle {
+  jwt: string;
+  accountId: string;
+  subscriptionId: string;
+  userId: string;
+}
+
 export class AssumeService {
   protected input: IExecuteInput;
+  private executeService: ExecuteService;
   private opsService: OpsService;
 
   public static async create(input: IExecuteInput) {
     const opsService = await OpsService.create(input);
-    return new AssumeService(input, opsService);
+    const executeService = await ExecuteService.create(input);
+    return new AssumeService(input, opsService, executeService);
   }
 
-  private constructor(input: IExecuteInput, opsService: OpsService) {
+  private constructor(input: IExecuteInput, opsService: OpsService, executeService: ExecuteService) {
     this.input = input;
     this.opsService = opsService;
+    this.executeService = executeService;
   }
 
   public async createKeyStore(deployment: IOpsDeployment): Promise<AwsKeyStore> {
@@ -67,11 +80,21 @@ export class AssumeService {
     const awsConfig = await OpsDataAwsConfig.create(opsDataContext.config);
     const accountDataFactory = await AccountDataAwsContextFactory.create(config);
     const accountData = await accountDataFactory.create(awsConfig);
+    const userList = await accountData.userData.list(accountId);
 
-    userId = (await accountData.userData.list(accountId)).items[0].id;
+    userId = userList.items[0]?.id;
 
     if (!userId) {
-      throw new Error(`No users found in account ${accountId}`);
+      this.executeService.error(
+        'No User Found',
+        Text.create(
+          `No users found in account ${accountId} on ${deployment.deploymentName}.${deployment.region}.${deployment.domainName}`
+        )
+      );
+
+      throw new Error(
+        `No users found in account ${accountId} on ${deployment.deploymentName}.${deployment.region}.${deployment.domainName}`
+      );
     }
 
     return userId;
@@ -95,7 +118,12 @@ export class AssumeService {
     return payload;
   }
 
-  public async createJwt(deployment: IOpsDeployment, accountId: string, subscriptionId: string, userId?: string) {
+  public async createAuthBundle(
+    deployment: IOpsDeployment,
+    accountId: string,
+    subscriptionId: string,
+    userId?: string
+  ): Promise<IAuthBundle> {
     const keyStore = await this.createKeyStore(deployment);
     await keyStore.rekey();
 
@@ -107,8 +135,19 @@ export class AssumeService {
     return { jwt, accountId, subscriptionId, userId };
   }
 
-  public openManage(options: IManageOpenOptions, jwt: string) {
-    const url = `${options.hostname}${options.path}#access_token=${jwt}&scope=openid%20profile%20email&expires_in=86400&token_type=Bearer`;
+  public makeUrl(options: IManageOpenOptions, authBundle: IAuthBundle) {
+    return `${options.hostname}${options.path}#access_token=${authBundle.jwt}&scope=openid%20profile%20email&expires_in=86400&token_type=Bearer`;
+  }
+
+  public async openManage(options: IManageOpenOptions, deployment: IOpsDeployment, authBundle: IAuthBundle) {
+    this.executeService.result(
+      'Opening Browser',
+      Text.create(
+        `Opening browser for account ${authBundle.accountId} as ${authBundle.userId} on ${deployment.deploymentName}.${deployment.region}.${deployment.domainName}`
+      )
+    );
+
+    const url = this.makeUrl(options, authBundle);
 
     open(url);
   }

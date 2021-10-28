@@ -1,5 +1,7 @@
 import { Command, IExecuteInput } from '@5qtrs/cli';
-import { AssumeService, DeploymentService } from '../../services';
+import { Text } from '@5qtrs/text';
+
+import { ExecuteService, AssumeService, DeploymentService } from '../../services';
 
 // ------------------
 // Internal Constants
@@ -7,12 +9,13 @@ import { AssumeService, DeploymentService } from '../../services';
 
 const command = {
   name: 'Assume Role As User',
-  cmd: 'as',
-  summary: 'Assume a specific role in ann account and subscription',
+  cmd: 'on',
+  summary: 'Assume a specific role in an account and subscription',
   arguments: [
     {
-      name: 'deployment',
-      description: 'The deployment to assume a role within',
+      name: 'defaults',
+      description:
+        'The name of the defaults to use.  Currently supported are "manage", "stage", "develop", and "custom".  If "custom" is specified, then the hostname and deployment must also be specified.',
     },
     {
       name: 'accountId',
@@ -25,14 +28,18 @@ const command = {
   ],
   options: [
     {
+      name: 'deployment',
+      description: 'Specify the deployment to assume a role within',
+    },
+    {
       name: 'region',
       description: 'The region of the deployment; required if the network is not globally unique',
       defaultText: 'network region',
     },
     {
-      name: 'output',
+      name: 'action',
       aliases: ['o'],
-      description: "Open the browser or return a raw JWT string: 'manage', 'raw'",
+      description: "Open the browser, print the created url, or return a raw JWT string: 'manage', 'url', 'jwt'",
       default: 'manage',
     },
     {
@@ -43,9 +50,8 @@ const command = {
     },
     {
       name: 'hostname',
-      aliases: ['h'],
       description: 'The hostname of the manage.fusebit.io instance to use',
-      default: 'https://manage.fusebit.io',
+      defaultText: 'https://manage.fusebit.io',
     },
   ],
 };
@@ -64,26 +70,75 @@ export class AsAssumeCommand extends Command {
   }
 
   protected async onExecute(input: IExecuteInput): Promise<number> {
-    const [deploymentName, accountId, subscriptionId] = input.arguments as string[];
+    const [defaults, accountId, subscriptionId] = input.arguments as string[];
 
+    let deploymentName = input.options.deployment as string;
+    let region = input.options.region as string;
+    let hostname = input.options.hostname as string;
+    const path = input.options.path as string;
+    const action = input.options.action as string;
+
+    const defaultValues: Record<string, { deploymentName: string; region: string; hostname: string }> = {
+      manage: {
+        deploymentName: 'api',
+        region: 'us-west-1',
+        hostname: 'https://manage.fusebit.io',
+      },
+      stage: {
+        deploymentName: 'stage',
+        region: 'us-west-2',
+        hostname: 'https://stage-manage.fusebit.io',
+      },
+      custom: {
+        deploymentName,
+        region,
+        hostname,
+      },
+    };
+
+    deploymentName = deploymentName || defaultValues[defaults]?.deploymentName;
+    region = region || defaultValues[defaults]?.region;
+    hostname = hostname || defaultValues[defaults]?.hostname;
+
+    if (!deploymentName || !region || !hostname) {
+      const executeService = await ExecuteService.create(input);
+      executeService.error('Missing Parameters', Text.create(`The deployment, region, or hostname were missing.`));
+      throw new Error('Missing parameters');
+    }
+
+    if (action === 'jwt' || action === 'url') {
+      input.options.output = 'raw';
+    }
     const deploymentService = await DeploymentService.create(input);
     const service = await AssumeService.create(input);
 
-    const deployment = await deploymentService.getSingleDeployment(deploymentName, input.options.region as string);
+    const deployment = await deploymentService.getSingleDeployment(deploymentName, region as string);
 
-    const jwt = await service.createJwt(deployment, accountId, subscriptionId);
+    try {
+      const authBundle = await service.createAuthBundle(deployment, accountId, subscriptionId);
 
-    process.stderr.write(
-      `Token created for:\n\tAccount: ${jwt.accountId}\n\tSubscription: ${jwt.subscriptionId}\n\tUser: ${jwt.userId}\n`
-    );
+      if (action === 'jwt') {
+        process.stderr.write(
+          `Token created for account ${authBundle.accountId} as ${authBundle.userId} on ${deployment.deploymentName}.${deployment.region}.${deployment.domainName}\n\n`
+        );
 
-    if (input.options.output === 'raw') {
-      input.io.writeLineRaw(jwt.jwt);
-      return 0;
+        input.io.writeLineRaw(authBundle.jwt);
+        return 0;
+      }
+
+      if (action === 'url') {
+        const url = service.makeUrl({ hostname, path }, authBundle);
+        await input.io.writeLineRaw(url);
+        return 0;
+      }
+
+      service.openManage({ hostname, path }, deployment, authBundle);
+    } catch (error) {
+      if (action === 'jwt') {
+        process.stderr.write(`Error: ${error.message}\n`);
+      }
+      throw error;
     }
-
-    service.openManage({ hostname: input.options.hostname as string, path: input.options.path as string }, jwt.jwt);
-
     return 0;
   }
 }
