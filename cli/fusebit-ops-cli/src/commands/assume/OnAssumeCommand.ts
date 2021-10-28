@@ -110,7 +110,7 @@ export class OnAssumeCommand extends Command {
     region = region || defaultValues[defaults]?.region;
     hostname = hostname || defaultValues[defaults]?.hostname;
 
-    if (!deploymentName || !region || !hostname) {
+    if (!deploymentName || !region || ((isActionManage || isActionUrl) && !hostname)) {
       executeService.error('Missing Parameters', Text.create(`The deployment, region, or hostname were missing.`));
       throw new Error('Missing parameters');
     }
