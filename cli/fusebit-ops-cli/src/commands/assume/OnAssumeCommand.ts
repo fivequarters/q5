@@ -43,6 +43,10 @@ const command = {
       default: 'manage',
     },
     {
+      name: 'user',
+      description: 'The user id to assume, or the first one found if not supplied',
+    },
+    {
       name: 'path',
       aliases: ['p'],
       description: 'The path to append the #access_token=JWT',
@@ -78,6 +82,7 @@ export class OnAssumeCommand extends Command {
     let hostname = input.options.hostname as string;
     const path = input.options.path as string;
     const action = input.options.action as string;
+    const userId = input.options.user as string;
 
     const isActionJwt = action === 'jwt';
     const isActionUrl = action === 'url';
@@ -131,7 +136,7 @@ export class OnAssumeCommand extends Command {
     const deployment = await deploymentService.getSingleDeployment(deploymentName, region as string);
 
     try {
-      const authBundle = await service.createAuthBundle(deployment, accountId, subscriptionId);
+      const authBundle = await service.createAuthBundle(deployment, accountId, subscriptionId, userId);
 
       if (isActionJwt || isActionUrl) {
         process.stderr.write(
