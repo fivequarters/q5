@@ -67,7 +67,7 @@ export class AssumeService {
     });
   }
 
-  public async getValidUser(deployment: IOpsDeployment, accountId: string, userId?: string): Promise<string> {
+  public async getValidUserId(deployment: IOpsDeployment, accountId: string, userId?: string): Promise<string> {
     if (userId) {
       return userId;
     }
@@ -101,21 +101,17 @@ export class AssumeService {
   }
 
   public makeToken(accountId: string, subscriptionId: string, userId?: string) {
-    const payload: { [key: string]: any } = {
+    return {
       sub: `uri:assume:${accountId}:${subscriptionId}`,
+      [Constants.JWT_PERMISSION_CLAIM]: {
+        allow: [{ action: '*', resource: `/account/${accountId}/subscription/${subscriptionId}` }],
+      },
+      [Constants.JWT_PROFILE_CLAIM]: {
+        accountId,
+        subscriptionId,
+        userId,
+      },
     };
-
-    payload[Constants.JWT_PERMISSION_CLAIM] = {
-      allow: [{ action: '*', resource: `/account/${accountId}/subscription/${subscriptionId}` }],
-    };
-
-    payload[Constants.JWT_PROFILE_CLAIM] = {
-      accountId,
-      subscriptionId,
-      userId,
-    };
-
-    return payload;
   }
 
   public async createAuthBundle(
@@ -127,7 +123,7 @@ export class AssumeService {
     const keyStore = await this.createKeyStore(deployment);
     await keyStore.rekey();
 
-    userId = await this.getValidUser(deployment, accountId, userId);
+    userId = await this.getValidUserId(deployment, accountId, userId);
 
     const jwt = await keyStore.signJwt(this.makeToken(accountId, subscriptionId, userId));
     keyStore.shutdown();
