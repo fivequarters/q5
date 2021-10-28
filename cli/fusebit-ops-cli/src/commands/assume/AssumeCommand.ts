@@ -1,5 +1,5 @@
 import { Command, ICommand } from '@5qtrs/cli';
-import { AsAssumeCommand } from './AsAssumeCommand';
+import { OnAssumeCommand } from './OnAssumeCommand';
 
 // ------------------
 // Internal Constants
@@ -27,7 +27,7 @@ const command: ICommand = {
 export class AssumeCommand extends Command {
   public static async create() {
     const subCommands = [];
-    subCommands.push(await AsAssumeCommand.create());
+    subCommands.push(await OnAssumeCommand.create());
     command.subCommands = subCommands;
     return new AssumeCommand(command);
   }

@@ -60,9 +60,9 @@ const command = {
 // Exported Classes
 // ----------------
 
-export class AsAssumeCommand extends Command {
+export class OnAssumeCommand extends Command {
   public static async create() {
-    return new AsAssumeCommand();
+    return new OnAssumeCommand();
   }
 
   private constructor() {
@@ -77,6 +77,10 @@ export class AsAssumeCommand extends Command {
     let hostname = input.options.hostname as string;
     const path = input.options.path as string;
     const action = input.options.action as string;
+
+    const isActionJwt = action === 'jwt';
+    const isActionUrl = action === 'url';
+    const isActionManage = action === 'manage';
 
     const defaultValues: Record<string, { deploymentName: string; region: string; hostname: string }> = {
       manage: {
@@ -106,9 +110,11 @@ export class AsAssumeCommand extends Command {
       throw new Error('Missing parameters');
     }
 
-    if (action === 'jwt' || action === 'url') {
+    if (isActionJwt || isActionUrl) {
+      // Prevent stdout output when being used for tools.
       input.options.output = 'raw';
     }
+
     const deploymentService = await DeploymentService.create(input);
     const service = await AssumeService.create(input);
 
@@ -117,16 +123,18 @@ export class AsAssumeCommand extends Command {
     try {
       const authBundle = await service.createAuthBundle(deployment, accountId, subscriptionId);
 
-      if (action === 'jwt') {
+      if (isActionJwt || isActionUrl) {
         process.stderr.write(
           `Token created for account ${authBundle.accountId} as ${authBundle.userId} on ${deployment.deploymentName}.${deployment.region}.${deployment.domainName}\n\n`
         );
+      }
 
+      if (isActionJwt) {
         input.io.writeLineRaw(authBundle.jwt);
         return 0;
       }
 
-      if (action === 'url') {
+      if (isActionUrl) {
         const url = service.makeUrl({ hostname, path }, authBundle);
         await input.io.writeLineRaw(url);
         return 0;
@@ -134,7 +142,7 @@ export class AsAssumeCommand extends Command {
 
       service.openManage({ hostname, path }, deployment, authBundle);
     } catch (error) {
-      if (action === 'jwt') {
+      if (isActionJwt || isActionUrl) {
         process.stderr.write(`Error: ${error.message}\n`);
       }
       throw error;
