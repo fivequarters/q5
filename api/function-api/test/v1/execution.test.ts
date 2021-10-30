@@ -444,52 +444,52 @@ describe('Execution', () => {
     expect(response).toBeHttp({ statusCode: 200 });
     expect(response.data).toEqual(account.accountId);
   }, 180000);
-});
 
-test('Function with x-www-form-urlencoded works', async () => {
-  let response = await putFunction(account, boundaryId, function1Id, {
-    nodejs: {
-      files: {
-        'index.js': 'module.exports = (ctx, cb) => cb(null, { body: ctx.body })',
+  test('Function with x-www-form-urlencoded works', async () => {
+    let response = await putFunction(account, boundaryId, function1Id, {
+      nodejs: {
+        files: {
+          'index.js': 'module.exports = (ctx, cb) => cb(null, { body: ctx.body })',
+        },
       },
-    },
-  });
-  expect(response).toBeHttp({ statusCode: 200 });
-  const params = new URLSearchParams();
-  params.append('test', '123');
+    });
+    expect(response).toBeHttp({ statusCode: 200 });
+    const params = new URLSearchParams();
+    params.append('test', '123');
 
-  response = await request({
-    method: 'POST',
-    url: response.data.location,
-    headers: { 'content-type': 'application/x-www-form-urlencoded' },
-    data: params,
+    response = await request({
+      method: 'POST',
+      url: response.data.location,
+      headers: { 'content-type': 'application/x-www-form-urlencoded' },
+      data: params,
+    });
+    expect(response).toBeHttp({ statusCode: 200, data: { test: '123' } });
   });
-  expect(response).toBeHttp({ statusCode: 200, data: { test: '123' } });
-});
 
-test('function with payload above limit fails (x-www-form-encoded)', async () => {
-  const response = await putFunction(account, boundaryId, function1Id, {
-    nodejs: {
-      files: {
-        'index.js': `module.exports = (ctx, cb) => {
+  test('function with payload above limit fails (x-www-form-encoded)', async () => {
+    const response = await putFunction(account, boundaryId, function1Id, {
+      nodejs: {
+        files: {
+          'index.js': `module.exports = (ctx, cb) => {
           cb(null, { body: { size: JSON.stringify(ctx.body).length } });
         };`,
-        'package.json': {
-          engines: {
-            node: '10',
+          'package.json': {
+            engines: {
+              node: '10',
+            },
           },
         },
       },
-    },
-  });
-  expect(response).toBeHttp({ statusCode: 200 });
-  const params = new URLSearchParams();
-  params.append('test', '.'.repeat(520 * 1024));
-  const executionResponse = await request({
-    method: 'POST',
-    url: response.data.location,
-    headers: { 'content-type': 'application/x-www-form-urlencoded' },
-    data: params,
-  });
-  expect(executionResponse.status).toEqual(413);
-}, 180000);
+    });
+    expect(response).toBeHttp({ statusCode: 200 });
+    const params = new URLSearchParams();
+    params.append('test', '.'.repeat(520 * 1024));
+    const executionResponse = await request({
+      method: 'POST',
+      url: response.data.location,
+      headers: { 'content-type': 'application/x-www-form-urlencoded' },
+      data: params,
+    });
+    expect(executionResponse.status).toEqual(413);
+  }, 180000);
+});
