@@ -58,6 +58,7 @@ interface IFunctionSpecification {
 interface ICreateFunction {
   code: number;
   status?: string;
+  message?: string;
   subscriptionId?: string;
   boundaryId?: string;
   functionId?: string;
@@ -296,4 +297,5 @@ export {
   waitForFunctionBuild,
   IFunctionSpecification,
   IExecuteFunction,
+  ICreateFunction,
 };

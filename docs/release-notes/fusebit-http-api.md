@@ -19,9 +19,21 @@ All public releases of the Fusebit HTTP API are documented here, including notab
 
 ## Version 1.28.0
 
-_Released 10/21/21_
+_Released 11/1/21_
 
 - **Enhancement.** Add support for accessing historical logs.
+
+## Version 1.27.2
+
+_Released 10/26/21_
+
+- **Bugfix.** Explicitly allow the 'application/json' type for responses on OAuth proxy requests.
+
+## Version 1.27.1
+
+_Released 10/21/21_
+
+- **Bugfix.** Propagate integration/connector update failures.
 
 ## Version 1.27.0
 

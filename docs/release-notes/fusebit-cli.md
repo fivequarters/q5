@@ -23,11 +23,17 @@ _Released 10/21/21_
 
 - **Enhancement.** Add support for accessing historical logs through `fuse log` command.
 
+## Version 1.15.2
+
+_Released 10/21/21_
+
+- **Bugfix.** Correctly report errors generated during connector or integration deploy.
+
 ## Version 1.15.1
 
 _Released 10/11/21_
 
-- **Bugfix.** Fixes dependencies issues on NPM 7.
+- **Bugfix.** Fixes compatibility issues with npm 7.
 
 ## Version 1.15.0
 
