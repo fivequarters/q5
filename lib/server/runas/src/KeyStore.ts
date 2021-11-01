@@ -25,6 +25,7 @@ interface IKeyStoreOptions {
   jwtValidDuration?: number;
   jwtAlgorithm?: string;
   rekeyInterval?: number;
+  audience?: string;
 }
 
 class KeyStore {
@@ -35,6 +36,7 @@ class KeyStore {
   private rekeyInterval: number;
   private jwtAlgorithm: string;
   private keyRefreshTimer: ReturnType<typeof setTimeout> | undefined;
+  private audience: string;
 
   constructor(options: IKeyStoreOptions = {}) {
     this.keyPair = { kid: 'A', publicKey: 'A', ttl: 0 };
@@ -42,6 +44,7 @@ class KeyStore {
     this.jwtValidDuration = options.jwtValidDuration || KEYSTORE_JWT_VALIDITY;
     this.rekeyInterval = options.rekeyInterval || KEYSTORE_REKEY_BEFORE;
     this.jwtAlgorithm = options.jwtAlgorithm || KEYSTORE_DEFAULT_ALG;
+    this.audience = options.audience || (process.env.API_SERVER as string);
   }
 
   public async signJwt(payload: any): Promise<string> {
@@ -52,7 +55,7 @@ class KeyStore {
     }
 
     const header = { kid: key.kid };
-    payload.aud = `${process.env.API_SERVER}`;
+    payload.aud = this.audience;
     payload.iss = Constants.makeSystemIssuerId(key.kid);
     payload.iat = Math.floor(Date.now() / 1000);
 

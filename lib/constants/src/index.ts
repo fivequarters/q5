@@ -80,6 +80,7 @@ const EPHEMERAL_ENTITY_EXPIRATION = 10 * 60 * 60 * 1000;
 const RUNAS_SYSTEM_ISSUER_SUFFIX = 'system.fusebit.io';
 
 const JWT_PERMISSION_CLAIM = 'https://fusebit.io/permissions';
+const JWT_PROFILE_CLAIM = 'https://fusebit.io/profile';
 
 const RUNAS_KID_LEN = 8;
 
@@ -318,6 +319,7 @@ export {
   RUNAS_ISSUER,
   RUNAS_KID_LEN,
   JWT_PERMISSION_CLAIM,
+  JWT_PROFILE_CLAIM,
   REGISTRY_RESERVED_SCOPE_PREFIX,
   RUNAS_SYSTEM_ISSUER_SUFFIX,
   API_PUBLIC_ENDPOINT,
