@@ -67,11 +67,7 @@ export class AssumeService {
     });
   }
 
-  public async getValidUserId(deployment: IOpsDeployment, accountId: string, userId?: string): Promise<string> {
-    if (userId) {
-      return userId;
-    }
-
+  public async getFirstUser(deployment: IOpsDeployment, accountId: string): Promise<string> {
     const opsDataContext = await this.opsService.getOpsDataContextImpl();
     const config = await opsDataContext.provider.getAwsConfigForDeployment(
       deployment.deploymentName,
@@ -82,7 +78,7 @@ export class AssumeService {
     const accountData = await accountDataFactory.create(awsConfig);
     const userList = await accountData.userData.list(accountId);
 
-    userId = userList.items[0]?.id;
+    const userId = userList.items[0]?.id;
 
     if (!userId) {
       this.executeService.error(
@@ -110,6 +106,9 @@ export class AssumeService {
         accountId,
         subscriptionId,
         userId,
+
+        // Include a @fusebit.io email to prevent customer analytics from tracking
+        email: 'assumed+role@fusebit.io',
       },
     };
   }
@@ -123,7 +122,9 @@ export class AssumeService {
     const keyStore = await this.createKeyStore(deployment);
     await keyStore.rekey();
 
-    userId = await this.getValidUserId(deployment, accountId, userId);
+    if (!userId) {
+      userId = await this.getFirstUser(deployment, accountId);
+    }
 
     const jwt = await keyStore.signJwt(this.makeToken(accountId, subscriptionId, userId));
     keyStore.shutdown();
