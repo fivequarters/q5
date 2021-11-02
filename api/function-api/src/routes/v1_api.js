@@ -137,6 +137,46 @@ router.get(
   analytics.finished
 );
 
+// Logs
+
+const logRoutesPost = [
+  '/account/:accountId/logs',
+  '/account/:accountId/subscription/:subscriptionId/logs',
+  '/account/:accountId/subscription/:subscriptionId/boundary/:boundaryId/logs',
+  '/account/:accountId/subscription/:subscriptionId/boundary/:boundaryId/function/:functionId/logs',
+];
+const logRoutesGet = logRoutesPost.map((r) => `${r}/:queryId`);
+
+router.options(logRoutesPost, cors(corsManagementOptions));
+router.post(
+  logRoutesPost,
+  analytics.enterHandler(analytics.Modes.Operations),
+  cors(corsManagementOptions),
+  validate_schema({ params: require('./validation/api_params') }),
+  authorize({
+    operation: AccountActions.getLogs,
+  }),
+  express.json(),
+  validate_schema({ query: require('./validation/logs'), body: require('./validation/logs') }),
+  determine_provider(),
+  (req, res, next) => provider_handlers[req.provider].post_logs_query(req, res, next),
+  analytics.finished
+);
+
+router.options(logRoutesGet, cors(corsManagementOptions));
+router.get(
+  logRoutesGet,
+  analytics.enterHandler(analytics.Modes.Operations),
+  cors(corsManagementOptions),
+  validate_schema({ params: require('./validation/api_params') }),
+  authorize({
+    operation: AccountActions.getLogs,
+  }),
+  determine_provider(),
+  (req, res, next) => provider_handlers[req.provider].get_logs_query(req, res, next),
+  analytics.finished
+);
+
 // Issuers
 
 router.options('/account/:accountId/issuer', cors(corsManagementOptions));

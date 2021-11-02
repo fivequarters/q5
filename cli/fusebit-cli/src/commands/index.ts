@@ -10,3 +10,4 @@ export { NpmCommand } from './npm/NpmCommand';
 export { ConnectorCommand } from './connector/ConnectorCommand';
 export { IntegrationCommand } from './integration/IntegrationCommand';
 export { StorageCommand } from './storage/StorageCommand';
+export { LogCommand } from './log/LogCommand';

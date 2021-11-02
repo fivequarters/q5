@@ -32,6 +32,12 @@ _Released 10/21/21_
 
 ## Version 1.33.2
 
+_Released 10/26/21_
+
+- **Enhancment.** Add tracing support to CRON. Requires `fuse-ops deployment add`.
+
+## Version 1.33.2
+
 _Released 10/12/21_
 
 - **BugFix.** Add auto retry on the creation of WAF for `fuse-ops deployment add` to improve reliability.
