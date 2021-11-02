@@ -18,9 +18,15 @@ All public releases of the Fusebit Operations CLI are documented here, including
 {:toc}
 -->
 
+## Version 1.34.1
+
+_Released 11/01/21_
+
+- **Enhancement.** Support user assumption for support or diagnostic purposes.
+
 ## Version 1.33.3
 
-_Released 10/21/21_
+_Released 10/28/21_
 
 - **BugFix.** Correctly report an error when the function builder is unable to acquire a package.
 
@@ -28,12 +34,7 @@ _Released 10/21/21_
 
 _Released 10/26/21_
 
-- **Enhancment.** Add tracing support to CRON. Requires `fuse-ops deployment add`.
-
-## Version 1.33.2
-
-_Released 10/12/21_
-
+- **Enhancement.** Add tracing support to CRON. Requires `fuse-ops deployment add`.
 - **BugFix.** Add auto retry on the creation of WAF for `fuse-ops deployment add` to improve reliability.
 
 ## Version 1.33.1

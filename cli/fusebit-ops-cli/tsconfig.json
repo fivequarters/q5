@@ -16,6 +16,7 @@
     { "path": "../../lib/constants" },
     { "path": "../../lib/server/function-tags" },
     { "path": "../../lib/server/registry" },
-    { "path": "../../lib/data/db" }
+    { "path": "../../lib/data/db" },
+    { "path": "../../lib/server/runas" }
   ]
 }
