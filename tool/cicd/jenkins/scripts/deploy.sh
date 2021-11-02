@@ -18,26 +18,28 @@ FUSEOPS="node cli/fusebit-ops-cli/libc/index.js"
 
 # -- Optional Parameters --
 # Pin to a specific version
-IMG_VER=${VERSION_FUNCTION_API:=`jq -r '.version' ./package.json`}
+IMG_VER=${VERSION_FUNCTION_API:=$(jq -r '.version' ./package.json)}
 
 # -- Script --
 
-ALL_STACKS=`${FUSEOPS} stack ls -o json --deployment ${DEPLOYMENT_NAME}`
-OLD_STACKS=`echo ${ALL_STACKS} | jq --arg region ${REGION} -r 'map(select(.region == $region)) | .[] | .id'`
+ALL_STACKS=$(${FUSEOPS} stack ls -o json --deployment ${DEPLOYMENT_NAME})
+OLD_STACKS=$(echo ${ALL_STACKS} | jq --arg region ${REGION} -r 'map(select(.region == $region)) | .[] | .id')
 
 echoerr "Deleting old stacks: ${OLD_STACKS}"
-echo -n ${OLD_STACKS} | \
+echo -n ${OLD_STACKS} |
   xargs -d ' ' -I STACKID \
-  ${FUSEOPS} stack rm ${DEPLOYMENT_NAME} STACKID --force true -c f --region ${REGION} -o json 1>&2
+    ${FUSEOPS} stack rm ${DEPLOYMENT_NAME} STACKID --force true -c f --region ${REGION} -o json 1>&2
 
 ${FUSEOPS} setup -c false
 ${FUSEOPS} deployment add ${DEPLOYMENT_NAME} ${NETWORK_NAME} ${DEPLOYMENT_DOMAIN} --dataWarehouse false --size 1 --region ${REGION} -c false
 
 echoerr "Deploying stack ${DEPLOYMENT_NAME}/${REGION}: ${IMG_VER} with environment params: ${ENV_PARAMS}"
 
+JENKINS_STACK_ADD_TIME=$(date +%s)
+
 STACK_ADD_PARAMS="--region ${REGION} -c false --size 1 -o json ${ENV_PARAMS}"
-STACK_ADD=`${FUSEOPS} stack add ${DEPLOYMENT_NAME} ${IMG_VER} ${STACK_ADD_PARAMS}`
-NEW_STACK_ID=`echo ${STACK_ADD} | jq -r '.id'`
+STACK_ADD=$(${FUSEOPS} stack add ${DEPLOYMENT_NAME} ${IMG_VER} ${STACK_ADD_PARAMS})
+NEW_STACK_ID=$(echo ${STACK_ADD} | jq -r '.id')
 
 echoerr "Promoting stack ${DEPLOYMENT_NAME}: ${NEW_STACK_ID}"
 ${FUSEOPS} stack promote ${DEPLOYMENT_NAME} ${NEW_STACK_ID} --region ${REGION} -c f 1>&2

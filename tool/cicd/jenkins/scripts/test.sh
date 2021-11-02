@@ -7,3 +7,6 @@ set -x
 cd api/function-api
 
 FUSE_PROFILE=cicd EC2=1 yarn test -i --no-colors --outputFile testOutput.json --json | true
+
+# Get logs
+./took/cicd/jenkins/scripts/get_log_stream.js
