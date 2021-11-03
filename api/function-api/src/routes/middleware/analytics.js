@@ -49,6 +49,9 @@ exports.enterHandler = (modality) => {
       // Prepare the event object with a select set of properties.
       const reqProps = {};
       whitelistedReqFields.forEach((p) => (reqProps[p] = req[p]));
+      if (req.originalUrl) {
+        reqProps.url = req.originalUrl;
+      }
 
       let fusebit = {
         accountId: reqProps.params.accountId,
