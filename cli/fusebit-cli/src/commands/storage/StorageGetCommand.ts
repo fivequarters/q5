@@ -53,6 +53,7 @@ export class StorageGetCommand extends Command {
 
     const storage = {
       storageId: StorageService.normalizeStorageId(storageId, true),
+      tags: {},
       ...(await storageService.fetchStorage(storageId)),
     };
 

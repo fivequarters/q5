@@ -23,4 +23,5 @@ module.exports = Joi.object().keys({
   baseUrl: Joi.string(),
   buildId: Joi.string(),
   name: Joi.string(),
+  queryId: Joi.string(),
 });

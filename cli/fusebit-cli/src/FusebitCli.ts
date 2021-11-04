@@ -13,6 +13,7 @@ import {
   ConnectorCommand,
   IntegrationCommand,
   StorageCommand,
+  LogCommand,
 } from './commands';
 
 // ------------------
@@ -53,6 +54,7 @@ async function getSubCommands() {
   subCommands.push(await ConnectorCommand.create());
   subCommands.push(await IntegrationCommand.create());
   subCommands.push(await StorageCommand.create());
+  subCommands.push(await LogCommand.create());
   return subCommands;
 }
 

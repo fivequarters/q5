@@ -1,6 +1,8 @@
 const { v4: uuidv4 } = require('uuid');
 const Runtime = require('@5qtrs/runtime-common');
 
+const traceIdHeader = 'x-fx-trace-id';
+
 const whitelistedReqFields = [
   'headers',
   'httpVersionMajor',
@@ -26,6 +28,10 @@ exports.Modes = {
 exports.enterHandler = (modality) => {
   return (req, res, next) => {
     req.requestId = uuidv4();
+    req.traceId = req.headers[traceIdHeader];
+    if (!req.traceId) {
+      req.headers[traceIdHeader] = req.traceId = req.requestId;
+    }
     res.metrics = {};
 
     let end = res.end;
@@ -43,6 +49,9 @@ exports.enterHandler = (modality) => {
       // Prepare the event object with a select set of properties.
       const reqProps = {};
       whitelistedReqFields.forEach((p) => (reqProps[p] = req[p]));
+      if (req.originalUrl) {
+        reqProps.url = req.originalUrl;
+      }
 
       let fusebit = {
         accountId: reqProps.params.accountId,
@@ -64,8 +73,10 @@ exports.enterHandler = (modality) => {
       delete reqProps.params.boundaryId;
       delete reqProps.params.functionId;
 
+      const logs = req.functionSummary && req.functionSummary['compute.persistLogs'] ? res.log : undefined;
       Runtime.dispatch_event({
         requestId: req.requestId,
+        traceId: req.traceId,
         startTime: req._startTime,
         endTime: res.endTime,
         request: reqProps,
@@ -73,6 +84,7 @@ exports.enterHandler = (modality) => {
         response: { statusCode: res.statusCode, headers: res.getHeaders() },
         fusebit: fusebit,
         error: res.error,
+        logs,
       });
     };
     next();

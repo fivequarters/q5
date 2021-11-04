@@ -31,4 +31,6 @@ export enum AccountActions {
   initClient = 'client:init',
 
   getAudit = 'audit:get',
+
+  getLogs = 'log:get',
 }

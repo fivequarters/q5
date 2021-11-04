@@ -17,6 +17,12 @@ All public releases of the Fusebit CLI are documented here, including notable ch
 <!-- 1. TOC
 {:toc} -->
 
+## Version 1.16.0
+
+_Released 10/21/21_
+
+- **Enhancement.** Add support for accessing historical logs through `fuse log` command.
+
 ## Version 1.15.2
 
 _Released 10/21/21_
