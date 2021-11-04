@@ -10,12 +10,14 @@ const CWSdk = new AWS.CloudWatchLogs({
   }).promise();
   const correctLogStreams = logGroups.logStreams.filter((logGroup) => logGroup.firstEventTimestamp > process.env.JENKINS_STACK_ADD_TIME);
   console.log(correctLogStreams)
-  correctLogStreams.map(async (logStreamName) => {
+  
+  correctLogStreams.map(async (logStream) => {
+    let nextToken;
     do {
-      let nextToken;
       const results = await CWSdk.getLogEvents({
         logGroupName: '/fusebit-mono/jenkins',
-        logStreamName: logStreamName.logStreamName,
+        logStreamName: logStream.logStreamName,
+        nextToken
       }).promise();
       results.events.forEach((event) => {
         console.log(event.message);
