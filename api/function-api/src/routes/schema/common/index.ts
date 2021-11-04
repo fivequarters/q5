@@ -13,7 +13,12 @@ const router = (EntityService: SessionedEntityService<any, any>) => {
   r.use(analytics.setModality(analytics.Modes.Administration));
   r.use('/:entityId/session', componentSessionRouter(EntityService));
   r.use('/:entityId/tag', componentTagRouter(EntityService));
-  r.use('/:entityId', componentCrudRouter(EntityService), dispatchRouter(EntityService));
+  r.use(
+    '/:entityId',
+    componentCrudRouter(EntityService),
+    analytics.setModality(analytics.Modes.Execution),
+    dispatchRouter(EntityService)
+  );
   r.use('/', componentRootRouter(EntityService));
 
   return r;
