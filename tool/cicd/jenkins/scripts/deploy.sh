@@ -35,7 +35,7 @@ ${FUSEOPS} deployment add ${DEPLOYMENT_NAME} ${NETWORK_NAME} ${DEPLOYMENT_DOMAIN
 
 echoerr "Deploying stack ${DEPLOYMENT_NAME}/${REGION}: ${IMG_VER} with environment params: ${ENV_PARAMS}"
 
-date +%s000 >/tmp/jenkins_start_time
+date +%s00 >/tmp/jenkins_start_time
 
 STACK_ADD_PARAMS="--region ${REGION} -c false --size 1 -o json ${ENV_PARAMS}"
 STACK_ADD=$(${FUSEOPS} stack add ${DEPLOYMENT_NAME} ${IMG_VER} ${STACK_ADD_PARAMS})
