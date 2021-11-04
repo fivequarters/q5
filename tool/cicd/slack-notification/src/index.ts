@@ -62,6 +62,15 @@ const nameToMention = [
     },
   });
 
+  const runId = await fs.readFile('/tmp/rp-results-id');
+  failurePayload.blocks.push({
+    type: 'section',
+    text: {
+      type: 'mrkdwn',
+      text: `Check the testbot data here https://testbot.dev.fusebit.io/ui/#fusebit-q5/launches/all/${runId}`,
+    },
+  });
+
   const commit = await fs.readFile('/var/lib/jenkins/workspace/fusebit-test-suite/commit.txt', 'utf8');
   const commiters = commit.split('\n');
   for (const commiter of commiters) {
