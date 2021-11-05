@@ -41,6 +41,7 @@ interface IFunctionSpecification {
     memorySize?: number;
     timeout?: number;
     staticIp?: boolean;
+    persistLogs?: boolean;
   };
   computeSerialized?: string;
   schedule?: {
