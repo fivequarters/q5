@@ -33,7 +33,7 @@ class FusebitReportPortal extends JestReportPortal {
 
     this.tempLaunchId = tempId;
     promise.then((res) => {
-      fs.writeFileSync('/tmp/rp-results-id', JSON.stringify(res.number));
+      fs.writeFileSync('/tmp/rp-results-id', parseInt(res.number)+511);
     });
   }
 }
