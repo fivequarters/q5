@@ -67,7 +67,7 @@ const nameToMention = [
     type: 'section',
     text: {
       type: 'mrkdwn',
-      text: `Check the testbot data here https://testbot.dev.fusebit.io/ui/#fusebit-q5/launches/all/${runId}`,
+      text: `Check the testbot data here https://testbot.dev.fusebit.io/ui/#q5-fusebit/launches/all/${runId}`,
     },
   });
 
