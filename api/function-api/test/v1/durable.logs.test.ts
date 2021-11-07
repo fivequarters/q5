@@ -8,7 +8,7 @@ beforeEach(() => {
 });
 
 describe('durable logs', () => {
-  test(
+  test.only(
     'are captured when configured',
     async () => {
       const createAndRunFunction = async (functionId: string, persistLogs: boolean) => {

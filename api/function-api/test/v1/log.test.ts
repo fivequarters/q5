@@ -10,17 +10,13 @@ beforeEach(() => {
 });
 
 describe('Log', () => {
-  function create_positive_log_test(node: string, boundary: boolean) {
+  function create_positive_log_test(boundary: boolean) {
     return async () => {
       let response = await putFunction(account, boundaryId, function1Id, {
         nodejs: {
           files: {
             'index.js': `module.exports = (ctx, cb) => { console.log('Hello ' + ctx.query.n); cb(); }`,
-            'package.json': {
-              engines: {
-                node,
-              },
-            },
+            'package.json': {},
           },
         },
       });
@@ -57,9 +53,9 @@ describe('Log', () => {
     };
   }
 
-  test('function logs work on node 10', create_positive_log_test('10', false), 120000);
+  test('function logs work on node 14', create_positive_log_test(false), 120000);
 
-  test('boundary logs work on node 10', create_positive_log_test('10', true), 120000);
+  test('boundary logs work on node 14', create_positive_log_test(true), 120000);
 
   function create_exception_log_test(ret: boolean, sync: boolean) {
     return async () => {
@@ -71,11 +67,7 @@ describe('Log', () => {
               : sync
               ? `module.exports = (ctx, cb) => { console.log('ALL IS WELL'); throw new Error('Foo'); }`
               : `module.exports = (ctx, cb) => { console.log('ALL IS WELL'); setTimeout(() => { throw new Error('Foo'); }, 1000); }`,
-            'package.json': {
-              engines: {
-                node: '10',
-              },
-            },
+            'package.json': {},
           },
         },
       });
