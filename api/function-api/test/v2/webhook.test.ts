@@ -184,9 +184,6 @@ const connectorEntity = {
           ['@fusebit-int/oauth-connector']: defaultOAuthConnectorSemver,
         },
         files: ['./connector.js'],
-        engines: {
-          node: '14',
-        },
       }),
       ['connector.js']: createTestFile(getTestConnectorFile, { authId }),
     },
@@ -207,9 +204,6 @@ const integrationEntity = {
           ['@fusebit-int/framework']: defaultFrameworkSemver,
         },
         files: ['./integrationTest.js'],
-        engines: {
-          node: '14',
-        },
       }),
       ['integrationTest.js']: createTestFile(getTestIntegrationFile, {
         incrementEventPath,

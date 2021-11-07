@@ -70,10 +70,6 @@ describe('Integration spec test suite', () => {
     await testSpec(getIntegrationEntity('12'), /^v12/);
   }, 180000);
 
-  test('Integration created with supported node.js version 10', async () => {
-    await testSpec(getIntegrationEntity('10'), /^v10/);
-  }, 180000);
-
   test('Creating integration with an invalid spec returns 400', async () => {
     const simpleBadInteg = {
       id: boundaryId,
