@@ -18,6 +18,12 @@ All public releases of the Fusebit Operations CLI are documented here, including
 {:toc}
 -->
 
+## Version 1.34.2
+
+_Released 11/09/21_
+
+- **Enhancement.** Support a --region parameter to limit stack lists.
+
 ## Version 1.34.1
 
 _Released 11/01/21_

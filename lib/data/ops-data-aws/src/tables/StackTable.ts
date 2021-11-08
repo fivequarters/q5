@@ -85,6 +85,7 @@ export interface IOpsStack {
 
 export interface IListOpsStackOptions {
   deploymentName?: string;
+  region?: string;
   next?: string;
   limit?: number;
 }
@@ -138,21 +139,40 @@ export class StackTable extends AwsDynamoTable {
   }
 
   public async list(options?: IListOpsStackOptions): Promise<IListOpsStackResult> {
-    if (options && options.deploymentName) {
-      const queryOptions = {
-        limit: options && options.limit ? options.limit : undefined,
-        next: options && options.next ? options.next : undefined,
-        expressionValues: { ':deploymentName': { S: options.deploymentName } },
-        keyConditions: ['deploymentName = :deploymentName'],
+    if (!options || !options.deploymentName) {
+      // need to add the filter for the regionStackId here.
+      const scanOptions = {
+        ...options,
+        expressionValues: {
+          ...(options?.deploymentName ? { ':deploymentName': { S: options.deploymentName } } : {}),
+          ...(options?.region ? { ':region': { S: options.region } } : {}),
+        },
+        filters: [
+          ...(options?.deploymentName ? ['deploymentName = :deploymentName'] : []),
+          ...(options?.region ? ['begins_with(regionStackId, :region)'] : []),
+        ],
       };
-      return this.queryTable(queryOptions);
+      return this.scanTable(scanOptions);
     }
-    return this.scanTable(options);
+
+    const queryOptions = {
+      limit: options && options.limit ? options.limit : undefined,
+      next: options && options.next ? options.next : undefined,
+      expressionValues: {
+        ...(options.deploymentName ? { ':deploymentName': { S: options.deploymentName } } : {}),
+        ...(options.region ? { ':region': { S: options.region } } : {}),
+      },
+      keyConditions: [
+        ...(options.deploymentName ? ['deploymentName = :deploymentName'] : []),
+        ...(options.region ? ['begins_with(regionStackId, :region)'] : []),
+      ],
+    };
+    return this.queryTable(queryOptions);
   }
 
-  public async listAll(deploymentName?: string): Promise<IOpsStack[]> {
+  public async listAll(opts?: IListOpsStackOptions): Promise<IOpsStack[]> {
     const deployments = [];
-    const options: IListOpsStackOptions = { deploymentName, limit: this.config.accountMaxLimit };
+    const options: IListOpsStackOptions = { ...opts, limit: this.config.accountMaxLimit };
     do {
       const result = await this.list(options);
       deployments.push(...result.items);
