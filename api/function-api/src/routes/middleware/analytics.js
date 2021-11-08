@@ -58,20 +58,10 @@ exports.enterHandler = (modality) => {
         subscriptionId: reqProps.params.subscriptionId,
         boundaryId: reqProps.params.boundaryId,
         functionId: reqProps.params.functionId,
-        sessionId: reqProps.params.sessionId,
-        identityId: reqProps.params.identityId,
-        installId: reqProps.params.installId,
         deploymentKey: process.env.DEPLOYMENT_KEY,
         mode: 'request',
         modality: req.analyticsModality || modality,
       };
-      if (req.entityType && reqProps.params.entityId) {
-        fusebit[`${req.entityType}Id`] = reqProps.params.entityId;
-        if (fusebit.modality === 'execution') {
-          fusebit.boundaryId = req.entityType;
-          fusebit.functionId = reqProps.params.entityId;
-        }
-      }
 
       // Create a copy of params to avoid accidental side effects.
       reqProps.params = {
@@ -103,11 +93,6 @@ exports.enterHandler = (modality) => {
 
 exports.setModality = (modality) => (req, res, next) => {
   req.analyticsModality = modality;
-  return next();
-};
-
-exports.setEntityType = (entityType) => (req, res, next) => {
-  req.entityType = entityType;
   return next();
 };
 

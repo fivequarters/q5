@@ -17,13 +17,6 @@ All public releases of the Fusebit HTTP API are documented here, including notab
 <!-- 1. TOC
 {:toc} -->
 
-## Version 1.28.2
-
-_Released 11/4/21_
-
-- **Enhancement.** Enable persistent capture of stdout/err of connectors and integrations by default.
-- **Enhancement.** Add more metadata to CloudWatch events related to integrations and connectors.
-
 ## Version 1.28.1
 
 _Released 11/2/21_

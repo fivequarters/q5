@@ -29,7 +29,6 @@ router.use('/connector/:entityId/proxy/:proxyType/oauth', createProxyRouter(subs
 
 router.use(
   '/connector',
-  analytics.setEntityType(Model.EntityType.connector),
   common(connectorService),
   connectorFanOut(connectorService, integrationService, installService),
   SubcomponentRouter(identityService, ['entityId', 'identityId'], Model.EntityType.connector)
@@ -37,7 +36,6 @@ router.use(
 
 router.use(
   '/integration',
-  analytics.setEntityType(Model.EntityType.integration),
   common(integrationService),
   SubcomponentRouter(installService, ['entityId', 'installId'], Model.EntityType.integration)
 );

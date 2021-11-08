@@ -116,9 +116,6 @@ export default abstract class BaseEntityService<E extends Model.IEntity, F exten
           ].join('\n'),
         },
       },
-      compute: {
-        persistLogs: true,
-      },
       security: this.getFunctionSecuritySpecification(entity),
     };
 
