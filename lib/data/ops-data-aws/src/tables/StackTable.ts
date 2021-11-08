@@ -152,6 +152,12 @@ export class StackTable extends AwsDynamoTable {
           ...(options?.region ? ['begins_with(regionStackId, :region)'] : []),
         ],
       };
+
+      if (scanOptions.filters.length === 0) {
+        delete scanOptions.expressionValues;
+        delete scanOptions.filters;
+      }
+
       return this.scanTable(scanOptions);
     }
 
