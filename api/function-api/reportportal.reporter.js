@@ -1,17 +1,7 @@
 const JestReportPortal = require('@reportportal/agent-js-jest');
 const fs = require('fs');
 
-const {
-  getClientInitObject,
-  getSuiteStartObject,
-  getStartLaunchObject,
-  getTestStartObject,
-  getStepStartObject,
-  getAgentInfo,
-  getCodeRef,
-  getFullTestName,
-  getFullStepName,
-} = require('@reportportal/agent-js-jest/utils/objectUtils');
+const { getStartLaunchObject } = require('@reportportal/agent-js-jest/utils/objectUtils');
 
 const RP_MAGIC_OFFSET = 511;
 const testItemStatuses = { PASSED: 'passed', FAILED: 'failed', SKIPPED: 'pending' };
