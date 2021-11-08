@@ -13,6 +13,7 @@ const {
   getFullStepName,
 } = require('@reportportal/agent-js-jest/utils/objectUtils');
 
+const RP_MAGIC_OFFSET = 511;
 const testItemStatuses = { PASSED: 'passed', FAILED: 'failed', SKIPPED: 'pending' };
 
 const promiseErrorHandler = (promise) => {
@@ -33,7 +34,7 @@ class FusebitReportPortal extends JestReportPortal {
 
     this.tempLaunchId = tempId;
     promise.then((res) => {
-      fs.writeFileSync('/tmp/rp-results-id', (JSON.parse(res.number) + 511).toString());
+      fs.writeFileSync('/tmp/rp-results-id', (JSON.parse(res.number) + RP_MAGIC_OFFSET).toString());
     });
   }
 }
