@@ -10,19 +10,25 @@ beforeEach(() => {
 });
 
 describe('Execution Async', () => {
-  test('hello, world succeeds', async () => {
-    const response = await putFunction(account, boundaryId, function1Id, {
+  test('hello, world succeeds on node 10', async () => {
+    let response = await putFunction(account, boundaryId, function1Id, {
       nodejs: {
         files: {
           'index.js': 'module.exports = async (ctx) => { return { body: "hello" }; };',
-          'package.json': {},
+          'package.json': {
+            engines: {
+              node: '10',
+            },
+          },
         },
       },
     });
-    expect(response).toBeHttp({ statusCode: 200 });
+    expect(response).toBeHttp({ statusCode: 200, data: { status: 'success' } });
+    response = await request(response.data.location);
+    expect(response).toBeHttp({ statusCode: 200, data: 'hello', headers: { 'x-fx-response-source': 'function' } });
   }, 180000);
 
-  test('function with module succeeds', async () => {
+  test('function with module succeeds on node 10', async () => {
     let response = await putFunction(account, boundaryId, function1Id, {
       nodejs: {
         files: {
@@ -30,6 +36,9 @@ describe('Execution Async', () => {
           'package.json': {
             dependencies: {
               superagent: '*',
+            },
+            engines: {
+              node: '10',
             },
           },
         },
@@ -151,6 +160,9 @@ describe('Execution Async', () => {
         files: {
           'index.js': 'var s = require("superagent"); module.exports = async (ctx) => { return { body: typeof s }; };',
           'package.json': {
+            engines: {
+              node: '10',
+            },
             dependencies: {
               superagent: '*',
             },
@@ -283,7 +295,11 @@ describe('Execution Async', () => {
                 })
             ]);
           };`,
-          'package.json': {},
+          'package.json': {
+            engines: {
+              node: '10',
+            },
+          },
         },
       },
     });
@@ -308,7 +324,11 @@ describe('Execution Async', () => {
           'index.js': `module.exports = async (ctx) => {
             return { body: { size: JSON.stringify(ctx.body).length } };
           };`,
-          'package.json': {},
+          'package.json': {
+            engines: {
+              node: '10',
+            },
+          },
         },
       },
     });
@@ -334,7 +354,11 @@ describe('Execution Async', () => {
           'index.js': `module.exports = async (ctx) => {
             return { body: { size: JSON.stringify(ctx.body).length } };
           };`,
-          'package.json': {},
+          'package.json': {
+            engines: {
+              node: '10',
+            },
+          },
         },
       },
     });

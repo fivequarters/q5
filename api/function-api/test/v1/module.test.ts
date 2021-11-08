@@ -16,6 +16,9 @@ const helloWorldWithSuperagentDependency = {
     files: {
       'index.js': 'var s = require("superagent"); module.exports = (ctx, cb) => cb(null, { body: typeof s });',
       'package.json': {
+        engines: {
+          node: '10',
+        },
         dependencies: {
           superagent: '*',
         },
@@ -63,6 +66,9 @@ describe('Module', () => {
         files: {
           'index.js': 'module.exports = (ctx, cb) => cb(null, { body: "hello" });',
           'package.json': {
+            engines: {
+              node: '10',
+            },
             dependencies: {
               superagent: '*',
               async: '*',
@@ -98,6 +104,9 @@ describe('Module', () => {
         files: {
           'index.js': 'module.exports = (ctx, cb) => cb(null, { body: "hello" });',
           'package.json': {
+            engines: {
+              node: '10',
+            },
             dependencies: {
               'i-dont-exist': '*',
             },
@@ -118,6 +127,9 @@ describe('Module', () => {
           files: {
             'index.js': 'module.exports = (ctx, cb) => cb(null, { body: "hello" });',
             'package.json': {
+              engines: {
+                node: '10',
+              },
               dependencies: {
                 clearbit: '1.3.4',
               },

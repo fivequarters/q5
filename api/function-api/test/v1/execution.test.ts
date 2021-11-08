@@ -10,12 +10,16 @@ beforeEach(() => {
 });
 
 describe('Execution', () => {
-  test('hello, world succeeds', async () => {
+  test('hello, world succeeds on node 10', async () => {
     let response = await putFunction(account, boundaryId, function1Id, {
       nodejs: {
         files: {
           'index.js': 'module.exports = (ctx, cb) => cb(null, { body: "hello" });',
-          'package.json': {},
+          'package.json': {
+            engines: {
+              node: '10',
+            },
+          },
         },
       },
     });
@@ -34,6 +38,9 @@ describe('Execution', () => {
           'package.json': {
             dependencies: {
               superagent: '*',
+            },
+            engines: {
+              node: '10',
             },
           },
         },
@@ -169,6 +176,9 @@ describe('Execution', () => {
         files: {
           'index.js': 'var s = require("superagent"); module.exports = (ctx, cb) => cb(null, { body: typeof s });',
           'package.json': {
+            engines: {
+              node: '10',
+            },
             dependencies: {
               superagent: '*',
             },
@@ -295,7 +305,11 @@ describe('Execution', () => {
             setTimeout(() => { throw new Error("Async error"); }, 500);
             setTimeout(() => cb(null, { body: "hello" }), 1000);
           };`,
-          'package.json': {},
+          'package.json': {
+            engines: {
+              node: '10',
+            },
+          },
         },
       },
     });
@@ -320,7 +334,11 @@ describe('Execution', () => {
           'index.js': `module.exports = (ctx, cb) => {
             cb(null, { body: { size: JSON.stringify(ctx.body).length } });
           };`,
-          'package.json': {},
+          'package.json': {
+            engines: {
+              node: '10',
+            },
+          },
         },
       },
     });
@@ -346,7 +364,11 @@ describe('Execution', () => {
           'index.js': `module.exports = (ctx, cb) => {
             cb(null, { body: { size: JSON.stringify(ctx.body).length } });
           };`,
-          'package.json': {},
+          'package.json': {
+            engines: {
+              node: '10',
+            },
+          },
         },
       },
     });
@@ -393,7 +415,11 @@ describe('Execution', () => {
             setTimeout(() => cb(null, { body: "hello" }), 1000);
             return { body: "failure"};
           };`,
-          'package.json': {},
+          'package.json': {
+            engines: {
+              node: '10',
+            },
+          },
         },
       },
     });
@@ -409,7 +435,7 @@ describe('Execution', () => {
       nodejs: {
         files: {
           'index.js': `module.exports = (ctx, cb) => cb(null, { body: ctx.accountId });`,
-          'package.json': {},
+          'package.json': { engines: { node: '10' } },
         },
       },
     });
@@ -447,7 +473,11 @@ describe('Execution', () => {
           'index.js': `module.exports = (ctx, cb) => {
           cb(null, { body: { size: JSON.stringify(ctx.body).length } });
         };`,
-          'package.json': {},
+          'package.json': {
+            engines: {
+              node: '10',
+            },
+          },
         },
       },
     });
