@@ -1,6 +1,6 @@
 import { request } from '@5qtrs/request';
 
-import { IText, Text } from '@5qtrs/text';
+import { Text } from '@5qtrs/text';
 import { ExecuteService } from '../../../services/ExecuteService';
 
 import { IFusebitExecutionProfile } from '@5qtrs/fusebit-profile-sdk';
@@ -15,10 +15,13 @@ interface IRegistry {
 }
 
 async function getRegistry(profile: IFusebitExecutionProfile): Promise<IRegistries> {
+  const headers = { Authorization: `bearer ${profile.accessToken}` };
+  ExecuteService.addCommonHeaders(headers);
+
   const response: any = await request({
     method: 'GET',
     url: `${profile.baseUrl}/v1/account/${profile.account}/registry/default/`,
-    headers: { Authorization: `bearer ${profile.accessToken}` },
+    headers,
   });
 
   return { default: response.data as IRegistry };
@@ -29,10 +32,12 @@ async function putRegistry(
   executeService: ExecuteService,
   scopes: string[]
 ): Promise<IRegistries> {
+  const headers = { Authorization: `bearer ${profile.accessToken}` };
+  ExecuteService.addCommonHeaders(headers);
   const response: any = await request({
     method: 'PUT',
     url: `${profile.baseUrl}/v1/account/${profile.account}/registry/default/`,
-    headers: { Authorization: `bearer ${profile.accessToken}` },
+    headers,
     data: { scopes },
   });
 

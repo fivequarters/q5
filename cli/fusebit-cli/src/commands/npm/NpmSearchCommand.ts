@@ -1,7 +1,6 @@
 const { spawn } = require('child_process');
 
 import { ArgType, Command, ICommand, IExecuteInput } from '@5qtrs/cli';
-import { request } from '@5qtrs/request';
 
 import { ProfileService } from '../../services/ProfileService';
 

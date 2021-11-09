@@ -1,10 +1,9 @@
 import { Text, IText } from '@5qtrs/text';
 import { IFusebitExecutionProfile } from '@5qtrs/fusebit-profile-sdk';
-import { IExecuteInput, Message } from '@5qtrs/cli';
+import { IExecuteInput } from '@5qtrs/cli';
 import { ProfileService } from './ProfileService';
 import { ExecuteService } from './ExecuteService';
 import { IColumnConstraint, Table } from '@5qtrs/table';
-import { start } from 'repl';
 
 const queryTimeout = 2 * 60; // Max two minutes
 
