@@ -134,6 +134,11 @@ export class BackupService {
                 ConditionType: 'STRINGEQUALS',
                 ConditionValue: 'true',
               },
+              {
+                ConditionKey: 'account',
+                ConditionType: 'STRINGEQUALS',
+                ConditionValue: this.config.account,
+              },
             ],
           },
         }).promise();
