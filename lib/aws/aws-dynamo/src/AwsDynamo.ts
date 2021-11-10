@@ -363,7 +363,8 @@ export class AwsDynamo extends AwsBase<typeof DynamoDB> {
   public async ensureTable(table: IAwsDynamoTable): Promise<void> {
     const description = await this.tableExists(table.name);
     if (description) {
-      await this.ensureTableGlobalIndexes(description, table);
+      console.log(table);
+      await this.tagResource({ arn: description.TableArn as string, name: table.name });
       if (
         !description.SSEDescription ||
         description.SSEDescription.Status === 'DISABLED' ||
@@ -905,7 +906,7 @@ export class AwsDynamo extends AwsBase<typeof DynamoDB> {
     });
   }
 
-  private async tagResource(args: ITagResourceArgs): Promise<void> {
+  public async tagResource(args: ITagResourceArgs): Promise<void> {
     const dynamo = await this.getAws();
     const params = {
       ResourceArn: args.arn,
@@ -921,7 +922,7 @@ export class AwsDynamo extends AwsBase<typeof DynamoDB> {
         {
           Key: 'backup-enabled',
           // We are explicitly disabling audit table from backing up to save cost.
-          Value: args.name.includes('audit') ? 'true' : 'false',
+          Value: args.name.includes('audit') ? 'false' : 'true',
         },
       ],
     };
@@ -937,7 +938,7 @@ export class AwsDynamo extends AwsBase<typeof DynamoDB> {
     return new Promise((resolve, reject) => {
       dynamo.tagResource(params, (error: any) => {
         if (error) {
-          return reject(errorToException(arn, 'tagResource', error));
+          return reject(errorToException(args.arn, 'tagResource', error));
         }
         resolve();
       });

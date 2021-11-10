@@ -55,6 +55,7 @@ export async function createDatabase(
     { Key: 'fuseopsVersion', Value: process.env.FUSEOPS_VERSION },
     { Key: 'fusebitDeployment', Value: deployment.deploymentName },
     { Key: 'account', Value: awsConfig.account },
+    { Key: 'backup-enabled', Value: 'true' },
   ];
 
   const tryGetAuroraCluster = async (): Promise<AWS.RDS.DBCluster | undefined> => {
