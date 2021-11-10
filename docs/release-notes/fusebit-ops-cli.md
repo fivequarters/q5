@@ -22,7 +22,7 @@ All public releases of the Fusebit Operations CLI are documented here, including
 
 _Released 11/10/21_
 
-- **Enhancement.** Disable AWS backup from backing up audit2.
+- **Enhancement.** Disable AWS backup from backing up audit2. Requires recreating a backup plan. To safely achieve that: First, run `fuse-ops deployment add` to populate the deployment with the correct tags. Then, run `fuse-ops backup schedule` to create a new backup plan. wait ~14 days to get some new backups completed. Finally, run `fuse-ops backup rm` against the old plan.
 
 ## Version 1.34.2
 
