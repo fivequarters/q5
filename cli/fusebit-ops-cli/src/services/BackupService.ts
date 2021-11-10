@@ -130,9 +130,9 @@ export class BackupService {
             SelectionName: 'DynamoDB',
             ListOfTags: [
               {
-                ConditionKey: 'account',
+                ConditionKey: 'backup-enabled',
                 ConditionType: 'STRINGEQUALS',
-                ConditionValue: this.config.account,
+                ConditionValue: 'true',
               },
             ],
           },

@@ -13,6 +13,11 @@ const maxLimit = 100;
 const conditionCheckFailed = 'ConditionalCheckFailedException';
 const resourceNotFoundException = 'ResourceNotFoundException';
 
+interface ITagResourceArgs {
+  arn: string;
+  name: string;
+}
+
 // ------------------
 // Internal Functions
 // ------------------
@@ -373,7 +378,7 @@ export class AwsDynamo extends AwsBase<typeof DynamoDB> {
       // Table does not exist, create
       const arn = await this.createTable(table);
       await this.waitForTable(table.name);
-      await this.tagResource(arn);
+      await this.tagResource({ arn, name: table.name });
       if (table.ttlAttribute !== undefined) {
         await this.updateTtl(table.name, table.ttlAttribute);
       }
@@ -900,10 +905,10 @@ export class AwsDynamo extends AwsBase<typeof DynamoDB> {
     });
   }
 
-  private async tagResource(arn: string): Promise<void> {
+  private async tagResource(args: ITagResourceArgs): Promise<void> {
     const dynamo = await this.getAws();
     const params = {
-      ResourceArn: arn,
+      ResourceArn: args.arn,
       Tags: [
         {
           Key: 'account',
@@ -912,6 +917,11 @@ export class AwsDynamo extends AwsBase<typeof DynamoDB> {
         {
           Key: 'region',
           Value: this.awsRegion,
+        },
+        {
+          Key: 'backup-enabled',
+          // We are explicitly disabling audit table from backing up to save cost.
+          Value: args.name.includes('audit') ? 'true' : 'false',
         },
       ],
     };

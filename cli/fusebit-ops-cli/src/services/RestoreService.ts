@@ -21,7 +21,6 @@ export class RestoreService {
     'subscription',
     'access',
     'account',
-    'audit2',
     'client',
     'identity',
     'init',
@@ -350,6 +349,10 @@ export class RestoreService {
         {
           Key: 'account',
           Value: config.account,
+        },
+        {
+          Key: 'backup-enabled',
+          Value: 'true',
         },
       ],
     }).promise();
