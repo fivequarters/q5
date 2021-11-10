@@ -363,7 +363,6 @@ export class AwsDynamo extends AwsBase<typeof DynamoDB> {
   public async ensureTable(table: IAwsDynamoTable): Promise<void> {
     const description = await this.tableExists(table.name);
     if (description) {
-      console.log(table);
       await this.tagResource({ arn: description.TableArn as string, name: table.name });
       if (
         !description.SSEDescription ||
