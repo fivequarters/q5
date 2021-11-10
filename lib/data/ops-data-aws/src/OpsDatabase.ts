@@ -55,6 +55,7 @@ export async function createDatabase(
     { Key: 'fuseopsVersion', Value: process.env.FUSEOPS_VERSION },
     { Key: 'fusebitDeployment', Value: deployment.deploymentName },
     { Key: 'account', Value: awsConfig.account },
+    { Key: 'fusebit-backup-enabled', Value: 'true' },
   ];
 
   const tryGetAuroraCluster = async (): Promise<AWS.RDS.DBCluster | undefined> => {
@@ -303,10 +304,20 @@ export async function createDatabase(
     return getDatabaseCredentials(awsConfig, deployment.deploymentName);
   };
 
+  const ensureTags = async (arn: string) => {
+    return rds
+      .addTagsToResource({
+        ResourceName: arn,
+        Tags: getCommonTags(),
+      })
+      .promise();
+  };
   const auroraCluster = await tryGetAuroraCluster();
+  if (auroraCluster) {
+    await ensureTags(auroraCluster.DBClusterArn as string);
+  }
   const dbCredentials = auroraCluster ? await updateAuroraCluster(auroraCluster) : await createAuroraCluster();
   await runDatabaseMigrations(dbCredentials);
-
   return dbCredentials;
 }
 

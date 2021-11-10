@@ -54,6 +54,10 @@ export class AwsDynamoTable implements IDataSource {
         }
       }
     }
+    if (result) {
+      // Force Dynamo to re-apply tags.
+      await this.dynamo.tagResource({ arn: description?.TableArn as string, name: description?.TableName as string });
+    }
     return result;
   }
 
