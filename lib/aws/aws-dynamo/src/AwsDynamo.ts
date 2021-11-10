@@ -13,6 +13,11 @@ const maxLimit = 100;
 const conditionCheckFailed = 'ConditionalCheckFailedException';
 const resourceNotFoundException = 'ResourceNotFoundException';
 
+interface ITagResourceArgs {
+  arn: string;
+  name: string;
+}
+
 // ------------------
 // Internal Functions
 // ------------------
@@ -359,6 +364,7 @@ export class AwsDynamo extends AwsBase<typeof DynamoDB> {
     const description = await this.tableExists(table.name);
     if (description) {
       await this.ensureTableGlobalIndexes(description, table);
+      await this.tagResource({ arn: description.TableArn as string, name: table.name });
       if (
         !description.SSEDescription ||
         description.SSEDescription.Status === 'DISABLED' ||
@@ -373,7 +379,7 @@ export class AwsDynamo extends AwsBase<typeof DynamoDB> {
       // Table does not exist, create
       const arn = await this.createTable(table);
       await this.waitForTable(table.name);
-      await this.tagResource(arn);
+      await this.tagResource({ arn, name: table.name });
       if (table.ttlAttribute !== undefined) {
         await this.updateTtl(table.name, table.ttlAttribute);
       }
@@ -900,10 +906,10 @@ export class AwsDynamo extends AwsBase<typeof DynamoDB> {
     });
   }
 
-  private async tagResource(arn: string): Promise<void> {
+  public async tagResource(args: ITagResourceArgs): Promise<void> {
     const dynamo = await this.getAws();
     const params = {
-      ResourceArn: arn,
+      ResourceArn: args.arn,
       Tags: [
         {
           Key: 'account',
@@ -912,6 +918,11 @@ export class AwsDynamo extends AwsBase<typeof DynamoDB> {
         {
           Key: 'region',
           Value: this.awsRegion,
+        },
+        {
+          Key: 'fusebit-backup-enabled',
+          // We are explicitly disabling audit table from backing up to save cost.
+          Value: args.name.includes('audit') ? 'false' : 'true',
         },
       ],
     };
@@ -927,7 +938,7 @@ export class AwsDynamo extends AwsBase<typeof DynamoDB> {
     return new Promise((resolve, reject) => {
       dynamo.tagResource(params, (error: any) => {
         if (error) {
-          return reject(errorToException(arn, 'tagResource', error));
+          return reject(errorToException(args.arn, 'tagResource', error));
         }
         resolve();
       });
