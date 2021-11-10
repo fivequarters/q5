@@ -5,9 +5,8 @@ import { JestOutput, Status } from './jestTypes';
 import { promises as fs } from 'fs';
 const outputJson: JestOutput = require('../../../../api/function-api/testOutput.json');
 
-// Using 2 variables despite being the same URL because eventually we want to publish to engineering on a test failure.
-const failureWebhook = 'https://hooks.slack.com/services/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';
-const successWebhook = 'https://hooks.slack.com/services/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';
+const failureWebhook = 'https://hooks.slack.com/services/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';
+const successWebhook = 'https://hooks.slack.com/services/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';
 
 const nameToMention = [
   { name: 'Matthew Zhao', id: '<@U01UDTF3VQR>' },
