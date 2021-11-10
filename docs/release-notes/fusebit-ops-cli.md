@@ -18,6 +18,12 @@ All public releases of the Fusebit Operations CLI are documented here, including
 {:toc}
 -->
 
+## Version 1.34.3
+
+_Released 11/10/21_
+
+- **Enhancement.** Disable AWS backup from backing up audit2.
+
 ## Version 1.34.2
 
 _Released 11/09/21_
