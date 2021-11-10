@@ -351,7 +351,7 @@ export class RestoreService {
           Value: config.account,
         },
         {
-          Key: 'backup-enabled',
+          Key: 'fusebit-backup-enabled',
           Value: 'true',
         },
       ],

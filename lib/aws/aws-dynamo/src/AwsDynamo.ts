@@ -919,7 +919,7 @@ export class AwsDynamo extends AwsBase<typeof DynamoDB> {
           Value: this.awsRegion,
         },
         {
-          Key: 'backup-enabled',
+          Key: 'fusebit-backup-enabled',
           // We are explicitly disabling audit table from backing up to save cost.
           Value: args.name.includes('audit') ? 'false' : 'true',
         },

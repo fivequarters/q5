@@ -4,7 +4,7 @@ const fusetunnel = require('@fusebit/tunnel');
 const serverPort = 3001;
 const inspectionPort = 4040;
 
-let tunnel;
+let tunnel = 'test-subdomain';
 let subdomain;
 
 const startTunnel = async () => {
