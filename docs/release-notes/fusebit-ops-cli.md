@@ -18,11 +18,21 @@ All public releases of the Fusebit Operations CLI are documented here, including
 {:toc}
 -->
 
+## Version 1.34.4
+
+_Released 11/11/21_
+
+- **Enhancement.** Support a --region parameter to limit stack lists.
+
 ## Version 1.34.3
 
 _Released 11/10/21_
 
-- **Enhancement.** Disable AWS backup from backing up audit2. Requires recreating a backup plan. To safely achieve that: First, run `fuse-ops deployment add` to populate the deployment with the correct tags. Then, run `fuse-ops backup schedule` to create a new backup plan. Wait ~14 days for the new backup plan to create some new usable backups. Finally, run `fuse-ops backup rm` against the old plan.
+- **Enhancement.** Disable AWS backup from backing up audit2. Requires recreating a backup plan.
+    - `fuse-ops deployment add` to populate the deployment with the correct tags.
+    - `fuse-ops backup schedule` to create a new backup plan.
+    - Wait ~14 days for the new backup plan to create some new usable backups.
+    - Finally, run `fuse-ops backup rm` against the old plan.
 
 ## Version 1.34.2
 

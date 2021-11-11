@@ -175,7 +175,7 @@ export class OpsStackData extends DataSource implements IOpsStackData {
     const deployment = await this.deploymentData.get(deploymentName, region);
 
     if (!force) {
-      const stacks = await this.tables.stackTable.listAll(deploymentName);
+      const stacks = await this.tables.stackTable.listAll({ deploymentName, region });
       let activeStacks = [];
       for (const stack of stacks) {
         if (stack.active) {
@@ -228,8 +228,8 @@ export class OpsStackData extends DataSource implements IOpsStackData {
     return this.tables.stackTable.list(options);
   }
 
-  public async listAll(deploymentName?: string): Promise<IOpsStack[]> {
-    return this.tables.stackTable.listAll(deploymentName);
+  public async listAll(options?: IListOpsStackOptions): Promise<IOpsStack[]> {
+    return this.tables.stackTable.listAll(options);
   }
 
   private getAutoScaleName(id: number) {
@@ -237,7 +237,7 @@ export class OpsStackData extends DataSource implements IOpsStackData {
   }
 
   private async getNextStackId(deploymentName: string): Promise<number> {
-    const stacks = await this.tables.stackTable.listAll(deploymentName);
+    const stacks = await this.tables.stackTable.listAll({ deploymentName });
     let nextStackId = Math.floor(Math.random() * 1000);
     while (stackIdIsUsed(nextStackId, stacks)) {
       nextStackId = Math.floor(Math.random() * 1000);

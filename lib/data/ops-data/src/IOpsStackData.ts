@@ -22,6 +22,7 @@ export interface IOpsStack extends IOpsNewStack {
 
 export interface IListOpsStackOptions {
   deploymentName?: string;
+  region?: string;
   next?: string;
   limit?: number;
 }
@@ -38,5 +39,5 @@ export interface IOpsStackData extends IDataSource {
   demote(deploymentName: string, region: string, id: number, force?: boolean): Promise<IOpsStack>;
   remove(deploymentName: string, region: string, id: number, force?: boolean): Promise<void>;
   list(options?: IListOpsStackOptions): Promise<IListOpsStackResult>;
-  listAll(deploymentName?: string): Promise<IOpsStack[]>;
+  listAll(options?: IListOpsStackOptions): Promise<IOpsStack[]>;
 }
