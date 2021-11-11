@@ -162,8 +162,8 @@ export class StackTable extends AwsDynamoTable {
     }
 
     const queryOptions = {
-      limit: options && options.limit ? options.limit : undefined,
-      next: options && options.next ? options.next : undefined,
+      limit: options?.limit,
+      next: options?.next,
       expressionValues: {
         ...(options.deploymentName ? { ':deploymentName': { S: options.deploymentName } } : {}),
         ...(options.region ? { ':region': { S: options.region } } : {}),
