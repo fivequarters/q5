@@ -130,6 +130,11 @@ export class BackupService {
             SelectionName: 'DynamoDB',
             ListOfTags: [
               {
+                ConditionKey: 'fusebit-backup-enabled',
+                ConditionType: 'STRINGEQUALS',
+                ConditionValue: 'true',
+              },
+              {
                 ConditionKey: 'account',
                 ConditionType: 'STRINGEQUALS',
                 ConditionValue: this.config.account,
