@@ -17,6 +17,12 @@ All public releases of the Fusebit CLI are documented here, including notable ch
 <!-- 1. TOC
 {:toc} -->
 
+## Version 1.16.1
+
+_Released 11/09/21_
+
+- **Enhancement.** Add support for specifying custom authorization account Id and authorization account Id override through FUSEBIT_AUTHORIZATION_ACCOUNT_ID and FUSEBIT_ACCOUNT_ID environment variables.
+
 ## Version 1.16.0
 
 _Released 10/21/21_
