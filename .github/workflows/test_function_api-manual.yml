@@ -30,8 +30,6 @@ jobs:
       - name: Setup .env files
         run: >-
           ./tool/cicd/actions/scripts/create_function_api_env.cicd.us-east-2.749775346857.sh
-      - name: Test - Delete Old Build Artifacts
-        run: ./tool/cicd/actions/scripts/clean_dirty_artifacts.sh
       - name: Pre-Build Summary
         run: |
           echo function-api: ${VERSION_FUNCTION_API}
@@ -39,17 +37,10 @@ jobs:
           echo fusebit-ops-cli: ${VERSION_FUSEBIT_OPS_CLI}
       - name: Build
         run: ./tool/cicd/actions/scripts/build_tree.sh
-      - name: Publish - function-api - 749 Only
-        run: ./tool/cicd/actions/scripts/publish_function_api_dev.sh
-      - name: Test - deploy exclusive to cicd/us-east-2
-        env:
-          REGION: us-east-2
-          DEPLOYMENT_NAME: cicd
-          NETWORK_NAME: cicd
-          DEPLOYMENT_DOMAIN: dev.fusebit.io
-        run: ./tool/cicd/actions/scripts/deploy_exclusive_function_api.sh
       - name: Test - Drop Public Schema
         run: ./tool/cicd/actions/scripts/cleanup_db.sh
+      - name: Publish - function-api - 749 Only
+        run: ./tool/cicd/actions/scripts/publish_function_api_dev.sh
       - name: Test - deploy exclusive to cicd/us-east-2
         env:
           REGION: us-east-2
