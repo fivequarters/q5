@@ -121,26 +121,18 @@ export interface IFusebitFunctionListResult {
 export class FunctionService {
   private input: IExecuteInput;
   private executeService: ExecuteService;
-  private versionService: VersionService;
   private profileService: ProfileService;
 
-  private constructor(
-    profileService: ProfileService,
-    versionService: VersionService,
-    executeService: ExecuteService,
-    input: IExecuteInput
-  ) {
+  private constructor(profileService: ProfileService, executeService: ExecuteService, input: IExecuteInput) {
     this.input = input;
     this.profileService = profileService;
-    this.versionService = versionService;
     this.executeService = executeService;
   }
 
   public static async create(input: IExecuteInput) {
     const executeService = await ExecuteService.create(input);
-    const versionService = await VersionService.create(input);
     const profileService = await ProfileService.create(input);
-    return new FunctionService(profileService, versionService, executeService, input);
+    return new FunctionService(profileService, executeService, input);
   }
 
   public async getFunctionExecutionProfile(functionRequired: boolean, functionId?: string, fusebitJsonPath?: string) {
@@ -324,11 +316,9 @@ export class FunctionService {
   }
 
   public async setFusebitJson(path: string, functionSpec: any): Promise<void> {
-    const version = await this.versionService.getVersion();
-
     const fusebitJson = (await this.getFusebitJson(path)) || {};
 
-    fusebitJson.fuseVersion = version;
+    fusebitJson.fuseVersion = VersionService.getVersion();
     fusebitJson.metadata = functionSpec.metadata;
     fusebitJson.location = functionSpec.location;
     fusebitJson.compute = functionSpec.compute;
@@ -464,13 +454,15 @@ export class FunctionService {
         ),
       },
       async () => {
+        const headers = { Authorization: `bearer ${profile.accessToken}` };
+        ExecuteService.addCommonHeaders(headers);
         const response: any = request({
           method: 'GET',
           url: [
             `${profile.baseUrl}/v1/account/${profile.account}/subscription/`,
             `${profile.subscription}/boundary/${profile.boundary}/function/${profile.function}?include=all`,
           ].join(''),
-          headers: { Authorization: `bearer ${profile.accessToken}` },
+          headers,
         });
         if (response.status === 403) {
           const message = 'Access was not authorized; contact an account admin to request access';
@@ -544,7 +536,6 @@ export class FunctionService {
     withBoundary: boolean = true
   ): Promise<void> {
     const isJson = this.input.options.output === 'json';
-    const version = await this.versionService.getVersion();
 
     const baseUrl = `${profile.baseUrl}/v1/account/${profile.account}/subscription/${profile.subscription}`;
     const url = profile.function
@@ -564,10 +555,12 @@ export class FunctionService {
         errorMessage: Text.create('Unable to connect to logs ', ...functionMessage),
       },
       async () => {
+        const headers = {};
+        ExecuteService.addCommonHeaders(headers);
         return new Promise(async (resolve, reject) => {
           let ready = false;
           const options = {
-            headers: { 'User-Agent': `fusebit-cli/${version}` },
+            headers,
             onEnd: resolve,
             onError: reject,
             onMessage: async (message: IEventMessage) => {

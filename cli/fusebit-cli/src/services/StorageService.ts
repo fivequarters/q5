@@ -1,5 +1,3 @@
-import { request, IHttpResponse } from '@5qtrs/request';
-
 import { Text } from '@5qtrs/text';
 import { IFusebitExecutionProfile } from '@5qtrs/fusebit-profile-sdk';
 import { IExecuteInput, Confirm } from '@5qtrs/cli';
