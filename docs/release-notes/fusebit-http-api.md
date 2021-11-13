@@ -17,6 +17,12 @@ All public releases of the Fusebit HTTP API are documented here, including notab
 <!-- 1. TOC
 {:toc} -->
 
+## Version 1.28.4
+
+_Released 11/12/21_
+
+- **BugFix.** Fusebit function deletion no longer times out.
+
 ## Version 1.28.3
 
 _Released 11/12/21_
