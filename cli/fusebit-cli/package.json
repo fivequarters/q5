@@ -34,7 +34,7 @@
     "@fusebit/schema": "^1.0.0",
     "@fusebit/tunnel": "^3.2.5",
     "@types/open": "^6.0.0",
-    "axios": "^0.21.2",
+    "axios": "^0.21.0",
     "buffer-equal-constant-time": "1.0.1",
     "dotenv": "^10.0.0",
     "ecdsa-sig-formatter": "1.0.11",
