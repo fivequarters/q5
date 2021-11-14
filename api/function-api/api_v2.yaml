@@ -971,6 +971,24 @@ components:
       type: object
       description: The collection of filename and content pairs that are packaged with this entity.
 
+    EntitySecurity:
+      type: object
+      description: Additional security configuration variables for this entity.
+      properties:
+        permissions:
+          type: array
+          items:
+            type: object
+            description: |
+              A pair of an action and a resource, indicating that the entity has
+              permissions to perform API calls requiring that action on that, or
+              derived, resources.
+            properties:
+              action:
+                type: string
+              resource:
+                type: string
+
     SessionId:
       type: string
       description: Session id
@@ -1036,6 +1054,15 @@ components:
         entityType:
           $ref: '#/components/schemas/EntityType'
 
+    ConnectorConfiguration:
+      type: object
+      description: The open collection of configuration values used by this entity.
+      properties:
+        defaultEventHandler:
+          type: string
+          description: A default integration target to handle anonymous events
+          example: 'my-integration-123'
+
     ConnectorEntityData:
       type: object
       properties:
@@ -1044,9 +1071,11 @@ components:
           description: The npm package name used by this connector.
           example: '@fusebit-int/oauth-connector'
         configuration:
-          $ref: '#/components/schemas/EntityConfiguration'
+          $ref: '#/components/schemas/ConnectorConfiguration'
         files:
           $ref: '#/components/schemas/EntityFiles'
+        security:
+          $ref: '#/components/schemas/EntitySecurity'
 
     ConnectorEntity:
       type: object
@@ -1167,7 +1196,7 @@ components:
           type: number
           description: The total number of entities of this type.
 
-    IntegrationData:
+    IntegrationEntityData:
       type: object
       properties:
         handler:
@@ -1232,6 +1261,8 @@ components:
                 type: string
                 description: The utility package for a connector that provides a configured
                   SDK for use by the integration.
+        security:
+          $ref: '#/components/schemas/EntitySecurity'
 
     IntegrationListData:
       type: object
@@ -1297,7 +1328,7 @@ components:
         id:
           $ref: '#/components/schemas/EntityId'
         data:
-          $ref: '#/components/schemas/IntegrationData'
+          $ref: '#/components/schemas/IntegrationEntityData'
         tags:
           $ref: '#/components/schemas/EntityTags'
         version:
@@ -1319,7 +1350,7 @@ components:
         id:
           $ref: '#/components/schemas/EntityId'
         data:
-          $ref: '#/components/schemas/IntegrationData'
+          $ref: '#/components/schemas/IntegrationEntityData'
         tags:
           $ref: '#/components/schemas/EntityTags'
         expires:

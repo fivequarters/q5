@@ -699,14 +699,17 @@ export const createPair = async (
     configuration?: Record<string, any>;
     componentTags?: Record<string, string>;
     components?: Model.IIntegrationComponent[];
+    security?: { permissions: Model.IEntityPermission[] };
   },
   connConfig?: {
+    files?: Record<string, string>;
     handler?: string;
     configuration?: {
       muxIntegration?: Model.IEntityId;
       [key: string]: any;
     };
     componentTags?: Record<string, string>;
+    security?: { permissions: Model.IEntityPermission[] };
   },
   numConnectors: number = 1
 ) => {

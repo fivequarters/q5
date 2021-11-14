@@ -126,6 +126,11 @@ export interface ISubordinateId {
 // IEntity Extensions
 // --------------------------------
 
+export interface IEntityPermission {
+  action: string;
+  resource: string;
+}
+
 export interface IIntegrationComponent {
   name: string;
   entityType: EntityType.integration | EntityType.connector;
@@ -151,6 +156,9 @@ export interface IIntegrationData {
   componentTags: Record<string, string>;
   components: IIntegrationComponent[];
   schedule?: IIntegrationSchedule[];
+  security?: {
+    permissions: IEntityPermission[];
+  };
 }
 
 export interface IIntegration extends IEntity {
@@ -158,12 +166,15 @@ export interface IIntegration extends IEntity {
 }
 
 export interface IConnectorData {
+  files: Record<string, string>;
   handler: string;
   configuration: {
     muxIntegration?: IEntityId;
     [key: string]: any;
   };
-  files: Record<string, string>;
+  security?: {
+    permissions: IEntityPermission[];
+  };
 }
 
 export interface IConnector extends IEntity {
