@@ -8,3 +8,4 @@ export { ConnectorService } from './ConnectorService';
 export { IntegrationService } from './IntegrationService';
 export { StorageService } from './StorageService';
 export { LogService } from './LogService';
+export { FeedService } from './FeedService';

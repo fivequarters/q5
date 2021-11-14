@@ -1,7 +1,9 @@
 import { join } from 'path';
 import { Command, ArgType, IExecuteInput } from '@5qtrs/cli';
-import { ExecuteService, ConnectorService } from '../../services';
+import { ExecuteService, ConnectorService, IntegrationService, FeedService } from '../../services';
 import { Text } from '@5qtrs/text';
+
+import { FeedTypes } from '../feed';
 
 // ------------------
 // Internal Constants
@@ -27,6 +29,11 @@ const command = {
       aliases: ['d'],
       description: 'A path to the directory with the connector source code to deploy.',
       defaultText: 'current directory',
+    },
+    {
+      name: 'feed',
+      aliases: ['f'],
+      description: 'Initialize the directory with this example from the feed',
     },
     {
       name: 'quiet',
@@ -60,6 +67,7 @@ export class ConnectorInitCommand extends Command {
 
   protected async onExecute(input: IExecuteInput): Promise<number> {
     const sourceDir = input.options.dir as string;
+    const feed = input.options.feed as string;
 
     const connectorService = await ConnectorService.create(input);
     const executeService = await ExecuteService.create(input);
@@ -68,10 +76,25 @@ export class ConnectorInitCommand extends Command {
 
     const sourcePath = sourceDir ? join(process.cwd(), sourceDir) : process.cwd();
 
-    const connector = await connectorService.createNewSpec();
-    await connectorService.writeDirectory(sourcePath, connector);
+    if (!feed) {
+      const connector = await connectorService.createNewSpec();
+      await connectorService.writeDirectory(sourcePath, connector);
 
-    await connectorService.displayEntities([connector], true);
+      await connectorService.displayEntities([connector], true);
+      return 0;
+    }
+
+    const integrationService = await IntegrationService.create(input);
+    const feedService = await FeedService.create(input);
+    await feedService.loadFeed(FeedTypes.connector);
+    const result = await feedService.renderById(feed);
+    for (const entity of result.integrations) {
+      await integrationService.writeDirectory(join(sourcePath, entity.id), entity);
+    }
+
+    for (const entity of result.connectors) {
+      await connectorService.writeDirectory(join(sourcePath, entity.id), entity);
+    }
 
     return 0;
   }

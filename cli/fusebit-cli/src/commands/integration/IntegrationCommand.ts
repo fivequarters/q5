@@ -9,6 +9,7 @@ import { IntegrationRemoveCommand } from './IntegrationRemoveCommand';
 import { IntegrationEditCommand } from './IntegrationEditCommand';
 import { IntegrationTestCommand } from './IntegrationTestCommand';
 import { InstallCommand } from './install/InstallCommand';
+import { FeedCommand, IFeedOptions, FeedTypes } from '../feed';
 
 // ------------------
 // Internal Constants
@@ -34,6 +35,14 @@ const command: ICommand = {
   ],
 };
 
+const feedOptions: IFeedOptions = {
+  singular: 'integration',
+  capitalSingular: 'Integration',
+  plural: 'integrations',
+  capitalPlural: 'Integrations',
+  feedKey: FeedTypes.integration,
+};
+
 // ------------------
 // Internal Functions
 // ------------------
@@ -44,6 +53,7 @@ async function getSubCommands() {
   subCommands.push(await IntegrationGetCommand.create());
   subCommands.push(await IntegrationTestCommand.create());
   subCommands.push(await IntegrationDeployCommand.create());
+  subCommands.push(await FeedCommand.create(feedOptions));
   subCommands.push(await IntegrationEditCommand.create());
   subCommands.push(await IntegrationListCommand.create());
   subCommands.push(await IntegrationLogCommand.create());
