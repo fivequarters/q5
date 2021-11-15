@@ -81,7 +81,7 @@ describe('cron', () => {
 
       const getRuns = async () => {
         const res = await getStorage(account, storageId);
-        expect(res).toBeHttp({ statusCode: 200 });
+        expect(res).toBeHttp({ statusCode: [200, 404] });
         return (res.data && res.data.data) || [];
       };
 

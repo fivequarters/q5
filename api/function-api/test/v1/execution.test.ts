@@ -10,16 +10,12 @@ beforeEach(() => {
 });
 
 describe('Execution', () => {
-  test('hello, world succeeds on node 10', async () => {
+  test('hello, world succeeds', async () => {
     let response = await putFunction(account, boundaryId, function1Id, {
       nodejs: {
         files: {
           'index.js': 'module.exports = (ctx, cb) => cb(null, { body: "hello" });',
-          'package.json': {
-            engines: {
-              node: '10',
-            },
-          },
+          'package.json': {},
         },
       },
     });
@@ -38,9 +34,6 @@ describe('Execution', () => {
           'package.json': {
             dependencies: {
               superagent: '*',
-            },
-            engines: {
-              node: '10',
             },
           },
         },
@@ -176,9 +169,6 @@ describe('Execution', () => {
         files: {
           'index.js': 'var s = require("superagent"); module.exports = (ctx, cb) => cb(null, { body: typeof s });',
           'package.json': {
-            engines: {
-              node: '10',
-            },
             dependencies: {
               superagent: '*',
             },
@@ -305,11 +295,7 @@ describe('Execution', () => {
             setTimeout(() => { throw new Error("Async error"); }, 500);
             setTimeout(() => cb(null, { body: "hello" }), 1000);
           };`,
-          'package.json': {
-            engines: {
-              node: '10',
-            },
-          },
+          'package.json': {},
         },
       },
     });
@@ -334,11 +320,7 @@ describe('Execution', () => {
           'index.js': `module.exports = (ctx, cb) => {
             cb(null, { body: { size: JSON.stringify(ctx.body).length } });
           };`,
-          'package.json': {
-            engines: {
-              node: '10',
-            },
-          },
+          'package.json': {},
         },
       },
     });
@@ -364,11 +346,7 @@ describe('Execution', () => {
           'index.js': `module.exports = (ctx, cb) => {
             cb(null, { body: { size: JSON.stringify(ctx.body).length } });
           };`,
-          'package.json': {
-            engines: {
-              node: '10',
-            },
-          },
+          'package.json': {},
         },
       },
     });
@@ -415,11 +393,7 @@ describe('Execution', () => {
             setTimeout(() => cb(null, { body: "hello" }), 1000);
             return { body: "failure"};
           };`,
-          'package.json': {
-            engines: {
-              node: '10',
-            },
-          },
+          'package.json': {},
         },
       },
     });
@@ -435,7 +409,7 @@ describe('Execution', () => {
       nodejs: {
         files: {
           'index.js': `module.exports = (ctx, cb) => cb(null, { body: ctx.accountId });`,
-          'package.json': { engines: { node: '10' } },
+          'package.json': {},
         },
       },
     });
@@ -444,52 +418,48 @@ describe('Execution', () => {
     expect(response).toBeHttp({ statusCode: 200 });
     expect(response.data).toEqual(account.accountId);
   }, 180000);
-});
 
-test('Function with x-www-form-urlencoded works', async () => {
-  let response = await putFunction(account, boundaryId, function1Id, {
-    nodejs: {
-      files: {
-        'index.js': 'module.exports = (ctx, cb) => cb(null, { body: ctx.body })',
-      },
-    },
-  });
-  expect(response).toBeHttp({ statusCode: 200 });
-  const params = new URLSearchParams();
-  params.append('test', '123');
-
-  response = await request({
-    method: 'POST',
-    url: response.data.location,
-    headers: { 'content-type': 'application/x-www-form-urlencoded' },
-    data: params,
-  });
-  expect(response).toBeHttp({ statusCode: 200, data: { test: '123' } });
-});
-
-test('function with payload above limit fails (x-www-form-encoded)', async () => {
-  const response = await putFunction(account, boundaryId, function1Id, {
-    nodejs: {
-      files: {
-        'index.js': `module.exports = (ctx, cb) => {
-          cb(null, { body: { size: JSON.stringify(ctx.body).length } });
-        };`,
-        'package.json': {
-          engines: {
-            node: '10',
-          },
+  test('Function with x-www-form-urlencoded works', async () => {
+    let response = await putFunction(account, boundaryId, function1Id, {
+      nodejs: {
+        files: {
+          'index.js': 'module.exports = (ctx, cb) => cb(null, { body: ctx.body })',
         },
       },
-    },
+    });
+    expect(response).toBeHttp({ statusCode: 200 });
+    const params = new URLSearchParams();
+    params.append('test', '123');
+
+    response = await request({
+      method: 'POST',
+      url: response.data.location,
+      headers: { 'content-type': 'application/x-www-form-urlencoded' },
+      data: params,
+    });
+    expect(response).toBeHttp({ statusCode: 200, data: { test: '123' } });
   });
-  expect(response).toBeHttp({ statusCode: 200 });
-  const params = new URLSearchParams();
-  params.append('test', '.'.repeat(520 * 1024));
-  const executionResponse = await request({
-    method: 'POST',
-    url: response.data.location,
-    headers: { 'content-type': 'application/x-www-form-urlencoded' },
-    data: params,
-  });
-  expect(executionResponse.status).toEqual(413);
-}, 180000);
+
+  test('function with payload above limit fails (x-www-form-encoded)', async () => {
+    const response = await putFunction(account, boundaryId, function1Id, {
+      nodejs: {
+        files: {
+          'index.js': `module.exports = (ctx, cb) => {
+          cb(null, { body: { size: JSON.stringify(ctx.body).length } });
+        };`,
+          'package.json': {},
+        },
+      },
+    });
+    expect(response).toBeHttp({ statusCode: 200 });
+    const params = new URLSearchParams();
+    params.append('test', '.'.repeat(520 * 1024));
+    const executionResponse = await request({
+      method: 'POST',
+      url: response.data.location,
+      headers: { 'content-type': 'application/x-www-form-urlencoded' },
+      data: params,
+    });
+    expect(executionResponse.status).toEqual(413);
+  }, 180000);
+});

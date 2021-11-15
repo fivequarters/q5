@@ -15,6 +15,11 @@ const command = {
       name: 'deployment',
       description: 'The name of the deployment to filter by',
     },
+    {
+      name: 'region',
+      description: 'The region of the deployment; required if the deployment is not globally unique',
+      defaultText: 'deployment region',
+    },
   ],
 };
 
@@ -35,6 +40,7 @@ export class ListStackCommand extends Command {
     await input.io.writeLine();
 
     const deploymentName = input.options.deployment as string;
+    const region = input.options.region as string;
     const output = input.options.output as string;
 
     const stackService = await StackService.create(input);
@@ -42,12 +48,12 @@ export class ListStackCommand extends Command {
     const deployments = await deploymentService.listAllDeployments();
 
     if (output === 'json') {
-      const stacks = await stackService.listAllStacks(deploymentName);
+      const stacks = await stackService.listAllStacks({ deploymentName, region });
       await stackService.displayStacks(stacks, deployments);
     } else {
       let getMore = true;
       let result;
-      let options: any = { deploymentName };
+      const options: any = { deploymentName, region };
       while (getMore) {
         result = await stackService.listStacks(options);
         options.next = result.next || undefined;

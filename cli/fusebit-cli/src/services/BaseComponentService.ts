@@ -69,12 +69,12 @@ export abstract class BaseComponentService<IComponentType extends IBaseComponent
 
   public async createNewSpec(): Promise<IComponentType> {
     const profile = await this.profileService.getExecutionProfile(['account', 'subscription']);
+    const headers = { Authorization: `bearer ${profile.accessToken}` };
+    ExecuteService.addCommonHeaders(headers);
     const response = await request({
       method: 'GET',
       url: this.getUrl(profile, '?defaults=true'),
-      headers: {
-        Authorization: `Bearer ${profile.accessToken}`,
-      },
+      headers,
     });
 
     return response.data.items[0].template;
@@ -239,12 +239,12 @@ export abstract class BaseComponentService<IComponentType extends IBaseComponent
   }
 
   public async getEntity(profile: IFusebitExecutionProfile, entityId: string): Promise<IHttpResponse> {
+    const headers = { Authorization: `bearer ${profile.accessToken}` };
+    ExecuteService.addCommonHeaders(headers);
     return request({
       method: 'GET',
       url: this.getUrl(profile, entityId),
-      headers: {
-        Authorization: `Bearer ${profile.accessToken}`,
-      },
+      headers,
     });
   }
 

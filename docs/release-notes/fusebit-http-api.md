@@ -17,6 +17,37 @@ All public releases of the Fusebit HTTP API are documented here, including notab
 <!-- 1. TOC
 {:toc} -->
 
+## Version 1.29.0
+
+_Released 11/14/21_
+
+- **Security.** Update various dependencies with critical CVEs.
+
+## Version 1.28.4
+
+_Released 11/13/21_
+
+- **BugFix.** Fusebit function deletion now internally retry to prevent orphaned lambda resources.
+
+## Version 1.28.2
+
+_Released 11/4/21_
+
+- **Enhancement.** Enable persistent capture of stdout/err of connectors and integrations by default.
+- **Enhancement.** Add more metadata to CloudWatch events related to integrations and connectors.
+
+## Version 1.28.1
+
+_Released 11/2/21_
+
+- **Bugfix.** Capture full URL of HTTP requests in logs.
+
+## Version 1.28.0
+
+_Released 11/1/21_
+
+- **Enhancement.** Add support for accessing historical logs.
+
 ## Version 1.27.2
 
 _Released 10/26/21_

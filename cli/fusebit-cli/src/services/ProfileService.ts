@@ -413,7 +413,7 @@ export class ProfileService {
     return {
       accessToken: accessToken as string,
       baseUrl: profile.baseUrl,
-      account: profile.account,
+      account: process.env.FUSEBIT_ACCOUNT_ID || profile.account,
       subscription: profile.subscription || undefined,
       boundary: profile.boundary || undefined,
       function: profile.function || undefined,

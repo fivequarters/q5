@@ -18,6 +18,7 @@ import {
   RegistryCommand,
   BackupCommand,
   SecurityCommand,
+  AssumeCommand,
 } from './commands';
 
 // ------------------
@@ -68,6 +69,7 @@ export class FusebitOpsCli extends Command {
     subCommands.push(await VersionCommand.create());
     subCommands.push(await BackupCommand.create());
     subCommands.push(await SecurityCommand.create());
+    subCommands.push(await AssumeCommand.create());
     cli.subCommands = subCommands;
     return new FusebitOpsCli(cli);
   }

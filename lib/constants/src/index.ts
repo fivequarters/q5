@@ -36,6 +36,8 @@ const valid_boundary_name = /^[A-Za-z0-9\-]{1,63}$/;
 
 const valid_function_name = /^[A-Za-z0-9\-]{1,64}$/;
 
+const traceIdHeader = 'x-fx-trace-id';
+
 // Stores status of a function build (async operation)
 // This prefix has 1 day TTL in S3
 const function_build_status_key_prefix = 'function-build-status';
@@ -80,6 +82,7 @@ const EPHEMERAL_ENTITY_EXPIRATION = 10 * 60 * 60 * 1000;
 const RUNAS_SYSTEM_ISSUER_SUFFIX = 'system.fusebit.io';
 
 const JWT_PERMISSION_CLAIM = 'https://fusebit.io/permissions';
+const JWT_PROFILE_CLAIM = 'https://fusebit.io/profile';
 
 const RUNAS_KID_LEN = 8;
 
@@ -318,6 +321,7 @@ export {
   RUNAS_ISSUER,
   RUNAS_KID_LEN,
   JWT_PERMISSION_CLAIM,
+  JWT_PROFILE_CLAIM,
   REGISTRY_RESERVED_SCOPE_PREFIX,
   RUNAS_SYSTEM_ISSUER_SUFFIX,
   API_PUBLIC_ENDPOINT,
@@ -334,4 +338,5 @@ export {
   getAuthToken,
   mergeDeep,
   createUniqueIdentifier,
+  traceIdHeader,
 };

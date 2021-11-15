@@ -17,6 +17,24 @@ All public releases of the Fusebit CLI are documented here, including notable ch
 <!-- 1. TOC
 {:toc} -->
 
+## Version 1.17.0
+
+_Released 11/14/21_
+
+- **Security.** Update various dependencies with critical CVEs.
+
+## Version 1.16.1
+
+_Released 11/09/21_
+
+- **Enhancement.** Add support for specifying custom authorization account Id and authorization account Id override through FUSEBIT_AUTHORIZATION_ACCOUNT_ID and FUSEBIT_ACCOUNT_ID environment variables.
+
+## Version 1.16.0
+
+_Released 10/21/21_
+
+- **Enhancement.** Add support for accessing historical logs through `fuse log` command.
+
 ## Version 1.15.2
 
 _Released 10/21/21_
