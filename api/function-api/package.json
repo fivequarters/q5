@@ -71,7 +71,7 @@
     "libnpm": "^3.0.1",
     "pem-jwk": "^2.0.0",
     "spdx-license-ids": "^3.0.6",
-    "ssri": "^8.0.0",
+    "ssri": "^8.0.1",
     "wtfnode": "^0.8.4"
   },
   "devServer": {
