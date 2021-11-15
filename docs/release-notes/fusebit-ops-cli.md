@@ -22,7 +22,7 @@ All public releases of the Fusebit Operations CLI are documented here, including
 
 _Released 11/14/21_
 
-- **Security** Update various dependencies with critical CVEs.
+- **Security.** Update various dependencies with critical CVEs.
 
 ## Version 1.34.4
 

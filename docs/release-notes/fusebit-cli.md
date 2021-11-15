@@ -21,7 +21,7 @@ All public releases of the Fusebit CLI are documented here, including notable ch
 
 _Released 11/14/21_
 
-- **Security** Update various dependencies with critical CVEs.
+- **Security.** Update various dependencies with critical CVEs.
 
 ## Version 1.16.1
 
