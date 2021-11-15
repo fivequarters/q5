@@ -17,9 +17,9 @@ All public releases of the Fusebit HTTP API are documented here, including notab
 <!-- 1. TOC
 {:toc} -->
 
-## Version 1.28.3
+## Version 1.28.4
 
-_Released 11/12/21_
+_Released 11/13/21_
 
 - **BugFix.** Fusebit function deletion now internally retry to prevent orphaned lambda resources.
 
