@@ -18,6 +18,12 @@ All public releases of the Fusebit Operations CLI are documented here, including
 {:toc}
 -->
 
+## Version 1.35.0
+
+_Released 11/14/21_
+
+- **Security** Update various dependencies with critical CVEs.
+
 ## Version 1.34.4
 
 _Released 11/11/21_
@@ -29,10 +35,10 @@ _Released 11/11/21_
 _Released 11/10/21_
 
 - **Enhancement.** Disable AWS backup from backing up audit2. Requires recreating a backup plan.
-    - `fuse-ops deployment add` to populate the deployment with the correct tags.
-    - `fuse-ops backup schedule` to create a new backup plan.
-    - Wait ~14 days for the new backup plan to create some new usable backups.
-    - Finally, run `fuse-ops backup rm` against the old plan.
+  - `fuse-ops deployment add` to populate the deployment with the correct tags.
+  - `fuse-ops backup schedule` to create a new backup plan.
+  - Wait ~14 days for the new backup plan to create some new usable backups.
+  - Finally, run `fuse-ops backup rm` against the old plan.
 
 ## Version 1.34.2
 
