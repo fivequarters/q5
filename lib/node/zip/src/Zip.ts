@@ -23,7 +23,7 @@ export class Zip {
   }
 
   public async getFile(path: string) {
-    return this.zip.file(path).async<'text'>('text');
+    return this.zip.file(path)?.async<'text'>('text');
   }
 
   public async generate(): Promise<Buffer> {
