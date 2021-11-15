@@ -21,7 +21,7 @@
     "@5qtrs/modal": "^0.0.1",
     "@5qtrs/nav-bar": "^0.0.1",
     "@5qtrs/request": "^0.0.1",
-    "auth0-js": "^9.10.0",
+    "auth0-js": "^9.13.2",
     "monaco-editor": "^0.15.6",
     "react": "^16.9.0",
     "react-dom": "^16.9.0",
