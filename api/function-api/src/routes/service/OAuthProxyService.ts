@@ -152,6 +152,7 @@ export class OAuthProxyService implements IOAuthProxyService {
     const response = await superagent
       .post(this.configuration.tokenUrl)
       .type('form')
+      .set('Accept', 'application/json')
       .send(body)
       .ok(() => true);
 

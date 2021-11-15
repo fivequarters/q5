@@ -17,6 +17,12 @@ All public releases of the Fusebit HTTP API are documented here, including notab
 <!-- 1. TOC
 {:toc} -->
 
+## Version 1.27.2
+
+_Released 10/26/21_
+
+- **Bugfix.** Explicitly allow the 'application/json' type for responses on OAuth proxy requests.
+
 ## Version 1.27.1
 
 _Released 10/21/21_
