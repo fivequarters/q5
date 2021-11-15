@@ -328,7 +328,9 @@ class AwsRegistry implements IRegistryStore {
       objects: manifests.map((manifest) => ({ package: manifest })),
       total: items.length,
       time: new Date().toUTCString(),
-      next: result.LastEvaluatedKey,
+      next: result.LastEvaluatedKey
+        ? Buffer.from(JSON.stringify(result.LastEvaluatedKey), 'utf8').toString('base64')
+        : undefined,
     };
   }
 
