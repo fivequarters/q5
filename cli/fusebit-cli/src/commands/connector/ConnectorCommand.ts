@@ -8,6 +8,7 @@ import { ConnectorListCommand } from './ConnectorListCommand';
 import { ConnectorLogCommand } from './ConnectorLogCommand';
 import { ConnectorRemoveCommand } from './ConnectorRemoveCommand';
 import { IdentityCommand } from './identity/IdentityCommand';
+import { FeedCommand, IFeedOptions, FeedTypes } from '../feed';
 
 // ------------------
 // Internal Constants
@@ -36,6 +37,14 @@ const command: ICommand = {
   ],
 };
 
+const feedOptions: IFeedOptions = {
+  singular: 'connector',
+  capitalSingular: 'Connector',
+  plural: 'connectors',
+  capitalPlural: 'Connectors',
+  feedKey: FeedTypes.connector,
+};
+
 // ------------------
 // Internal Functions
 // ------------------
@@ -44,6 +53,7 @@ async function getSubCommands() {
   const subCommands = [];
   subCommands.push(await ConnectorInitCommand.create());
   subCommands.push(await ConnectorDeployCommand.create());
+  subCommands.push(await FeedCommand.create(feedOptions));
   subCommands.push(await ConnectorGetCommand.create());
   subCommands.push(await ConnectorListCommand.create());
   subCommands.push(await ConnectorLogCommand.create());
