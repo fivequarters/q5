@@ -17,6 +17,12 @@ All public releases of the Fusebit HTTP API are documented here, including notab
 <!-- 1. TOC
 {:toc} -->
 
+## Version 1.29.1
+
+_Released 11/15/21_
+
+- **BugFix.** Internal npm package registry search returns the first 20 entries, and propagates `next` correctly.
+
 ## Version 1.29.0
 
 _Released 11/14/21_
