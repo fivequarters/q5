@@ -72,7 +72,8 @@ function getProfileNameFromBaseUrl(baseUrl: string) {
 // -------------------
 
 export interface IFusebitProfileSettings {
-  [index: string]: string | undefined;
+  [index: string]: string | boolean | undefined;
+  synthetic?: boolean;
   account: string;
   subscription?: string;
   boundary?: string;
@@ -125,6 +126,27 @@ export interface IFusebitExecutionProfile extends IFusebitProfileSettings {
 // ----------------
 
 export class FusebitProfile {
+  public static defaultProfileId = 'api-us';
+
+  public static defaultProfiles: { [key: string]: any } = {
+    'stage-api-us': {
+      synthetic: true,
+      account: '',
+      baseUrl: 'https://stage.us-west-2.fusebit.io',
+      issuer: 'https://fusebit.auth0.com/oauth/device/code',
+      clientId: 'dimuls6VLYgXpD7UYCo6yPdKAXPXjQng',
+      tokenUrl: 'https://fusebit.auth0.com/oauth/token',
+    },
+    'api-us': {
+      synthetic: true,
+      account: '',
+      baseUrl: 'https://api.us-west-1.on.fusebit.io',
+      issuer: 'https://fusebit.auth0.com/oauth/device/code',
+      clientId: 'NIfqE4hpPOXuIhllkxndlafSKcKesEfc',
+      tokenUrl: 'https://fusebit.auth0.com/oauth/token',
+    },
+  };
+
   public static async create() {
     const dotConfig = await FusebitDotConfig.create();
     return new FusebitProfile(dotConfig);
@@ -281,6 +303,34 @@ export class FusebitProfile {
     return profile;
   }
 
+  public async createDefaultProfile(name: string, defaultProfileId: string): Promise<IOAuthFusebitProfile> {
+    if (!FusebitProfile.defaultProfiles[defaultProfileId]) {
+      throw new Error(
+        `Unsupported built-in profile name '${defaultProfileId}'. Supported built-in profile names are: ${Object.keys(
+          FusebitProfile.defaultProfiles
+        ).join(', ')}.`
+      );
+    }
+    const created = new Date().toLocaleString();
+    const effectiveName = name || (await this.getDefaultProfileName()) || defaultProfileId;
+
+    const fullProfileToAdd = {
+      name: effectiveName,
+      created,
+      updated: created,
+      ...FusebitProfile.defaultProfiles[defaultProfileId],
+    };
+
+    const profile = await this.dotConfig.setProfile(effectiveName, fullProfileToAdd);
+
+    const defaultProfileName = await this.getDefaultProfileName();
+    if (!defaultProfileName) {
+      await this.setDefaultProfileName(effectiveName);
+    }
+
+    return profile;
+  }
+
   public async updateProfile(name: string, settings: IFusebitProfileSettings): Promise<IFusebitProfile> {
     const profile = await this.getProfileOrThrow(name);
 
@@ -311,6 +361,21 @@ export class FusebitProfile {
     profile.name = copyTo;
 
     return profile;
+  }
+
+  public async importProfile(
+    source: { profile: IFusebitProfile; pki: IFusebitKeyPair; type: string },
+    target: string
+  ): Promise<IFusebitProfile> {
+    source.profile.name = target;
+    source.pki.name = target;
+    source.profile.keyPair = target;
+
+    await this.dotConfig.setProfile(target, source.profile);
+    await this.dotConfig.setPublicKey(source.profile.name, source.profile.kid!, source.pki.publicKey);
+    await this.dotConfig.setPrivateKey(source.profile.name, source.profile.kid!, source.pki.privateKey);
+
+    return source.profile;
   }
 
   public async renameProfile(name: string, renameTo: string, overWrite: boolean): Promise<IFusebitProfile> {
@@ -380,6 +445,7 @@ export class FusebitProfile {
       subject: profile.subject,
       kid: profile.kid,
       privateKey: await this.dotConfig.getPrivateKey(profile.keyPair, profile.kid),
+      publicKey: await this.dotConfig.getPublicKey(profile.keyPair, profile.kid),
     };
 
     return result;
@@ -395,7 +461,7 @@ export class FusebitProfile {
     return {
       accessToken,
       baseUrl: profile.baseUrl,
-      account: profile.account,
+      account: process.env.FUSEBIT_ACCOUNT_ID || profile.account,
       subscription: profile.subscription || undefined,
       boundary: profile.boundary || undefined,
       function: profile.function || undefined,

@@ -6,6 +6,7 @@ import { IKeyPair, KeyStore } from './KeyStore';
 
 class AwsKeyStore extends KeyStore {
   protected dynamo: DynamoDB;
+  protected deployment: string;
 
   constructor(options: any) {
     super(options);
@@ -18,6 +19,7 @@ class AwsKeyStore extends KeyStore {
         },
         maxRetries: 3,
       });
+    this.deployment = options.deployment || (process.env.DEPLOYMENT_KEY as string);
   }
 
   public async rekey(): Promise<IKeyPair> {
@@ -27,7 +29,7 @@ class AwsKeyStore extends KeyStore {
     // Put to k-v with TTL
     await this.dynamo
       .putItem({
-        TableName: Constants.get_key_value_table_name(process.env.DEPLOYMENT_KEY as string),
+        TableName: Constants.get_key_value_table_name(this.deployment),
         Item: {
           category: { S: Constants.RUNAS_ISSUER },
           key: { S: `${kid}` },

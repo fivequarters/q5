@@ -12,10 +12,8 @@ interface IConnector extends IBaseComponentType {
 }
 
 export class ConnectorService extends BaseComponentService<IConnector> {
-  protected entityType: EntityType;
-
   private constructor(profileService: ProfileService, executeService: ExecuteService, input: IExecuteInput) {
-    super(profileService, executeService, input);
+    super(EntityType.connector, profileService, executeService, input);
     this.entityType = EntityType.connector;
   }
 
@@ -44,17 +42,16 @@ export class ConnectorService extends BaseComponentService<IConnector> {
       const tagSummary = ['Tags:', Text.eol()];
 
       if (item.tags) {
-        Object.entries(item.tags).forEach(([tagKey, tagValue]: [string, string]) => {
-          tagSummary.push(Text.dim('• '), tagKey, Text.dim(': '), tagValue, Text.eol());
+        Object.entries(item.tags).forEach(([tagKey, tagValue]: [string, string | null]) => {
+          tagSummary.push(Text.dim('• '), tagKey, Text.dim(': '), tagValue || '', Text.eol());
         });
       }
 
-      // const itemList = Text.join(functions, Text.eol());
       await this.executeService.message(
         Text.bold(item.id),
         Text.create([
-          `Package: `,
-          Text.bold(item.data.configuration.package || ''),
+          `Handler: `,
+          Text.bold(item.data.handler || ''),
           Text.eol(),
           Text.eol(),
           ...tagSummary,
@@ -64,11 +61,12 @@ export class ConnectorService extends BaseComponentService<IConnector> {
           item.version || 'unknown',
           Text.eol(),
           Text.eol(),
-          'Base URL',
+          'Base URL is given below',
           Text.dim(': '),
-          this.getUrl(profile, item.id),
         ])
       );
+      await this.input.io.writeLineRaw(this.getUrl(profile, item.id));
+      await this.input.io.writeLine();
     }
   }
 }

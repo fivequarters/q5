@@ -1,7 +1,7 @@
 # Publish function-api
 steps:
-- name: Yarn - image
-  run: yarn image
+  - name: Yarn - image
+    run: ./tool/cicd/actions/scripts/build_image.sh
 
-- name: Publish - function-api
-  run: ./tool/cicd/actions/scripts/publish_function_api.sh
+  - name: Publish - function-api
+    run: ./tool/cicd/actions/scripts/publish_function_api.sh

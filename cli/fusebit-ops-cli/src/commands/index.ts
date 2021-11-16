@@ -14,3 +14,5 @@ export { VersionCommand } from './VersionCommand';
 export { ActionCommand } from './action/ActionCommand';
 export { RegistryCommand } from './registry/RegistryCommand';
 export { BackupCommand } from './backup/BackupCommand';
+export { SecurityCommand } from './security/SecurityCommand';
+export { AssumeCommand } from './assume/AssumeCommand';

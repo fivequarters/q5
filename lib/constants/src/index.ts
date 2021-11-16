@@ -10,6 +10,8 @@ import {
   safePathMap,
   isUuid,
   getAuthToken,
+  mergeDeep,
+  createUniqueIdentifier,
 } from './utilities';
 
 interface IModuleSpec {
@@ -23,6 +25,8 @@ const API_PUBLIC_ENDPOINT = process.env.LOGS_HOST
   ? `https://${process.env.LOGS_HOST}`
   : (process.env.API_SERVER as string);
 
+const API_PUBLIC_HOST = new URL(API_PUBLIC_ENDPOINT || 'http://localhost').host;
+
 let builderVersion: string = 'unknown';
 try {
   builderVersion = require(Path.join(__dirname, '..', '..', '..', 'package.json')).version;
@@ -31,6 +35,8 @@ try {
 const valid_boundary_name = /^[A-Za-z0-9\-]{1,63}$/;
 
 const valid_function_name = /^[A-Za-z0-9\-]{1,64}$/;
+
+const traceIdHeader = 'x-fx-trace-id';
 
 // Stores status of a function build (async operation)
 // This prefix has 1 day TTL in S3
@@ -59,16 +65,24 @@ const REGISTRY_CATEGORY_CONFIG = 'registry-npm-config';
 const REGISTRY_DEFAULT = 'default';
 const REGISTRY_GLOBAL = 'registry-global';
 
+const DEFAULTS_CATEGORY = 'deployment-defaults';
+const DEFAULTS_SUBSCRIPTION = 'subscription-defaults';
+
 const REGISTRY_RESERVED_SCOPE_PREFIX = '@fuse';
 
 const MODULE_PUBLIC_REGISTRY = 'public';
 
 const RUNAS_ISSUER = 'runas-system-issuer';
 
+const MAX_CACHE_REFRESH_RATE = 10 * 1000;
+
+const EPHEMERAL_ENTITY_EXPIRATION = 10 * 60 * 60 * 1000;
+
 // Changes to this variable will also require changing AgentTooltip.tsx in Portal.
 const RUNAS_SYSTEM_ISSUER_SUFFIX = 'system.fusebit.io';
 
 const JWT_PERMISSION_CLAIM = 'https://fusebit.io/permissions';
+const JWT_PROFILE_CLAIM = 'https://fusebit.io/profile';
 
 const RUNAS_KID_LEN = 8;
 
@@ -189,12 +203,17 @@ function get_function_location(req: any, subscriptionId: string, boundaryId: str
 }
 
 function get_fusebit_endpoint(req: any) {
-  if (req.headers && req.headers['x-forwarded-proto'] && req.headers.host) {
-    return `${req.headers['x-forwarded-proto'].split(',')[0]}://${req.headers.host}`;
-  }
+  // If LOGS_HOST is set, the stack is running on localhost with an established public tunnel to it.
+  // Use the tunnel as the Fusebit function endpoint to enable Fusebit function to call back into the local stack.
+  // Otherwise (stack running in the cloud), derive the endpoint from the request.
+  if (!process.env.LOGS_HOST) {
+    if (req.headers && req.headers['x-forwarded-proto'] && req.headers.host) {
+      return `${req.headers['x-forwarded-proto'].split(',')[0]}://${req.headers.host}`;
+    }
 
-  if (req.protocol && req.headers && req.headers.host) {
-    return `${req.protocol}://${req.headers.host}`;
+    if (req.protocol && req.headers && req.headers.host) {
+      return `${req.protocol}://${req.headers.host}`;
+    }
   }
   return API_PUBLIC_ENDPOINT;
 }
@@ -291,17 +310,23 @@ export {
   getFunctionVersion,
   getFunctionAuthorization,
   getFunctionAuthentication,
+  EPHEMERAL_ENTITY_EXPIRATION,
   REGISTRY_CATEGORY,
   REGISTRY_CATEGORY_CONFIG,
   REGISTRY_DEFAULT,
   REGISTRY_GLOBAL,
+  DEFAULTS_CATEGORY,
+  DEFAULTS_SUBSCRIPTION,
   MODULE_PUBLIC_REGISTRY,
   RUNAS_ISSUER,
   RUNAS_KID_LEN,
   JWT_PERMISSION_CLAIM,
+  JWT_PROFILE_CLAIM,
   REGISTRY_RESERVED_SCOPE_PREFIX,
   RUNAS_SYSTEM_ISSUER_SUFFIX,
   API_PUBLIC_ENDPOINT,
+  API_PUBLIC_HOST,
+  MAX_CACHE_REFRESH_RATE,
   dynamoScanTable,
   expBackoff,
   asyncPool,
@@ -311,4 +336,7 @@ export {
   safePathMap,
   isUuid,
   getAuthToken,
+  mergeDeep,
+  createUniqueIdentifier,
+  traceIdHeader,
 };

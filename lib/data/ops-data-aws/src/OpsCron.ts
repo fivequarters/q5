@@ -356,8 +356,8 @@ function createCronConfig(config: OpsDataAwsConfig, awsConfig: IAwsConfig) {
     // Lambda function that is triggered by SQS messages and executes user Lambda functions
     executor: {
       name: `${CronPrefix}cron-executor`,
-      timeout: 60,
-      memory: 128,
+      timeout: 120,
+      memory: 1024,
       runtime: 'nodejs14.x',
       role: `${config.arnPrefix}:iam::${awsConfig.account}:role/${config.cronExecutorRoleName}`,
       batchSize: 10,
@@ -367,8 +367,8 @@ function createCronConfig(config: OpsDataAwsConfig, awsConfig: IAwsConfig) {
     // Lambda function that is triggered by scheduled Cloud Watch Events and populates SQS
     scheduler: {
       name: `${CronPrefix}cron-scheduler`,
-      timeout: 60,
-      memory: 128,
+      timeout: 120,
+      memory: 1024,
       runtime: 'nodejs14.x',
       roleName: `${CronPrefix}cron-scheduler`,
       role: `${config.arnPrefix}:iam::${awsConfig.account}:role/${config.cronSchedulerRoleName}`,

@@ -2,6 +2,8 @@ const Joi = require('joi');
 
 import * as Common from './common';
 
+const stateEnum = Joi.string().valid('creating', 'invalid', 'active').optional();
+
 // id is required but data is optional
 const validateEntity = (data: any) =>
   Joi.object().keys({
@@ -10,26 +12,33 @@ const validateEntity = (data: any) =>
     tags: Common.tags,
     version: Joi.string().guid(),
     expires: Joi.date().iso(),
+    state: stateEnum.strip(),
+    operationState: Joi.object().strip(),
+    dateAdded: Joi.date().iso().strip(),
+    dateModified: Joi.date().iso().strip(),
   });
 
 // id is optional, but data is required.
 const validatePostEntity = (data: any) =>
   Joi.object().keys({
-    id: Common.entityId,
-    data: data.required(),
+    id: Common.entityId.optional(),
+    data: data.optional(),
     tags: Common.tags,
     version: Joi.string().guid(),
     expires: Joi.date().iso(),
+    state: stateEnum.strip(),
+    operationState: Joi.object().strip(),
+    dateAdded: Joi.date().iso().strip(),
+    dateModified: Joi.date().iso().strip(),
   });
 
 const EntityIdParams = Joi.object().keys({
   accountId: Common.accountId,
   subscriptionId: Common.subscriptionId,
   entityId: Common.entityId,
-  instanceId: Joi.string().guid(),
-  identityId: Joi.string().guid(),
-  operationId: Joi.string().guid(),
-  sessionId: Joi.string().guid(),
+  installId: Common.installId,
+  identityId: Common.identityId,
+  sessionId: Common.sessionId,
   tagKey: Common.tagValue,
   tagValue: Common.tagValue,
 });
@@ -45,6 +54,7 @@ const EntityIdQuery = Joi.object().keys({
   count: Joi.number(),
   next: Joi.string(),
   tag: Common.tagQuery,
+  state: stateEnum,
   defaults: Joi.boolean(),
 });
 

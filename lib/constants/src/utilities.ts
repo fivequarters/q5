@@ -2,6 +2,10 @@ import * as path from 'path';
 import http_error from 'http-errors';
 import * as express from 'express';
 
+import * as crypto from 'crypto';
+
+import { EntityType } from '@fusebit/schema';
+
 const DYNAMO_BACKOFF_TRIES_MAX = 5;
 const DYNAMO_BACKOFF_DELAY = 300;
 
@@ -79,7 +83,7 @@ const safePath = (filename: string): string => {
   if (parsed.dir.startsWith('..') || parsed.dir.startsWith('/')) {
     throw http_error(400, `Invalid filename path: ${filename}`);
   }
-  return parsed.dir === '' ? `${filename}` : `${parsed.dir}/${parsed.base}`;
+  return parsed.dir === '' ? `${parsed.base}` : `${parsed.dir}/${parsed.base}`;
 };
 
 const safePathMap = (files: { [key: string]: string }): { [key: string]: string } => {
@@ -94,6 +98,24 @@ const isUuid = (str: string) => {
   return /^[0-9a-f]{8}-[0-9a-f]{4}-[0-5][0-9a-f]{3}-[089ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(str);
 };
 
+const idToSpec: Record<EntityType, { prefix: string; len: number }> = {
+  integration: { prefix: 'int', len: 0 }, // Not used
+  connector: { prefix: 'con', len: 0 }, // Not used
+  storage: { prefix: 'str', len: 0 }, // Not used
+  identity: { prefix: 'idn', len: 16 },
+  install: { prefix: 'ins', len: 16 },
+  session: { prefix: 'sid', len: 16 },
+};
+
+const createUniqueIdentifier = (entityType: EntityType) => {
+  const id = idToSpec[entityType];
+  if (!id?.len) {
+    throw new Error(`Invalid entity type: ${entityType}`);
+  }
+
+  return `${id.prefix}-${crypto.randomBytes(id.len).toString('hex')}`;
+};
+
 const getAuthToken = (req: express.Request): string | undefined => {
   if (!req.headers.authorization) {
     return undefined;
@@ -102,4 +124,57 @@ const getAuthToken = (req: express.Request): string | undefined => {
   return match ? match[1] : undefined;
 };
 
-export { dynamoScanTable, expBackoff, asyncPool, duplicate, safePath, safePathMap, isUuid, getAuthToken };
+const mergeDeep = (lhs: any, source: any, isMergingArrays: boolean = false) => {
+  const target = ((obj) => {
+    let cloneObj;
+    try {
+      cloneObj = JSON.parse(JSON.stringify(obj));
+    } catch (err) {
+      throw new Error('Circular references not supported in mergeDeep');
+    }
+    return cloneObj;
+  })(lhs);
+
+  const isObject = (obj: any) => obj && typeof obj === 'object';
+
+  if (!isObject(target) || !isObject(source)) {
+    return source;
+  }
+
+  Object.keys(source).forEach((key: any) => {
+    const targetValue = target[key];
+    const sourceValue = source[key];
+
+    if (Array.isArray(targetValue) && Array.isArray(sourceValue)) {
+      if (isMergingArrays) {
+        target[key] = targetValue.map((x, i) =>
+          sourceValue.length <= i ? x : mergeDeep(x, sourceValue[i], isMergingArrays)
+        );
+        if (sourceValue.length > targetValue.length) {
+          target[key] = target[key].concat(sourceValue.slice(targetValue.length));
+        }
+      } else {
+        target[key] = targetValue.concat(sourceValue);
+      }
+    } else if (isObject(targetValue) && isObject(sourceValue)) {
+      target[key] = mergeDeep({ ...targetValue }, sourceValue, isMergingArrays);
+    } else {
+      target[key] = sourceValue;
+    }
+  });
+
+  return target;
+};
+
+export {
+  dynamoScanTable,
+  expBackoff,
+  asyncPool,
+  duplicate,
+  safePath,
+  safePathMap,
+  isUuid,
+  getAuthToken,
+  mergeDeep,
+  createUniqueIdentifier,
+};

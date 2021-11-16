@@ -1,6 +1,6 @@
 import { Model } from '@5qtrs/db';
 
-import { ApiRequestMap } from './sdk';
+import { ApiRequestMap, cleanupEntities } from './sdk';
 
 import { getEnv } from '../v1/setup';
 
@@ -8,11 +8,14 @@ let { account, boundaryId, function1Id, function2Id, function3Id, function4Id, f
 beforeEach(() => {
   ({ account, boundaryId, function1Id, function2Id, function3Id, function4Id, function5Id } = getEnv());
 });
+afterAll(async () => {
+  await cleanupEntities(account);
+}, 30000);
 
 const crudPermissions = async (entityType: Model.EntityType, authz: string) => {
   await expect(ApiRequestMap[entityType].get(account, 'inv', { authz })).resolves.toBeHttp({ statusCode: 403 });
   await expect(ApiRequestMap[entityType].list(account, undefined, { authz })).resolves.toBeHttp({ statusCode: 403 });
-  await expect(ApiRequestMap[entityType].post(account, { id: 'inv' }, { authz })).resolves.toBeHttp({
+  await expect(ApiRequestMap[entityType].post(account, 'inv', { id: 'inv' }, { authz })).resolves.toBeHttp({
     statusCode: 403,
   });
   await expect(ApiRequestMap[entityType].put(account, 'inv', { id: 'inv' }, { authz })).resolves.toBeHttp({

@@ -17,6 +17,188 @@ All public releases of the Fusebit HTTP API are documented here, including notab
 <!-- 1. TOC
 {:toc} -->
 
+## Version 1.29.1
+
+_Released 11/15/21_
+
+- **BugFix.** Internal npm package registry search returns the first 20 entries, and propagates `next` correctly.
+
+## Version 1.29.0
+
+_Released 11/14/21_
+
+- **Security.** Update various dependencies with critical CVEs.
+
+## Version 1.28.4
+
+_Released 11/13/21_
+
+- **BugFix.** Fusebit function deletion now internally retry to prevent orphaned lambda resources.
+
+## Version 1.28.2
+
+_Released 11/4/21_
+
+- **Enhancement.** Enable persistent capture of stdout/err of connectors and integrations by default.
+- **Enhancement.** Add more metadata to CloudWatch events related to integrations and connectors.
+
+## Version 1.28.1
+
+_Released 11/2/21_
+
+- **Bugfix.** Capture full URL of HTTP requests in logs.
+
+## Version 1.28.0
+
+_Released 11/1/21_
+
+- **Enhancement.** Add support for accessing historical logs.
+
+## Version 1.27.2
+
+_Released 10/26/21_
+
+- **Bugfix.** Explicitly allow the 'application/json' type for responses on OAuth proxy requests.
+
+## Version 1.27.1
+
+_Released 10/21/21_
+
+- **Bugfix.** Propagate integration/connector update failures.
+
+## Version 1.27.0
+
+_Released 10/19/21_
+
+- **Bugfix.** Allow PUT operations on identity and install objects.
+
+## Version 1.26.0
+
+_Released 10/9/21_
+
+- **Enhancement.** Rename 'instance' to 'install'.
+- **Enhancement.** Change the primary key for installs, identities, and sessions to a `prefix-random{32}` format.
+
+## Version 1.25.0
+
+_Released 10/7/21_
+
+- **Bugfix.** Migrate session POST to use the 'session:add' permission.
+
+## Version 1.24.0
+
+_Released 10/5/21_
+
+- **Enhancement.** Normalize various permissions for v2 artifacts.
+
+## Version 1.23.15
+
+_Released 9/29/21_
+
+- **Enhancement.** Adding a new endpoint to enable users to patch their accounts display name.
+
+## Version 1.23.14
+
+_Released 9/29/21_
+
+- **Enhancement.** Now our HTTP API will raise an error when the caller requests static IP for a function on a subscription that doesn't have the feature flag enabled.
+
+## Version 1.23.11
+
+_Released 9/21/21_
+
+- **Enhancement.** Commit session now triggers an async process, returning a targetUrl that the caller can use to check the status.
+
+## Version 1.23.8
+
+_Released 9/10/21_
+
+- **Enhancement.** Adding support for webhooks.
+
+## Version 1.23.4
+
+_Released 9/8/21_
+
+- **Enhancement.** Adding support for scheduled integrations.
+
+## Version 1.23.3
+
+_Released 9/7/21_
+
+- **Enhancement.** Updating default version of @fusebit-int/oauth-connector and @fusebit-int/framework.
+
+## Version 1.23.2
+
+_Released 09/07/21_
+
+- **Enhancement.** Switch to error code 522 instead of 500 when a fusebit function times out.
+
+## Version 1.23.1
+
+_Released 9/2/21_
+
+- **Enhancement.** Upgrade superagent.
+
+## Version 1.22.8
+
+_Released 08/25/21_
+
+- **Enhancement.** Improve health check reporting to clarify the failure's location.
+
+## Version 1.22.6
+
+_Released 08/23/21_
+
+- **Enhancement.** Storage Id field added to GET requests for storage data.
+
+## Version 1.22.5
+
+_Released 08/23/21_
+
+- **Enhancement.** Increase maximum storage payload size up to 400kb.
+
+## Version 1.21.3
+
+_Released 08/16/21_
+
+- **Enhancement.** Analytic data now includes `account-id` information.
+
+## Version 1.20.28
+
+_Released 7/27/21_
+
+- **Enhancement.** Subscriptions now support default values supplied via global configuration elements.
+
+## Version 1.20.27
+
+_Released 7/26/21_
+
+- **Enhancement** OperationId corresponding to processing of session into instances and identities is now saved to sessions.
+
+## Version 1.20.26
+
+_Released 07/23/21_
+
+- **Enhancement.** Restricts access to the static IP feature of Fusebit Functions to subscriptions that contain the `staticIp` flag set to `"true"`.
+
+## Version 1.20.25
+
+_Released 07/20/21_
+
+- **Enhancement.** Improves /v1/health to also check for the liveliness of RDS.
+
+## Version 1.20.24
+
+_Released 07/16/21_
+
+- **Enhancement.** Integration Sessions can now be ran against an existing set of Instances and Identities in order to update their values.
+
+## Version 1.20.23
+
+_Released 07/15/21_
+
+- **Bugfix.** Change the allowed editor version to support >1.4.6 only.
+
 ## Version 1.20.19
 
 _Released 07/14/21_
@@ -33,13 +215,13 @@ _Released 07/13/21_
 
 _Released 07/12/21_
 
-- **Bugfix** Fix an issue with multiple deployments using similar prefixes causing deployment failure.
+- **Bugfix.** Fix an issue with multiple deployments using similar prefixes causing deployment failure.
 
 ## Version 1.20.16
 
 _Released 07/09/21_
 
-- **Security** Update Axios for security patching against CVE-2020-28168.
+- **Security.** Update Axios for security patching against CVE-2020-28168.
 
 ## Version 1.20.15
 
@@ -51,7 +233,7 @@ _Release 06/16/21_
 
 _Released 07/07/21_
 
-- **Enhancement** Make Aurora error slightly less cryptic.
+- **Enhancement.** Make Aurora error slightly less cryptic.
 
 ## Version 1.20.5
 

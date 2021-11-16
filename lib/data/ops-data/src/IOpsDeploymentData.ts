@@ -1,5 +1,10 @@
 import { IDataSource } from '@5qtrs/data';
-import { IFusebitSubscription, IFusebitAccount, IInitAdmin } from './IFusebitSubscriptionData';
+import {
+  IFusebitSubscription,
+  IFusebitAccount,
+  IInitAdmin,
+  IFusebitSubscriptionFlags,
+} from './IFusebitSubscriptionData';
 
 // -------------------
 // Exported Interfaces
@@ -11,6 +16,7 @@ export interface IOpsDeployment {
   networkName: string;
   domainName: string;
   size: number;
+  segmentKey: string;
   elasticSearch: string;
   fuseopsVersion: string;
   dataWarehouseEnabled: boolean;
@@ -23,6 +29,7 @@ export interface IOpsDeploymentParameters {
   networkName: string;
   domainName: string;
   size?: number;
+  segmentKey?: string;
   elasticSearch?: string;
   dataWarehouseEnabled?: boolean;
   featureUseDnsS3Bucket: boolean;
@@ -31,6 +38,7 @@ export interface IListOpsDeploymentOptions {
   deploymentName?: string;
   next?: string;
   limit?: number;
+  flags?: IFusebitSubscriptionFlags;
 }
 
 export interface IListOpsDeploymentResult {
@@ -43,6 +51,10 @@ export interface IOpsDeploymentData extends IDataSource {
   add(deployment: IOpsDeployment): Promise<void>;
   addSubscription(subscription: IFusebitSubscription): Promise<void>;
   limitSubscription(account: string, subscription: IFusebitSubscription): Promise<void>;
+  setFlags(account: string, subscription: IFusebitSubscription): Promise<void>;
+  setDefaults(deployment: IOpsDeployment, defaultKey: string, defaults: any): Promise<void>;
+  unsetDefaults(deployment: IOpsDeployment, defaultKey: string, dotKey: string): Promise<void>;
+  getDefaults(deployment: IOpsDeployment, defaultKey: string): Promise<any>;
   get(deploymentName: string, region: string): Promise<IOpsDeployment>;
   list(options?: IListOpsDeploymentOptions): Promise<IListOpsDeploymentResult>;
   listAll(deploymentName?: string): Promise<IOpsDeployment[]>;

@@ -1,4 +1,4 @@
-import { Command, ICommand, IExecuteInput, ArgType } from '@5qtrs/cli';
+import { Command, ICommand, IExecuteInput, ArgType, MessageKind, Message } from '@5qtrs/cli';
 import { Text } from '@5qtrs/text';
 import {
   ClientCommand,
@@ -13,6 +13,7 @@ import {
   ConnectorCommand,
   IntegrationCommand,
   StorageCommand,
+  LogCommand,
 } from './commands';
 
 // ------------------
@@ -53,6 +54,7 @@ async function getSubCommands() {
   subCommands.push(await ConnectorCommand.create());
   subCommands.push(await IntegrationCommand.create());
   subCommands.push(await StorageCommand.create());
+  subCommands.push(await LogCommand.create());
   return subCommands;
 }
 
@@ -68,6 +70,36 @@ export class FusebitCli extends Command {
   public static async create() {
     cli.subCommands = await getSubCommands();
     return new FusebitCli(cli);
+  }
+
+  protected async onSubCommandExecuting(command: Command, input: IExecuteInput) {
+    let current = command;
+    let skipInit = current.skipBuiltInProfile;
+    while (!skipInit && current.parent) {
+      current = current.parent;
+      skipInit = current.skipBuiltInProfile;
+    }
+    if (!skipInit) {
+      await InitCommand.createDefaultProfileIfNoneExists(input);
+    }
+    if (process.env.FUSEBIT_AUTHORIZATION_ACCOUNT_ID || process.env.FUSEBIT_ACCOUNT_ID) {
+      const message = await Message.create({
+        kind: MessageKind.warning,
+        header: 'Profile Overrides',
+        message: Text.create(
+          'The command will execute with the following profile overrides: ',
+          Text.eol(),
+          Text.eol(),
+          'Authorization account Id: ',
+          Text.bold(process.env.FUSEBIT_AUTHORIZATION_ACCOUNT_ID || 'N/A'),
+          Text.eol(),
+          'Account Id: ',
+          Text.bold(process.env.FUSEBIT_ACCOUNT_ID || 'N/A')
+        ),
+      });
+      message.write(input.io);
+    }
+    return super.onSubCommandExecuting(command, input);
   }
 
   protected async onSubCommandError(command: Command, input: IExecuteInput, error: Error) {

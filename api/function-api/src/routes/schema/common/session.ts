@@ -1,5 +1,6 @@
 import express from 'express';
 
+import * as Constants from '@5qtrs/constants';
 import { Model } from '@5qtrs/db';
 import { v2Permissions } from '@5qtrs/constants';
 
@@ -11,11 +12,12 @@ import * as ValidationCommon from '../../validation/entities';
 const createSessionRouter = (SessionService: SessionedEntityService<any, any>) => {
   const router = express.Router({ mergeParams: true });
 
+  router.options('/', common.cors());
   router.post(
     '/',
     common.management({
       validate: { params: ValidationCommon.EntityIdParams, body: Validation.SessionCreate },
-      authorize: { operation: v2Permissions.sessionPost },
+      authorize: { operation: v2Permissions.addSession },
     }),
     async (req: express.Request, res: express.Response, next: express.NextFunction) => {
       try {
@@ -27,46 +29,13 @@ const createSessionRouter = (SessionService: SessionedEntityService<any, any>) =
           },
           req.body
         );
+
+        const sessionId = Model.decomposeSubordinateId(session.result.id).entityId;
         res.status(session.statusCode).json({
           ...Model.entityToSdk(session.result),
-          id: Model.decomposeSubordinateId(session.result.id).entityId,
+          id: sessionId,
+          targetUrl: `${Constants.API_PUBLIC_ENDPOINT}/v2/account/${req.params.accountId}/subscription/${req.params.subscriptionId}/${SessionService.entityType}/${req.params.entityId}/session/${sessionId}/start`,
         });
-      } catch (error) {
-        console.log(error);
-        return next(error);
-      }
-    }
-  );
-
-  //  Get full value of session.
-  router.route('/result/:sessionId').get(
-    common.management({
-      validate: { params: ValidationCommon.EntityIdParams },
-      authorize: { operation: v2Permissions.sessionResult },
-    }),
-    async (req: express.Request, res: express.Response, next: express.NextFunction) => {
-      try {
-        const session = await SessionService.getSession({
-          accountId: req.params.accountId,
-          subscriptionId: req.params.subscriptionId,
-          id: Model.createSubordinateId(SessionService.entityType, req.params.entityId, req.params.sessionId),
-        });
-        let result: any = {
-          id: req.params.sessionId,
-          input: session.result.data.input,
-          output: session.result.data.output,
-          components: session.result.data.components,
-        };
-
-        if (session.result.data.mode === 'leaf') {
-          result = {
-            ...result,
-            target: session.result.data.target,
-            name: session.result.data.stepName,
-            dependsOn: session.result.data.dependsOn,
-          };
-        }
-        res.status(session.statusCode).json(result);
       } catch (error) {
         console.log(error);
         return next(error);
@@ -76,11 +45,12 @@ const createSessionRouter = (SessionService: SessionedEntityService<any, any>) =
 
   router
     .route('/:sessionId')
+    .options(common.cors())
     // Get 'public' value of session
     .get(
       common.management({
         validate: { params: ValidationCommon.EntityIdParams },
-        authorize: { operation: v2Permissions.sessionGet },
+        authorize: { operation: v2Permissions.getSession },
       }),
       async (req: express.Request, res: express.Response, next: express.NextFunction) => {
         try {
@@ -92,7 +62,9 @@ const createSessionRouter = (SessionService: SessionedEntityService<any, any>) =
           const result = {
             id: req.params.sessionId,
             input: session.result.data.input,
+            output: session.result.data.output,
             dependsOn: session.result.data.dependsOn,
+            tags: session.result.tags,
           };
           res.status(session.statusCode).json(result);
         } catch (error) {
@@ -105,7 +77,7 @@ const createSessionRouter = (SessionService: SessionedEntityService<any, any>) =
     .put(
       common.management({
         validate: { params: ValidationCommon.EntityIdParams, body: Validation.SessionPut },
-        authorize: { operation: v2Permissions.sessionPut },
+        authorize: { operation: v2Permissions.updateSession },
       }),
       async (req: express.Request, res: express.Response, next: express.NextFunction) => {
         try {
@@ -117,29 +89,14 @@ const createSessionRouter = (SessionService: SessionedEntityService<any, any>) =
             },
             req.body
           );
-          const result = { id: req.params.sessionId, input: session.result.input };
+          const result = {
+            id: req.params.sessionId,
+            input: session.result.input,
+            output: session.result.output,
+            dependsOn: session.result.dependsOn,
+            tags: session.result.tags,
+          };
           res.status(session.statusCode).json(result);
-        } catch (error) {
-          console.log(error);
-          return next(error);
-        }
-      }
-    )
-    // Commit the session, creating all of the appropriate artifacts
-    .post(
-      common.management({
-        validate: { params: ValidationCommon.EntityIdParams },
-        authorize: { operation: v2Permissions.sessionCommit },
-      }),
-      async (req: express.Request, res: express.Response, next: express.NextFunction) => {
-        try {
-          const operation = await SessionService.postSession({
-            accountId: req.params.accountId,
-            subscriptionId: req.params.subscriptionId,
-            // Sessions use the non-unique component name, but instances and identities use the database id.
-            id: Model.createSubordinateId(SessionService.entityType, req.params.entityId, req.params.sessionId),
-          });
-          res.status(operation.statusCode).json(operation.result);
         } catch (error) {
           console.log(error);
           return next(error);
@@ -147,6 +104,7 @@ const createSessionRouter = (SessionService: SessionedEntityService<any, any>) =
       }
     );
 
+  router.options('/:sessionId/start', common.cors());
   router
     // Get a new session and a 302 redirect url for the first step.
     .get(
@@ -164,7 +122,7 @@ const createSessionRouter = (SessionService: SessionedEntityService<any, any>) =
           });
 
           // Send the browser to the configured handler url with the sessionid as a query parameter
-          const redirectUrl = `${process.env.API_SERVER}/v2/account/${result.accountId}/subscription/${result.subscriptionId}/${result.entityType}/${result.entityId}${result.path}?session=${result.sessionId}&redirect_uri=${process.env.API_SERVER}/v2/account/${result.accountId}/subscription/${result.subscriptionId}/${result.entityType}/${result.entityId}/session/${result.sessionId}/callback`;
+          const redirectUrl = `${Constants.API_PUBLIC_ENDPOINT}/v2/account/${result.accountId}/subscription/${result.subscriptionId}/${result.entityType}/${result.entityId}${result.path}?session=${result.sessionId}&redirect_uri=${process.env.API_SERVER}/v2/account/${result.accountId}/subscription/${result.subscriptionId}/${result.entityType}/${result.entityId}/session/${result.sessionId}/callback`;
           return res.redirect(redirectUrl);
         } catch (error) {
           console.log(error);
@@ -173,6 +131,7 @@ const createSessionRouter = (SessionService: SessionedEntityService<any, any>) =
       }
     );
 
+  router.options('/:sessionId/callback', common.cors());
   router
     // Finish a session and get the next component's redirect url.
     .get(
@@ -198,6 +157,33 @@ const createSessionRouter = (SessionService: SessionedEntityService<any, any>) =
           // Send the browser to start the next session.
           const redirectUrl = `${process.env.API_SERVER}/v2/account/${result.accountId}/subscription/${result.subscriptionId}/${result.entityType}/${result.entityId}${result.path}?session=${result.sessionId}`;
           return res.redirect(redirectUrl);
+        } catch (error) {
+          console.log(error);
+          return next(error);
+        }
+      }
+    );
+
+  router
+    .route('/:sessionId/commit')
+    .options(common.cors())
+    // Commit the session, creating all of the appropriate artifacts
+    .post(
+      common.management({
+        validate: { params: ValidationCommon.EntityIdParams },
+        authorize: { operation: v2Permissions.commitSession },
+      }),
+      async (req: express.Request, res: express.Response, next: express.NextFunction) => {
+        try {
+          const installId = await SessionService.commitSession({
+            accountId: req.params.accountId,
+            subscriptionId: req.params.subscriptionId,
+            // Sessions use the non-unique component name, but installs and identities use the database id.
+            id: Model.createSubordinateId(SessionService.entityType, req.params.entityId, req.params.sessionId),
+          });
+          res.status(202).json({
+            targetUrl: `${Constants.API_PUBLIC_ENDPOINT}/v2/account/${req.params.accountId}/subscription/${req.params.subscriptionId}/${SessionService.entityType}/${req.params.entityId}/install/${installId}/`,
+          });
         } catch (error) {
           console.log(error);
           return next(error);

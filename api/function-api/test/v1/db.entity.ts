@@ -14,6 +14,10 @@ const INVALID_UUID = '00000000-0000-4000-8000-000000000000';
 const cleanForStrict = (response: any) => {
   delete response.version;
   delete response.__databaseId;
+  delete response.dateAdded;
+  delete response.dateModified;
+  delete response.state;
+  delete response.operationState;
 };
 
 const createEntityTests = <T extends Model.IEntity>(DAO: Model.IEntityDao<T>, entityType: string) => {
@@ -39,6 +43,7 @@ const createEntityTests = <T extends Model.IEntity>(DAO: Model.IEntityDao<T>, en
     const response: T = await DAO.createEntity(createRequest);
     delete response.expires;
     expect(response.version).toBeUUID();
+    expect([Model.EntityState.creating, Model.EntityState.active]).toContain(response.state);
     cleanForStrict(response);
     expect(response).toStrictEqual({
       ...createRequest,
@@ -141,6 +146,37 @@ const createEntityTests = <T extends Model.IEntity>(DAO: Model.IEntityDao<T>, en
     });
   }, 10000);
 
+  test('Partial update does not overwrite previous data', async () => {
+    const id = 'slack';
+    const original = {
+      id,
+      accountId,
+      subscriptionId,
+      data: { foo: 'bar' },
+      tags: { test: '123' },
+      operationState: {
+        status: Model.OperationStatus.processing,
+        operation: Model.OperationType.creating,
+      },
+      state: Model.EntityState.creating,
+    };
+
+    const originalResult = await DAO.createEntity(original);
+    const updatedResult = await DAO.updateEntity({ accountId, subscriptionId, id });
+
+    expect(updatedResult.data).toBeDefined();
+    expect(updatedResult.data).toStrictEqual(originalResult.data);
+
+    expect(updatedResult.tags).toBeDefined();
+    expect(updatedResult.tags).toStrictEqual(originalResult.tags);
+
+    expect(updatedResult.operationState).toBeDefined();
+    expect(updatedResult.operationState).toStrictEqual(originalResult.operationState);
+
+    expect(updatedResult.state).toBeDefined();
+    expect(updatedResult.state).toStrictEqual(originalResult.state);
+  });
+
   test('Updating non-existing throws NotFoundError', async () => {
     const id = 'slack';
     const data = { foo: 'bar' };
@@ -176,6 +212,7 @@ const createEntityTests = <T extends Model.IEntity>(DAO: Model.IEntityDao<T>, en
     expect(result.next).toBeUndefined();
     records.forEach((r, i) => {
       delete result.items[i].version;
+      expect([Model.EntityState.creating, Model.EntityState.active]).toContain(result.items[i].state);
       cleanForStrict(result.items[i]);
       expect(result.items[i]).toStrictEqual({
         entityType,
@@ -202,6 +239,7 @@ const createEntityTests = <T extends Model.IEntity>(DAO: Model.IEntityDao<T>, en
     result.items.forEach((item) => {
       delete item.expires;
       expect(item.version).toBeUUID();
+      expect([Model.EntityState.creating, Model.EntityState.active]).toContain(item.state);
       cleanForStrict(item);
     });
     expect(result.items[0]).toStrictEqual({ ...makeRecord(1), entityType });
@@ -230,6 +268,7 @@ const createEntityTests = <T extends Model.IEntity>(DAO: Model.IEntityDao<T>, en
     result.items.forEach((item) => {
       delete item.expires;
       expect(item.version).toBeUUID();
+      expect([Model.EntityState.creating, Model.EntityState.active]).toContain(item.state);
       cleanForStrict(item);
     });
     expect(result.items[0]).toStrictEqual({ ...makeRecord(3), entityType });

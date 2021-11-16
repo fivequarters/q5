@@ -15,9 +15,10 @@
   },
   "keywords": [],
   "dependencies": {
-    "aws-sdk": "^2.895.0",
+    "aws-sdk": "^2.1001.0",
     "http-errors": "^1.8.0",
-    "@fusebit/schema": "^1.0.0"
+    "@fusebit/schema": "^1.0.0",
+    "@5qtrs/random": "^0.0.1"
   },
   "devDependencies": {
     "@types/http-errors": "^1.8.0"

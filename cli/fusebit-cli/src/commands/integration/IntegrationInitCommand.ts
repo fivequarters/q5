@@ -1,7 +1,9 @@
 import { join } from 'path';
 import { Command, ArgType, IExecuteInput } from '@5qtrs/cli';
-import { ExecuteService, IntegrationService, OperationService } from '../../services';
+import { ExecuteService, ConnectorService, IntegrationService, FeedService } from '../../services';
 import { Text } from '@5qtrs/text';
+
+import { FeedTypes } from '../feed';
 
 // ------------------
 // Internal Constants
@@ -27,6 +29,11 @@ const command = {
       aliases: ['d'],
       description: 'A path to the directory with the integration source code to deploy.',
       defaultText: 'current directory',
+    },
+    {
+      name: 'feed',
+      aliases: ['f'],
+      description: 'Initialize the directory with this example from the feed',
     },
     {
       name: 'quiet',
@@ -60,6 +67,7 @@ export class IntegrationInitCommand extends Command {
 
   protected async onExecute(input: IExecuteInput): Promise<number> {
     const sourceDir = input.options.dir as string;
+    const feed = input.options.feed as string;
 
     const integrationService = await IntegrationService.create(input);
     const executeService = await ExecuteService.create(input);
@@ -67,10 +75,32 @@ export class IntegrationInitCommand extends Command {
     await executeService.newLine();
 
     const sourcePath = sourceDir ? join(process.cwd(), sourceDir) : process.cwd();
-    const integration = await integrationService.createNewSpec();
-    await integrationService.writeDirectory(sourcePath, integration);
 
-    await integrationService.displayEntities([integration], true);
+    if (!feed) {
+      const integration = await integrationService.createNewSpec();
+      await integrationService.writeDirectory(sourcePath, integration);
+
+      await integrationService.displayEntities([integration], true);
+      return 0;
+    }
+
+    const connectorService = await ConnectorService.create(input);
+    const feedService = await FeedService.create(input);
+    await feedService.loadFeed(FeedTypes.integration);
+    const result = await feedService.renderById(feed);
+
+    if (input.options.output === 'json') {
+      input.io.writeLineRaw(JSON.stringify(result, null, 2));
+      return 0;
+    }
+
+    for (const entity of result.integrations) {
+      await integrationService.writeDirectory(join(sourcePath, entity.id), entity);
+    }
+
+    for (const entity of result.connectors) {
+      await connectorService.writeDirectory(join(sourcePath, entity.id), entity);
+    }
 
     return 0;
   }

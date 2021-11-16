@@ -44,10 +44,9 @@ export interface IDaoCollection extends IDaoCollectionIndex {
   connector: IEntityDao<Schema.IConnector>;
   integration: IEntityDao<Schema.IIntegration>;
   storage: IEntityDao<Schema.IStorageItem>;
-  operation: IEntityDao<Schema.IOperation>;
   session: IEntityDao<Schema.ISession>;
   identity: IEntityDao<Schema.IIdentity>;
-  instance: IEntityDao<Schema.IInstance>;
+  install: IEntityDao<Schema.IInstall>;
 }
 
 export interface IRdsCredentials {
@@ -91,6 +90,10 @@ export const entityToSdk = (entity: Schema.IEntity): Schema.ISdkEntity => {
     tags: entity.tags,
     expires: entity.expires,
     version: entity.version,
+    state: entity.state,
+    operationState: entity.operationState,
+    dateAdded: entity.dateAdded,
+    dateModified: entity.dateModified,
   };
 };
 

@@ -6,6 +6,7 @@ import { ExecuteService, VersionService } from '../services';
 // ------------------
 
 const command = {
+  skipBuiltInProfile: true,
   name: 'Version',
   cmd: 'version',
   summary: 'Returns the version of the Fusebit CLI',
@@ -35,11 +36,10 @@ export class VersionCommand extends Command {
 
   protected async onExecute(input: IExecuteInput): Promise<number> {
     const excuteService = await ExecuteService.create(input);
-    const versionService = await VersionService.create(input);
 
     await excuteService.newLine();
 
-    const version = await versionService.getVersion();
+    const version = VersionService.getVersion();
 
     const output = input.options.output;
     if (output === 'json') {

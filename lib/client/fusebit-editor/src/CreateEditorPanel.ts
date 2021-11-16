@@ -13,8 +13,9 @@ import { updateFusebitContextTypings, addStaticTypings, updateNodejsTypings, upd
  * @param options Editor panel creation options.
  */
 export function createEditorPanel(element: HTMLElement, editorContext: EditorContext, options?: IEditorPanelOptions) {
-  let theme = (options && options.theme) || 'light';
+  const theme = options?.theme || 'light';
   let monacoTheme: any;
+
   switch (theme) {
     case 'dark':
       monacoTheme = {
@@ -68,8 +69,10 @@ export function createEditorPanel(element: HTMLElement, editorContext: EditorCon
     const model = editor.getModel();
     const language = editorContext.getSelectedFileLanguage();
     let packageJson: any = editorContext.getPackageJson();
+    const components = editorContext.getComponents();
+    const registry = editorContext.getRegistry();
     updateNodejsTypings(editorContext.getNodeVersion(packageJson));
-    updateDependencyTypings(editorContext.getDependencies(packageJson));
+    updateDependencyTypings(editorContext.getDependencies(packageJson), registry, components);
     if (model && language) {
       Monaco.editor.setModelLanguage(model, language);
     } else {
@@ -180,12 +183,16 @@ export function createEditorPanel(element: HTMLElement, editorContext: EditorCon
   updateFusebitContextTypings(editorContext.getConfiguration());
   let packageJson: any = editorContext.getPackageJson();
   updateNodejsTypings(editorContext.getNodeVersion(packageJson));
-  updateDependencyTypings(editorContext.getDependencies(packageJson));
+  const registry = editorContext.getRegistry();
+  const components = editorContext.getComponents();
+  updateDependencyTypings(editorContext.getDependencies(packageJson), registry, components);
 
   return editorContext;
 
   function captureViewState() {
-    if (activeCategory === Events.FileSelected && !editedFileName) return;
+    if (activeCategory === Events.FileSelected && !editedFileName) {
+      return;
+    }
     let key = activeCategory === Events.FileSelected ? `${activeCategory}:${editedFileName}` : activeCategory;
     viewStates[key] = editor.saveViewState() as Monaco.editor.ICodeEditorViewState;
   }

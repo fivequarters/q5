@@ -9,7 +9,6 @@ import {
   getFunction,
   listFunctions,
   getFunctionLocation,
-  waitForBuild,
 } from './sdk';
 
 import { getEnv } from './setup';
@@ -36,28 +35,6 @@ const helloWorldUpdated = {
     files: {
       'index.js': 'module.exports = (ctx, cb) => cb(null, { body: "hello - Updated" });',
     },
-  },
-};
-
-const helloWorldWithStaticIp = {
-  nodejs: {
-    files: {
-      'index.js': 'module.exports = (ctx, cb) => cb(null, { body: "hello" });',
-    },
-  },
-  compute: {
-    staticIp: true,
-  },
-};
-
-const helloWorldUpdatedWithStaticIp = {
-  nodejs: {
-    files: {
-      'index.js': 'module.exports = (ctx, cb) => cb(null, { body: "hello - Updated" });',
-    },
-  },
-  compute: {
-    staticIp: true,
   },
 };
 
@@ -139,16 +116,20 @@ const helloWorldWithCron = {
   },
 };
 
-const helloWorldWithNode8JavaScript = {
+const helloWorldJavaScript = {
   nodejs: {
     files: {
       'index.js': 'module.exports = (ctx, cb) => cb(null, { body: process.version });',
-      'package.json': {
-        engines: {
-          node: '8',
-        },
-        dependencies: {},
-      },
+      'package.json': {},
+    },
+  },
+};
+
+const helloWorldString = {
+  nodejs: {
+    files: {
+      'index.js': 'module.exports = (ctx, cb) => cb(null, { body: process.version });',
+      'package.json': JSON.stringify({ dependencies: {} }),
     },
   },
 };
@@ -177,20 +158,6 @@ const helloWorldWithNode12JavaScript = {
         },
         dependencies: {},
       },
-    },
-  },
-};
-
-const helloWorldWithNode10String = {
-  nodejs: {
-    files: {
-      'index.js': 'module.exports = (ctx, cb) => cb(null, { body: process.version });',
-      'package.json': JSON.stringify({
-        engines: {
-          node: '10',
-        },
-        dependencies: {},
-      }),
     },
   },
 };
@@ -250,17 +217,9 @@ const helloWorldWithBadMustache = {
 };
 
 describe('Function', () => {
-  test('PUT fails with unsupported node.js version 8', async () => {
-    const response = await putFunction(account, boundaryId, function1Id, helloWorldWithNode8JavaScript);
-    expect(response).toBeHttp({ statusCode: 400 });
-  }, 120000);
-
-  test('PUT succeeds with supported node.js version 10', async () => {
+  test('PUT fails with unsupported node.js version 10', async () => {
     const response = await putFunction(account, boundaryId, function1Id, helloWorldWithNode10JavaScript);
-    expect(response).toBeHttp({ statusCode: 200 });
-    const version = await request(response.data.location);
-    expect(version).toBeHttp({ statusCode: 200 });
-    expect(version.data).toMatch(/^v10/);
+    expect(response).toBeHttp({ statusCode: 400 });
   }, 120000);
 
   test('PUT succeeds with supported node.js version 12', async () => {
@@ -434,62 +393,6 @@ describe('Function', () => {
     expect(response.data.metadata).toBeUndefined();
   }, 120000);
 
-  test('PUT with new compute values updates compute', async () => {
-    let response = await putFunction(account, boundaryId, function1Id, helloWorld);
-    expect(response).toBeHttp({ statusCode: 200 });
-
-    response = await getFunction(account, boundaryId, function1Id);
-    expect(response).toBeHttp({ statusCode: 200 });
-
-    const data = response.data;
-    expect(data.compute).toEqual({ timeout: 30, memorySize: 128, staticIp: false });
-
-    data.compute.staticIp = true;
-    response = await putFunction(account, boundaryId, function1Id, data);
-    expect(response).toBeHttp({ statusCode: 201 });
-    response = await waitForBuild(account, response.data, 120, 1000);
-    expect(response).toBeHttp({ statusCode: 200, data: { status: 'success' } });
-
-    response = await getFunction(account, boundaryId, function1Id);
-    expect(response).toBeHttp({ statusCode: 200 });
-    expect(response.data.compute).toEqual({ timeout: 30, memorySize: 128, staticIp: true });
-  }, 240000);
-
-  test('PUT multiple times on the same function', async () => {
-    let response = await putFunction(account, boundaryId, function1Id, helloWorld);
-    expect(response).toBeHttp({ statusCode: 200 });
-
-    response = await putFunction(account, boundaryId, function1Id, helloWorldWithStaticIp);
-    expect(response).toBeHttp({ statusCode: 201 });
-
-    // Instead of waiting for the function to complete it's build, try again and see what happens.
-    response = await putFunction(account, boundaryId, function1Id, helloWorld);
-    expect(response).toBeHttp({ statusCode: 204 }); // Lies, but unsurprising if not waiting for the build to complete.
-
-    response = await putFunction(account, boundaryId, function1Id, helloWorldUpdatedWithStaticIp);
-    expect(response).toBeHttp({ statusCode: 201 });
-  }, 120000);
-
-  test('PUT with new compute values and code executes async', async () => {
-    let response = await putFunction(account, boundaryId, function1Id, helloWorld);
-    expect(response).toBeHttp({ statusCode: 200 });
-
-    response = await getFunction(account, boundaryId, function1Id);
-    expect(response).toBeHttp({ statusCode: 200 });
-
-    const data = response.data;
-    expect(data.compute).toEqual({ timeout: 30, memorySize: 128, staticIp: false });
-
-    response = await putFunction(account, boundaryId, function1Id, helloWorldUpdatedWithStaticIp);
-    expect(response).toBeHttp({ statusCode: 201 });
-    response = await waitForBuild(account, response.data, 120, 1000);
-    expect(response).toBeHttp({ statusCode: 200, data: { status: 'success' } });
-
-    response = await getFunction(account, boundaryId, function1Id);
-    expect(response).toBeHttp({ statusCode: 200 });
-    expect(response.data.compute).toEqual({ timeout: 30, memorySize: 128, staticIp: true });
-  }, 240000);
-
   test('PUT and GET roundtrip with no changes to function', async () => {
     let response = await putFunction(account, boundaryId, function1Id, helloWorld);
     expect(response).toBeHttp({ statusCode: 200, data: { status: 'success' } });
@@ -499,16 +402,6 @@ describe('Function', () => {
     expect(response).toBeHttp({ statusCode: 204 });
     expect(response.data).toBeUndefined();
   }, 120000);
-
-  test('PUT supports setting staticIP=true', async () => {
-    let response = await putFunction(account, boundaryId, function1Id, helloWorldWithStaticIp);
-    expect(response).toBeHttp({ statusCode: 201 });
-    response = await waitForBuild(account, response.data, 120, 1000);
-    expect(response).toBeHttp({ statusCode: 200, data: { status: 'success' } });
-    response = await getFunction(account, boundaryId, function1Id);
-    expect(response.status).toBe(200);
-    expect(response.data.compute).toEqual({ staticIp: true, memorySize: 128, timeout: 30 });
-  }, 240000);
 
   test('PUT still supports lambda property for back-compat', async () => {
     let response = await putFunction(account, boundaryId, function1Id, helloWorldWithLambda);
@@ -580,7 +473,7 @@ describe('Function', () => {
   }, 120000);
 
   test('GET retrieves information of function with package.json as JavaScript object', async () => {
-    let response = await putFunction(account, boundaryId, function2Id, helloWorldWithNode10JavaScript);
+    let response = await putFunction(account, boundaryId, function2Id, helloWorldJavaScript);
     expect(response).toBeHttp({ statusCode: 200, data: { status: 'success' } });
     response = await getFunction(account, boundaryId, function2Id);
     expect(response).toBeHttp({ statusCode: 200 });
@@ -590,7 +483,7 @@ describe('Function', () => {
       id: function2Id,
       location: expect.stringMatching(/^http:|https:/),
     });
-    expect(response.data.nodejs).toEqual(helloWorldWithNode10JavaScript.nodejs);
+    expect(response.data.nodejs).toEqual(helloWorldJavaScript.nodejs);
     expect(response.data.compute).toEqual({ timeout: 30, memorySize: 128, staticIp: false });
     expect(response.data.computeSerialized).toBeUndefined();
     expect(response.data.configuration).toBeUndefined();
@@ -601,7 +494,7 @@ describe('Function', () => {
   }, 120000);
 
   test('GET retrieves information of function with package.json as string', async () => {
-    let response = await putFunction(account, boundaryId, function2Id, helloWorldWithNode10String);
+    let response = await putFunction(account, boundaryId, function2Id, helloWorldString);
     expect(response).toBeHttp({ statusCode: 200, data: { status: 'success' } });
     response = await getFunction(account, boundaryId, function2Id);
     expect(response).toBeHttp({ statusCode: 200 });
@@ -611,7 +504,7 @@ describe('Function', () => {
       id: function2Id,
       location: expect.stringMatching(/^http:|https:/),
     });
-    expect(response.data.nodejs).toEqual(helloWorldWithNode10String.nodejs);
+    expect(response.data.nodejs).toEqual(helloWorldString.nodejs);
     expect(response.data.compute).toEqual({ timeout: 30, memorySize: 128, staticIp: false });
     expect(response.data.computeSerialized).toBeUndefined();
     expect(response.data.configuration).toBeUndefined();
@@ -872,24 +765,10 @@ describe('Function', () => {
     expect(response).toBeHttp({ statusCode: 200 });
     response = await listFunctions(account);
     expect(response).toBeHttp({ statusCode: 200 });
-    expect(response.data).toMatchObject({ items: expect.any(Array) });
+
+    // Only validate that the list is at least large enough to contain those entries; otherwise this test
+    // struggles when run in parallel.
     expect(response.data.items.length).toBeGreaterThanOrEqual(2);
-    expect(response.data.items).toEqual(
-      expect.arrayContaining([
-        {
-          boundaryId,
-          functionId: function1Id,
-          schedule: {},
-          location: (await getFunctionLocation(account, boundaryId, function1Id)).data.location,
-        },
-        {
-          boundaryId,
-          functionId: function2Id,
-          schedule: helloWorldWithCron.schedule,
-          location: (await getFunctionLocation(account, boundaryId, function2Id)).data.location,
-        },
-      ])
-    );
   }, 120000);
 
   test('LIST on subscription with include=all retrieves the list of all functions with tags', async () => {
@@ -897,36 +776,14 @@ describe('Function', () => {
     expect(response).toBeHttp({ statusCode: 200 });
     response = await putFunction(account, boundaryId, function2Id, helloWorldWithCron);
     expect(response).toBeHttp({ statusCode: 200 });
+
+    // Validate that at least two functions are returned, with tags.
+    // Note: more specific tests tend to conflict when executed in parallel.
     response = await listFunctions(account, undefined, undefined, undefined, undefined, undefined, true);
     expect(response).toBeHttp({ statusCode: 200 });
-    expect(response.data).toMatchObject({ items: expect.any(Array) });
     expect(response.data.items.length).toBeGreaterThanOrEqual(2);
-    expect(response.data.items).toEqual(
-      expect.arrayContaining([
-        {
-          boundaryId,
-          functionId: function1Id,
-          schedule: {},
-          location: (await getFunctionLocation(account, boundaryId, function1Id)).data.location,
-          runtime: {
-            tags: expect.objectContaining({
-              'fusebit.functionId': function1Id,
-            }),
-          },
-        },
-        {
-          boundaryId,
-          functionId: function2Id,
-          schedule: helloWorldWithCron.schedule,
-          location: (await getFunctionLocation(account, boundaryId, function2Id)).data.location,
-          runtime: {
-            tags: expect.objectContaining({
-              'fusebit.functionId': function2Id,
-            }),
-          },
-        },
-      ])
-    );
+    expect(Object.keys(response.data.items[0].runtime.tags).length).toBeGreaterThan(0);
+    expect(Object.keys(response.data.items[1].runtime.tags).length).toBeGreaterThan(0);
   }, 120000);
 
   test('PUT fails without .nodejs', async () => {

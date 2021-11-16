@@ -7,4 +7,5 @@ module.exports = Joi.object().keys({
   data: Joi.required(),
   tags: Joi.object().pattern(tagValue, Joi.string().regex(tagValue)),
   expires: Joi.date().iso(),
+  storageId: Joi.string(),
 });

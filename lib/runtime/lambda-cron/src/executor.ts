@@ -1,9 +1,7 @@
-import * as Async from 'async';
 import * as AWS from 'aws-sdk';
-import * as Cron from 'cron-parser';
+import Cron from 'cron-parser';
 import { v4 as uuidv4 } from 'uuid';
 
-import { Constants as Tags } from '@5qtrs/function-tags';
 import * as Constants from '@5qtrs/constants';
 import * as Common from '@5qtrs/runtime-common';
 
@@ -12,9 +10,8 @@ const s3 = new AWS.S3({
   signatureVersion: 'v4',
 });
 
-import { mintJwtForPermissions, loadFunctionSummary, AwsKeyStore, SubscriptionCache } from '@5qtrs/runas';
+import { mintJwtForPermissions, loadFunctionSummary, AwsKeyStore } from '@5qtrs/runas';
 
-const maxParallelLookup = 20; // Only lookup 20 functions at a time from Dynamo
 const concurrentExecutionLimit = +(process.env.CRON_CONCURRENT_EXECUTION_LIMIT as string) || 5;
 
 // Create the keystore and guarantee an initial key
@@ -28,7 +25,7 @@ const keyStore = new AwsKeyStore({
 });
 let keyStoreHealth: Promise<any>;
 
-export async function executor(event: any, context: any) {
+export async function executor(event: any) {
   if (keyStoreHealth === undefined) {
     keyStoreHealth = keyStore.rekey();
   }
@@ -87,7 +84,7 @@ async function checkCronStillExists(key: string) {
 
 async function executeFunction(ctx: any) {
   // Load the desired function summary from DynamoDB
-  let functionSummary;
+  let functionSummary: any;
   try {
     functionSummary = await loadFunctionSummary(ctx);
   } catch (e) {
@@ -105,18 +102,21 @@ async function executeFunction(ctx: any) {
   const { startTime, deviation } = calculateCronDeviation(ctx.cron, ctx.timezone);
 
   // Generate a pseudo-request object to drive the invocation.
+  const requestId = uuidv4();
   const request = {
     method: 'CRON',
     url: `${Constants.get_function_path(ctx.subscriptionId, ctx.boundaryId, ctx.functionId)}`,
     body: ctx,
     originalUrl: `/v1${Constants.get_function_path(ctx.subscriptionId, ctx.boundaryId, ctx.functionId)}`,
     protocol: 'cron',
-    headers: {},
+    headers: {
+      [Constants.traceIdHeader]: requestId,
+    },
     query: {},
     params: ctx,
-    requestId: uuidv4(),
+    requestId,
     startTime,
-    functionSummary: functionSummary,
+    functionSummary,
   };
 
   request.params.baseUrl = Constants.get_function_location(
@@ -130,7 +130,13 @@ async function executeFunction(ctx: any) {
   await new Promise((resolve, reject) =>
     Common.invoke_function(request, (error: any, response: any, meta: any) => {
       meta.metrics.cron = { deviation };
-      dispatchCronEvent({ request, error, response, meta });
+      dispatchCronEvent({
+        request,
+        error,
+        response,
+        meta,
+        persistLogs: !!functionSummary?.['compute.persistLogs'],
+      });
 
       if (error) {
         reject(error);
@@ -192,11 +198,13 @@ function dispatchCronEvent(details: any) {
 
   const event = {
     requestId: details.request.requestId,
+    traceId: details.request.requestId,
     startTime: details.request.startTime,
     endTime: Date.now(),
     request: details.request,
     metrics: details.meta.metrics,
     response: { statusCode: 200, headers: [] },
+    ...(details.persistLogs && details.meta.log ? { logs: details.meta.log } : {}),
     fusebit,
     error: details.meta.error || details.error, // The meta error always has more information.
   };

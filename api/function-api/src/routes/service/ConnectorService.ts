@@ -2,20 +2,18 @@ import { Permissions, v2Permissions, safePathMap } from '@5qtrs/constants';
 import RDS, { Model } from '@5qtrs/db';
 
 import SessionedEntityService from './SessionedEntityService';
-import { defaultFrameworkSemver } from './BaseEntityService';
-
-const defaultPkgOAuthConnectorSemver = '^1.0.1';
+import { defaultFrameworkSemver, defaultOAuthConnectorSemver } from './BaseEntityService';
 
 const defaultPackage = (entityId: string) => ({
-  scripts: { deploy: `"fuse connector deploy ${entityId} -d ."`, get: `"fuse connector get ${entityId} -d ."` },
+  scripts: { deploy: `fuse connector deploy ${entityId} -d .`, get: `fuse connector get ${entityId} -d .` },
   dependencies: {
-    '@fusebit-int/pkg-oauth-connector': defaultPkgOAuthConnectorSemver,
+    '@fusebit-int/oauth-connector': defaultOAuthConnectorSemver,
     '@fusebit-int/framework': defaultFrameworkSemver,
   },
 });
 
 const defaultConnector: Model.IConnectorData = {
-  handler: '@fusebit-int/pkg-oauth-connector',
+  handler: '@fusebit-int/oauth-connector',
   configuration: {},
   files: {
     'package.json': JSON.stringify(defaultPackage('sampleConnector'), null, 2),
@@ -50,7 +48,7 @@ class ConnectorService extends SessionedEntityService<Model.IConnector, Model.II
     // Remove any leading . or ..'s from file paths.
     data.files = safePathMap(data.files);
 
-    data.handler = data.handler || '@fusebit-int/pkg-oauth-connector';
+    data.handler = data.handler || '@fusebit-int/oauth-connector';
     data.configuration = data.configuration || {};
 
     const pkg = {
@@ -60,8 +58,10 @@ class ConnectorService extends SessionedEntityService<Model.IConnector, Model.II
 
     pkg.dependencies['@fusebit-int/framework'] = pkg.dependencies['@fusebit-int/framework'] || defaultFrameworkSemver;
 
-    // Make sure package mentioned in the `handler` block is also included.
-    pkg.dependencies[data.handler] = pkg.dependencies[data.handler] || '*';
+    // Make sure package mentioned in the `handler` block is also included if it is not a local file
+    if (data.handler[0] !== '.') {
+      pkg.dependencies[data.handler] = pkg.dependencies[data.handler] || '*';
+    }
 
     // Always pretty-print package.json so it's human-readable from the start.
     data.files['package.json'] = JSON.stringify(pkg, null, 2);
@@ -71,33 +71,28 @@ class ConnectorService extends SessionedEntityService<Model.IConnector, Model.II
     return entity;
   };
 
-  public getFunctionSecuritySpecification = () => ({
+  public getFunctionSecuritySpecification = (model: Model.IEntity) => ({
     authentication: 'optional',
     functionPermissions: {
       allow: [
         {
           action: Permissions.allStorage,
-          resource: '/account/{{accountId}}/subscription/{{subscriptionId}}/storage/{{boundaryId}/{{functionId}}/',
+          resource: '/account/{{accountId}}/subscription/{{subscriptionId}}/storage/connector/{{functionId}}/',
         },
         {
-          action: v2Permissions.putSession,
-          resource: '/account/{{accountId}}/subscription/{{subscriptionId}}/{{boundaryId}/{{functionId}}/session/',
-        },
-        {
-          action: v2Permissions.getSessionResult,
-          resource:
-            '/account/{{accountId}}/subscription/{{subscriptionId}}/{{boundaryId}/{{functionId}}/session/result/',
+          action: v2Permissions.updateSession,
+          resource: '/account/{{accountId}}/subscription/{{subscriptionId}}/connector/{{functionId}}/session/',
         },
         {
           action: v2Permissions.getSession,
-          resource: '/account/{{accountId}}/subscription/{{subscriptionId}}/{{boundaryId}/{{functionId}}/session/',
+          resource: '/account/{{accountId}}/subscription/{{subscriptionId}}/connector/{{functionId}}/session/',
         },
         {
-          action: v2Permissions.identity.get,
-          resource: '/account/{{accountId}}/subscription/{{subscriptionId}}/connector/{{functionId}}/identity/',
+          action: v2Permissions.connector.get,
+          resource: '/account/{{accountId}}/subscription/{{subscriptionId}}/connector/{{functionId}}/',
         },
         {
-          action: v2Permissions.identity.put,
+          action: v2Permissions.identity.all,
           resource: '/account/{{accountId}}/subscription/{{subscriptionId}}/connector/{{functionId}}/identity/',
         },
       ],

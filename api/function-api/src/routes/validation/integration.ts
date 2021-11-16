@@ -15,15 +15,19 @@ const Data = Joi.alternatives().try(
       .items(
         Joi.object().keys({
           name: Joi.string().required(),
-          entityId: Joi.string().required(),
+          entityId: Joi.string().when('entityType', {
+            is: 'connector',
+            then: Common.entityId.required(),
+            otherwise: Joi.default('{{integration}}'),
+          }),
           entityType: Joi.valid('integration', 'connector'),
           skip: Joi.boolean().optional().default(false),
           path: Joi.string().when('entityType', {
             is: 'connector',
-            then: Joi.default('/api/configure'),
+            then: Joi.default('/api/authorize'),
             otherwise: Joi.required(),
           }),
-          package: Joi.string().when('entityType', {
+          provider: Joi.string().when('entityType', {
             is: 'integration',
             then: Joi.forbidden(),
             otherwise: Joi.required(),
@@ -33,10 +37,18 @@ const Data = Joi.alternatives().try(
       )
       .unique((a: { name: string }, b: { name: string }) => a.name === b.name)
       .default([]),
+    schedule: Joi.array().items(
+      Joi.object({
+        cron: Joi.string().required(),
+        timezone: Joi.string(),
+        endpoint: Joi.string().required(),
+      })
+    ),
   }),
   Joi.object().keys({})
 );
 
 const Entity = EntityCommon.validateEntity(Data);
+const PostEntity = EntityCommon.validatePostEntity(Data);
 
-export { Entity, Data };
+export { Entity, PostEntity, Data };

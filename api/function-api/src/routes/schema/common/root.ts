@@ -7,7 +7,6 @@ import Validation from '../../validation/component';
 
 import * as common from '../../middleware/common';
 import query from '../../handlers/query';
-import body from '../../handlers/body';
 import pathParams from '../../handlers/pathParams';
 
 import { SessionedEntityService } from '../../service';
@@ -19,6 +18,7 @@ const router = (EntityService: SessionedEntityService<any, any>) => {
 
   componentRouter
     .route('/')
+    .options(common.cors())
     .get(
       common.management({
         validate: { params: Validation.EntityIdParams, query: Validation.EntityIdQuery },
@@ -44,35 +44,28 @@ const router = (EntityService: SessionedEntityService<any, any>) => {
               total: 1,
             });
           }
+
           const response = await EntityService.dao.listEntities(
             {
               ...pathParams.accountAndSubscription(req),
-              ...query.tags(req),
+              ...query.tag(req),
               ...query.idPrefix(req),
+              ...(req.query.state ? { state: req.query.state as Model.EntityState } : {}),
             },
             {
               ...query.listPagination(req),
             }
           );
-          response.items = response.items.map((entity) => Model.entityToSdk(entity));
-          res.json(response);
-        } catch (e) {
-          next(e);
-        }
-      }
-    )
-    .post(
-      common.management({
-        validate: { params: Validation.EntityIdParams, body: Validation[EntityService.entityType].Entity },
-        authorize: { operation: v2Permissions[EntityService.entityType].put },
-      }),
-      async (req: express.Request, res: express.Response, next: express.NextFunction) => {
-        try {
-          const { statusCode, result } = await EntityService.createEntity({
-            ...pathParams.accountAndSubscription(req),
-            ...body.entity(req, EntityService.entityType),
+          response.items = response.items.map((entity) => {
+            const item = Model.entityToSdk(entity);
+            // For general health, don't send back the configuration and the files on a list operation. While
+            // the list requires the same level of permissions as would allow access to the payload, that's
+            // not always going to be true.
+            delete item.data.configuration;
+            delete item.data.files;
+            return item;
           });
-          res.status(statusCode).json(result);
+          res.json(response);
         } catch (e) {
           next(e);
         }

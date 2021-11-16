@@ -33,7 +33,7 @@ export class AwsBase<TAws extends new (...args: any[]) => any> {
     throw new Error(`The 'onGetAws' method must be implemented in the derived class.`);
   }
 
-  protected async getAws(): Promise<InstanceType<TAws>> {
+  public async getAws(): Promise<InstanceType<TAws>> {
     if (!this.aws) {
       const options: any = {
         region: this.region,

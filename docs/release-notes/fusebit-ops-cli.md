@@ -18,35 +18,192 @@ All public releases of the Fusebit Operations CLI are documented here, including
 {:toc}
 -->
 
+## Version 1.35.0
+
+_Released 11/14/21_
+
+- **Security.** Update various dependencies with critical CVEs.
+
+## Version 1.34.4
+
+_Released 11/11/21_
+
+- **Enhancement.** Support a --region parameter to limit stack lists.
+
+## Version 1.34.3
+
+_Released 11/10/21_
+
+- **Enhancement.** Disable AWS backup from backing up audit2. Requires recreating a backup plan.
+  - `fuse-ops deployment add` to populate the deployment with the correct tags.
+  - `fuse-ops backup schedule` to create a new backup plan.
+  - Wait ~14 days for the new backup plan to create some new usable backups.
+  - Finally, run `fuse-ops backup rm` against the old plan.
+
+## Version 1.34.2
+
+_Released 11/09/21_
+
+- **Enhancement.** Support for tracing in CRON.
+
+## Version 1.34.1
+
+_Released 11/01/21_
+
+- **Enhancement.** Support user assumption for support or diagnostic purposes.
+
+## Version 1.33.3
+
+_Released 10/28/21_
+
+- **BugFix.** Correctly report an error when the function builder is unable to acquire a package.
+
+## Version 1.33.2
+
+_Released 10/26/21_
+
+- **Enhancement.** Add tracing support to CRON. Requires `fuse-ops deployment add`.
+- **BugFix.** Add auto retry on the creation of WAF for `fuse-ops deployment add` to improve reliability.
+
+## Version 1.33.1
+
+_Released 10/11/21_
+
+- **Enhancement.** Small quality-of-life change in `fuse-ops stack ls` output
+
+## Version 1.33.0
+
+_Released 10/11/21_
+
+- **Enhancement.** Implement AWS WAF on the Fusebit platform to allow disabling tenants and blacklisting IP ranges.
+
+## Version 1.32.1
+
+_Released 10/07/21_
+
+WARNING: Unavoidable database wipe.
+
+- **Enhancement.** Renames 'instances' to 'installs'.
+
+## Version 1.31.1
+
+_Released 10/04/21_
+
+- **Bugfix.** Increase memory allocation and timeout settings for the CRON executor to improve stability and precision.
+
+## Version 1.31.0
+
+_Released 09/28/21_
+
+- **Enhancement.** Add CORS policy to allow downloading packages from S3 using presigned urls coming from the Fusebit registry.
+
+## Version 1.30.0
+
+_Released 09/15/21_
+
+- **Enhancement.** Remove `fuse-ops profile default` in favor of the more consistent `fuse-ops profile set` and `fuse-ops profile get`.
+
+## Version 1.29.2
+
+_Released 09/15/21_
+
+- **Enhancement.** Add a 'clearModules' command to remove cached artifacts for specific npm packages.
+
+## Version 1.29.1
+
+_Released 09/13/21_
+
+- **Bugfix.** Fuse-ops no longer error out when adding a new deployment with no segment key provided on the command line.
+
+## Version 1.28.9
+
+_Released 08/18/21_
+
+- **Enhancement.** Lambda analytics now supports self-issued JWTs, linking them to the subscription aimed by the client using these tokens.
+
+## Version 1.28.8
+
+_Released 08/18/21_
+
+- **Enhancement.** Lambda analytics now links unauthenticated requests to the subscription id before offloading to Segment.
+
+## Version 1.28.7
+
+_Released 08/16/21_
+
+- **Enhancement.** Fuse-ops backup now implements a 90 day retention policy for backups.
+
+## Version 1.28.6
+
+_Released 08/16/21_
+
+- **Enhancement.** Deployments can now offload analytic data to Segment.
+
+## Version 1.28.5
+
+_Released 08/02/21_
+
+- **Bugfix.** Clear transaction id during non-transaction-compatible migrations.
+
+## Version 1.28.4
+
+_Released 07/27/21_
+
+- **Enhancement.** Subscriptions now support default values supplied via global configuration elements.
+
+## Version 1.28.1
+
+_Released 07/23/21_
+
+- **Bugfix.** Fuse-ops now properly tags restored resources.
+
+## Version 1.28.0
+
+_Released 07/23/21_
+
+- **Enhancement.** Introduces the ability to set a feature flag on subscriptions to either block or allow them to use the static IP feature on Fusebit function.
+
+## Version 1.27.18
+
+_Released 07/21/21_
+
+- **Bugfix.** Fuse-ops will no longer break if there are deployments of the same name in different regions.
+
+## Version 1.27.17
+
+_Released 07/16/21_
+
+- **Enhancement.** Integration Sessions can now be ran against an existing set of Instances and Identities in order to update their values
+
 ## Version 1.27.16
 
 _Released 07/13/21_
 
-- **Bugfix** Fuse-ops backup restore no longer fails when the cluster is not found.
+- **Bugfix.** Fuse-ops backup restore no longer fails when the cluster is not found.
 
 ## Version 1.27.15
 
 _Released 07/13/21_
 
-- **Enhancement** Change fuse-ops backup ls command to include the region of the backup.
+- **Enhancement.** Change fuse-ops backup ls command to include the region of the backup.
 
 ## Version 1.27.14
 
 _Released 07/12/21_
 
-- **Bugfix** Fix an issue with multiple deployments using similar prefixes causing deployment failure.
+- **Bugfix.** Fix an issue with multiple deployments using similar prefixes causing deployment failure.
 
 ## Version 1.27.13
 
 _Released 07/09/21_
 
-- **Security** Update Axios for security patching against CVE-2020-28168.
+- **Security.** Update Axios for security patching against CVE-2020-28168.
 
 ## Version 1.27.10
 
 _Released 07/07/21_
 
-- **Enhancement** Make Aurora error slightly less cryptic.
+- **Enhancement.** Make Aurora error slightly less cryptic.
 
 ## Version 1.27.9
 

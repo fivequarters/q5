@@ -14,7 +14,7 @@ import {
 // Internal Functions
 // ------------------
 
-function toBeHttp(response: IHttpResponse, { statusCode, data, headers, has, hasNot, tests }: any) {
+function toBeHttp(response: IHttpResponse, { statusCode, data, headers, has, hasNot, tests }: IToBeHttp) {
   let keyValueMsg;
   try {
     if (statusCode) {
@@ -76,7 +76,7 @@ function toBeHttp(response: IHttpResponse, { statusCode, data, headers, has, has
     const { account } = getEnv();
     const msg = `${err.message} ${keyValueMsg}\n\nfailing request:\n${
       response.status
-    } ${response.request.method.toUpperCase()} ${response.request.url} - headers: ${JSON.stringify(
+    } ${response.request?.method.toUpperCase()} ${response.request?.url} - headers: ${JSON.stringify(
       response.headers,
       null,
       2
@@ -201,6 +201,21 @@ function toBeUUID(received: string) {
   return { message: () => `Not a valid UUID: ${received}`, pass };
 }
 
+function toBeSessionId(received: string) {
+  const pass: boolean = /^sid-[0-9a-f]{32}$/.test(received);
+  return { message: () => `Not a valid session id: ${received}`, pass };
+}
+
+function toBeInstallId(received: string) {
+  const pass: boolean = /^ins-[0-9a-f]{32}$/.test(received);
+  return { message: () => `Not a valid install id: ${received}`, pass };
+}
+
+function toBeIdentityId(received: string) {
+  const pass: boolean = /^idn-[0-9a-f]{32}$/.test(received);
+  return { message: () => `Not a valid identity id: ${received}`, pass };
+}
+
 /*
  * toExtend usage: expect(received).toExtend(expected);
  *
@@ -286,13 +301,25 @@ const matchers = {
   toBeStorageConflict,
   toBeStorageNotFound,
   toBeUUID,
+  toBeInstallId,
+  toBeIdentityId,
+  toBeSessionId,
   toExtend,
 };
+
+export interface IToBeHttp {
+  statusCode?: number | number[];
+  data?: any;
+  headers?: Record<string, string>;
+  tests?: (() => any)[];
+  has?: string[];
+  hasNot?: string[];
+}
 
 declare global {
   namespace jest {
     interface Matchers<R, T> {
-      toBeHttp: ({ statusCode, data, headers, tests }: any) => R;
+      toBeHttp: ({ statusCode, data, headers, tests }: IToBeHttp) => R;
       toBeHttpError: (status: number, message: string) => R;
       toBeMalformedAccountError: (malformedAccountId: string) => R;
       toBeUnauthorizedError: () => R;
@@ -301,6 +328,9 @@ declare global {
       toBeStorageConflict: (storageId: string, etag: string, isUpdate?: boolean, storagePath?: string) => R;
       toBeStorageNotFound: (storageId: string, storagePath?: string) => R;
       toBeUUID: () => R;
+      toBeInstallId: () => R;
+      toBeIdentityId: () => R;
+      toBeSessionId: () => R;
       toExtend: (expected: T) => R;
     }
   }

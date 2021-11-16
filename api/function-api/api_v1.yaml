@@ -3,17 +3,17 @@ security:
   - AccessToken: []
 
 servers:
-  - url: https://api.{region}.fusebit.io
+  - url: https://api.{region}.on.fusebit.io
     description: Production
     variables:
       region:
-        description: The region where the API is deployed, for example `'us-east-1'`
-        default: 'us-east-1'
+        description: The region where the API is deployed, for example `'us-west-1'`
+        default: 'us-west-1'
 
 info:
   description: 'Fusebit HTTP API for the management and execution of Fusebit accounts, users, functions and more'
   version: '1.0.0'
-  title: 'Fusebit HTTP API - v1'
+  title: 'Fusebit HTTP API - Core'
   contact:
     email: contact@fusebit.io
   license:
@@ -23,6 +23,8 @@ info:
 tags:
   - name: Accounts
     description: Account management operations
+  - name: Subscriptions
+    description: Subscription management operations
   - name: Issuers
     description: Issuer management operations
   - name: Users
@@ -39,6 +41,306 @@ tags:
 #    description: Package registries for private implementations
 
 paths:
+  /v1/account/{accountId}/logs:
+    parameters:
+      - in: path
+        name: accountId
+        required: true
+        description: Account id
+        schema:
+          $ref: '#/components/schemas/AccountId'
+    post:
+      tags:
+        - Accounts
+      summary: Start new account-level log query
+      operationId: newAccountLogQuery
+      description: |
+        Starts a new log query scoped to account logs.
+      requestBody:
+        description: Log query parameters
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/NewLogQuery'
+      responses:
+        200:
+          description: New query initiated
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/NewLogQueryResponse'
+        400:
+          description: Malformed request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        403:
+          description: Not authorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+      security:
+        - AccessToken: ['log:get']
+  /v1/account/{accountId}/logs/{queryId}:
+    parameters:
+      - in: path
+        name: accountId
+        required: true
+        description: Account id
+        schema:
+          $ref: '#/components/schemas/AccountId'
+      - in: path
+        name: queryId
+        required: true
+        description: Query id
+        schema:
+          $ref: '#/components/schemas/QueryId'
+    get:
+      tags:
+        - Accounts
+      summary: Get account-level log query results
+      operationId: getAccountLogQueryResults
+      description: |
+        Get the status and results of a previously started account-level log query.
+      responses:
+        200:
+          description: Query status and results
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/LogQueryResult'
+        400:
+          description: Malformed request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        403:
+          description: Not authorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+      security:
+        - AccessToken: ['log:get']
+
+  /v1/account/{accountId}/subscription/{subscriptionId}/logs:
+    parameters:
+      - in: path
+        name: accountId
+        required: true
+        description: Account id
+        schema:
+          $ref: '#/components/schemas/AccountId'
+      - in: path
+        name: subscriptionId
+        required: true
+        description: Subscription id
+        schema:
+          $ref: '#/components/schemas/SubscriptionId'
+    post:
+      tags:
+        - Subscriptions
+      summary: Start new subscription-level log query
+      operationId: newSubscriptionLogQuery
+      description: |
+        Starts a new log query scoped to subscription logs.
+      requestBody:
+        description: Log query parameters
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/NewLogQuery'
+      responses:
+        200:
+          description: New query initiated
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/NewLogQueryResponse'
+        400:
+          description: Malformed request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        403:
+          description: Not authorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+      security:
+        - AccessToken: ['log:get']
+  /v1/account/{accountId}/subscription/{subscriptionId}/logs/{queryId}:
+    parameters:
+      - in: path
+        name: accountId
+        required: true
+        description: Account id
+        schema:
+          $ref: '#/components/schemas/AccountId'
+      - in: path
+        name: subscriptionId
+        required: true
+        description: Subscription id
+        schema:
+          $ref: '#/components/schemas/SubscriptionId'
+      - in: path
+        name: queryId
+        required: true
+        description: Query id
+        schema:
+          $ref: '#/components/schemas/QueryId'
+    get:
+      tags:
+        - Subscriptions
+      summary: Get subscription-level log query results
+      operationId: getSubscriptionLogQueryResults
+      description: |
+        Get the status and results of a previously started subscripton-level log query.
+      responses:
+        200:
+          description: Query status and results
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/LogQueryResult'
+        400:
+          description: Malformed request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        403:
+          description: Not authorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+      security:
+        - AccessToken: ['log:get']
+
+  /v1/account/{accountId}/subscription/{subscriptionId}/boundary/{boundaryId}/logs/{queryId}:
+    parameters:
+      - in: path
+        name: accountId
+        required: true
+        description: Account id
+        schema:
+          $ref: '#/components/schemas/AccountId'
+      - in: path
+        name: subscriptionId
+        required: true
+        description: Subscription id
+        schema:
+          $ref: '#/components/schemas/SubscriptionId'
+      - in: path
+        name: boundaryId
+        required: true
+        description: Boundary id
+        schema:
+          $ref: '#/components/schemas/BoundaryId'
+      - in: path
+        name: queryId
+        required: true
+        description: Query id
+        schema:
+          $ref: '#/components/schemas/QueryId'
+    get:
+      tags:
+        - Boundaries
+      summary: Get boundary-level log query results
+      operationId: getBoundaryLogQueryResults
+      description: |
+        Get the status and results of a previously started boundary-level log query.
+      responses:
+        200:
+          description: Query status and results
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/LogQueryResult'
+        400:
+          description: Malformed request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        403:
+          description: Not authorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+      security:
+        - AccessToken: ['log:get']
+
+  /v1/account/{accountId}/subscription/{subscriptionId}/boundary/{boundaryId}/function/{functionId}/logs/{queryId}:
+    parameters:
+      - in: path
+        name: accountId
+        required: true
+        description: Account id
+        schema:
+          $ref: '#/components/schemas/AccountId'
+      - in: path
+        name: subscriptionId
+        required: true
+        description: Subscription id
+        schema:
+          $ref: '#/components/schemas/SubscriptionId'
+      - in: path
+        name: boundaryId
+        required: true
+        description: Boundary id
+        schema:
+          $ref: '#/components/schemas/BoundaryId'
+      - in: path
+        name: functionId
+        required: true
+        description: Function id
+        schema:
+          $ref: '#/components/schemas/FunctionId'
+      - in: path
+        name: queryId
+        required: true
+        description: Query id
+        schema:
+          $ref: '#/components/schemas/QueryId'
+    get:
+      tags:
+        - Functions
+      summary: Get function-level log query results
+      operationId: getFunctionLogQueryResults
+      description: |
+        Get the status and results of a previously started function-level log query.
+      responses:
+        200:
+          description: Query status and results
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/LogQueryResult'
+        400:
+          description: Malformed request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        403:
+          description: Not authorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+      security:
+        - AccessToken: ['log:get']
+
   /v1/account/{accountId}:
     parameters:
       - in: path
@@ -74,7 +376,42 @@ paths:
               schema:
                 $ref: '#/components/schemas/Error'
       security:
-        - AccessToken: []
+        - AccessToken: ['account:get']
+    patch:
+      tags:
+        - Accounts
+      summary: Patches an account
+      operationId: patchAccount
+      description: |
+        Updates the display name of the given account.
+      requestBody:
+        description: An object with the new display name of the account
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/AccountPatch'
+      responses:
+        200:
+          description: The account that was patched
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Account'
+        400:
+          description: Malformed request body
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        403:
+          description: Not authorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+      security:
+        - AccessToken: ['account:patch']
 
   /v1/account/{accountId}/subscription:
     parameters:
@@ -128,7 +465,7 @@ paths:
               schema:
                 $ref: '#/components/schemas/Error'
       security:
-        - AccessToken: []
+        - AccessToken: ['subscription:get']
 
   /v1/account/{accountId}/subscription/{subscriptionId}:
     parameters:
@@ -177,7 +514,7 @@ paths:
               schema:
                 $ref: '#/components/schemas/Error'
       security:
-        - AccessToken: []
+        - AccessToken: ['subscription:get']
 
   /v1/account/{accountId}/audit:
     parameters:
@@ -324,7 +661,7 @@ paths:
               schema:
                 $ref: '#/components/schemas/Error'
       security:
-        - AccessToken: []
+        - AccessToken: ['audit:get']
 
   /v1/account/{accountId}/init:
     parameters:
@@ -433,7 +770,7 @@ paths:
               schema:
                 $ref: '#/components/schemas/Error'
       security:
-        - AccessToken: []
+        - AccessToken: ['issuer:get']
 
   /v1/account/{accountId}/issuer/{issuerId}:
     parameters:
@@ -482,7 +819,7 @@ paths:
               schema:
                 $ref: '#/components/schemas/Error'
       security:
-        - AccessToken: []
+        - AccessToken: ['issuer:get']
     post:
       tags:
         - Issuers
@@ -517,7 +854,7 @@ paths:
               schema:
                 $ref: '#/components/schemas/Error'
       security:
-        - AccessToken: []
+        - AccessToken: ['issuer:add']
     patch:
       tags:
         - Issuers
@@ -558,7 +895,7 @@ paths:
               schema:
                 $ref: '#/components/schemas/Error'
       security:
-        - AccessToken: []
+        - AccessToken: ['issuer:update']
     delete:
       tags:
         - Issuers
@@ -588,7 +925,7 @@ paths:
               schema:
                 $ref: '#/components/schemas/Error'
       security:
-        - AccessToken: []
+        - AccessToken: ['issuer:delete']
 
   /v1/account/{accountId}/client:
     parameters:
@@ -678,7 +1015,7 @@ paths:
                 $ref: '#/components/schemas/Error'
 
       security:
-        - AccessToken: []
+        - AccessToken: ['client:get']
     post:
       tags:
         - Clients
@@ -713,7 +1050,7 @@ paths:
               schema:
                 $ref: '#/components/schemas/Error'
       security:
-        - AccessToken: []
+        - AccessToken: ['client:add']
 
   /v1/account/{accountId}/client/{clientId}:
     parameters:
@@ -762,7 +1099,7 @@ paths:
               schema:
                 $ref: '#/components/schemas/Error'
       security:
-        - AccessToken: []
+        - AccessToken: ['client:get']
     patch:
       tags:
         - Clients
@@ -803,7 +1140,7 @@ paths:
               schema:
                 $ref: '#/components/schemas/Error'
       security:
-        - AccessToken: []
+        - AccessToken: ['client:update']
     delete:
       tags:
         - Clients
@@ -833,7 +1170,7 @@ paths:
               schema:
                 $ref: '#/components/schemas/Error'
       security:
-        - AccessToken: []
+        - AccessToken: ['client:delete']
 
   /v1/account/{accountId}/client/{clientId}/init:
     parameters:
@@ -891,7 +1228,7 @@ paths:
               schema:
                 $ref: '#/components/schemas/Error'
       security:
-        - AccessToken: []
+        - AccessToken: ['client:init']
 
   /v1/account/{accountId}/user:
     parameters:
@@ -988,7 +1325,7 @@ paths:
               schema:
                 $ref: '#/components/schemas/Error'
       security:
-        - AccessToken: []
+        - AccessToken: ['user:get']
     post:
       tags:
         - Users
@@ -1023,7 +1360,7 @@ paths:
               schema:
                 $ref: '#/components/schemas/Error'
       security:
-        - AccessToken: []
+        - AccessToken: ['user:add']
 
   /v1/account/{accountId}/user/{userId}:
     parameters:
@@ -1072,7 +1409,7 @@ paths:
               schema:
                 $ref: '#/components/schemas/Error'
       security:
-        - AccessToken: []
+        - AccessToken: ['user:get']
     patch:
       tags:
         - Users
@@ -1113,7 +1450,7 @@ paths:
               schema:
                 $ref: '#/components/schemas/Error'
       security:
-        - AccessToken: []
+        - AccessToken: ['user:update']
     delete:
       tags:
         - Users
@@ -1143,7 +1480,7 @@ paths:
               schema:
                 $ref: '#/components/schemas/Error'
       security:
-        - AccessToken: []
+        - AccessToken: ['user:delete']
 
   /v1/account/{accountId}/user/{userId}/init:
     parameters:
@@ -1201,7 +1538,7 @@ paths:
               schema:
                 $ref: '#/components/schemas/Error'
       security:
-        - AccessToken: []
+        - AccessToken: ['user:init']
 
   /v1/account/{accountId}/subscription/{subscriptionId}/function:
     parameters:
@@ -1304,7 +1641,7 @@ paths:
               schema:
                 $ref: '#/components/schemas/Error'
       security:
-        - AccessToken: []
+        - AccessToken: ['function:get']
 
   /v1/account/{accountId}/subscription/{subscriptionId}/boundary/{boundaryId}/function:
     parameters:
@@ -1413,7 +1750,7 @@ paths:
               schema:
                 $ref: '#/components/schemas/Error'
       security:
-        - AccessToken: []
+        - AccessToken: ['function:get']
 
   /v1/account/{accountId}/subscription/{subscriptionId}/boundary/{boundaryId}/log:
     parameters:
@@ -1465,7 +1802,63 @@ paths:
               schema:
                 $ref: '#/components/schemas/Error'
       security:
-        - AccessToken: []
+        - AccessToken: ['function:get-log']
+
+  /v1/account/{accountId}/subscription/{subscriptionId}/boundary/{boundaryId}/logs:
+    parameters:
+      - in: path
+        name: accountId
+        required: true
+        description: Account id
+        schema:
+          $ref: '#/components/schemas/AccountId'
+      - name: subscriptionId
+        in: path
+        description: Subscription id
+        required: true
+        schema:
+          $ref: '#/components/schemas/SubscriptionId'
+      - name: boundaryId
+        in: path
+        description: The boundary id
+        required: true
+        schema:
+          $ref: '#/components/schemas/BoundaryId'
+    post:
+      tags:
+        - Boundaries
+      summary: Start new boundary-level log query
+      operationId: newBoundaryLogQuery
+      description: |
+        Starts a new log query scoped to boundary logs.
+      requestBody:
+        description: Log query parameters
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/NewLogQuery'
+      responses:
+        200:
+          description: New query initiated
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/NewLogQueryResponse'
+        400:
+          description: Malformed request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        403:
+          description: Not authorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+      security:
+        - AccessToken: ['log:get']
 
   /v1/account/{accountId}/subscription/{subscriptionId}/boundary/{boundaryId}/function/{functionId}:
     parameters:
@@ -1536,7 +1929,7 @@ paths:
               schema:
                 $ref: '#/components/schemas/Error'
       security:
-        - AccessToken: []
+        - AccessToken: ['function:get']
     put:
       tags:
         - Functions
@@ -1602,7 +1995,7 @@ paths:
               schema:
                 $ref: '#/components/schemas/Error'
       security:
-        - AccessToken: []
+        - AccessToken: ['function:put']
 
     delete:
       tags:
@@ -1633,7 +2026,7 @@ paths:
               schema:
                 $ref: '#/components/schemas/Error'
       security:
-        - AccessToken: []
+        - AccessToken: ['function:delete']
 
   /v1/account/{accountId}/subscription/{subscriptionId}/boundary/{boundaryId}/function/{functionId}/build:
     parameters:
@@ -1709,7 +2102,7 @@ paths:
               schema:
                 $ref: '#/components/schemas/Error'
       security:
-        - AccessToken: []
+        - AccessToken: ['function:get']
 
   /v1/account/{accountId}/subscription/{subscriptionId}/boundary/{boundaryId}/function/{functionId}/log:
     parameters:
@@ -1766,7 +2159,42 @@ paths:
               schema:
                 $ref: '#/components/schemas/Error'
       security:
-        - AccessToken: []
+        - AccessToken: ['function:get-log']
+    post:
+      tags:
+        - Functions
+      summary: Start new function-level log query
+      operationId: newFunctionLogQuery
+      description: |
+        Starts a new log query scoped to function logs.
+      requestBody:
+        description: Log query parameters
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/NewLogQuery'
+      responses:
+        200:
+          description: New query initiated
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/NewLogQueryResponse'
+        400:
+          description: Malformed request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        403:
+          description: Not authorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+      security:
+        - AccessToken: ['log:get']
 
   /v1/account/{accountId}/subscription/{subscriptionId}/boundary/{boundaryId}/function/{functionId}/location:
     parameters:
@@ -1827,7 +2255,7 @@ paths:
               schema:
                 $ref: '#/components/schemas/Error'
       security:
-        - AccessToken: []
+        - AccessToken: ['function:get']
 
   /v1/account/{accountId}/subscription/{subscriptionId}/boundary/{boundaryId}/function/{functionId}/build/{buildId}:
     parameters:
@@ -1909,7 +2337,7 @@ paths:
               schema:
                 $ref: '#/components/schemas/Error'
       security:
-        - AccessToken: []
+        - AccessToken: ['function:get']
 
   #  /v1/account/{accountId}/subscription/{subscriptionId}/boundary/{boundaryId}/statistics/codeactivityhg:
   #    parameters:
@@ -2417,7 +2845,7 @@ paths:
               schema:
                 $ref: '#/components/schemas/Error'
       security:
-        - AccessToken: []
+        - AccessToken: ['registry:get']
     put:
       tags:
         - Registry
@@ -2448,7 +2876,7 @@ paths:
               schema:
                 $ref: '#/components/schemas/Error'
       security:
-        - AccessToken: []
+        - AccessToken: ['registry-config:put']
 
   /v1/account/{accountId}/registry/default/npm:
     parameters:
@@ -2521,7 +2949,7 @@ paths:
               schema:
                 $ref: '#/components/schemas/Error'
       security:
-        - AccessToken: []
+        - AccessToken: ['storage:get']
   /v1/account/{accountId}/subscription/{subscriptionId}/storage/{storageId}:
     parameters:
       - in: path
@@ -2582,7 +3010,7 @@ paths:
               schema:
                 $ref: '#/components/schemas/Error'
       security:
-        - AccessToken: []
+        - AccessToken: ['storage:get']
     put:
       parameters:
         - in: header
@@ -2644,7 +3072,7 @@ paths:
               schema:
                 $ref: '#/components/schemas/Error'
       security:
-        - AccessToken: []
+        - AccessToken: ['storage:put']
     delete:
       parameters:
         - in: header
@@ -2695,7 +3123,7 @@ paths:
               schema:
                 $ref: '#/components/schemas/StorageData'
       security:
-        - AccessToken: []
+        - AccessToken: ['storage:delete']
   /v1/account/{accountId}/subscription/{subscriptionId}/storage/{storageId}/*:
     parameters:
       - in: path
@@ -2763,7 +3191,7 @@ paths:
               schema:
                 $ref: '#/components/schemas/Error'
       security:
-        - AccessToken: []
+        - AccessToken: ['storage:get']
     delete:
       tags:
         - Storage
@@ -2794,7 +3222,7 @@ paths:
               schema:
                 $ref: '#/components/schemas/Error'
       security:
-        - AccessToken: []
+        - AccessToken: ['storage:delete']
 
 components:
   securitySchemes:
@@ -2830,6 +3258,11 @@ components:
       description: Account id
       example: 'acc-5555555555555555'
 
+    QueryId:
+      type: string
+      description: Log Query id
+      example: 'ffd9b69e-d323-4722-bad8-d57f3b4a28f4'
+
     Account:
       type: object
       required:
@@ -2845,6 +3278,16 @@ components:
           type: string
           description: Account owner primary email
           example: john.doe@abc-compnay.com
+
+    AccountPatch:
+      type: object
+      required:
+        - displayName
+      properties:
+        displayName:
+          type: string
+          description: Account display name
+          example: ABC Company
 
     AccountAudit:
       type: object
@@ -3288,6 +3731,9 @@ components:
             staticIp:
               type: boolean
               default: false
+            persistLogs:
+              type: boolean
+              default: false
         computeSerialized:
           type: string
         configuration:
@@ -3303,7 +3749,7 @@ components:
                 index.js:
                   type: string
                   example: |
-                    module.exports = (ctx, cb) => cb(null, {  body: 'Hello' });
+                    module.exports = async (ctx) => { return {  body: 'Hello' }; };
                 package.json:
                   type: object
                   properties:
@@ -3457,6 +3903,60 @@ components:
             transitions:
               type: 'object'
         - $ref: '#/components/schemas/FunctionLocation'
+
+    NewLogQuery:
+      type: object
+      properties:
+        filter:
+          type: string
+          description: A filter expression in the AWS Cloud Watch Logs Insights format.
+          example: 'response.statusCode = 500'
+        stats:
+          type: string
+          description: An aggregation expression in the AWS Cloud Watch Logs Insights format.
+          example: 'count(*) by bin(15s)'
+        from:
+          type: string
+          description: Start time of the logging window specified as an absolute date time in ISO format or a relative time in seconds.
+          example: 2021-10-21T00:00:00.361Z or -1800
+        to:
+          type: string
+          description: End time of the logging window specified as an absolute date time in ISO format or a relative time in seconds.
+          example: 2021-10-21T00:00:00.361Z or +900
+        limit:
+          type: number
+          description: Maximum number of records to return.
+          example: 20
+
+    NewLogQueryResponse:
+      type: object
+      properties:
+        queryId:
+          type: string
+          description: A unique log query id to use when polling for query completion
+
+    LogQueryResult:
+      type: object
+      properties:
+        status:
+          type: string
+          enum:
+            - 'scheduled'
+            - 'running'
+            - 'complete'
+            - 'failed'
+            - 'timeout'
+            - 'unknown'
+          description: Status of the query.
+        recordsMatched:
+          type: number
+          description: The number of log records matched by the query. The number of records returned in the result may be smaller, subject to the limit.
+        results:
+          type: array
+          description: Array of records representing the query result.
+          items:
+            type: object
+            descroption: For log aggregation queries, one record of aggregation results. For log queries, one record representing an HTTP request.
 
     RegistryGet:
       type: object

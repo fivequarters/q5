@@ -17,6 +17,6 @@
     "@5qtrs/aws-base": "^0.0.1",
     "@5qtrs/base64": "^0.0.1",
     "@5qtrs/child-process": "^0.0.1",
-    "aws-sdk": "^2.895.0"
+    "aws-sdk": "^2.1001.0"
   }
 }

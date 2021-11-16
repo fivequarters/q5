@@ -1,0 +1,36 @@
+on:
+  schedule:
+    - cron: "30 12 * * *"
+name: Test NPM Install
+jobs:
+  test-npm-install:
+    name: NPM Install
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        node-version: [12.22.6, 14.17.2, 15.13.0, 16.11.0]
+    steps:
+      - name: Use Node.js ${{ matrix.node-version }}
+        uses: actions/setup-node@v1
+        with:
+          node-version: ${{ matrix.node-version }}
+      - name: Install and test CLI
+        run: >
+          echo 'Installing fuse'
+
+          node -v
+
+          npm -v
+
+          npm i -g @fusebit/cli
+
+          fuse
+      - name: Notify slack fail
+        if: failure()
+        env:
+          SLACK_BOT_TOKEN: ${{ secrets.SLACK_NOTIFICATIONS_BOT_TOKEN }}
+        uses: voxmedia/github-action-slack-notify-build@v1
+        with:
+          channel: pr-review
+          status: FAILED
+          color: danger

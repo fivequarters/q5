@@ -1,7 +1,7 @@
 import { join } from 'path';
 import { createServer } from 'http';
 import open from 'open';
-import { EventStream, IEventMessage } from '@5qtrs/event-stream';
+import { EventStream, IEventMessage, IEventStreamOptions } from '@5qtrs/event-stream';
 import { readFile, readDirectory, exists, copyDirectory, writeFile } from '@5qtrs/file';
 import { IFusebitExecutionProfile } from '@5qtrs/fusebit-profile-sdk';
 import { Message, IExecuteInput, Confirm } from '@5qtrs/cli';
@@ -10,6 +10,8 @@ import { ExecuteService } from './ExecuteService';
 import { ProfileService } from './ProfileService';
 import { VersionService } from './VersionService';
 import { request } from '@5qtrs/request';
+import DotEnv from 'dotenv';
+import { spawn } from 'child_process';
 
 import { startTunnel, startHttpServer } from './TunnelService';
 
@@ -119,26 +121,18 @@ export interface IFusebitFunctionListResult {
 export class FunctionService {
   private input: IExecuteInput;
   private executeService: ExecuteService;
-  private versionService: VersionService;
   private profileService: ProfileService;
 
-  private constructor(
-    profileService: ProfileService,
-    versionService: VersionService,
-    executeService: ExecuteService,
-    input: IExecuteInput
-  ) {
+  private constructor(profileService: ProfileService, executeService: ExecuteService, input: IExecuteInput) {
     this.input = input;
     this.profileService = profileService;
-    this.versionService = versionService;
     this.executeService = executeService;
   }
 
   public static async create(input: IExecuteInput) {
     const executeService = await ExecuteService.create(input);
-    const versionService = await VersionService.create(input);
     const profileService = await ProfileService.create(input);
-    return new FunctionService(profileService, versionService, executeService, input);
+    return new FunctionService(profileService, executeService, input);
   }
 
   public async getFunctionExecutionProfile(functionRequired: boolean, functionId?: string, fusebitJsonPath?: string) {
@@ -322,11 +316,9 @@ export class FunctionService {
   }
 
   public async setFusebitJson(path: string, functionSpec: any): Promise<void> {
-    const version = await this.versionService.getVersion();
-
     const fusebitJson = (await this.getFusebitJson(path)) || {};
 
-    fusebitJson.fuseVersion = version;
+    fusebitJson.fuseVersion = VersionService.getVersion();
     fusebitJson.metadata = functionSpec.metadata;
     fusebitJson.location = functionSpec.location;
     fusebitJson.compute = functionSpec.compute;
@@ -462,13 +454,15 @@ export class FunctionService {
         ),
       },
       async () => {
+        const headers = { Authorization: `bearer ${profile.accessToken}` };
+        ExecuteService.addCommonHeaders(headers);
         const response: any = request({
           method: 'GET',
           url: [
             `${profile.baseUrl}/v1/account/${profile.account}/subscription/`,
             `${profile.subscription}/boundary/${profile.boundary}/function/${profile.function}?include=all`,
           ].join(''),
-          headers: { Authorization: `bearer ${profile.accessToken}` },
+          headers,
         });
         if (response.status === 403) {
           const message = 'Access was not authorized; contact an account admin to request access';
@@ -535,40 +529,38 @@ export class FunctionService {
     return this.getFunctionLogsByProfile(profile);
   }
 
-  public async getFunctionLogsByProfile(profile: IFusebitExecutionProfile): Promise<void> {
+  public async getFunctionLogsByProfile(
+    profile: IFusebitExecutionProfile,
+    entityType: string = 'function',
+    entityTypeName: string = 'Function',
+    withBoundary: boolean = true
+  ): Promise<void> {
     const isJson = this.input.options.output === 'json';
-    const version = await this.versionService.getVersion();
 
     const baseUrl = `${profile.baseUrl}/v1/account/${profile.account}/subscription/${profile.subscription}`;
     const url = profile.function
       ? `${baseUrl}/boundary/${profile.boundary}/function/${profile.function}/log?token=${profile.accessToken}`
       : `${baseUrl}/boundary/${profile.boundary}/log?token=${profile.accessToken}`;
-    const functionMessage = profile.function ? ["of function '", Text.bold(profile.function || ''), "' "] : [''];
+    const functionMessage = [
+      ...(profile.function ? [`of ${entityType} '`, Text.bold(profile.function || ''), "'"] : ['']),
+      ...(profile.function && withBoundary ? [' '] : ['']),
+      ...(withBoundary ? ["in boundary '", Text.bold(profile.boundary || ''), "'"] : ['']),
+    ];
 
     await this.executeService.execute(
       {
-        header: 'Get Function Logs',
-        message: Text.create(
-          'Connecting to logs ',
-          ...functionMessage,
-          "in boundary '",
-          Text.bold(profile.boundary || ''),
-          "'..."
-        ),
-        errorHeader: 'Get Function Logs Error',
-        errorMessage: Text.create(
-          'Unable to connect to logs ',
-          ...functionMessage,
-          "in boundary '",
-          Text.bold(profile.boundary || ''),
-          "'"
-        ),
+        header: `Get ${entityTypeName} Logs`,
+        message: Text.create('Connecting to logs ', ...functionMessage, '...'),
+        errorHeader: `Get ${entityTypeName} Logs Error`,
+        errorMessage: Text.create('Unable to connect to logs ', ...functionMessage),
       },
       async () => {
+        const headers = {};
+        ExecuteService.addCommonHeaders(headers);
         return new Promise(async (resolve, reject) => {
           let ready = false;
           const options = {
-            headers: { 'User-Agent': `fusebit-cli/${version}` },
+            headers,
             onEnd: resolve,
             onError: reject,
             onMessage: async (message: IEventMessage) => {
@@ -581,8 +573,8 @@ export class FunctionService {
                     parsed = JSON.parse(message.data);
                   } catch (error) {
                     await this.executeService.error(
-                      'Function Log Error',
-                      'There was an error parsing the function logs',
+                      `${entityTypeName} Log Error`,
+                      `There was an error parsing the ${entityType} logs`,
                       error
                     );
                   }
@@ -607,6 +599,7 @@ export class FunctionService {
             },
           };
 
+          // @ts-ignore
           await EventStream.create(url, options);
 
           await this.executeService.info(
@@ -621,13 +614,7 @@ export class FunctionService {
     await this.executeService.newLine();
     await this.executeService.warning(
       'Logs Disconnected',
-      Text.create(
-        'The connection to logs ',
-        ...functionMessage,
-        "in boundary '",
-        Text.bold(profile.boundary || ''),
-        "' was terminated"
-      )
+      Text.create('The connection to logs ', ...functionMessage, ' was terminated')
     );
   }
 
@@ -795,30 +782,92 @@ export class FunctionService {
 
   public async serveFunction(path: string, functionId: string): Promise<void> {
     const profile = await this.getFunctionExecutionProfile(true, functionId, process.cwd());
+    const cleanup = async () => {
+      const result = await this.executeService.executeRequest(
+        {
+          header: 'Release',
+          message: Text.create(
+            "Releasing traffic for '",
+            Text.bold(`${profile.function}`),
+            "' in boundary '",
+            Text.bold(`${profile.boundary}`),
+            "'..."
+          ),
+          errorHeader: 'Release Function Error',
+          errorMessage: Text.create(
+            "Unable to release function '",
+            Text.bold(`${profile.function}`),
+            "' in boundary '",
+            Text.bold(`${profile.boundary}`),
+            "'"
+          ),
+        },
+        {
+          method: 'DELETE',
+          url: `${profile.baseUrl}/v1/account/${profile.account}/subscription/${profile.subscription}/boundary/${profile.boundary}/function/${profile.function}/redirect`,
+          headers: {
+            Authorization: `Bearer ${profile.accessToken}`,
+          },
+        }
+      );
+    };
 
     await this.executeService.info('Starting Service', 'Starting the local server.');
-    const functionServer = startHttpServer(0);
-    functionServer.service = await functionServer.listen();
 
-    functionServer.app.use(async (req: any, res: any) => {
-      try {
-        Object.keys(require.cache).forEach((r) => delete require.cache[r]);
-        const func = require(path);
-        console.log(`> ${req.body.method} ${req.body.url}`);
-        const result = await func(req.body);
-        console.log(`< ${JSON.stringify(result)}`);
-        return res.json(result);
-      } catch (e) {
-        console.log(`E: `, e);
-        res.json({ status: 501, body: `${e}` });
+    DotEnv.config({ path: join(path, '.env') });
+    const port = await startHttpServer(
+      async (body: any): Promise<any> => {
+        try {
+          console.log(`> ${body.method} ${body.url}`);
+          body.configuration = process.env;
+          const result: any = await new Promise((resolve, reject) => {
+            try {
+              const worker = spawn(
+                process.argv[0], // node
+                [join(__dirname, 'cgi.js')],
+                {
+                  windowsHide: true,
+                  stdio: [
+                    'pipe', // stdin
+                    'inherit', // stdout
+                    'inherit', // stderr
+                    'ipc', // cgi result
+                  ],
+                }
+              );
+              worker.stdin?.end(JSON.stringify({ path, body }));
+              let finished = false;
+              worker.once('message', (m) => {
+                if (!finished) {
+                  finished = true;
+                  resolve(m);
+                }
+              });
+              worker.once('close', (code, signal) => {
+                if (!finished) {
+                  finished = true;
+                  reject(new Error(`Error processing request: code ${code} and signal ${signal}`));
+                }
+              });
+            } catch (e) {
+              return reject(e);
+            }
+          });
+          if (result.ok) {
+            console.log(`< ${JSON.stringify(result.body)}`);
+            return result.body;
+          }
+          console.log(`E: `, result.error);
+          return { status: 501, body: result.error };
+        } catch (e) {
+          console.log(`E: `, e);
+          return { status: 501, body: `${e}` };
+        }
       }
-    });
-
-    await this.executeService.info(
-      'Building Tunnel',
-      `Establishing tunnel to Fusebit (port ${functionServer.service.address().port})`
     );
-    const tunnel = await startTunnel(functionServer.service.address().port);
+
+    await this.executeService.info('Building Tunnel', `Establishing tunnel to Fusebit (port ${port})`);
+    const tunnel = await startTunnel(port);
     try {
       await this.executeService.info('Redirecting', `Redirecting traffic for ${profile.boundary}/${functionId}`);
       const result = await this.executeService.executeRequest(
@@ -852,35 +901,13 @@ export class FunctionService {
 
       await this.executeService.info('Serving', 'Ready to serve requests. Press Ctrl-C to quit.');
 
+      process.on('SIGINT', async () => {
+        await cleanup();
+        process.exit();
+      });
       await new Promise(() => {});
     } finally {
-      const result = await this.executeService.executeRequest(
-        {
-          header: 'Release',
-          message: Text.create(
-            "Releasing traffic for '",
-            Text.bold(`${profile.function}`),
-            "' in boundary '",
-            Text.bold(`${profile.boundary}`),
-            "'..."
-          ),
-          errorHeader: 'Release Function Error',
-          errorMessage: Text.create(
-            "Unable to release function '",
-            Text.bold(`${profile.function}`),
-            "' in boundary '",
-            Text.bold(`${profile.boundary}`),
-            "'"
-          ),
-        },
-        {
-          method: 'DELETE',
-          url: `${profile.baseUrl}/v1/account/${profile.account}/subscription/${profile.subscription}/boundary/${profile.boundary}/function/${profile.function}/redirect`,
-          headers: {
-            Authorization: `Bearer ${profile.accessToken}`,
-          },
-        }
-      );
+      await cleanup();
     }
   }
 

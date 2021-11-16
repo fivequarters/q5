@@ -1,0 +1,255 @@
+<!DOCTYPE html>
+<html lang="en">
+    <meta charset="utf-8" />
+    <title>Fusebit integration test</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <link href="https://fonts.googleapis.com/css?family=Poppins" rel="stylesheet" />
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/superagent/4.1.0/superagent.min.js"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.2.0/styles/default.min.css" />
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/highlightjs-themes@1.0.0/solarized_dark.css" />
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.2.0/highlight.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.2.0/languages/node-repl.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.2.0/languages/bash.min.js"></script>
+  
+    <style>
+        body {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            align-content: center;
+            font-family: 'Poppins';
+        }
+
+        #spinner {
+            font-size: 56px;
+        }
+
+        #error {
+            color: red;
+            max-width: 50%;
+            word-wrap: break-word;
+        }
+
+        #instructions {
+            margin: 20px;
+            display: flex;
+            width: 50%;
+            min-width: 300px;
+            word-wrap: break-word;
+            flex-direction: column;
+        }
+
+        pre {
+            background-color: lightgrey;
+            padding: 20px;
+            width: 100%;
+            white-space: pre-wrap;
+            word-break: break-all;
+        }
+
+        #curl .hljs-number,
+        #curl .hljs-built_in {
+            color: #839496;
+        }
+    </style>
+</head>
+
+<body>
+    <div id="spinner" style="display:none"></div>
+    <div id="error" style="display:none"></div>
+    <div id="instructions" style="display:none">
+        <div>Test the integration by making an HTTP request<br><br></div>
+        <div>Using curl:</div>
+        <pre id="curl"></pre>
+        <div><br>Using Node.js:</div>
+        <pre id="node"></pre>
+    </div>
+</body>
+
+<script>
+    (async () => {
+        // Helper functions
+
+        let spinner;
+
+        function startSpinner() {
+            if (spinner) return;
+            let spinnerState = "I II III IV V VI VII VIII IX X XI XII XIII XIV XV XVI".split(' ');
+            const spin = () => {
+                document.getElementById('spinner').innerText = spinnerState[0];
+                spinnerState.push(spinnerState.shift());
+            };
+            spin();
+            setInterval(spin, 1000);
+            document.getElementById('spinner').style.display = "block";
+        }
+
+        function stopSpinner() {
+            document.getElementById('spinner').style.display = "none";
+            clearInterval(spinner);
+            spinner = undefined;
+        }
+
+        function showError(message) {
+            stopSpinner();
+            const el = document.getElementById('error');
+            el.innerText = message;
+            el.style.display = "block";
+        }
+
+        function showInstructions(accessToken, integrationBaseUrl, tenantId, installId) {
+            stopSpinner();
+            const curlElement = document.getElementById('curl');
+            const nodeElement = document.getElementById('node');
+
+            curlElement.innerHTML =
+                [
+                    `curl -X POST ${integrationBaseUrl}/api/tenant/${encodeURIComponent(tenantId)}/test \\\n`,
+                    `\t-H 'Content-Type: application/json' \\\n`,
+                    `\t-H "Authorization: Bearer \`fuse token -o raw\`"`
+                ].join('');
+
+                nodeElement.innerHTML = [
+                `const superagent = require('superagent');`,
+                ``,
+                `const accessToken = '${accessToken}';`,
+                ``,
+                `const url = '${integrationBaseUrl}/api/tenant/${encodeURIComponent(tenantId)}/test';`,
+                `(async () => {`,
+                `  await superagent.post(url)`,
+                `    .set('Authorization', \`Bearer \${accessToken}\`);`,
+                `})();`
+                ].join('\n');
+            
+            hljs.highlightElement(curlElement, 'bash');
+            hljs.highlightElement(nodeElement, 'node-repl');
+            document.getElementById('instructions').style.display = 'block';
+        }
+
+        // Fusebit SDK functions
+
+        async function findExistingIntegrationInstall(accessToken, integrationBaseUrl, tenantId) {
+            // Search for an integration install that is tagged with the specified tenantId
+            console.log('CHECKING FOR AN EXISTING INTEGRATION INSTALL...');
+            const response = await superagent.get(`${integrationBaseUrl}/install`)
+                .set('Authorization', `Bearer ${accessToken}`)
+                .query({
+                    tag: `fusebit.tenantId=${encodeURIComponent(tenantId)}`
+                });
+            const install = response.body && response.body.items && response.body.items[0];
+            console.log('CHECK RESULT', JSON.stringify(install, null, 2));
+
+            return install && install.id;
+        }
+
+        async function startCreateNewIntegrationInstall(accessToken, integrationBaseUrl, tenantId) {
+            // Create new session
+            console.log('CREATING NEW SESSION...');
+            const response = await superagent.post(`${integrationBaseUrl}/session`)
+                .set('Authorization', `Bearer ${accessToken}`)
+                .send({
+                    redirectUrl: `${window.location.origin}${window.location.pathname}`,
+                    tags: {
+                        'fusebit.tenantId': tenantId
+                    }
+                });
+            const sessionId = response.body.id;
+            console.log('SESSION ID CREATED:', sessionId);
+
+            // Store local session context
+            window.localStorage.setItem(sessionId, JSON.stringify({ accessToken, integrationBaseUrl, tenantId }));
+
+            // Start the configuration flow
+            console.log('STARTING THE CONFIGURATION FLOW AT:', response.body.targetUrl);
+            window.location.href = response.body.targetUrl;
+        }
+
+        async function finishCreateNewIntegrationInstall(sessionId) {
+            // Rehydrate local session
+            console.log('REHYDRATING SESSION', sessionId);
+            let localSession;
+            try {
+                localSession = JSON.parse(window.localStorage.getItem(sessionId));
+            }
+            catch (e) {
+                throw new Error(`Session ${sessionId} not found`);
+            }
+            const { accessToken, integrationBaseUrl, tenantId } = localSession;
+            console.log('REHYDRATED SESSION', { accessToken, integrationBaseUrl, tenantId, sessionId });
+
+            // Finalize creation of the integration install
+            console.log('CREATING INTEGRATION INSTALL...');
+            const sessionCommitResult = await superagent.post(`${integrationBaseUrl}/session/${sessionId}/commit`)
+                .set('Authorization', `Bearer ${accessToken}`)
+                .send();
+
+            const { targetUrl } = sessionCommitResult.body;
+            let installResult = await superagent.get(targetUrl).set('Authorization', `Bearer ${accessToken}`).send();
+
+            let retries = 0;
+            while (installResult.body.operationState.status === 'processing' && retries < 10) {
+                console.log('WAITING FOR INSTALL TO BE FULLY CREATED...');
+                await new Promise(res => setTimeout(res, 100));
+                installResult = await superagent.get(targetUrl).set('Authorization', `Bearer ${accessToken}`).send();
+                retries++;
+            }
+
+            if (installResult.statusCode !== 200) {
+                throw new Error(`Failed to create integration install: ${installResult.statusCode}: ${installResult.body}`);
+            }
+
+            const install = installResult.body;
+            console.log('INTEGRATION INSTALL CREATED', JSON.stringify(install, null, 2));
+
+            return { installId: install.id, accessToken, integrationBaseUrl, tenantId };
+        }
+
+        // Parse input params
+
+        const parsedHash = new URLSearchParams(window.location.hash.substr(1));
+        const accessToken = parsedHash.get('accessToken');
+        const integrationBaseUrl = parsedHash.get('integrationBaseUrl');
+        const tenantId = parsedHash.get('tenantId');
+        const parsedQuery = new URLSearchParams(window.location.search.substr(1));
+        const sessionId = parsedQuery.get('session');
+        console.log('INPUTS', { accessToken, integrationBaseUrl, tenantId, sessionId });
+
+        // Orchestrate
+
+        try {
+            startSpinner();
+            if (sessionId) {
+                // Process callback from the completed integration configuration flow
+                const { accessToken, integrationBaseUrl, tenantId, installId }
+                    = await finishCreateNewIntegrationInstall(sessionId);
+                showInstructions(accessToken, integrationBaseUrl, tenantId, installId);
+            }
+            else if (accessToken && integrationBaseUrl && tenantId) {
+                // Show instructions if an integration install for the given tenant exists
+                // or initialize the integration configuration flow to create a new install
+                const installId = await findExistingIntegrationInstall(accessToken, integrationBaseUrl, tenantId);
+                if (installId) {
+                    showInstructions(accessToken, integrationBaseUrl, tenantId, installId);
+                }
+                else {
+                    await startCreateNewIntegrationInstall(accessToken, integrationBaseUrl, tenantId);
+                }
+            }
+            else {
+                throw new Error('Missing input parameters. Either `session` query parameter or `accessToken`, `integrationBaseUrl`, and `tenantId` hash parameters must be provided.')
+            }
+        }
+        catch (e) {
+            console.error(e);
+            showError(e.message);
+        }
+        finally {
+            stopSpinner();
+            if (sessionId) {
+                window.localStorage.removeItem(sessionId);
+            }
+        }
+    })();
+</script>
+
+</html>

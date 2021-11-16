@@ -13,8 +13,9 @@ module.exports = {
   ...(reportportal
     ? {
         reporters: [
+          'default',
           [
-            '@reportportal/agent-js-jest',
+            './reportportal.reporter.js',
             {
               token: reportportal.token,
               endpoint: reportportal.endpoint,

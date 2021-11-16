@@ -15,12 +15,14 @@
     { "path": "../../shared/base64" },
     { "path": "../../aws/aws-cert" },
     { "path": "../../aws/aws-alb" },
+    { "path": "../../aws/aws-waf" },
     { "path": "../../aws/aws-route53" },
     { "path": "../../aws/aws-region" },
     { "path": "../storage-data-aws" },
     { "path": "../../shared/random" },
     { "path": "../../node/jwt" },
     { "path": "../../runtime/ops-lambda-set" },
-    { "path": "../../constants" }
+    { "path": "../../constants" },
+    { "path": "../../server/account" }
   ]
 }

@@ -17,6 +17,8 @@ import Project from './Project';
 import Tsconfig from './Tsconfig';
 import WorkspaceInfo from './WorkspaceInfo';
 
+const antiCircularLoopStack: string[] = [];
+
 export default class Workspace {
   public static async FromLocation(project: Project, location: string) {
     const workspaces = await project.GetWorkspaces();
@@ -76,15 +78,26 @@ export default class Workspace {
   public async GetAllDescendantDependencies(): Promise<any> {
     const childrenDependencies = await this.GetDependencies();
     const allDependencies: { [index: string]: string } = {};
-    for (const child in childrenDependencies) {
+
+    const name = await this.GetName();
+    if (antiCircularLoopStack.includes(name)) {
+      throw new Error(`Circular dependencies discovered: ${antiCircularLoopStack.join(' -> ')} -> ${name}`);
+    }
+    antiCircularLoopStack.push(name);
+
+    for (const child of Object.keys(childrenDependencies)) {
       allDependencies[child] = childrenDependencies[child];
       const workspace = await this.project.GetWorkspace(child);
       if (workspace) {
         const descendants = await workspace.GetAllDescendantDependencies();
-        for (const descendant in descendants) {
+        for (const descendant of Object.keys(descendants)) {
           allDependencies[descendant] = descendants[descendant];
         }
       }
+    }
+
+    if (antiCircularLoopStack.pop() !== name) {
+      throw new Error('Failed to keep antiCircularLoopStack a stack; aborting.');
     }
     return allDependencies;
   }
@@ -164,19 +177,29 @@ export default class Workspace {
     const npmModules: { [index: string]: string } = {};
     const bundledDependencies: string[] = [];
     for (const dependencyName in dependencies) {
-      if (
-        dependencyName.startsWith(`@${org}/`) ||
-        (packageJson.bundledDependencies && packageJson.bundledDependencies.includes(dependencyName))
-      ) {
+      if (dependencyName.startsWith(`@${org}/`) || packageJson.bundledDependencies?.includes(dependencyName)) {
         const dependency = await this.project.GetWorkspace(dependencyName);
+        bundledDependencies.push(dependencyName);
         if (dependency) {
-          bundledDependencies.push(dependencyName);
           const dependencyPath = await dependency.GetFullPath();
           const dependencyLibc = join(dependencyPath, 'libc');
           const nodeModules = join(packagePath, 'node_modules', dependencyName);
           await copyDirectory(dependencyLibc, nodeModules, { ensurePath: true, recursive: true });
           const packageJsonDependencyPath = join(dependencyPath, 'package.json');
-          await copyFile(packageJsonDependencyPath, join(nodeModules, 'package.json'));
+          let packageJsonDependency;
+          try {
+            packageJsonDependency = require(packageJsonDependencyPath);
+          } catch (error) {
+            throw new Error(`Error reading '${packageJsonDependencyPath}'; File not found`);
+          }
+          if (packageJsonDependency.main) {
+            packageJsonDependency.main = packageJsonDependency.main.replace('libc/', '');
+          }
+          await writeFile(`${nodeModules}/package.json`, JSON.stringify(packageJsonDependency, null, 2));
+        } else {
+          const source = join(this.project.RootPath, 'node_modules', dependencyName);
+          const dest = join(packagePath, 'node_modules', dependencyName);
+          await copyDirectory(source, dest, { ensurePath: true, recursive: true });
         }
       } else if (!dependencyName.startsWith(`@types/`)) {
         npmModules[dependencyName] = dependencies[dependencyName];

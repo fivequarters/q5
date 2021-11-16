@@ -28,6 +28,7 @@ export async function createFunctionStorage(
         (cb: any) => configureBucketEncryption(cb),
         (cb: any) => configurePublicAccess(cb),
         (cb: any) => configureLifecycle(cb),
+        (cb: any) => configureCORSAccess(cb),
       ],
       (e: any) => {
         return e ? reject(e) : resolve();
@@ -114,5 +115,22 @@ export async function createFunctionStorage(
       },
     };
     s3.putBucketLifecycleConfiguration(params, (e, d) => cb(e));
+  }
+
+  function configureCORSAccess(cb: any) {
+    let params = {
+      Bucket: config.getS3Bucket(deployment),
+      CORSConfiguration: {
+        CORSRules: [
+          {
+            AllowedHeaders: ['*'],
+            AllowedMethods: ['GET'],
+            AllowedOrigins: ['*'],
+            ExposeHeaders: [],
+          },
+        ],
+      },
+    };
+    s3.putBucketCors(params, (e, d) => cb(e));
   }
 }

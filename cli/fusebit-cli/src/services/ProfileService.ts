@@ -15,6 +15,7 @@ import {
 import { ExecuteService } from './ExecuteService';
 import { request } from '@5qtrs/request';
 const QR = require('qrcode-terminal');
+import { decodeJwt } from '@5qtrs/jwt';
 
 // ------------------
 // Internal Constants
@@ -110,11 +111,29 @@ export class ProfileService {
   }
 
   public async createProfile(name: string, newProfile: IFusebitProfileSettings): Promise<IOAuthFusebitProfile> {
-    return await this.execute(async () => {
+    return this.execute(async () => {
       if (await this.profile.profileExists(name)) {
         await this.profile.removeProfile(name);
       }
-      return await this.profile.createProfile(name, newProfile);
+      return this.profile.createProfile(name, newProfile);
+    });
+  }
+
+  public async createDefaultProfile(name: string, defaultProfileId: string): Promise<IOAuthFusebitProfile> {
+    return this.execute(async () => {
+      if (await this.profile.profileExists(name)) {
+        await this.profile.removeProfile(name);
+      }
+      let profile = await this.profile.createDefaultProfile(name, defaultProfileId);
+      try {
+        // Force the OAuth flow to determine the Fusebit account and subscription ID
+        await this.getOAuthAccessToken(profile);
+        profile = (this.getProfile(profile.name) as unknown) as IOAuthFusebitProfile;
+      } catch (e) {
+        await this.removeProfile(name || (await this.profile.getDefaultProfileName()) || defaultProfileId);
+        throw e;
+      }
+      return profile;
     });
   }
 
@@ -134,6 +153,20 @@ export class ProfileService {
     return profile;
   }
 
+  public async importProfile(
+    source: { profile: IFusebitProfile; pki: IFusebitKeyPair; type: string },
+    copyTo: string
+  ): Promise<IFusebitProfile> {
+    const profile = await this.execute(() => this.profile.importProfile(source, copyTo));
+
+    await this.executeService.result(
+      'Profile Imported',
+      Text.create("The '", Text.bold(copyTo), "' profile was successfully written")
+    );
+
+    return profile;
+  }
+
   public async addProfile(name: string, copyFrom: string, profile: IFusebitProfileSettings): Promise<IFusebitProfile> {
     await this.execute(() => this.profile.copyProfile(copyFrom, name, true));
     const addedProfile = await this.execute(() => this.profile.updateProfile(name, profile));
@@ -145,12 +178,17 @@ export class ProfileService {
     return addedProfile;
   }
 
-  public async updateProfile(name: string, profile: IFusebitProfileSettings): Promise<IFusebitProfile> {
+  public async updateProfile(
+    name: string,
+    profile: IFusebitProfileSettings,
+    resultMessage?: { message: IText; header: IText }
+  ): Promise<IFusebitProfile> {
     const updatedProfile = await this.execute(() => this.profile.updateProfile(name, profile));
-    await this.executeService.result(
-      'Profile Updated',
-      Text.create("The '", Text.bold(name), "' profile was successfully updated")
-    );
+    const message = resultMessage || {
+      message: 'Profile Updated',
+      header: Text.create("The '", Text.bold(name), "' profile was successfully updated"),
+    };
+    await this.executeService.result(message.message, message.header);
 
     return updatedProfile;
   }
@@ -319,11 +357,11 @@ export class ProfileService {
   }
 
   public async getExportProfileDemux(profileName?: string): Promise<any> {
-    return await this.execute(async () => {
+    return this.execute(async () => {
       const profile = await this.profile.getProfileOrDefaultOrThrow(profileName);
       const profiles = this.profile.getTypedProfile(profile);
       if (profiles.pkiProfile) {
-        return await this.profile.getPKICredentials(profiles.pkiProfile as IPKIFusebitProfile);
+        return this.profile.getPKICredentials(profiles.pkiProfile as IPKIFusebitProfile);
       } else {
         return undefined;
       }
@@ -349,7 +387,7 @@ export class ProfileService {
   ): Promise<IFusebitExecutionProfile> {
     let accessToken = ignoreCache ? undefined : await this.profile.getCachedAccessToken(profile);
     if (!accessToken) {
-      let refreshToken = await this.profile.getCachedRefreshToken(profile);
+      const refreshToken = await this.profile.getCachedRefreshToken(profile);
       if (refreshToken) {
         try {
           accessToken = await this.refreshOAuthAccessToken(profile, refreshToken);
@@ -366,14 +404,16 @@ export class ProfileService {
             'Unable to obtain OAuth access token because the command was launched in a non-interactive mode.'
           );
         }
-        if (this.executeService) accessToken = await this.getOAuthAccessToken(profile);
+        if (this.executeService) {
+          accessToken = await this.getOAuthAccessToken(profile);
+        }
       }
     }
 
     return {
       accessToken: accessToken as string,
       baseUrl: profile.baseUrl,
-      account: profile.account,
+      account: process.env.FUSEBIT_ACCOUNT_ID || profile.account,
       subscription: profile.subscription || undefined,
       boundary: profile.boundary || undefined,
       function: profile.function || undefined,
@@ -418,7 +458,12 @@ export class ProfileService {
     const oauthInitResponse = await this.executeService.executeSimpleRequest(
       {
         header: 'Login',
-        message: Text.create("Initiating authentication for '", Text.bold(profile.name), "' profile..."),
+        message: Text.create(
+          Text.bold('Please log in to Fusebit using the same account you used to sign up.'),
+          Text.eol(),
+          Text.eol(),
+          'You can use your browser or mobile device'
+        ),
         errorHeader: 'Login Error',
         errorMessage: Text.create("Unable to initiate authentication for '", Text.bold(profile.name), "' profile"),
       },
@@ -447,20 +492,27 @@ export class ProfileService {
     );
 
     const details = [
-      'Complete the login in your browser. Scan the QR code or navigate to the verification URL and confirm the user code provided below.',
+      'Navigate to the following URL and then log in with your identity provider',
       Text.eol(),
       Text.eol(),
-      Text.dim('Verification URL: '),
-      oauthInitResponse.data.verification_uri,
-      Text.eol(),
-      Text.dim('User code: '),
-      Text.bold(oauthInitResponse.data.user_code),
+      Text.dim(`${oauthInitResponse.data.verification_uri}?user_code=${oauthInitResponse.data.user_code}`),
       Text.eol(),
       Text.eol(),
-      qrcode,
     ];
 
-    await this.executeService.info('Complete login...', Text.create(details));
+    const mobileDeviceDetails = [
+      'Scan the following QR code with your mobile device camera and then log in with your identity provider',
+      Text.eol(),
+      Text.eol(),
+      'Verification code: ',
+      Text.dim(oauthInitResponse.data.user_code),
+      Text.eol(),
+      Text.eol(),
+    ];
+
+    await this.executeService.info('Using a Browser', Text.create(details));
+    await this.executeService.info('Using a Mobile Device', Text.create(mobileDeviceDetails));
+    console.log(qrcode);
 
     // Wait for user to complete the device flow login
 
@@ -502,6 +554,25 @@ export class ProfileService {
       }
     } finally {
       this.input.io.spin(false);
+    }
+
+    // If the profile was created synthetically, save it to disk after adding
+    // the Fusebit account and subscription IDs extracted from the access token.
+    if (profile.synthetic) {
+      const jwt = decodeJwt(payload.access_token);
+      const { accountId, subscriptionId } = (jwt && jwt['https://fusebit.io/profile']) || {};
+      if (!accountId) {
+        throw new Error(`Unable to determine the Fusebit account ID based on the obtained access token.`);
+      }
+      delete profile.synthetic;
+      profile.account = accountId;
+      if (subscriptionId) {
+        profile.subscription = subscriptionId;
+      }
+      await this.updateProfile(profile.name, profile, {
+        message: 'Success',
+        header: Text.create(`You are now logged in. Profile '${profile.name}' created`),
+      });
     }
 
     // Cache the token for later use
@@ -671,6 +742,15 @@ export class ProfileService {
         await this.writeErrorMessage(error);
       }
       throw error;
+    }
+  }
+
+  // Removes any half-complete profile created during the initial OAuth flow
+  public async removeUncompletedProfiles(): Promise<void> {
+    const profiles = await this.execute(() => this.profile.listProfiles());
+    const uncompletedProfiles = profiles.filter((profile) => !profile.account || !profile.subscription);
+    for (const profile of uncompletedProfiles) {
+      await this.profile.removeProfile(profile.name);
     }
   }
 

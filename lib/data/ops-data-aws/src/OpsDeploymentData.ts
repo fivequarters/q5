@@ -15,6 +15,8 @@ import { IListAccountsOptions, IListSubscriptionsOptions } from '@5qtrs/account-
 import { AccountDataAwsContextFactory } from '@5qtrs/account-data-aws';
 import { StorageDataAwsContextFactory } from '@5qtrs/storage-data-aws';
 import { IAwsConfig } from '@5qtrs/aws-config';
+import { AwsDynamo } from '@5qtrs/aws-dynamo';
+import { Defaults } from '@5qtrs/account';
 import { OpsDataTables } from './OpsDataTables';
 import { OpsDataAwsProvider } from './OpsDataAwsProvider';
 import { OpsDataAwsConfig } from './OpsDataAwsConfig';
@@ -88,6 +90,10 @@ export class OpsDeploymentData extends DataSource implements IOpsDeploymentData 
 
       if (deployment.dataWarehouseEnabled == null) {
         deployment.dataWarehouseEnabled = existing.dataWarehouseEnabled;
+      }
+
+      if (deployment.segmentKey == null) {
+        deployment.segmentKey = existing.segmentKey;
       }
 
       if (deployment.elasticSearch == null) {
@@ -189,6 +195,52 @@ export class OpsDeploymentData extends DataSource implements IOpsDeploymentData 
     const currentSubscription = await accountData.subscriptionData.get(account, subscription.subscription as string);
     currentSubscription.limits = { concurrency: -1, ...currentSubscription.limits, ...subscription.limits };
     await accountData.subscriptionData.update(account, currentSubscription);
+  }
+
+  public async setFlags(account: string, subscription: IFusebitSubscription): Promise<void> {
+    debug('SET SUBSCRIPTION FLAGS', subscription);
+    const awsConfig = await this.provider.getAwsConfigForDeployment(subscription.deploymentName, subscription.region);
+
+    const accountDataFactory = await AccountDataAwsContextFactory.create(awsConfig);
+    const accountData = await accountDataFactory.create(this.config);
+
+    const currentSubscription = await accountData.subscriptionData.get(account, subscription.subscription as string);
+    currentSubscription.flags = {
+      ...currentSubscription.flags,
+      ...subscription.flags,
+    };
+
+    await accountData.subscriptionData.update(account, currentSubscription);
+  }
+
+  public async setDefaults(deployment: IOpsDeployment, defaultKey: string, defaults: any): Promise<void> {
+    const awsConfig = await this.provider.getAwsConfigForDeployment(deployment.deploymentName, deployment.region);
+
+    const dynamo = await AwsDynamo.create(awsConfig);
+
+    Defaults.setDeploymentName(deployment.deploymentName);
+
+    await Defaults.set(await dynamo.getAws(), defaultKey, defaults);
+  }
+
+  public async unsetDefaults(deployment: IOpsDeployment, defaultKey: string, dotKey: string): Promise<void> {
+    const awsConfig = await this.provider.getAwsConfigForDeployment(deployment.deploymentName, deployment.region);
+
+    const dynamo = await AwsDynamo.create(awsConfig);
+
+    Defaults.setDeploymentName(deployment.deploymentName);
+
+    await Defaults.unset(await dynamo.getAws(), defaultKey, dotKey);
+  }
+
+  public async getDefaults(deployment: IOpsDeployment, defaultKey: string): Promise<any> {
+    const awsConfig = await this.provider.getAwsConfigForDeployment(deployment.deploymentName, deployment.region);
+
+    const dynamo = await AwsDynamo.create(awsConfig);
+
+    Defaults.setDeploymentName(deployment.deploymentName);
+
+    return Defaults.get(await dynamo.getAws(), defaultKey);
   }
 
   public async get(deploymentName: string, region: string): Promise<IOpsDeployment> {

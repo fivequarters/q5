@@ -17,6 +17,112 @@ All public releases of the Fusebit CLI are documented here, including notable ch
 <!-- 1. TOC
 {:toc} -->
 
+## Version 1.18.1
+
+_Released 11/15/21_
+
+- **Enhancement.** Initialize an example from a published entry in the integration or connector feeds.
+
+## Version 1.17.0
+
+_Released 11/14/21_
+
+- **Security.** Update various dependencies with critical CVEs.
+
+## Version 1.16.1
+
+_Released 11/09/21_
+
+- **Enhancement.** Add support for specifying custom authorization account Id and authorization account Id override through FUSEBIT_AUTHORIZATION_ACCOUNT_ID and FUSEBIT_ACCOUNT_ID environment variables.
+
+## Version 1.16.0
+
+_Released 10/21/21_
+
+- **Enhancement.** Add support for accessing historical logs through `fuse log` command.
+
+## Version 1.15.2
+
+_Released 10/21/21_
+
+- **Bugfix.** Correctly report errors generated during connector or integration deploy.
+
+## Version 1.15.1
+
+_Released 10/11/21_
+
+- **Bugfix.** Fixes compatibility issues with npm 7.
+
+## Version 1.15.0
+
+_Released 10/08/21_
+
+- **Enhancement.** Rename 'instance' to 'install'.
+
+## Version 1.14.4
+
+_Released 09/18/21_
+
+- **Enhancement.** Support importing and exporting individual profiles.
+
+## Version 1.14.0
+
+_Released 09/09/21_
+
+- **Enhancement.** Support for configuration settings in `fuse function serve`. The locally running function will now
+  have the `ctx.configuration` set to the values defined in the `.env` local file.
+- **Bugfix.** Allow the locally running function to load a set of npm modules that are isolated from the modules
+  of fuse CLI. This enables certain mocking scenarios.
+
+## Version 1.13.0
+
+_Released 09/02/21_
+
+- **Enhancement.** Improvements in `fuse storage` commands.
+
+## Version 1.12.2
+
+_Released 09/02/21_
+
+- **Bugfix.** Cancelling an OAuth flow from the CLI does not prevent subsequent OAuth flows for the same account.
+
+## Version 1.11.2
+
+_Released 08/25/21_
+
+- **Enhancement.** Add a check to help preventing the deployment of invalid integrations and connectors.
+
+## Version 1.11.1
+
+_Released 08/23/21_
+
+- **Bugfix.** Fix compatibility issues with npm 7.
+
+## Version 1.11.0
+
+_Released 08/18/21_
+
+- **Enhancement.** Add `fuse integration test` command to simplify testing an integration.
+
+## Version 1.10.1
+
+_Released 08/18/21_
+
+- **Bugfix.** Fix the rendering of the QR code for the OAuth Device Flow on Windows.
+
+## Version 1.10.0
+
+_Released 08/17/21_
+
+- **Enhancement.** Using the tool without initialization will set up an OAuth device flow profile for the primary Fusebit deployment in the US, including provisioning a new Fusebit account during the authentication process.
+- **Enhancement.** Ability to specify custom resource names and custom actions when granting user and client permissions.
+
+## Version 1.9.17
+
+_Released 07/09/21_
+
+- **Bugfix** Fixed issue causing `fuse function serve` to not shut down tunnel on exit.
+
 ## Version 1.9.13
 
 _Released 07/09/21_

@@ -16,7 +16,6 @@ module.exports = Joi.object().keys({
   storageId: Joi.string()
     .regex(/^[^\/\*]+(?:\/[^\/\*]+)*\/?$/)
     .allow(''),
-  operationId: Common.operationId,
   sessionId: Common.sessionId,
   recursive: Joi.boolean(),
   statisticsKey: Joi.string().valid(Object.keys(statisticsQueries)),
@@ -24,4 +23,5 @@ module.exports = Joi.object().keys({
   baseUrl: Joi.string(),
   buildId: Joi.string(),
   name: Joi.string(),
+  queryId: Joi.string(),
 });

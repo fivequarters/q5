@@ -3,19 +3,16 @@ import { IExecuteInput } from '@5qtrs/cli';
 import { ProfileService } from './ProfileService';
 import { ExecuteService } from './ExecuteService';
 import { IBaseComponentType, BaseComponentService } from './BaseComponentService';
-
 import { IIntegrationData, EntityType } from '@fusebit/schema';
+import open from 'open';
 
 interface IIntegration extends IBaseComponentType {
   data: IIntegrationData;
 }
 
 export class IntegrationService extends BaseComponentService<IIntegration> {
-  protected entityType: EntityType;
-
   private constructor(profileService: ProfileService, executeService: ExecuteService, input: IExecuteInput) {
-    super(profileService, executeService, input);
-    this.entityType = EntityType.integration;
+    super(EntityType.integration, profileService, executeService, input);
   }
 
   public static async create(input: IExecuteInput) {
@@ -44,8 +41,8 @@ export class IntegrationService extends BaseComponentService<IIntegration> {
       const expiresSummary = item.expires ? ['Expires: ', Text.bold(item.expires), Text.eol(), Text.eol()] : [];
 
       if (item.tags) {
-        Object.entries(item.tags).forEach(([tagKey, tagValue]: [string, string]) => {
-          tagSummary.push(Text.dim('• '), tagKey, Text.dim(': '), tagValue, Text.eol());
+        Object.entries(item.tags).forEach(([tagKey, tagValue]: [string, string | null]) => {
+          tagSummary.push(Text.dim('• '), tagKey, Text.dim(': '), tagValue || '', Text.eol());
         });
       }
 
@@ -67,11 +64,41 @@ export class IntegrationService extends BaseComponentService<IIntegration> {
           item.version || 'unknown',
           Text.eol(),
           Text.eol(),
-          'Base URL',
+          'Base URL is given below',
           Text.dim(': '),
-          this.getUrl(profile, item.id),
         ])
       );
+      await this.input.io.writeLineRaw(this.getUrl(profile, item.id));
+      await this.input.io.writeLine();
     }
+  }
+
+  public async openDemoApp(integrationId: string, tenantId: string) {
+    const profile = await this.profileService.getExecutionProfile(['account', 'subscription']);
+
+    const demoAppUrl = `https://cdn.fusebit.io/fusebit/app/index.html#accessToken=${
+      profile.accessToken
+    }&tenantId=${encodeURIComponent(tenantId)}&integrationBaseUrl=${profile.baseUrl}/v2/account/${
+      profile.account
+    }/subscription/${profile.subscription}/integration/${integrationId}`;
+
+    await this.executeService.result(
+      `Test ${integrationId}`,
+      Text.create(
+        "Testing the '",
+        Text.bold(`${integrationId}`),
+        `' integration for tenant ID '`,
+        Text.bold(`${tenantId}`),
+        `'.`,
+        Text.eol(),
+        Text.eol(),
+        'If the browser does not open up automatically, navigate to the URL shown below:'
+      )
+    );
+
+    console.log(demoAppUrl);
+    console.log();
+
+    open(demoAppUrl);
   }
 }

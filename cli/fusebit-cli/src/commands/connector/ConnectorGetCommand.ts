@@ -1,7 +1,7 @@
-import { Command, ArgType, IExecuteInput } from '@5qtrs/cli';
-import { ExecuteService, ConnectorService, OperationService } from '../../services';
-import { join } from 'path';
+import { Command, IExecuteInput } from '@5qtrs/cli';
 import { Text } from '@5qtrs/text';
+import { join } from 'path';
+import { ConnectorService, ExecuteService } from '../../services';
 
 // ------------------
 // Internal Constants
@@ -15,7 +15,7 @@ const command = {
   arguments: [
     {
       name: 'connector',
-      description: 'The id of the connector to deploy',
+      description: 'The id of the connector to get',
       required: true,
     },
   ],

@@ -7,12 +7,15 @@ import { ProfileCopyCommand } from './ProfileCopyCommand';
 import { ProfileRenameCommand } from './ProfileRenameCommand';
 import { ProfileRemoveCommand } from './ProfileRemoveCommand';
 import { ProfileUpdateCommand } from './ProfileUpdateCommand';
+import { ProfileImportCommand } from './ProfileImportCommand';
+import { ProfileExportCommand } from './ProfileExportCommand';
 
 // ------------------
 // Internal Constants
 // ------------------
 
 const command: ICommand = {
+  skipBuiltInProfile: true,
   name: 'Profiles',
   cmd: 'profile',
   summary: 'Manage profiles',
@@ -44,6 +47,8 @@ async function getSubCommands() {
   subCommands.push(await ProfileRenameCommand.create());
   subCommands.push(await ProfileUpdateCommand.create());
   subCommands.push(await ProfileRemoveCommand.create());
+  subCommands.push(await ProfileImportCommand.create());
+  subCommands.push(await ProfileExportCommand.create());
   return subCommands;
 }
 

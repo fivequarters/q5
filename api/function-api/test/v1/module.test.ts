@@ -16,9 +16,6 @@ const helloWorldWithSuperagentDependency = {
     files: {
       'index.js': 'var s = require("superagent"); module.exports = (ctx, cb) => cb(null, { body: typeof s });',
       'package.json': {
-        engines: {
-          node: '10',
-        },
         dependencies: {
           superagent: '*',
         },
@@ -53,11 +50,11 @@ describe('Module', () => {
     if (response.status === 201) {
       response = await waitForBuild(account, response.data, 15, 1000);
     }
-    expect(response).toBeHttp({ statusCode: 200, status: 'success' });
+    expect(response).toBeHttp({ statusCode: 200 });
     response = await deleteFunction(account, boundaryId, function1Id);
     expect(response).toBeHttp({ statusCode: 204 });
     response = await putFunction(account, boundaryId, function1Id, helloWorldWithSuperagentDependency);
-    expect(response).toBeHttp({ statusCode: 200, status: 'success' });
+    expect(response).toBeHttp({ statusCode: 200 });
   }, 180000);
 
   test('PUT completes for function with complex dependencies', async () => {
@@ -66,9 +63,6 @@ describe('Module', () => {
         files: {
           'index.js': 'module.exports = (ctx, cb) => cb(null, { body: "hello" });',
           'package.json': {
-            engines: {
-              node: '10',
-            },
             dependencies: {
               superagent: '*',
               async: '*',
@@ -104,9 +98,6 @@ describe('Module', () => {
         files: {
           'index.js': 'module.exports = (ctx, cb) => cb(null, { body: "hello" });',
           'package.json': {
-            engines: {
-              node: '10',
-            },
             dependencies: {
               'i-dont-exist': '*',
             },
@@ -118,21 +109,26 @@ describe('Module', () => {
   }, 15000);
 
   test('PUT fails for function with dependency that fails to build', async () => {
-    let response = await putFunction(account, boundaryId, function1Id, {
-      nodejs: {
-        files: {
-          'index.js': 'module.exports = (ctx, cb) => cb(null, { body: "hello" });',
-          'package.json': {
-            engines: {
-              node: '10',
-            },
-            dependencies: {
-              clearbit: '1.3.4',
+    let response = await putFunction(
+      account,
+      boundaryId,
+      function1Id,
+      {
+        nodejs: {
+          files: {
+            'index.js': 'module.exports = (ctx, cb) => cb(null, { body: "hello" });',
+            'package.json': {
+              dependencies: {
+                clearbit: '1.3.4',
+              },
             },
           },
         },
       },
-    });
+      {
+        tryOnce: true,
+      }
+    );
     expect(response).toBeHttp({ statusCode: [200, 201, 429] });
     if (response.status === 429) {
       expect(response).toBeHttpError(429, 'failed to build previously and another attempt is delayed until');

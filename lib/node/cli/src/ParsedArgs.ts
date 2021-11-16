@@ -18,7 +18,7 @@ function parseOption(rawArg: string, rawArgNext: string, parsedOptions: { [index
   let shortOption = true;
   if (rawArg.startsWith(longOptionChars)) {
     shortOption = false;
-  } else if (!rawArg.startsWith(shortOptionChar)) {
+  } else if (!rawArg.startsWith(shortOptionChar) || rawArg.length === 1) {
     return undefined;
   }
 

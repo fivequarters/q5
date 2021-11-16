@@ -1,0 +1,39 @@
+{
+  "name": "@5qtrs/v2-session-demo",
+  "version": "1.0.0",
+  "description": "",
+  "main": "libm/index.js",
+  "browser": "libm/index.js",
+  "module": "libm/index.js",
+  "sideEffects": false,
+  "license": "UNLICENSED",
+  "author": "FiveQuarters.io",
+  "scripts": {
+    "build": "rm -rf node_modules && tsc -b",
+    "coverage": "jest --colors --coverage",
+    "lint": "tslint --fix -t stylish src/{,**/}*.ts{,x} test/{,**/}*.ts{,x}",
+    "clean": "rm -r -f libc; rm -r -f libm; rm -r -f coverage; rm -f tsconfig.tsbuildinfo",
+    "start": "rm -rf node_modules && tsc -b -w & webpack-dev-server --open --hot"
+  },
+  "keywords": [],
+  "dependencies": {
+    "@material-ui/core": "^4.9.14",
+    "@material-ui/icons": "^4.11.2",
+    "react": "^16.9.0",
+    "react-dom": "^16.9.0",
+    "react-json-pretty": "^2.2.0",
+    "react-router-dom": "^5.1.2",
+    "react-router-scroll-memory": "^2.0.3"
+  },
+  "devDependencies": {
+    "@types/react-dom": "^16.8.2",
+    "@types/react-helmet": "^6.1.0",
+    "@types/react-router": "^5.0.0",
+    "@types/react-router-dom": "^5.1.2",
+    "@types/styled-components": "4.1.8",
+    "@types/react-json-pretty": "^2.2.0"
+  },
+  "devServer": {
+    "port": 9512
+  }
+}

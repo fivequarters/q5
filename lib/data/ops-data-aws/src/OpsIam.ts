@@ -144,16 +144,7 @@ export class OpsIam implements IDataSource {
         `${this.config.arnPrefix}:iam::aws:policy/AmazonESFullAccess`,
         `${this.config.arnPrefix}:iam::aws:policy/service-role/AWSLambdaVPCAccessExecutionRole`,
       ],
-      {
-        Version: '2012-10-17',
-        Statement: [
-          {
-            Effect: 'Allow',
-            Action: ['dynamodb:Scan'],
-            Resource: `${this.config.arnPrefix}:dynamodb:*:${awsConfig.account}:table/*.subscription`,
-          },
-        ],
-      },
+      undefined,
       undefined,
       this.config.iamPermissionsBoundary
     );
@@ -201,6 +192,16 @@ export class OpsIam implements IDataSource {
       undefined,
       this.config.iamPermissionsBoundary
     );
+
+    await createRole(
+      awsConfig,
+      this.config.functionPermissionlessRoleName,
+      undefined,
+      undefined,
+      undefined,
+      this.config.iamPermissionsBoundary
+    );
+
     await createRole(
       awsConfig,
       this.config.backupRoleName,
@@ -223,8 +224,8 @@ export class OpsIam implements IDataSource {
       },
       this.config.iamPermissionsBoundary
     );
-    // Ensure the instance profile and role for the VMs are created
 
+    // Ensure the instance profile and role for the VMs are created
     await createInstanceProfile(
       awsConfig,
       this.config.monoInstanceProfileName,

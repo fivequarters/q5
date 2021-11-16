@@ -1,3 +1,14 @@
+import { EntityType } from '@fusebit/schema';
+
+/*
+ * Convention notes:
+ *  - create an entity → add
+ *  - update an entity → update
+ *  - upsert and entitity → put
+ *  - get/list → get
+ *  - delete → delete
+ */
+
 export enum Permissions {
   allPermissions = '*',
 
@@ -50,25 +61,56 @@ export enum Permissions {
   putRegistry = 'registry:put',
 }
 
-const makePermissionSet = (prefix: string) => ({
-  [prefix]: {
-    get: `${prefix}:get`,
-    put: `${prefix}:put`,
-    delete: `${prefix}:delete`,
-    putTag: `${prefix}:put-tag`,
-  },
+interface IPermissionSet {
+  get: string;
+  add: string;
+  update: string;
+  delete: string;
+  putTag: string;
+  execute: string;
+  all: string;
+}
+
+const makePermissionSet = (prefix: string): IPermissionSet => ({
+  get: `${prefix}:get`,
+  add: `${prefix}:add`,
+  update: `${prefix}:update`,
+  delete: `${prefix}:delete`,
+  putTag: `${prefix}:put-tag`,
+  execute: `${prefix}:execute`,
+  all: `${prefix}:*`,
 });
 
-export const v2Permissions: Record<any, any> = {
-  ...makePermissionSet('integration'),
-  ...makePermissionSet('instance'),
-  ...makePermissionSet('connector'),
-  ...makePermissionSet('identity'),
-  putOperation: 'operation:put',
-  postSession: 'session:post',
-  putSession: 'session:put',
+const makeInvalidPermissionSet = (): IPermissionSet => makePermissionSet('invalid');
+
+export interface IV2Permissions {
+  integration: IPermissionSet;
+  install: IPermissionSet;
+  connector: IPermissionSet;
+  identity: IPermissionSet;
+  storage: IPermissionSet;
+  session: IPermissionSet;
+  addSession: string;
+  updateSession: string;
+  getSession: string;
+  commitSession: string;
+}
+
+export const v2Permissions: IV2Permissions = {
+  integration: makePermissionSet('integration'),
+  install: makePermissionSet('install'),
+  connector: makePermissionSet('connector'),
+  identity: makePermissionSet('identity'),
+
+  // Include storage and session primarily to keep other parts of the system from yelling when a generic
+  // EntityType is used.  Currently the storage permissions are exposed via v1, and session has it's own
+  // explicit set. below.
+  storage: makeInvalidPermissionSet(),
+  session: makeInvalidPermissionSet(),
+
+  addSession: 'session:add',
+  updateSession: 'session:update',
   getSession: 'session:get',
-  getSessionResult: 'session:result',
   commitSession: 'session:commit',
 };
 

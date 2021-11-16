@@ -25,9 +25,9 @@ export class DotConfig {
     return contents instanceof Buffer ? contents : Buffer.alloc(0);
   }
 
-  protected async writeBinary(path: string, contents: Buffer) {
+  protected async writeBinary(path: string, contents: Buffer, options: { mode?: number } = {}) {
     const fullPath = join(this.path, path);
-    return writeFile(fullPath, contents);
+    return writeFile(fullPath, contents, { ensurePath: true, ...options });
   }
 
   protected async removeFile(path: string) {

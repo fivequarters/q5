@@ -234,7 +234,7 @@ export class StackService {
     return result as IOpsStack;
   }
 
-  public async listAllStacks(deploymentName?: string): Promise<IOpsStack[]> {
+  public async listAllStacks(options?: IListOpsStackOptions): Promise<IOpsStack[]> {
     const opsDataContext = await this.opsService.getOpsDataContext();
     const stackData = opsDataContext.stackData;
 
@@ -244,7 +244,7 @@ export class StackService {
         message: `Getting the stacks on the Fusebit platform...`,
         errorHeader: 'Stack Error',
       },
-      () => stackData.listAll(deploymentName)
+      () => stackData.listAll(options)
     );
     return result as IOpsStack[];
   }
@@ -314,7 +314,7 @@ export class StackService {
       stack.size.toString(),
       Text.eol(),
       Text.dim('Elastic Search: '),
-      deployment ? deployment.elasticSearch : '',
+      deployment?.elasticSearch ? 'supported' : 'disabled',
       Text.eol(),
       Text.dim('fuse-ops Version: '),
       stack.fuseopsVersion,

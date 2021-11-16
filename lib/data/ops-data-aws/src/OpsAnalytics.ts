@@ -65,6 +65,7 @@ async function createAnalyticsConfig(
       Environment: {
         Variables: {
           DEPLOYMENT_KEY: awsConfig.prefix,
+          SEGMENT_KEY: deployment.segmentKey,
           ...esVar,
         },
       },
@@ -209,6 +210,8 @@ export async function createAnalyticsPipeline(
   const { lambda, cloudwatchlogs } = await getAWS(awsConfig);
 
   return new Promise((resolve, reject) => {
+    const subscribeLambdaAnalyticsToCloudWatch =
+      deployment.elasticSearch.length > 0 || deployment.segmentKey.length > 0;
     return Async.series(
       [
         // prettier-ignore
@@ -217,12 +220,14 @@ export async function createAnalyticsPipeline(
         (cb: AsyncCb) => createOrUpdateLambda(lambda, config.lambda, cb),
         (cb: AsyncCb) => grantCloudWatchLogGroupLambdaInvocation(lambda, config.grantLambda, cb),
 
-        deployment.elasticSearch.length > 0
+        subscribeLambdaAnalyticsToCloudWatch
           ? (cb: AsyncCb) => createCloudWatchSubscription(cloudwatchlogs, config.subscriptionFilter, cb)
           : (cb: AsyncCb) => deleteCloudWatchSubscription(cloudwatchlogs, config.deleteSubscriptionFilter, cb),
       ],
       (e: any): void => {
-        if (e) return reject(e);
+        if (e) {
+          return reject(e);
+        }
         debug('lambda-analytics DEPLOYED SUCCESSFULLY');
         resolve();
       }

@@ -35,8 +35,15 @@ function toItem(deployment: IOpsDeployment) {
     item.fuseopsVersion = { S: process.env.FUSEOPS_VERSION };
   }
 
+  // Support clearing the Segment Key parameter using an empty string.
+  if (deployment.segmentKey?.length === 0) {
+    delete item.segmentKey;
+  } else {
+    item.segmentKey = { S: deployment.segmentKey };
+  }
+
   // Support clearing the Elastic Search parameter using an empty string.
-  if (deployment.elasticSearch.length == 0) {
+  if (deployment.elasticSearch.length === 0) {
     delete item.elasticSearch;
   } else {
     item.elasticSearch = { S: deployment.elasticSearch };
@@ -54,6 +61,7 @@ function fromItem(item: any): IOpsDeployment {
     networkName: item.networkName.S,
     domainName: item.domainName.S,
     size: parseInt(item.size.N, 10),
+    segmentKey: item.segmentKey === undefined ? '' : item.segmentKey.S,
     elasticSearch: item.elasticSearch === undefined ? '' : item.elasticSearch.S,
     fuseopsVersion: item.fuseopsVersion === undefined ? '' : item.fuseopsVersion.S,
     dataWarehouseEnabled: item.dataWarehouseEnabled.BOOL,
@@ -86,6 +94,7 @@ export interface IOpsDeployment {
   networkName: string;
   domainName: string;
   size: number;
+  segmentKey: string;
   elasticSearch: string;
   fuseopsVersion: string;
   dataWarehouseEnabled: boolean;

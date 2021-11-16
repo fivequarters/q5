@@ -7,7 +7,7 @@ import { pem2jwk } from 'pem-jwk';
 
 import { nextBoundary } from './setup';
 
-import ms from 'ms';
+import * as Constants from '@5qtrs/constants';
 import { IAccount as IAccountAPI } from '@5qtrs/account-data';
 
 export const INVALID_UUID = '00000000-0000-4000-8000-000000000000';
@@ -26,6 +26,11 @@ if (!process.env.LOGS_HOST) {
   if (process.env.API_SERVER.indexOf('://localhost') > 0) {
     console.log('WARNING: LOGS_HOST IS NOT SPECIFIED - localhost tests must have a tunnel running.');
   }
+}
+
+if (!process.env.LAMBDA_USER_FUNCTION_PERMISSIONLESS_ROLE) {
+  console.log('Missing LAMBDA_USER_FUNCTION_PERMISSIONLESS_ROLE');
+  process.exit(-1);
 }
 
 // ------------------
@@ -207,7 +212,13 @@ export async function deleteFunction(account: IAccount, boundaryId: string, func
   });
 }
 
-export async function putFunction(account: IAccount, boundaryId: string, functionId: string, spec: any) {
+export async function putFunction(
+  account: IAccount,
+  boundaryId: string,
+  functionId: string,
+  spec: any,
+  options?: { tryOnce?: boolean }
+): Promise<IHttpResponse> {
   onPutFunction(boundaryId, functionId);
   const response = await request({
     method: 'PUT',
@@ -218,6 +229,12 @@ export async function putFunction(account: IAccount, boundaryId: string, functio
     url: `${account.baseUrl}/v1/account/${account.accountId}/subscription/${account.subscriptionId}/boundary/${boundaryId}/function/${functionId}`,
     data: spec,
   });
+
+  if (response.status === 429 && !options?.tryOnce) {
+    // Wait a second and try again.
+    await new Promise((resolve) => setTimeout(resolve, 1000));
+    return putFunction(account, boundaryId, functionId, spec);
+  }
 
   return response;
 }
@@ -231,6 +248,67 @@ export async function getBuild(account: IAccount, build: { boundaryId: string; f
     },
     url: `${account.baseUrl}/v1/account/${account.accountId}/subscription/${account.subscriptionId}/boundary/${build.boundaryId}/function/${build.functionId}/build/${build.buildId}`,
   });
+}
+
+export async function startLogQuery(
+  account: IAccount,
+  { subscriptionId, boundaryId, functionId }: { subscriptionId?: string; boundaryId?: string; functionId?: string },
+  data: { limit?: number; from?: string; to?: string; stats?: string; filter?: string }
+): Promise<[string, IHttpResponse]> {
+  const url = [
+    `${account.baseUrl}/v1/account/${account.accountId}`,
+    subscriptionId
+      ? `/subscription/${subscriptionId}${
+          boundaryId ? `/boundary/${boundaryId}${functionId ? `/function/${functionId}` : ``}` : ``
+        }`
+      : ``,
+    `/logs`,
+  ].join('');
+  const response = await request({
+    method: 'POST',
+    headers: {
+      Authorization: `Bearer ${account.accessToken}`,
+      'Content-Type': 'application/json',
+      'user-agent': account.userAgent,
+    },
+    url,
+    data,
+  });
+  return [url, response as IHttpResponse];
+}
+
+export async function waitForLogQuery(account: IAccount, url: string, queryId: string, timeout: number) {
+  let currentWait = 2;
+  let timeRemaining = timeout;
+  const queryStatusUrl = `${url}/${encodeURIComponent(queryId)}`;
+  while (true) {
+    await sleep(currentWait * 1000);
+    timeRemaining -= currentWait;
+    if (timeRemaining < 0) {
+      throw new Error(`The log query did not finish within the timeout.`);
+    }
+    if (timeout - timeRemaining > 20) {
+      currentWait = 10;
+    }
+    const response = await request({
+      method: 'GET',
+      url: queryStatusUrl,
+      headers: {
+        Authorization: `Bearer ${account.accessToken}`,
+        'user-agent': account.userAgent,
+      },
+    });
+    // console.log('DURABLE POLL QUERY RESPONSE', response.status, JSON.stringify(response.data, null, 2));
+    if (response.status !== 200) {
+      throw new Error(`Error running the logs query. Status code ${response.status}`);
+    }
+    if (response.data.status === 'complete') {
+      return response.data;
+    }
+    if (response.data.status !== 'scheduled' && response.data.status !== 'running') {
+      throw new Error(`Error running the logs query. Query status is '${response.data.status}'.`);
+    }
+  }
 }
 
 export async function getLogs(
@@ -421,7 +499,10 @@ export async function deleteAllFunctions(account: IAccount, boundaryId?: string)
   expect(response).toBeHttp({ statusCode: 200 });
   return Promise.all(
     response.data.items.map((x: { boundaryId: string; functionId: string }) =>
-      deleteFunction(account, x.boundaryId, x.functionId)
+      Promise.all([
+        deleteFunction(account, x.boundaryId, x.functionId),
+        removeStorage(account, `boundary/${x.boundaryId}/function/${x.functionId}`),
+      ])
     )
   );
 }
@@ -665,6 +746,21 @@ export async function getAccount(account: IAccount, accountId?: string) {
     method: 'GET',
     headers,
     url: `${account.baseUrl}/v1/account/${accountId || account.accountId}`,
+  });
+}
+
+export async function patchAccount(account: IAccount, patchedAccount: Partial<IAccountAPI>) {
+  const headers: IHttpRequest['headers'] = {
+    Authorization: `Bearer ${account.accessToken}`,
+    'Content-Type': 'application/json',
+    'user-agent': account.userAgent,
+  };
+
+  return request({
+    method: 'PATCH',
+    headers,
+    url: `${account.baseUrl}/v1/account/${account.accountId}`,
+    data: JSON.stringify(patchedAccount),
   });
 }
 
@@ -1011,19 +1107,22 @@ export async function getStatistics(
   }
   url = url + `/statistics/${statisticsKey}`;
 
+  const fiveMin = 5 * 60 * 1000;
+  const fifteenMin = 3 * fiveMin;
+
   if (!params) {
     params = {
-      to: new Date(Date.now() + ms('5m')),
-      from: new Date(Date.now() - ms('15m')),
+      to: new Date(Date.now() + fiveMin),
+      from: new Date(Date.now() - fifteenMin),
       code: 200,
     };
   } else {
     if (params.to === undefined) {
-      params.to = new Date(Date.now() + ms('5m'));
+      params.to = new Date(Date.now() + fiveMin);
     }
 
     if (params.from === undefined) {
-      params.from = new Date(Date.now() - ms('15m'));
+      params.from = new Date(Date.now() - fifteenMin);
     }
   }
 
@@ -1220,4 +1319,45 @@ export async function getMe(account: IAccount, accessToken?: string) {
     },
     url: `${account.baseUrl}/v1/account/${account.accountId}/me`,
   });
+}
+
+export async function getSubscription(account: IAccount, subscriptionId?: string, include?: 'cache') {
+  return request({
+    method: 'GET',
+    headers: {
+      Authorization: `Bearer ${account.accessToken}`,
+      'user-agent': account.userAgent,
+    },
+    url: `${account.baseUrl}/v1/account/${account.accountId}/subscription/${subscriptionId || account.subscriptionId}${
+      include ? '?include=cache' : ''
+    }`,
+  });
+}
+
+async function refreshInstanceCache(account: IAccount) {
+  const MAX_TEST_DELAY = Constants.MAX_CACHE_REFRESH_RATE * 5;
+  const startTime = Date.now();
+  do {
+    const refreshResponse = await request({
+      method: 'GET',
+      headers: {
+        'user-agent': account.userAgent,
+      },
+      url: `${account.baseUrl}/v1/refresh`,
+    });
+    expect(refreshResponse).toBeHttp({ statusCode: 200 });
+    const { at } = refreshResponse.data;
+    if (at > startTime) {
+      return;
+    }
+    await new Promise((resolve) => setTimeout(resolve, Constants.MAX_CACHE_REFRESH_RATE - (Date.now() - at)));
+  } while (Date.now() < startTime + MAX_TEST_DELAY);
+
+  throw new Error(`ERROR: Unable to refresh the subscription: ${account.subscriptionId}. Tests will fail.`);
+}
+
+export async function refreshSubscriptionCache(account: IAccount) {
+  const workAroundNumberOfInstances = 10;
+  const refreshCalls = Array.from(Array(workAroundNumberOfInstances).keys()).map(() => refreshInstanceCache(account));
+  return Promise.all(refreshCalls);
 }

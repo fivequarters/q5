@@ -1,5 +1,6 @@
 import http_error from 'http-errors';
 
+import { IAgent } from '@5qtrs/account-data';
 import RDS, { Model } from '@5qtrs/db';
 import BaseEntityService from './BaseEntityService';
 
@@ -35,17 +36,24 @@ class IdentityService extends BaseEntityService<Model.IIdentity, Model.IIdentity
     };
   };
 
-  public updateEntity = async (entity: Model.IEntity) => {
+  public updateEntity = async (resolvedAgent: IAgent, entity: Model.IEntity) => {
     return {
       statusCode: 200,
       result: await this.dao.updateEntity(entity),
     };
   };
 
-  public createEntity = async (entity: Model.IEntity) => {
+  public createEntity = async (resolvedAgent: IAgent, entity: Model.IEntity) => {
     return {
       statusCode: 200,
       result: await this.dao.createEntity(entity),
+    };
+  };
+
+  public deleteEntity = async (entity: Model.IEntity) => {
+    return {
+      statusCode: 204,
+      result: await this.dao.deleteEntity(entity),
     };
   };
 }

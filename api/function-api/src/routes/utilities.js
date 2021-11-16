@@ -14,6 +14,16 @@ export const debugLogEvent = (req, res, next) => {
   return next();
 };
 
+export const debugLogEventAsCurl = (req, res, next) => {
+  console.log(
+    `curl ${Object.entries(req.headers)
+      .map(([name, value]) => `  -H '${name}: ${value}' \\\n`)
+      .join('')}` +
+      `  -d '${JSON.stringify(req.body)}'\\\n` +
+      `  -X ${req.method} http://localhost:3001${req.originalUrl}`
+  );
+  return next();
+};
 export const traceEvent = (key) => {
   return (req, res, next) => {
     console.log(`DEBUG: ${key}`);

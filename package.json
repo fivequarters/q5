@@ -1,5 +1,5 @@
 {
-  "version": "1.20.20",
+  "version": "1.29.1",
   "private": true,
   "org": "5qtrs",
   "engines": {
@@ -35,7 +35,7 @@
     "publish:dev": "yarn-tool yarn publish:dev",
     "publish:prod": "yarn-tool yarn publish:prod",
     "image": "VERSION=$(cat package.json | grep version | head -1 | awk -F: '{ print $2 }' | sed 's/[\",]//g' | tr -d '[[:space:]]') && docker build . -t fusebit-mono:$VERSION --platform linux/amd64",
-    "prettier": "git ls-tree -r `git branch --show-current` --name-only | grep -E \"\\.[tj]?sx?$\" | grep -v assets | xargs -P 1 prettier --write"
+    "prettier": "git ls-tree -r `git branch --show-current` --name-only | grep -E \"\\.[tj]?sx?$|\\.yaml$\" | grep -v assets | xargs -P 1 prettier --write"
   },
   "devDependencies": {
     "@babel/core": "^7.3.3",
@@ -65,7 +65,10 @@
     "yarn": "^1.12.3"
   },
   "workspaces": {
-    "nohoist": ["**/lambda-*", "**/lambda-*/**"],
+    "nohoist": [
+      "**/lambda-*",
+      "**/lambda-*/**"
+    ],
     "packages": [
       "tool/tool-config",
       "tool/workspace",
@@ -196,12 +199,14 @@
       "lib/server/registry",
       "lib/server/runas",
       "tool/cicd/actions",
-      "lib/pkg/framework",
-      "lib/pkg/pkg-integration",
-      "lib/pkg/pkg-oauth-connector",
-      "lib/pkg/pkg-oauth-integration",
       "lib/data/db",
-      "lib/data/schema"
+      "lib/data/schema",
+      "site/catalog",
+      "site/v2-session-driver",
+      "tool/cicd/jenkins",
+      "tool/cicd/slack-notification",
+      "lib/aws/aws-waf",
+      "tool/lambda-nuke"
     ]
   }
 }

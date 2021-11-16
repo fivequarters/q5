@@ -1,12 +1,13 @@
 import create_error from 'http-errors';
 import { IncomingHttpHeaders } from 'http';
 
-import { AwsKeyStore, loadFunctionSummary, mintJwtForPermissions } from '@5qtrs/runas';
-import { IRegistryStore } from '@5qtrs/registry';
+import { loadFunctionSummary, mintJwtForPermissions } from '@5qtrs/runas';
+import { AwsRegistry } from '@5qtrs/registry';
 import { IAgent } from '@5qtrs/account-data';
 import * as Constants from '@5qtrs/constants';
 import { createLoggingCtx } from '@5qtrs/runtime-common';
 
+import { keyStore, subscriptionCache } from './globals';
 import * as provider_handlers from './handlers/provider_handlers';
 import * as ratelimit from './middleware/ratelimit';
 import { getResolvedAgent } from './account';
@@ -40,6 +41,7 @@ interface IFunctionSpecification {
     memorySize?: number;
     timeout?: number;
     staticIp?: boolean;
+    persistLogs?: boolean;
   };
   computeSerialized?: string;
   schedule?: {
@@ -57,6 +59,7 @@ interface IFunctionSpecification {
 interface ICreateFunction {
   code: number;
   status?: string;
+  message?: string;
   subscriptionId?: string;
   boundaryId?: string;
   functionId?: string;
@@ -96,14 +99,6 @@ interface IResult {
   end: (body?: string, bodyEncoding?: string) => void;
 }
 
-let keyStore: AwsKeyStore;
-let subscriptionCache: any;
-
-const initFunctions = (ks: AwsKeyStore, sc: any) => {
-  keyStore = ks;
-  subscriptionCache = sc;
-};
-
 const asyncDispatch = async (req: any, handler: any): Promise<any> => {
   const res: IResult = await new Promise((resolve, reject) => {
     const result: IResult = {
@@ -139,10 +134,15 @@ const asyncDispatch = async (req: any, handler: any): Promise<any> => {
 const createFunction = async (
   params: IParams,
   spec: IFunctionSpecification,
-  resolvedAgent: IAgent,
-  registry: IRegistryStore
+  resolvedAgent: IAgent
 ): Promise<ICreateFunction> => {
   const url = new URL(process.env.API_SERVER as string);
+  const subscription = await subscriptionCache.get(params.accountId, params.subscriptionId);
+  if (!subscription) {
+    throw create_error(400, `Unknown account/subscription: ${params.accountId}/${params.subscriptionId}`);
+  }
+
+  const registry = AwsRegistry.create({ accountId: params.accountId, registryId: 'default' });
   const req = {
     protocol: url.protocol.replace(':', ''),
     headers: { host: url.host },
@@ -150,6 +150,7 @@ const createFunction = async (
     body: spec,
     keyStore,
     resolvedAgent,
+    subscription,
     registry,
   };
   const res = await asyncDispatch(req, provider_handlers.lambda.put_function);
@@ -195,28 +196,33 @@ const deleteFunction = async (params: IParams): Promise<any> => {
 
 const checkAuthorization = async (
   accountId: string,
-  functionSummary: string,
-  authToken?: string | undefined,
-  operation?: { operation: string; path: string }
-) => {
-  const authentication = Constants.getFunctionAuthentication(functionSummary);
+  authToken: string | undefined,
+  authentication: string | undefined,
+  subset?: { action: string; resource: string }[],
+  operation?: { action: string; resource: string }
+): Promise<IAgent | undefined> => {
   if (!authentication || authentication === 'none' || (authentication === 'optional' && !authToken)) {
     return undefined;
   }
 
-  const resolvedAgent = await getResolvedAgent(accountId, authToken);
+  try {
+    const resolvedAgent = await getResolvedAgent(accountId, authToken);
 
-  if (operation) {
-    const resource = operation.path;
-    const action = operation.operation;
+    if (operation) {
+      await resolvedAgent.ensureAuthorized(operation.action, operation.resource);
 
-    await resolvedAgent.ensureAuthorized(action, resource);
+      return resolvedAgent;
+    } else if (subset) {
+      await resolvedAgent.checkPermissionSubset({ allow: subset });
+    }
+
+    return resolvedAgent;
+  } catch (error) {
+    if (authentication === 'optional') {
+      return undefined;
+    }
+    throw error;
   }
-
-  const functionAuthz = Constants.getFunctionAuthorization(functionSummary);
-  await resolvedAgent.checkPermissionSubset({ allow: functionAuthz });
-
-  return resolvedAgent;
 };
 
 /*
@@ -238,13 +244,14 @@ const executeFunction = async (
 
   const functionSummary = await loadFunctionSummary(params);
   const functionAuthz = Constants.getFunctionAuthorization(functionSummary);
+  const functionAuthn = Constants.getFunctionAuthentication(functionSummary);
   const functionPerms = Constants.getFunctionPermissions(functionSummary);
 
   // Guarantee a release regardless of the exceptions that occur later by using a finally{} clause to call
   // the releaseRate function.
   const releaseRate = ratelimit.checkRateLimit(sub, params.subscriptionId);
   try {
-    const resolvedAgent = await checkAuthorization(params.accountId, functionSummary, options.token, undefined);
+    const resolvedAgent = await checkAuthorization(params.accountId, options.token, functionAuthn, functionAuthz);
 
     // execute
     const baseUrl = Constants.get_function_location({}, params.subscriptionId, params.boundaryId, params.functionId);
@@ -256,7 +263,7 @@ const executeFunction = async (
     params = { ...params, baseUrl, version: Constants.getFunctionVersion(functionSummary) };
 
     params.functionAccessToken = await mintJwtForPermissions(keyStore, params, functionPerms);
-    params.logs = await createLoggingCtx(keyStore, params, 'https', process.env.LOGS_HOST);
+    params.logs = await createLoggingCtx(keyStore, params, 'https', Constants.API_PUBLIC_HOST);
 
     const req = {
       protocol: parsedUrl.protocol.replace(':', ''),
@@ -287,8 +294,9 @@ export {
   createFunction,
   deleteFunction,
   executeFunction,
-  initFunctions,
+  checkAuthorization,
   waitForFunctionBuild,
   IFunctionSpecification,
   IExecuteFunction,
+  ICreateFunction,
 };

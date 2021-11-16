@@ -89,9 +89,9 @@ export class FusebitDotConfig extends DotConfig {
     return this.readPublicKeyFile(publicKeyPath, name);
   }
 
-  public async setPublicKey(name: string, kid: string, privateKey: string): Promise<void> {
+  public async setPublicKey(name: string, kid: string, publicKey: string): Promise<void> {
     const publicKeyPath = await this.getPublicKeyPath(name, kid);
-    this.writePublicKeyFile(publicKeyPath, privateKey, name);
+    return this.writePublicKeyFile(publicKeyPath, publicKey, name);
   }
 
   public async privateKeyExists(name: string, kid: string): Promise<boolean> {
@@ -111,7 +111,7 @@ export class FusebitDotConfig extends DotConfig {
 
   public async setPrivateKey(name: string, kid: string, privateKey: string): Promise<void> {
     const privateKeyPath = await this.getPrivateKeyPath(name, kid);
-    this.writePrivateKeyFile(privateKeyPath, privateKey, name);
+    return this.writePrivateKeyFile(privateKeyPath, privateKey, name);
   }
 
   public async removeKeyPair(name: string, kid: string): Promise<void> {
@@ -172,10 +172,15 @@ export class FusebitDotConfig extends DotConfig {
     }
   }
 
-  private async writeBinaryFile(path: string, contents: string, fileName: string): Promise<void> {
+  private async writeBinaryFile(
+    path: string,
+    contents: string,
+    fileName: string,
+    options: { mode?: number } = {}
+  ): Promise<void> {
     try {
       const buffer = Buffer.from(contents);
-      await this.writeBinary(path, buffer);
+      await this.writeBinary(path, buffer, options);
     } catch (error) {
       throw FusebitProfileException.writeFileError(fileName, error);
     }
@@ -199,7 +204,7 @@ export class FusebitDotConfig extends DotConfig {
   }
 
   private async writePublicKeyFile(path: string, key: string, name: string): Promise<void> {
-    return this.writeBinaryFile(path, key, `'${name}' public key`);
+    return this.writeBinaryFile(path, key, `'${name}' public key`, { mode: 0o600 });
   }
 
   private async getPrivateKeyPath(name: string, kid: string): Promise<string> {
@@ -208,7 +213,7 @@ export class FusebitDotConfig extends DotConfig {
   }
 
   private async writePrivateKeyFile(path: string, key: string, name: string): Promise<void> {
-    return this.writeBinaryFile(path, key, `'${name}' private key`);
+    return this.writeBinaryFile(path, key, `'${name}' private key`, { mode: 0o600 });
   }
 
   private async removeKeysDirectory(path: string, name: string): Promise<void> {

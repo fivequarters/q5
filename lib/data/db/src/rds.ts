@@ -6,10 +6,10 @@ import { FinalStatementOptions, IDaoCollection, IRds, IRdsCredentials } from './
 import Connector from './daos/connector';
 import Integration from './daos/integration';
 import Storage from './daos/storage';
-import Operation from './daos/operation';
 import Session from './daos/session';
 import Identity from './daos/identity';
-import Instance from './daos/instance';
+import Install from './daos/install';
+import { random } from '@5qtrs/random';
 
 class RDS implements IRds {
   private rdsSdk!: AWS.RDSDataService;
@@ -17,6 +17,15 @@ class RDS implements IRds {
   private purgeInterval!: NodeJS.Timeout;
   private readonly defaultAuroraDatabaseName = 'fusebit';
   private readonly defaultPurgeInterval = 10 * 60 * 1000;
+  private lastHealth = false;
+  private lastHealthExecution: number = new Date(0).getTime();
+  private readonly RDS_HEALTH_CHECK_TTL = 10 * 1000;
+  private readonly RDS_HEALTH_TEST_ACC_ID = 'acc-000000000000';
+  private readonly RDS_HEALTH_TEST_SUB_ID = 'sub-000000000000';
+  private readonly RDS_HEALTH_ENT_ID_PREFIX = 'health-';
+  private readonly RDS_HEALTH_MAX_ACCEPTABLE_TTL = this.RDS_HEALTH_CHECK_TTL + 3 * 1000;
+  private readonly RDS_HEALTH_ENTITY_EXPIRE = 5 * 1000;
+  private healthError: any;
 
   public async purgeExpiredItems(): Promise<boolean> {
     try {
@@ -92,6 +101,56 @@ class RDS implements IRds {
       }
     }
     return { rdsSdk: this.rdsSdk, rdsCredentials: this.rdsCredentials };
+  }
+
+  public updateHealth = async () => {
+    // Queue up the next health check
+    setTimeout(this.updateHealth, this.RDS_HEALTH_CHECK_TTL);
+
+    // Check the ability to read and write to the database
+    const entity = {
+      accountId: this.RDS_HEALTH_TEST_ACC_ID,
+      subscriptionId: this.RDS_HEALTH_TEST_SUB_ID,
+      id: `${this.RDS_HEALTH_ENT_ID_PREFIX}${random({ lengthInBytes: 8 })}`,
+      data: { checked: Date.now() },
+      expires: new Date(Date.now() + this.RDS_HEALTH_ENTITY_EXPIRE).toISOString(),
+    };
+    try {
+      const update = await this.DAO.storage.createEntity(entity);
+      const get = await this.DAO.storage.getEntity(entity);
+
+      // Validate that the write was committed successfully
+      if (update.data && get.data && update.data.checked === get.data.checked) {
+        this.lastHealth = true;
+        this.healthError = null;
+        this.lastHealthExecution = Date.now();
+      } else {
+        throw new Error('RDS ERROR: Failure was detected when trying to insert entity.');
+      }
+    } catch (e) {
+      if (this.lastHealthExecution < entity.data.checked + this.RDS_HEALTH_ENTITY_EXPIRE) {
+        // Only record errors when the last success happened prior to the start time + expiration. This
+        // captures situations where a request goes away for a long time, the subsequent getEntity expires,
+        // but successful tests have happened in between those two points.
+        this.lastHealth = false;
+        this.healthError = e;
+      }
+    }
+  };
+
+  public async ensureRDSLiveliness() {
+    const timeDifference = Date.now() - this.lastHealthExecution;
+    if (!this.lastHealth || !this.lastHealthExecution || timeDifference > this.RDS_HEALTH_MAX_ACCEPTABLE_TTL) {
+      if (this.healthError) {
+        throw this.healthError;
+      }
+
+      if (!this.lastHealthExecution) {
+        throw new Error('RDS ERROR: No successful connection to database');
+      }
+
+      throw new Error(`RDS ERROR: ${timeDifference} exceeded threshold of ${this.RDS_HEALTH_MAX_ACCEPTABLE_TTL}`);
+    }
   }
 
   public async executeStatement(
@@ -213,17 +272,15 @@ class RDS implements IRds {
         connector: this.DAO.connector.createTransactional(transactionId),
         integration: this.DAO.integration.createTransactional(transactionId),
         storage: this.DAO.storage.createTransactional(transactionId),
-        operation: this.DAO.operation.createTransactional(transactionId),
         session: this.DAO.session.createTransactional(transactionId),
         identity: this.DAO.identity.createTransactional(transactionId),
-        instance: this.DAO.instance.createTransactional(transactionId),
+        install: this.DAO.install.createTransactional(transactionId),
       };
 
       const result = await func(transactionalDaos);
       await this.commitTransaction(transactionId);
       return result;
     } catch (e) {
-      console.log(e);
       await this.rollbackTransaction(transactionId);
       throw e;
     }
@@ -233,10 +290,9 @@ class RDS implements IRds {
     connector: new Connector(this),
     integration: new Integration(this),
     storage: new Storage(this),
-    operation: new Operation(this),
     session: new Session(this),
     identity: new Identity(this),
-    instance: new Instance(this),
+    install: new Install(this),
   };
 
   public ensureRecords(

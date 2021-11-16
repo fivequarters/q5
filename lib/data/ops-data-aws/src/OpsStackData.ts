@@ -16,7 +16,6 @@ import { OpsNetworkData } from './OpsNetworkData';
 import { OpsDataAwsProvider } from './OpsDataAwsProvider';
 import { OpsDataAwsConfig } from './OpsDataAwsConfig';
 import { OpsAccountData } from './OpsAccountData';
-import { random } from '@5qtrs/random';
 import { parseElasticSearchUrl } from './OpsElasticSearch';
 import { debug } from './OpsDebug';
 
@@ -86,6 +85,7 @@ export class OpsStackData extends DataSource implements IOpsStackData {
     const awsConfig = await this.provider.getAwsConfigForDeployment(deploymentName, deployment.region);
 
     const size = newStack.size || deployment.size;
+    const segmentKey = deployment.segmentKey;
     const elasticSearch = deployment.elasticSearch;
     const id = await this.getNextStackId(newStack.deploymentName);
 
@@ -120,6 +120,7 @@ export class OpsStackData extends DataSource implements IOpsStackData {
         tag,
         id,
         amiId,
+        segmentKey,
         elasticSearch,
         newStack.env
       ),
@@ -174,7 +175,7 @@ export class OpsStackData extends DataSource implements IOpsStackData {
     const deployment = await this.deploymentData.get(deploymentName, region);
 
     if (!force) {
-      const stacks = await this.tables.stackTable.listAll(deploymentName);
+      const stacks = await this.tables.stackTable.listAll({ deploymentName, region });
       let activeStacks = [];
       for (const stack of stacks) {
         if (stack.active) {
@@ -227,8 +228,8 @@ export class OpsStackData extends DataSource implements IOpsStackData {
     return this.tables.stackTable.list(options);
   }
 
-  public async listAll(deploymentName?: string): Promise<IOpsStack[]> {
-    return this.tables.stackTable.listAll(deploymentName);
+  public async listAll(options?: IListOpsStackOptions): Promise<IOpsStack[]> {
+    return this.tables.stackTable.listAll(options);
   }
 
   private getAutoScaleName(id: number) {
@@ -236,7 +237,7 @@ export class OpsStackData extends DataSource implements IOpsStackData {
   }
 
   private async getNextStackId(deploymentName: string): Promise<number> {
-    const stacks = await this.tables.stackTable.listAll(deploymentName);
+    const stacks = await this.tables.stackTable.listAll({ deploymentName });
     let nextStackId = Math.floor(Math.random() * 1000);
     while (stackIdIsUsed(nextStackId, stacks)) {
       nextStackId = Math.floor(Math.random() * 1000);
@@ -300,6 +301,7 @@ systemctl start docker.fusebit`;
     tag: string,
     id: number,
     amiId: string,
+    segmentKey: string,
     elasticSearch: string,
     env?: string
   ) {
@@ -314,6 +316,9 @@ SERVICE_ROLE=${this.config.arnPrefix}:iam::${account}:role/${this.config.monoIns
 LAMBDA_BUILDER_ROLE=${this.config.arnPrefix}:iam::${account}:role/${this.config.builderRoleName}
 LAMBDA_MODULE_BUILDER_ROLE=${this.config.arnPrefix}:iam::${account}:role/${this.config.builderRoleName}
 LAMBDA_USER_FUNCTION_ROLE=${this.config.arnPrefix}:iam::${account}:role/${this.config.functionRoleName}
+LAMBDA_USER_FUNCTION_PERMISSIONLESS_ROLE=${this.config.arnPrefix}:iam::${account}:role/${
+      this.config.functionPermissionlessRoleName
+    }
 LAMBDA_VPC_SUBNETS=${subnetIds.join(',')}
 LAMBDA_VPC_SECURITY_GROUPS=${securityGroupIds.join(',')}
 CRON_QUEUE_URL=https://sqs.${region}.amazonaws.com/${account}/${deploymentName}-cron
@@ -321,6 +326,12 @@ API_STACK_VERSION=${tag}
 API_STACK_ID=${id}
 API_STACK_AMI=${amiId}
 `;
+
+    if (segmentKey) {
+      r += `
+SEGMENT_KEY=${segmentKey}
+`;
+    }
 
     let esCreds = parseElasticSearchUrl(elasticSearch);
     if (esCreds) {

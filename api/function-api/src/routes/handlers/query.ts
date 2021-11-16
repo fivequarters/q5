@@ -1,12 +1,39 @@
 import { Request } from 'express';
+import assert from 'assert';
+import http_error from 'http-errors';
 
-const tags = (req: Request) => {
-  const results: { [key: string]: string } = {};
-  if (typeof req.query.tag === 'string' && req.query.tag.length) {
-    const [tagKey, tagValue] = req.query.tag.split('=');
-    results[tagKey] = tagValue;
+const tag = (req: Request) => {
+  const results: { tags?: { [key: string]: string } } = {};
+
+  if (!req.query.tag) {
+    return results;
   }
-  return { tags: results };
+
+  let tagArray: string[];
+  if (Array.isArray(req.query.tag)) {
+    assertsStringArray(req.query.tag);
+    tagArray = req.query.tag;
+  } else {
+    if (typeof req.query.tag !== 'string') {
+      throw http_error(400, 'Incorrect query param value for "tag"');
+    }
+    tagArray = [req.query.tag];
+  }
+
+  results.tags = tagArray.reduce<Record<string, string>>((acc, cur) => {
+    const [tagKey, tagValue] = cur.split('=');
+    acc[tagKey] = tagValue;
+    return acc;
+  }, {});
+  return results;
+};
+
+const assertsStringArray: (array: any[]) => asserts array is string[] = (array) => {
+  array.forEach((item: any) => {
+    if (typeof item !== 'string') {
+      throw http_error(400, 'Incorrect query param value for "tag"');
+    }
+  });
 };
 
 const idPrefix = (req: Request): { idPrefix?: string } => {
@@ -24,4 +51,4 @@ const version = (req: Request) => {
   return {};
 };
 
-export default { tags, idPrefix, listPagination, version };
+export default { tag, idPrefix, listPagination, version };

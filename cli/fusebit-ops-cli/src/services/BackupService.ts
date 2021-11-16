@@ -112,6 +112,9 @@ export class BackupService {
                 RuleName: 'FusebitBackupPlan',
                 TargetBackupVaultName: backupPlanName,
                 ScheduleExpression: `cron(${backupPlanSchedule})`,
+                Lifecycle: {
+                  DeleteAfterDays: 90,
+                },
               },
             ],
           },
@@ -126,6 +129,11 @@ export class BackupService {
             IamRoleArn: `arn:aws:iam::${this.config.account}:role/fusebit-backup-role`,
             SelectionName: 'DynamoDB',
             ListOfTags: [
+              {
+                ConditionKey: 'fusebit-backup-enabled',
+                ConditionType: 'STRINGEQUALS',
+                ConditionValue: 'true',
+              },
               {
                 ConditionKey: 'account',
                 ConditionType: 'STRINGEQUALS',
@@ -170,7 +178,7 @@ export class BackupService {
     const regions = await this.findAllRegionsWithDeployments(this.credentials, this.config);
     for (const region of regions) {
       const BackupPlanIdIfExists = await this.getBackupIdByName(this.credentials, region, backupPlanName);
-      if (BackupPlanIdIfExists === undefined) {
+      if (BackupPlanIdIfExists === '') {
         continue;
       }
       const Backup = await this.getAwsBackupClient(region);
@@ -190,13 +198,23 @@ export class BackupService {
       await Backup.deleteBackupPlan({
         BackupPlanId: BackupPlanIdIfExists as string,
       }).promise();
-      try {
-        await Backup.deleteBackupVault({
-          BackupVaultName: backupPlanName as string,
+      do {
+        const backupsToRemove = await Backup.listRecoveryPointsByBackupVault({
+          BackupVaultName: backupPlanName,
         }).promise();
-      } catch (e) {
-        this.input.io.writeLine('Vault still have backups, this will require manual intervention.');
-      }
+        for (const backup of backupsToRemove.RecoveryPoints as AWS.Backup.RecoveryPointByBackupVaultList) {
+          await Backup.deleteRecoveryPoint({
+            BackupVaultName: backupPlanName,
+            RecoveryPointArn: backup.RecoveryPointArn as string,
+          }).promise();
+        }
+        if (!backupsToRemove.NextToken) {
+          break;
+        }
+      } while (true);
+      await Backup.deleteBackupVault({
+        BackupVaultName: backupPlanName as string,
+      }).promise();
     }
   }
 

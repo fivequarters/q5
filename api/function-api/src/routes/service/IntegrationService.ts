@@ -7,27 +7,30 @@ import SessionedEntityService from './SessionedEntityService';
 import { defaultFrameworkSemver } from './BaseEntityService';
 
 const defaultIntegrationJs = [
-  "const { Router, Manager, Form } = require('@fusebit-int/framework');",
+  "const { Integration } = require('@fusebit-int/framework');",
   '',
-  'const router = new Router();',
+  'const integration = new Integration();',
+  'const router = integration.router;',
   '',
   "router.get('/api/', async (ctx) => {",
   "  ctx.body = 'Hello World';",
   '});',
   '',
-  'module.exports = router;',
+  'module.exports = integration;',
 ].join('\n');
 
 const defaultPackageJson = (entityId: string) => ({
   scripts: { deploy: `fuse integration deploy ${entityId} -d .`, get: `fuse integration get ${entityId} -d .` },
-  dependencies: { ['@fusebit-int/framework']: defaultFrameworkSemver },
+  dependencies: {
+    '@fusebit-int/framework': defaultFrameworkSemver,
+  },
   files: ['./integration.js'], // Make sure the default file is included, if nothing else.
 });
 
 const defaultIntegration: Model.IIntegrationData = {
   files: {
-    ['integration.js']: defaultIntegrationJs,
-    ['package.json']: JSON.stringify(defaultPackageJson('sampleIntegration'), null, 2),
+    'integration.js': defaultIntegrationJs,
+    'package.json': JSON.stringify(defaultPackageJson('sampleIntegration'), null, 2),
   },
   handler: './integration',
   configuration: {},
@@ -37,10 +40,10 @@ const defaultIntegration: Model.IIntegrationData = {
 
 const selfEntityIdReplacement = '{{integration}}';
 
-class IntegrationService extends SessionedEntityService<Model.IIntegration, Model.IInstance> {
+class IntegrationService extends SessionedEntityService<Model.IIntegration, Model.IInstall> {
   public readonly entityType: Model.EntityType;
   constructor() {
-    super(RDS.DAO.integration, RDS.DAO.instance);
+    super(RDS.DAO.integration, RDS.DAO.install);
     this.entityType = Model.EntityType.integration;
   }
 
@@ -81,13 +84,13 @@ class IntegrationService extends SessionedEntityService<Model.IIntegration, Mode
       // Validate DAG of 'dependsOn' parameters.
       comp.dependsOn.forEach((dep: string) => {
         if (!dagList[dep]) {
-          throw http_error(400, `Ordering violation: 'uses' in '${comp.name}' for '${dep}' before declaration.`);
+          throw http_error(400, `Ordering violation: 'dependsOn' in '${comp.name}' for '${dep}' before declaration.`);
         }
       });
 
       // Make sure packages mentioned in the cfg.connectors block are also included.
-      if (comp.package) {
-        pkg.dependencies[comp.package] = pkg.dependencies[comp.package] || '*';
+      if (comp.provider) {
+        pkg.dependencies[comp.provider] = pkg.dependencies[comp.provider] || '*';
       }
 
       // Substitute the selfEntityIdReplacement for the current integration id.
@@ -102,30 +105,44 @@ class IntegrationService extends SessionedEntityService<Model.IIntegration, Mode
     return entity;
   };
 
-  public getFunctionSecuritySpecification = () => ({
-    authentication: 'optional',
-    functionPermissions: {
-      allow: [
-        {
-          action: Permissions.allStorage,
-          resource: '/account/{{accountId}}/subscription/{{subscriptionId}}/storage/{{boundaryId}/{{functionId}}/',
-        },
-        {
-          action: v2Permissions.putSession,
-          resource: '/account/{{accountId}}/subscription/{{subscriptionId}}/{{boundaryId}/{{functionId}}/session/',
-        },
-        {
-          action: v2Permissions.getSessionResult,
-          resource:
-            '/account/{{accountId}}/subscription/{{subscriptionId}}/{{boundaryId}/{{functionId}}/session/result/',
-        },
-        {
-          action: v2Permissions.getSession,
-          resource: '/account/{{accountId}}/subscription/{{subscriptionId}}/{{boundaryId}/{{functionId}}/session/',
-        },
-      ],
-    },
-  });
+  public getFunctionSecuritySpecification = (entity: Model.IEntity) => {
+    const integ = entity as Model.IIntegration;
+
+    const permissions = {
+      authentication: 'optional',
+      functionPermissions: {
+        allow: [
+          {
+            action: Permissions.allStorage,
+            resource: '/account/{{accountId}}/subscription/{{subscriptionId}}/storage/integration/{{functionId}}/',
+          },
+          {
+            action: v2Permissions.updateSession,
+            resource: '/account/{{accountId}}/subscription/{{subscriptionId}}/integration/{{functionId}}/session/',
+          },
+          {
+            action: v2Permissions.getSession,
+            resource: '/account/{{accountId}}/subscription/{{subscriptionId}}/integration/{{functionId}}/session/',
+          },
+          {
+            action: v2Permissions.install.all,
+            resource: '/account/{{accountId}}/subscription/{{subscriptionId}}/integration/{{functionId}}/',
+          },
+        ],
+      },
+    };
+
+    // Allow an integration to use connector:execute on it's associated connectors.
+    integ.data.components
+      .filter((component) => component.entityType === Model.EntityType.connector)
+      .forEach((component) => {
+        permissions.functionPermissions.allow.push({
+          action: v2Permissions.connector.execute,
+          resource: `/account/{{accountId}}/subscription/{{subscriptionId}}/connector/${component.entityId}/`,
+        });
+      });
+    return permissions;
+  };
 }
 
 export default IntegrationService;

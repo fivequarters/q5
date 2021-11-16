@@ -1,5 +1,5 @@
-import express from 'express';
 const fusetunnel = require('@fusebit/tunnel');
+import Http from 'http';
 
 const startTunnel = async (serverPort: number, lastDomain?: string) => {
   const tunnel = await fusetunnel({
@@ -12,18 +12,37 @@ const startTunnel = async (serverPort: number, lastDomain?: string) => {
   return { tunnel, subdomain };
 };
 
-const startHttpServer = (port: number): any => {
-  const app = express();
-
-  app.use(express.json());
-
-  const listen = async () => {
-    return new Promise((resolve) => {
-      const svc = app.listen(port, () => resolve(svc));
+const startHttpServer = async (jsonHandler: (req: any) => Promise<any>): Promise<number> => {
+  return new Promise((resolve, reject) => {
+    const server = Http.createServer(async (req, res) => {
+      let hasError = false;
+      const error = (status: number, message: string) => {
+        if (hasError) {
+          return;
+        }
+        hasError = true;
+        console.log('E: ', status, message);
+        res.writeHead(status, { 'content-type': 'application/json' });
+        res.end(JSON.stringify({ status, message }));
+      };
+      let data = '';
+      req.on('data', (c) => (data += c));
+      req.on('end', async () => {
+        let json;
+        try {
+          json = JSON.parse(data);
+        } catch (e) {
+          return error(400, `Request is not valid JSON: '${data}'`);
+        }
+        const result = await jsonHandler(json);
+        res.writeHead(200, { 'content-type': 'application/json' });
+        res.end(JSON.stringify(result));
+      });
+      req.on('error', (e) => error(501, `Error processing the request: ${e.stack || e.message}`));
     });
-  };
-
-  return { app, listen };
+    // @ts-ignore
+    server.listen(0, (e) => (e ? reject(e) : resolve(server.address().port)));
+  });
 };
 
 export { startTunnel, startHttpServer };

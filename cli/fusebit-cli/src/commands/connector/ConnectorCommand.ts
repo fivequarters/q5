@@ -7,6 +7,8 @@ import { ConnectorGetCommand } from './ConnectorGetCommand';
 import { ConnectorListCommand } from './ConnectorListCommand';
 import { ConnectorLogCommand } from './ConnectorLogCommand';
 import { ConnectorRemoveCommand } from './ConnectorRemoveCommand';
+import { IdentityCommand } from './identity/IdentityCommand';
+import { FeedCommand, IFeedOptions, FeedTypes } from '../feed';
 
 // ------------------
 // Internal Constants
@@ -27,7 +29,20 @@ const command: ICommand = {
       description: 'The name of the profile to use when executing the command',
       defaultText: 'default profile',
     },
+    {
+      name: 'subscription',
+      description: 'The subscription id to use when executing the command',
+      defaultText: 'profile value',
+    },
   ],
+};
+
+const feedOptions: IFeedOptions = {
+  singular: 'connector',
+  capitalSingular: 'Connector',
+  plural: 'connectors',
+  capitalPlural: 'Connectors',
+  feedKey: FeedTypes.connector,
 };
 
 // ------------------
@@ -38,10 +53,12 @@ async function getSubCommands() {
   const subCommands = [];
   subCommands.push(await ConnectorInitCommand.create());
   subCommands.push(await ConnectorDeployCommand.create());
+  subCommands.push(await FeedCommand.create(feedOptions));
   subCommands.push(await ConnectorGetCommand.create());
   subCommands.push(await ConnectorListCommand.create());
   subCommands.push(await ConnectorLogCommand.create());
   subCommands.push(await ConnectorRemoveCommand.create());
+  subCommands.push(await IdentityCommand.create());
   return subCommands;
 }
 

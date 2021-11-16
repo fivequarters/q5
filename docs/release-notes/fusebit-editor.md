@@ -17,6 +17,36 @@ All public releases of the Fusebit editor are documented here, including notable
 <!-- 1. TOC
 {:toc} -->
 
+## Version 2.2.1
+
+_Released 10/01/21_
+
+- **Enhancement.** Update Monaco editor to v0.28.1
+
+## Version 2.1.1
+
+_Released 9/30/21_
+
+- **Bugfix.** Remove wordBasedSuggestions settings that was breaking the editor autocomplete experience
+
+## Version 2.1.0
+
+_Released 9/28/21_
+
+- **Enhancement.** Improve IntelliSense support for SDK libraries, integrations and npm packages
+
+## Version 2.0.3
+
+_Released 9/2/21_
+
+- **Enhancement.** Upgrade superagent.
+
+## Version 2.0.1
+
+_Released 7/9/21_
+
+- **Enhancement.** Support for v2 component editing.
+
 ## Version 1.5.0
 
 _Released 3/29/21_

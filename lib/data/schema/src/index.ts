@@ -5,15 +5,49 @@
 export enum EntityType {
   integration = 'integration',
   connector = 'connector',
-  operation = 'operation',
   storage = 'storage',
-  instance = 'instance',
+  install = 'install',
   identity = 'identity',
   session = 'session',
 }
 
+export enum EntityState {
+  creating = 'creating',
+  invalid = 'invalid',
+  active = 'active',
+}
+
+export enum OperationType {
+  creating = 'creating',
+  updating = 'updating',
+  deleting = 'deleting',
+}
+
+export enum OperationStatus {
+  success = 'success',
+  failed = 'failed',
+  processing = 'processing',
+}
+
+export enum OperationErrorCode {
+  OK = 'OK',
+  InvalidParameterValue = 'InvalidParameterValue',
+  UnauthorizedOperation = 'UnauthorizedOperation',
+  VersionConflict = 'VersionConflict',
+  InternalError = 'InternalError',
+  RequestLimitExceeded = 'RequestLimitExceeded',
+}
+
+export interface IOperationState {
+  operation: OperationType;
+  status: OperationStatus;
+  message?: string;
+  errorCode?: OperationErrorCode;
+  errorDetails?: any;
+}
+
 export interface ITags {
-  [key: string]: string;
+  [key: string]: string | null;
 }
 
 export interface ITagsWithVersion {
@@ -39,14 +73,19 @@ export interface IEntityId extends IEntitySelectAbstract {
 export interface IEntityPrefix extends IEntitySelectAbstract {
   id?: string;
   idPrefix?: string;
+  state?: EntityState;
 }
 
-// Data needed for inserts
 export interface IEntity extends IEntityId {
   tags?: ITags;
   data?: any;
   expires?: string;
+  state?: EntityState;
+  operationState?: IOperationState;
+  dateAdded?: string;
+  dateModified?: string;
 }
+
 export interface IEntityKeyTagSet extends IEntityId {
   tagKey: string;
   tagValue?: string;
@@ -71,6 +110,10 @@ export interface ISdkEntity {
   data?: any;
   expires?: string;
   version?: string;
+  state?: EntityState;
+  operationState?: IOperationState;
+  dateAdded?: string;
+  dateModified?: string;
 }
 
 export interface ISubordinateId {
@@ -92,7 +135,13 @@ export interface IIntegrationComponent {
   skip?: boolean;
   path?: string;
   dependsOn: string[];
-  package?: string; // Great opportunity for a conditional type, in the future.
+  provider?: string; // Great opportunity for a conditional type, in the future.
+}
+
+export interface IIntegrationSchedule {
+  cron: string;
+  timezone: string;
+  endpoint: string;
 }
 
 export interface IIntegrationData {
@@ -101,6 +150,7 @@ export interface IIntegrationData {
   configuration: Record<string, any>;
   componentTags: Record<string, string>;
   components: IIntegrationComponent[];
+  schedule?: IIntegrationSchedule[];
 }
 
 export interface IIntegration extends IEntity {
@@ -124,7 +174,7 @@ export interface IOperation extends IEntity {
   data: {
     verb: 'creating' | 'updating' | 'deleting';
     type: EntityType;
-    code: number; // HTTP status codes
+    statusCode: number; // HTTP status codes
     message?: string;
     payload?: any;
     location: {
@@ -142,6 +192,7 @@ export interface ISessionParameters {
   extendTags: boolean;
   input?: Record<string, any>;
   redirectUrl: string;
+  installId?: string;
 }
 
 export interface IStep extends IIntegrationComponent {
@@ -162,7 +213,9 @@ export interface ITrunkSessionData {
 
   components: IStep[];
 
-  // Instance created as a result of a session POST.
+  replacementTargetId?: string;
+
+  // Install created as a result of a session POST.
   output?: {
     accountId: string;
     subscriptionId: string;
@@ -179,6 +232,7 @@ export interface ITrunkSession extends IEntity {
 }
 
 export interface ILeafSessionData extends Omit<IStep, 'uses' | 'childSessionId' | 'dependsOn'> {
+  replacementTargetId?: string;
   mode: SessionMode.leaf;
   dependsOn: Record<string, object>;
   parentId: string;
@@ -198,6 +252,6 @@ export interface IIdentity extends IEntity {
   data: any;
 }
 
-export interface IInstance extends IEntity {
+export interface IInstall extends IEntity {
   data: any;
 }

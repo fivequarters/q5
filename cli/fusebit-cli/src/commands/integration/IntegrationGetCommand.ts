@@ -10,12 +10,12 @@ import { Text } from '@5qtrs/text';
 const command = {
   name: 'Get Integration',
   cmd: 'get',
-  summary: 'Get a integration',
-  description: Text.create('Get a integration and place it into the target directory.'),
+  summary: 'Get an integration',
+  description: Text.create('Get an integration and place it into the target directory.'),
   arguments: [
     {
       name: 'integration',
-      description: 'The id of the integration to deploy',
+      description: 'The id of the integration to get',
       required: true,
     },
   ],
@@ -54,7 +54,6 @@ export class IntegrationGetCommand extends Command {
 
     if (destDir) {
       const destPath = join(process.cwd(), destDir);
-
       await integrationService.writeDirectory(destPath, integration);
     } else {
       await integrationService.displayEntities([integration], true);

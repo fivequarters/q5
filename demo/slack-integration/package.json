@@ -1,0 +1,10 @@
+{
+  "scripts": {
+    "deploy": "fuse integration deploy sampleIntegration -d .",
+    "get": "fuse integration get sampleIntegration -d ."
+  },
+  "dependencies": {
+    "@fusebit-int/framework": "4.0.1"
+  },
+  "files": ["./integration.js"]
+}

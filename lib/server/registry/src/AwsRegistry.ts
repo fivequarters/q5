@@ -14,6 +14,8 @@ import {
   IRegistryEvents,
 } from './Registry';
 
+import { Request, Response } from 'express';
+
 const s3Path = 'registry/npm';
 
 type ExpressHandler = (reqExpress: Request, res: Response, next: any) => any;
@@ -326,7 +328,9 @@ class AwsRegistry implements IRegistryStore {
       objects: manifests.map((manifest) => ({ package: manifest })),
       total: items.length,
       time: new Date().toUTCString(),
-      next: result.LastEvaluatedKey,
+      next: result.LastEvaluatedKey
+        ? Buffer.from(JSON.stringify(result.LastEvaluatedKey), 'utf8').toString('base64')
+        : undefined,
     };
   }
 

@@ -6,5 +6,6 @@ export { AgentService } from './AgentService';
 export { VersionService } from './VersionService';
 export { ConnectorService } from './ConnectorService';
 export { IntegrationService } from './IntegrationService';
-export { OperationService } from './OperationService';
 export { StorageService } from './StorageService';
+export { LogService } from './LogService';
+export { FeedService } from './FeedService';

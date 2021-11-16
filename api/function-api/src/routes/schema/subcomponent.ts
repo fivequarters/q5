@@ -1,8 +1,7 @@
 import express from 'express';
 
-import { v4 as uuidv4 } from 'uuid';
-
-import { v2Permissions } from '@5qtrs/constants';
+import { IAgent } from '@5qtrs/account-data';
+import { createUniqueIdentifier, v2Permissions } from '@5qtrs/constants';
 import RDS, { Model } from '@5qtrs/db';
 
 import * as common from '../middleware/common';
@@ -22,13 +21,10 @@ const subcomponentRouter = (
 ) => {
   const router = express.Router({ mergeParams: true });
 
-  const createPath = (endpoint: string = '') => {
-    return `/:${idParamNames[0]}/${service.entityType}/:${idParamNames[1]}${endpoint || ''}`;
-  };
-
   router.use(analytics.setModality(analytics.Modes.Administration));
   router
     .route(`/:entityId/${service.entityType}`)
+    .options(common.cors())
     .get(
       common.management({
         validate: { params: Validation.EntityIdParams, query: Validation.EntityIdQuery },
@@ -36,7 +32,7 @@ const subcomponentRouter = (
       }),
       async (req: express.Request, res: express.Response, next: express.NextFunction) => {
         try {
-          // Fetch the parent, to filter for instances under this connector.
+          // Fetch the parent, to filter for entities under this parent.
           const parentEntity = await RDS.DAO[parentEntityType].getEntity({
             accountId: req.params.accountId,
             subscriptionId: req.params.subscriptionId,
@@ -46,7 +42,7 @@ const subcomponentRouter = (
           const response = await service.dao.listEntities(
             {
               ...{ accountId: req.params.accountId, subscriptionId: req.params.subscriptionId },
-              ...query.tags(req),
+              ...query.tag(req),
               ...{ idPrefix: `/${parentEntityType}/${parentEntity.__databaseId}/` },
             },
             {
@@ -61,12 +57,16 @@ const subcomponentRouter = (
     )
     .post(
       common.management({
-        validate: { params: Validation.EntityIdParams, body: Validation[service.entityType].Entity },
-        authorize: { operation: v2Permissions[service.entityType].put },
+        validate: { params: Validation.EntityIdParams, body: Validation.Entities[service.entityType].Entity },
+        authorize: { operation: v2Permissions[service.entityType].add },
       }),
-      async (req: express.Request, res: express.Response, next: express.NextFunction) => {
+      async (req: express.Request & { resolvedAgent?: IAgent }, res: express.Response, next: express.NextFunction) => {
         try {
-          // Fetch the parent, to filter for instances under this connector.
+          // Thanks Typescript :/
+          if (!req.resolvedAgent) {
+            throw new Error('missing agent');
+          }
+          // Fetch the parent, to filter for entities under this parent.
           const parentEntity = await RDS.DAO[parentEntityType].getEntity({
             accountId: req.params.accountId,
             subscriptionId: req.params.subscriptionId,
@@ -75,17 +75,25 @@ const subcomponentRouter = (
           const leafEntity = {
             accountId: req.params.accountId,
             subscriptionId: req.params.subscriptionId,
-            id: Model.createSubordinateId(parentEntityType, parentEntity.__databaseId as string, uuidv4()),
+            id: Model.createSubordinateId(
+              parentEntityType,
+              parentEntity.__databaseId as string,
+              createUniqueIdentifier(service.entityType)
+            ),
             data: req.body.data,
             tags: { ...req.body.tags },
           };
-          const { statusCode, result } = await service.createEntity(leafEntity);
+          const { statusCode, result } = await service.createEntity(req.resolvedAgent, leafEntity);
           res.status(statusCode).json(Model.entityToSdk(result));
         } catch (e) {
           next(e);
         }
       }
     );
+
+  const createPath = (endpoint: string = '') => {
+    return `/:${idParamNames[0]}/${service.entityType}/:${idParamNames[1]}${endpoint || ''}`;
+  };
 
   router.use(createPath('/tag'), CommonTagRouter(service, idParamNames));
   router.use(createPath(), CommonCrudRouter(service, idParamNames));
