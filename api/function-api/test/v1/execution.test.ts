@@ -48,7 +48,8 @@ describe('Execution', () => {
     expect(response).toBeHttp({ statusCode: 200 });
     expect(response.data).toEqual('function');
     expect(response.headers['x-fx-response-source']).toEqual('function');
-  }, 15000);
+  }, 180000);
+
   test('Lambda times out after 2 minutes with same return code as normal timeouts', async () => {
     const helloWorldThatTimesOut = {
       nodejs: {
@@ -64,7 +65,8 @@ describe('Execution', () => {
     expect(response).toBeHttp({ statusCode: 200 });
     const triggerResponse = await request(response.data.location);
     expect(triggerResponse).toBeHttp({ statusCode: 522 });
-  }, 140000);
+  }, 180000);
+
   test('function context APIs work as expected', async () => {
     const reflectContext = {
       nodejs: {
@@ -99,7 +101,7 @@ describe('Execution', () => {
       functionId: function1Id,
     });
     expect(response.headers['x-fx-response-source']).toEqual('function');
-  });
+  }, 180000);
 
   test('function can set response status code', async () => {
     let response = await putFunction(account, boundaryId, function1Id, {
@@ -189,7 +191,7 @@ describe('Execution', () => {
     expect(response).toBeHttp({ statusCode: 200 });
     expect(response.data).toEqual('function');
     expect(response.headers['x-fx-response-source']).toEqual('function');
-  }, 15000);
+  }, 180000);
 
   test('function with syntax error fails', async () => {
     let response = await putFunction(account, boundaryId, function1Id, {
@@ -213,7 +215,7 @@ describe('Execution', () => {
         // stackTrace: expect.any(Array),
       },
     });
-  }, 15000);
+  }, 180000);
 
   test('function with global exception fails', async () => {
     let response = await putFunction(account, boundaryId, function1Id, {
@@ -438,7 +440,7 @@ describe('Execution', () => {
       data: params,
     });
     expect(response).toBeHttp({ statusCode: 200, data: { test: '123' } });
-  });
+  }, 180000);
 
   test('function with payload above limit fails (x-www-form-encoded)', async () => {
     const response = await putFunction(account, boundaryId, function1Id, {
