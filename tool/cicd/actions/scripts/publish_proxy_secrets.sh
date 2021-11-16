@@ -37,7 +37,7 @@ GITHUB_OAUTH_SECRET_PAYLOAD="{\"data\":{\"clientId\":\"${PROXY_GITHUB_OAUTH_CLIE
 
 GITHUB_APP_SECRET_PAYLOAD="{\"data\":{\"clientId\":\"${PROXY_GITHUB_APP_CLIENT_ID}\",\"clientSecret\":\"${PROXY_GITHUB_APP_CLIENT_SECRET}\",\"authorizationUrl\":\"https://github.com/login/oauth/authorize\",\"tokenUrl\":\"https://github.com/login/oauth/access_token\",\"revokeUrl\":\"https://api.github.com/applications/CLIENT_ID/token\"}}"
 
-ATLASSIAN_SECRET_PAYLOAD="{\"data\":{\"clientId\":\"${PROXY_ATLASSIAN_CLIENT_ID}\",\"clientSecret\":\"${PROXY_ATLASSIAN_CLIENT_SECRET}\",\"authorizationUrl\":\"https://auth.atlassian.com/oauth/authorize\",\"tokenUrl\":\"https://auth.atlassian.com/oauth/token\",\"revokeUrl\":\"https://auth.atlassian.com/oauth/revoke\"}}"
+ATLASSIAN_SECRET_PAYLOAD="{\"data\":{\"clientId\":\"${PROXY_ATLASSIAN_CLIENT_ID}\",\"clientSecret\":\"${PROXY_ATLASSIAN_CLIENT_SECRET}\",\"authorizationUrl\":\"https://auth.atlassian.com/authorize\",\"tokenUrl\":\"https://auth.atlassian.com/oauth/token\",\"revokeUrl\":\"https://auth.atlassian.com/oauth/revoke\"}}"
 
 PAGERDUTY_SECRET_PAYLOAD="{\"data\":{\"clientId\":\"${PROXY_PAGERDUTY_CLIENT_ID}\",\"clientSecret\":\"${PROXY_PAGERDUTY_CLIENT_SECRET}\",\"authorizationUrl\":\"https://app.pagerduty.com/oauth/authorize\",\"tokenUrl\":\"https://app.pagerduty.com/oauth/token\",\"revokeUrl\":\"https://app.pagerduty.com/oauth/revoke\"}}"
 
