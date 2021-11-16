@@ -389,7 +389,7 @@
           "baseUrl": "https://api.us-east-1.fusebit.io",
           "account": "acc-623ce3c83b714e83",
           "subscription": "sub-9ba7de8cf9054018",
-          "catalog": "/catalog-empty.json",
+          "catalog": "https://api.us-east-1.fusebit.io/v1/run/sub-9ba7de8cf9054018/internal/config",
           "oauth": {
             "webAuthorizationUrl": "https://fusebit.auth0.com/authorize",
             "webClientId": "hSgWIXmbluQMADuWhDnRTpWyKptJe6LB",
