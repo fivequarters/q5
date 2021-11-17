@@ -41,6 +41,8 @@ ATLASSIAN_SECRET_PAYLOAD="{\"data\":{\"clientId\":\"${PROXY_ATLASSIAN_CLIENT_ID}
 
 PAGERDUTY_SECRET_PAYLOAD="{\"data\":{\"clientId\":\"${PROXY_PAGERDUTY_CLIENT_ID}\",\"clientSecret\":\"${PROXY_PAGERDUTY_CLIENT_SECRET}\",\"authorizationUrl\":\"https://app.pagerduty.com/oauth/authorize\",\"tokenUrl\":\"https://app.pagerduty.com/oauth/token\",\"revokeUrl\":\"https://app.pagerduty.com/oauth/revoke\"}}"
 
+ASANA_SECRET_PAYLOAD="{\"data\":{\"clientId\":\"${PROXY_ASANA_CLIENT_ID}\",\"clientSecret\":\"${PROXY_ASANA_CLIENT_SECRET}\",\"authorizationUrl\":\"https://app.asana.com/-/oauth_authorize\",\"tokenUrl\":\"https://app.asana.com/-/oauth_token\",\"revokeUrl\":\"https://app.asana.com/-/oauth_revoke\"}}"
+
 # Publish to the designated accounts
 for PROFILE in ${PROXY_SECRET_PUBLISH_PROFILE_LIST}; do
   ./tool/cicd/actions/scripts/set_fuse_profile.sh ${PROFILE}
@@ -52,4 +54,5 @@ for PROFILE in ${PROXY_SECRET_PUBLISH_PROFILE_LIST}; do
   echo ${GITHUB_APP_SECRET_PAYLOAD} | fuse storage put - --storageId proxy/githubapp/configuration
   echo ${ATLASSIAN_SECRET_PAYLOAD} | fuse storage put - --storageId proxy/atlassian/configuration
   echo ${PAGERDUTY_SECRET_PAYLOAD} | fuse storage put - --storageId proxy/pagerduty/configuration
+  echo ${ASANA_SECRET_PAYLOAD} | fuse storage put - --storageId proxy/asana/configuration
 done
