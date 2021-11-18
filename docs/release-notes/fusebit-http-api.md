@@ -17,6 +17,12 @@ All public releases of the Fusebit HTTP API are documented here, including notab
 <!-- 1. TOC
 {:toc} -->
 
+## Version 1.29.2
+
+_Released 11/16/21_
+
+- **BugFix.** Allow integrations with no associated connectors.
+
 ## Version 1.29.1
 
 _Released 11/15/21_
