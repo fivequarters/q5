@@ -105,35 +105,25 @@ class IntegrationService extends SessionedEntityService<Model.IIntegration, Mode
     return entity;
   };
 
-  public getFunctionSecuritySpecification = (entity: Model.IEntity) => {
-    const integ = entity as Model.IIntegration;
+  public getFunctionSecuritySpecification = (entity: Model.IIntegration) => {
+    const resStorage = `/account/{{accountId}}/subscription/{{subscriptionId}}/storage/${this.entityType}/{{functionId}}/`;
+    const resEntity = `/account/{{accountId}}/subscription/{{subscriptionId}}/${this.entityType}/{{functionId}}/`;
+    const resSession = `${resEntity}session/`;
 
     const permissions = {
       authentication: 'optional',
       functionPermissions: {
         allow: [
-          {
-            action: Permissions.allStorage,
-            resource: '/account/{{accountId}}/subscription/{{subscriptionId}}/storage/integration/{{functionId}}/',
-          },
-          {
-            action: v2Permissions.updateSession,
-            resource: '/account/{{accountId}}/subscription/{{subscriptionId}}/integration/{{functionId}}/session/',
-          },
-          {
-            action: v2Permissions.getSession,
-            resource: '/account/{{accountId}}/subscription/{{subscriptionId}}/integration/{{functionId}}/session/',
-          },
-          {
-            action: v2Permissions.install.all,
-            resource: '/account/{{accountId}}/subscription/{{subscriptionId}}/integration/{{functionId}}/',
-          },
+          { action: Permissions.allStorage, resource: resStorage },
+          { action: v2Permissions.updateSession, resource: resSession },
+          { action: v2Permissions.getSession, resource: resSession },
+          { action: v2Permissions.install.all, resource: resEntity },
         ],
       },
     };
 
     // Allow an integration to use connector:execute on it's associated connectors.
-    integ.data.components
+    entity.data.components
       .filter((component) => component.entityType === Model.EntityType.connector)
       .forEach((component) => {
         permissions.functionPermissions.allow.push({
@@ -141,6 +131,12 @@ class IntegrationService extends SessionedEntityService<Model.IIntegration, Mode
           resource: `/account/{{accountId}}/subscription/{{subscriptionId}}/connector/${component.entityId}/`,
         });
       });
+
+    // Add any explicitly specified permissions
+    (entity.data?.security?.permissions || []).forEach((permission) => {
+      permissions.functionPermissions.allow.push(permission);
+    });
+
     return permissions;
   };
 }

@@ -71,33 +71,31 @@ class ConnectorService extends SessionedEntityService<Model.IConnector, Model.II
     return entity;
   };
 
-  public getFunctionSecuritySpecification = (model: Model.IEntity) => ({
-    authentication: 'optional',
-    functionPermissions: {
-      allow: [
-        {
-          action: Permissions.allStorage,
-          resource: '/account/{{accountId}}/subscription/{{subscriptionId}}/storage/connector/{{functionId}}/',
-        },
-        {
-          action: v2Permissions.updateSession,
-          resource: '/account/{{accountId}}/subscription/{{subscriptionId}}/connector/{{functionId}}/session/',
-        },
-        {
-          action: v2Permissions.getSession,
-          resource: '/account/{{accountId}}/subscription/{{subscriptionId}}/connector/{{functionId}}/session/',
-        },
-        {
-          action: v2Permissions.connector.get,
-          resource: '/account/{{accountId}}/subscription/{{subscriptionId}}/connector/{{functionId}}/',
-        },
-        {
-          action: v2Permissions.identity.all,
-          resource: '/account/{{accountId}}/subscription/{{subscriptionId}}/connector/{{functionId}}/identity/',
-        },
-      ],
-    },
-  });
+  public getFunctionSecuritySpecification = (entity: Model.IConnector) => {
+    const resStorage = `/account/{{accountId}}/subscription/{{subscriptionId}}/storage/${this.entityType}/{{functionId}}/`;
+    const resEntity = `/account/{{accountId}}/subscription/{{subscriptionId}}/${this.entityType}/{{functionId}}/`;
+    const resSession = `${resEntity}session/`;
+
+    const permissions = {
+      authentication: 'optional',
+      functionPermissions: {
+        allow: [
+          { action: Permissions.allStorage, resource: resStorage },
+          { action: v2Permissions.updateSession, resource: resSession },
+          { action: v2Permissions.getSession, resource: resSession },
+          { action: v2Permissions.connector.get, resource: resEntity },
+          { action: v2Permissions.identity.all, resource: `${resEntity}identity/` },
+        ],
+      },
+    };
+
+    // Add any explicitly specified permissions
+    (entity.data?.security?.permissions || []).forEach((permission) => {
+      permissions.functionPermissions.allow.push(permission);
+    });
+
+    return permissions;
+  };
 }
 
 export default ConnectorService;

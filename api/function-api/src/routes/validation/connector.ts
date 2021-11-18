@@ -13,6 +13,14 @@ const Data = Joi.object().keys({
     .unknown(true)
     .default({}),
   files: EntityCommon.Files.optional().default({}),
+  security: Joi.object().keys({
+    permissions: Joi.array().items(
+      Joi.object().keys({
+        action: Joi.string(),
+        resource: Joi.string(),
+      })
+    ),
+  }),
 });
 
 const Entity = EntityCommon.validateEntity(Data);

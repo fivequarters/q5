@@ -34,6 +34,43 @@ const getSimpleIntegration = (): any => ({
   },
 });
 
+const getBackendIntegration = (): any => ({
+  id: `${boundaryId}-integ`,
+  data: {
+    components: [],
+    componentTags: {},
+    configuration: {},
+
+    handler: './integration',
+    files: {
+      'integration.js': [
+        "const { Integration } = require('@fusebit-int/framework');",
+        '',
+        'const integration = new Integration();',
+        "integration.router.get('/api/', async (ctx) => { });",
+        "integration.router.get('/api/token/', async (ctx) => { ctx.body = ctx.state.params.functionAccessToken; });",
+        'module.exports = integration;',
+      ].join('\n'),
+    },
+    security: {
+      permissions: [
+        {
+          action: v2Permissions.addSession,
+          resource: `/account/{{accountId}}/subscription/{{subscriptionId}}/integration/{{functionId}}/`,
+        },
+        {
+          action: v2Permissions.commitSession,
+          resource: `/account/{{accountId}}/subscription/{{subscriptionId}}/integration/{{functionId}}/`,
+        },
+        {
+          action: v2Permissions.integration.delete,
+          resource: `/account/{{accountId}}/subscription/{{subscriptionId}}/integration/{{functionId}}/`,
+        },
+      ],
+    },
+  },
+});
+
 describe('Integration Permissions', () => {
   test('Force function.utils to clean up', () => {
     // Without this, the function.utils import gets pruned
@@ -220,5 +257,38 @@ describe('Integration Permissions', () => {
     // Test with no permissions
     const response = await ApiRequestMap.integration.post(account, integEntity.id, integEntity, { authz: '' });
     expect(response).toBeHttp({ statusCode: 403 });
+  }, 180000);
+
+  test('Does the integration have backend and custom permissions', async () => {
+    const integEntity = getBackendIntegration();
+
+    let response = await ApiRequestMap.integration.postAndWait(account, integEntity.id, integEntity);
+
+    response = await ApiRequestMap.integration.dispatch(account, integEntity.id, RequestMethod.get, '/api/token/');
+    expect(response).toBeHttp({ statusCode: 200 });
+    const token = response.data;
+
+    const basePath = `/account/${account.accountId}/subscription/${account.subscriptionId}`;
+    const integWart = `/integration/${integEntity.id}`;
+    const allowedTable = [
+      {
+        action: v2Permissions.addSession,
+        resource: `${basePath}${integWart}/session/123e4567-e89b-12d3-a456-426614174000`,
+      },
+      {
+        action: v2Permissions.commitSession,
+        resource: `${basePath}${integWart}/session/123e4567-e89b-12d3-a456-426614174000`,
+      },
+      {
+        action: v2Permissions.integration.delete,
+        resource: `${basePath}${integWart}/`,
+      },
+    ];
+
+    for (const operation of allowedTable) {
+      await expect(
+        checkAuthorization(account.accountId, token, 'required', undefined, operation)
+      ).resolves.toMatchObject({});
+    }
   }, 180000);
 });

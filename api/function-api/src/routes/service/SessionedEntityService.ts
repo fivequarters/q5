@@ -474,8 +474,9 @@ export default abstract class SessionedEntityService<
 
       // If a leaf specifically errored, report that first.
       Object.entries(leafSessionResults).forEach(([name, result]: [string, any]) => {
+        // If a step is skipped or no output written, for whatever reason, assume it's not an error.
         if (result?.error) {
-          // An error occurred
+          // The step failed.
           throw http_error(400, `Failed component '${name}': ${result.error} ${result.errorDescription || ''}`);
         }
       });
