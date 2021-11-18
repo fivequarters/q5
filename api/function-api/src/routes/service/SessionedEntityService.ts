@@ -94,10 +94,6 @@ export default abstract class SessionedEntityService<
       stepList = entity.data.components.filter((comp: Model.IIntegrationComponent) => !comp.skip);
     }
 
-    if (!stepList.length) {
-      throw http_error(400, 'No matching components found');
-    }
-
     // Any tags present? Include any on the entity, if the session says to extend rather than replace.
     tags = { ...(sessionDetails.extendTags ? entity.data.componentTags : {}), ...sessionDetails.tags };
 
@@ -275,6 +271,13 @@ export default abstract class SessionedEntityService<
   public startSession = async (entity: Model.IEntity): Promise<IServiceResult> => {
     const parentSession = await this.sessionDao.getEntity(entity);
     this.ensureSessionTrunk(parentSession, 'cannot start a session in progress', 400);
+
+    // If there are no components to run through, do the final redirect
+    if (parentSession.data.components.length === 0) {
+      const url = new URL(parentSession.data.redirectUrl);
+      url.searchParams.set('session', Model.decomposeSubordinateId(parentSession.id).entityId);
+      return { statusCode: 302, result: { url } };
+    }
 
     // Get install if needed
     const install = await this.getSessionInstall(parentSession);
@@ -471,7 +474,7 @@ export default abstract class SessionedEntityService<
 
       // If a leaf specifically errored, report that first.
       Object.entries(leafSessionResults).forEach(([name, result]: [string, any]) => {
-        if (result.error) {
+        if (result?.error) {
           // An error occurred
           throw http_error(400, `Failed component '${name}': ${result.error} ${result.errorDescription || ''}`);
         }

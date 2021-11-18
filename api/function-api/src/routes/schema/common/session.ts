@@ -121,8 +121,11 @@ const createSessionRouter = (SessionService: SessionedEntityService<any, any>) =
             id: Model.createSubordinateId(SessionService.entityType, req.params.entityId, req.params.sessionId),
           });
 
-          // Send the browser to the configured handler url with the sessionid as a query parameter
-          const redirectUrl = `${Constants.API_PUBLIC_ENDPOINT}/v2/account/${result.accountId}/subscription/${result.subscriptionId}/${result.entityType}/${result.entityId}${result.path}?session=${result.sessionId}&redirect_uri=${process.env.API_SERVER}/v2/account/${result.accountId}/subscription/${result.subscriptionId}/${result.entityType}/${result.entityId}/session/${result.sessionId}/callback`;
+          // Send the browser to the configured handler url with the sessionid as a query parameter,
+          // or back to the final redirect in case there are no components to run through in the session
+          const redirectUrl =
+            result.url ||
+            `${Constants.API_PUBLIC_ENDPOINT}/v2/account/${result.accountId}/subscription/${result.subscriptionId}/${result.entityType}/${result.entityId}${result.path}?session=${result.sessionId}&redirect_uri=${process.env.API_SERVER}/v2/account/${result.accountId}/subscription/${result.subscriptionId}/${result.entityType}/${result.entityId}/session/${result.sessionId}/callback`;
           return res.redirect(redirectUrl);
         } catch (error) {
           console.log(error);
