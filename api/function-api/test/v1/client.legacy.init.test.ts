@@ -166,7 +166,7 @@ describe('Client Legacy Init', () => {
       const client = await initClient(account, clientId);
       expect(client).toBeHttpError(
         400,
-        `"clientId" with value "${clientId}" fails to match the required pattern: /^clt-[a-g0-9]{16}$/`
+        `"clientId" with value "${clientId}" fails to match the required pattern: /^clt-[a-f0-9]{16}$/`
       );
     }, 180000);
 

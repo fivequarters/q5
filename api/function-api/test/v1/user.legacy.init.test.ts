@@ -174,7 +174,7 @@ describe('User Legacy Init', () => {
       const user = await initUser(account, userId);
       expect(user).toBeHttpError(
         400,
-        `"userId" with value "${userId}" fails to match the required pattern: /^usr-[a-g0-9]{16}$/`
+        `"userId" with value "${userId}" fails to match the required pattern: /^usr-[a-f0-9]{16}$/`
       );
     }, 180000);
 

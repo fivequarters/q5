@@ -146,7 +146,7 @@ function toBeHttpError(received: any, status: number, message?: string) {
 function toBeMalformedAccountError(received: any, malformedAccountId: string) {
   const message = [
     `accountId: "accountId" with value "${malformedAccountId}"`,
-    'fails to match the required pattern: /^acc-[a-g0-9]{16}$/',
+    'fails to match the required pattern: /^acc-[a-f0-9]{16}$/',
   ].join(' ');
   return toBeHttpError(received, 400, message);
 }
