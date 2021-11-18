@@ -17,11 +17,17 @@ All public releases of the Fusebit HTTP API are documented here, including notab
 <!-- 1. TOC
 {:toc} -->
 
-## Version 1.29.2
+## Version 1.30.1
 
-_Released 11/16/21_
+_Released 11/17/21_
 
 - **BugFix.** Allow integrations with no associated connectors.
+
+## Version 1.30.0
+
+_Released 11/17/21_
+
+- **Enhancement.** Nested the defaultEventHandler connection option under configuration.
 
 ## Version 1.29.1
 
