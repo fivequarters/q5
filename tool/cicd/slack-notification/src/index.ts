@@ -5,8 +5,8 @@ import { JestOutput, Status } from './jestTypes';
 import { promises as fs } from 'fs';
 const outputJson: JestOutput = require('../../../../api/function-api/testOutput.json');
 
-const failureWebhook = process.env.FAILURE_WEBHOOK;
-const successWebhook = process.env.SUCCESS_WEBHOOK;
+const failureWebhook = process.env.FAILURE_WEBHOOK as string;
+const successWebhook = process.env.SUCCESS_WEBHOOK as string;
 
 const nameToMention = [
   { name: 'Matthew Zhao', id: '<@U01UDTF3VQR>' },
