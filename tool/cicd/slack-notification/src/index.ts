@@ -5,8 +5,8 @@ import { JestOutput, Status } from './jestTypes';
 import { promises as fs } from 'fs';
 const outputJson: JestOutput = require('../../../../api/function-api/testOutput.json');
 
-const failureWebhook = 'https://hooks.slack.com/services/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';
-const successWebhook = 'https://hooks.slack.com/services/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';
+const failureWebhook = process.env.FAILURE_WEBHOOK as string;
+const successWebhook = process.env.SUCCESS_WEBHOOK as string;
 
 const nameToMention = [
   { name: 'Matthew Zhao', id: '<@U01UDTF3VQR>' },
