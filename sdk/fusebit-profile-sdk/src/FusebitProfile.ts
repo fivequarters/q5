@@ -512,7 +512,6 @@ export class FusebitProfile {
         [Constants.JWT_PROFILE_CLAIM]: {
           accountId: profile.account,
           subscriptionId: profile.subscription,
-          userId: profile.issuer,
         },
       },
       privateKey,
