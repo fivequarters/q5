@@ -429,11 +429,11 @@ export class FusebitProfile {
     }
     const pkiProfile = profile as IPKIFusebitProfile;
     if (ignoreCache) {
-      return this.generateAccessToken(pkiProfile, permissions);
+      return this.generateAccessToken(profile, pkiProfile, permissions);
     }
 
     const accessToken = !permissions ? await this.getCachedAccessToken(profile) : undefined;
-    return accessToken !== undefined ? accessToken : this.generateAccessToken(pkiProfile, permissions);
+    return accessToken !== undefined ? accessToken : this.generateAccessToken(profile, pkiProfile, permissions);
   }
 
   public async getPKICredentials(profile: IPKIFusebitProfile): Promise<any> {
@@ -486,25 +486,40 @@ export class FusebitProfile {
     return kid;
   }
 
-  private async generateAccessToken(profile: IPKIFusebitProfile, permissions?: IPermissions): Promise<string> {
-    const privateKey = await this.dotConfig.getPrivateKey(profile.keyPair, profile.kid);
+  private async generateAccessToken(
+    profile: IFusebitProfile,
+    pkiProfile: IPKIFusebitProfile,
+    permissions?: IPermissions
+  ): Promise<string> {
+    const privateKey = await this.dotConfig.getPrivateKey(pkiProfile.keyPair, pkiProfile.kid);
 
     const expires = new Date(Date.now() + 1000 * expireInSeconds);
     const options = {
       algorithm: jwtAlgorithm,
       expiresIn: expireInSeconds,
-      audience: process.env.FUSEBIT_AUDIENCE || profile.baseUrl, // Provide an override for local test targets.
-      issuer: profile.issuer,
-      subject: profile.subject,
-      keyid: profile.kid,
+      audience: process.env.FUSEBIT_AUDIENCE || pkiProfile.baseUrl, // Provide an override for local test targets.
+      issuer: pkiProfile.issuer,
+      subject: pkiProfile.subject,
+      keyid: pkiProfile.kid,
       header: {
         jwtId: random(),
       },
     };
 
-    const accessToken = await signJwt({ [Constants.JWT_PERMISSION_CLAIM]: permissions }, privateKey, options);
+    const accessToken = await signJwt(
+      {
+        [Constants.JWT_PERMISSION_CLAIM]: permissions,
+        [Constants.JWT_PROFILE_CLAIM]: {
+          accountId: profile.account,
+          subscriptionId: profile.subscription,
+          userId: profile.issuer,
+        },
+      },
+      privateKey,
+      options
+    );
     if (!permissions) {
-      await this.setCachedAccessToken(profile, accessToken, expires);
+      await this.setCachedAccessToken(pkiProfile, accessToken, expires);
     }
 
     return accessToken;
