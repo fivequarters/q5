@@ -133,17 +133,17 @@ export class FusebitProfile {
       synthetic: true,
       account: '',
       baseUrl: 'https://stage.us-west-2.fusebit.io',
-      issuer: 'https://fusebit.auth0.com/oauth/device/code',
+      issuer: 'https://auth.fusebit.io/oauth/device/code',
       clientId: 'dimuls6VLYgXpD7UYCo6yPdKAXPXjQng',
-      tokenUrl: 'https://fusebit.auth0.com/oauth/token',
+      tokenUrl: 'https://auth.fusebit.io/oauth/token',
     },
     'api-us': {
       synthetic: true,
       account: '',
       baseUrl: 'https://api.us-west-1.on.fusebit.io',
-      issuer: 'https://fusebit.auth0.com/oauth/device/code',
+      issuer: 'https://auth.fusebit.io/oauth/device/code',
       clientId: 'NIfqE4hpPOXuIhllkxndlafSKcKesEfc',
-      tokenUrl: 'https://fusebit.auth0.com/oauth/token',
+      tokenUrl: 'https://auth.fusebit.io/oauth/token',
     },
   };
 
