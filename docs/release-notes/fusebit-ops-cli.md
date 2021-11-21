@@ -18,6 +18,12 @@ All public releases of the Fusebit Operations CLI are documented here, including
 {:toc}
 -->
 
+## Version 1.36.1
+
+_Released 11/22/21_
+
+- **Enhancement.** Migrating to the auth.fusebit.io custom domain on our Auth0 tenant.
+
 ## 1.35.1
 
 _Released 10/22/21_
