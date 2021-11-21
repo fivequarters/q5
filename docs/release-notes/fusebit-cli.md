@@ -17,6 +17,12 @@ All public releases of the Fusebit CLI are documented here, including notable ch
 <!-- 1. TOC
 {:toc} -->
 
+## Version 1.18.2
+
+_Released 11/19/21_
+
+- **Enhancement.** Extend the generated token to include a profile claim.
+
 ## Version 1.18.1
 
 _Released 11/15/21_
