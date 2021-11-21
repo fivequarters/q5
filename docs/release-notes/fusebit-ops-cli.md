@@ -18,7 +18,13 @@ All public releases of the Fusebit Operations CLI are documented here, including
 {:toc}
 -->
 
-## 1.35.1
+## Version 1.36.0
+
+_Released 11/23/21_
+
+- **Enhancement.** Adjust audit live access ttl.
+
+## Version 1.35.1
 
 _Released 10/22/21_
 
