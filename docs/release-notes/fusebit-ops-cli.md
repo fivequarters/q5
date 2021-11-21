@@ -22,13 +22,13 @@ All public releases of the Fusebit Operations CLI are documented here, including
 
 _Released 11/23/21_
 
-- **Enhancement.** Adjust audit live access ttl.
+- **Enhancement.** Adjust audit live access ttl and rotate audit table name.
 
 ## Version 1.35.1
 
 _Released 10/22/21_
 
-- **BugFix.** Fixed an issue where a deployments would fail if not provided a Segment Key
+- **BugFix.** Fixed an issue where a deployments would fail if not provided a Segment Key.
 
 ## Version 1.35.0
 
