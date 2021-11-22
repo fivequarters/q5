@@ -206,6 +206,7 @@ export default abstract class SessionedEntityService<
         replacementTargetId,
       },
       tags: parentSession.tags,
+      expires: new Date(Date.now() + EPHEMERAL_ENTITY_EXPIRATION).toISOString(),
     };
 
     step.childSessionId = session.id;
