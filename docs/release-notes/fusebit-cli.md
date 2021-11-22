@@ -23,11 +23,11 @@ _Released 11/22/21_
 
 - **Enhancement.** Migrating to the auth.fusebit.io custom domain on our Auth0 tenant.
 
-## Version 1.19.1
+## Version 1.18.2
 
-_Released 11/22/21_
+_Released 11/19/21_
 
-- **Enhancement.** Migrating to the auth.fusebit.io custom domain on our Auth0 tenant.
+- **Enhancement.** Extend the generated token to include a profile claim.
 
 ## Version 1.18.1
 
