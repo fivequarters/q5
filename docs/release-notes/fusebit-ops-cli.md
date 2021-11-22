@@ -18,6 +18,12 @@ All public releases of the Fusebit Operations CLI are documented here, including
 {:toc}
 -->
 
+## Version 1.36.1
+
+_Released 11/23/21_
+
+- **Enhancement.** Improve stdout flushing for large payloads.
+
 ## Version 1.36.0
 
 _Released 11/23/21_

@@ -17,6 +17,12 @@ All public releases of the Fusebit CLI are documented here, including notable ch
 <!-- 1. TOC
 {:toc} -->
 
+## Version 1.19.1
+
+_Released 11/23/21_
+
+- **Enhancement.** Improve stdout flushing for large payloads.
+
 ## Version 1.19.0
 
 _Released 11/22/21_

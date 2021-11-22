@@ -75,6 +75,7 @@ export class FusebitCli extends Command {
   protected async onSubCommandExecuting(command: Command, input: IExecuteInput) {
     let current = command;
     let skipInit = current.skipBuiltInProfile;
+
     while (!skipInit && current.parent) {
       current = current.parent;
       skipInit = current.skipBuiltInProfile;
@@ -82,7 +83,11 @@ export class FusebitCli extends Command {
     if (!skipInit) {
       await InitCommand.createDefaultProfileIfNoneExists(input);
     }
-    if (process.env.FUSEBIT_AUTHORIZATION_ACCOUNT_ID || process.env.FUSEBIT_ACCOUNT_ID) {
+
+    if (
+      (process.env.FUSEBIT_AUTHORIZATION_ACCOUNT_ID || process.env.FUSEBIT_ACCOUNT_ID) &&
+      input.options.output === 'pretty'
+    ) {
       const message = await Message.create({
         kind: MessageKind.warning,
         header: 'Profile Overrides',

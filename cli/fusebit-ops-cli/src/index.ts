@@ -22,6 +22,10 @@ async function execute() {
   process.env.FUSEOPS_VERSION = await getVersion();
 
   const exitCode = await fusebitOpsCli.execute(args, io);
+
+  // Force stdout to flush
+  process.stdout.write('\n');
+
   process.exit(exitCode);
 }
 
