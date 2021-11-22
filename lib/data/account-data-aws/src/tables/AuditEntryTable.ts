@@ -12,7 +12,7 @@ const identityIndex = 'identity';
 const delimiter = '::';
 
 const table: IAwsDynamoTable = {
-  name: 'audit2',
+  name: 'audit',
   attributes: { accountId: 'S', resource: 'S', identity: 'S', timestamp: 'N' },
   keys: ['accountId', 'resource'],
   ttlAttribute: 'ttl',
