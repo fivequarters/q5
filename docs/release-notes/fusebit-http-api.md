@@ -17,6 +17,12 @@ All public releases of the Fusebit HTTP API are documented here, including notab
 <!-- 1. TOC
 {:toc} -->
 
+## Version 1.32.1
+
+_Released 11/23/21_
+
+- **BugFix.** Expire orphaned Leaf sessions.
+
 ## Version 1.32.0
 
 _Released 11/23/21_
