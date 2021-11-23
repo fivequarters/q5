@@ -17,6 +17,12 @@ All public releases of the Fusebit HTTP API are documented here, including notab
 <!-- 1. TOC
 {:toc} -->
 
+## Version 1.32.2
+
+_Released 11/23/21_
+
+- **BugFix.** Hotfix to workaround the AWS Lambda States changes.
+
 ## Version 1.32.1
 
 _Released 11/23/21_
