@@ -16,6 +16,10 @@ async function execute() {
   const io = await CommandIO.create();
   const cli = await FusebitCli.create();
   const exitCode = await cli.execute(args, io);
+
+  // Force stdout to flush
+  process.stdout.write('\n');
+
   process.exit(exitCode);
 }
 
