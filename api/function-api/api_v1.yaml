@@ -429,7 +429,9 @@ paths:
       description: |
         Returns a list of the subscriptions of the given account.
 
-        Use query string parameters to filter the list of subscriptions. All query filters are combined with a logical AND operator.
+        Use query string parameters to filter the list of subscriptions.
+
+        All query filters are combined with a logical AND operator.
       parameters:
         - in: query
           name: next
@@ -636,8 +638,9 @@ paths:
       operationId: getAccountAudit
       description: |
         Returns the audit trail of calls to the HTTP APIs related to resources that belong to the account id.
-        Each entry of the audit trail contains the timestamp of the call, resource, action, and the identity of
-        the caller represented as the (issuer, subject) pair. Use query string parameters to filter the entries.
+        Each entry of the audit trail contains the timestamp of the call, resource, action, and the identity of the caller represented as the (issuer, subject) pair.
+        Use query string parameters to filter the entries.
+
         All query filters are combined with a logical AND operator.
 
         By default, only the most recent 15 minutes of audit logs are returned. You can change this with the `from` query parameter.
@@ -678,7 +681,7 @@ paths:
       operationId: resolveInit
       description: |
         Add an identity to an existing user or client using a previously obtained single-use initialization token.
-        This API requires the intialization token to be presented as an access token.
+        This API requires the initialization token to be presented as an access token.
       requestBody:
         description: The parameters for the initialization token resolution
         required: true
@@ -726,14 +729,15 @@ paths:
       description: |
         Returns a list of issuers associated with the given account.
 
-        Use query string parameters to filter the list of issuers. All query filters are combined with a logical AND operator.
+        Use query string parameters to filter the list of issuers.
+        All query filters are combined with a logical AND operator.
       parameters:
         - in: query
           name: name
           required: false
           description: |
-            Optional identifier to match against the `displayName` field of the issuer. Matching is case-sensitive. Partial
-            matches are supported.
+            Optional identifier to match against the `displayName` field of the issuer.
+            Matching is case-sensitive. Partial matches are supported.
           schema:
             type: string
         - in: query
@@ -943,14 +947,15 @@ paths:
       description: |
         Returns a list of clients associated with the given account.
 
-        Use query string parameters to filter the list of clients. All query filters are combined with a logical AND operator.
+        Use query string parameters to filter the list of clients.
+        All query filters are combined with a logical AND operator.
       parameters:
         - in: query
           name: include
           required: false
           description: |
-            Optional switch to include all properties of the clients in the response. If this switch is not provided only
-            the `id` and `displayName` fields of each client are returned in the response.
+            Optional switch to include all properties of the clients in the response.
+            If this switch is not provided only the `id` and `displayName` fields of each client are returned in the response.
           schema:
             type: string
             enum:
@@ -1192,9 +1197,9 @@ paths:
       summary: Create an initialization token for an existing client
       operationId: initClient
       description: |
-        Create an initialization token for an existing client. The initialization token is a single-use
-        bearer credential that allows the caller to add a new identity for the client. If unused, the
-        intialization token expires after eight hours.
+        Create an initialization token for an existing client.
+        The initialization token is a single-use bearer credential that allows the caller to add a new identity for the client.
+        If unused, the initialization token expires after eight hours.
       requestBody:
         description: The parameters for the initialization token
         required: true
@@ -1252,8 +1257,8 @@ paths:
           name: include
           required: false
           description: |
-            Optional switch to include all properties of the users in the response. If this switch is not provided only
-            the `id` and `firstName`, `lastName` and `primaryEmail` fields of each user are returned in the response.
+            Optional switch to include all properties of the users in the response.
+            If this switch is not provided only the `id` and `firstName`, `lastName` and `primaryEmail` fields of each user are returned in the response.
           schema:
             type: string
             enum:
@@ -1502,9 +1507,9 @@ paths:
       summary: Create an initialization token for an existing user
       operationId: initUser
       description: |
-        Create an initialization token for an existing user. The initialization token is a single-use
-        bearer credential that allows the caller to add a new identity for the users. If unused, the
-        intialization token expires after eight hours.
+        Create an initialization token for an existing user.
+        The initialization token is a single-use bearer credential that allows the caller to add a new identity for the users.
+        If unused, the initialization token expires after eight hours.
       requestBody:
         description: The parameters for the initialization token
         required: true
@@ -1601,18 +1606,16 @@ paths:
           name: search
           required: false
           description: |
-            Search the metadata for functions that match this criteria. Each method has several different scopes that can be searched
-            within, including `'compute'`, `'dependency'`, and `'tag'`, corresponding to values in the `compute`,
-            dependencies in the `package.json`, and `metadata.tags` sections of the function specification.
+            Search the metadata for functions that match this criteria.
+            Each method has several different scopes that can be searched within, including `'compute'`, `'dependency'`, and `'tag'`.
+            They correspond to values in the `compute` dependencies in the `package.json` and `metadata.tags` sections of the function specification.
 
-            Search supports a single filtering criteria, in the form of `search=key` for any function posessing a key matching that
-            value, or `search=key=value` for functions that specifically match a value. If the key or value
-            contains an `=`, encode them to the URI specification first.
+            Search supports a single filtering criteria, in the form of `search=key` for any function possessing a key matching that value, or `search=key=value` for functions that specifically match a value.
+            If the key or value contains an `=`, encode them to the URI specification first.
 
             Examples include `?search=compute.timeout=30`, `?search=dependency.ms=2.1.2`, `?search=tag.enabled`.
 
-            Specifying `search` multiple times acts as a logical AND between the criteria, returning only
-            functions which match all of the requested elements.
+            Specifying `search` multiple times acts as a logical AND between the criteria, returning only functions that match all of the requested elements.
           schema:
             type: string
       responses:
@@ -1623,7 +1626,7 @@ paths:
               schema:
                 $ref: '#/components/schemas/FunctionList'
         400:
-          description: Malformed account or subscription id, invalid next, or invalid query
+          description: Malformed account or subscription id, invalid next or invalid query
           content:
             application/json:
               schema:
@@ -1711,8 +1714,8 @@ paths:
           required: false
           description: |
             Search the metadata for functions that match this criteria. Each method has several different scopes that can be searched
-            within, including `'compute'`, `'dependency'`, and `'tag'`, corresponding to values in the `compute`,
-            dependencies in the `package.json`, and `metadata.tags` sections of the function specification.
+            within, including `'compute'`, `'dependency'` and `'tag'`, corresponding to values in the `compute`,
+            dependencies in the `package.json` and `metadata.tags` sections of the function specification.
 
             Search supports a single filtering criteria, in the form of `search=key` for any function posessing a key matching that
             value, or `search=key=value` for functions that specifically match a value. If the key or value
@@ -1890,8 +1893,9 @@ paths:
         name: include
         required: false
         description: |
-          Optional switch to include all serialized properties of the function. If this switch is not provided only
-          the non-serialized 'compute', 'schedule' and 'configuration' properties are returned in the response.
+          Optional switch to include all serialized properties of the function.
+
+          If this switch is not provided only the non-serialized 'compute', 'schedule' and 'configuration' properties are returned in the response.
         schema:
           type: string
           enum:
@@ -1937,12 +1941,10 @@ paths:
       description: |
         Initiates a build and deployment of the function within the isolation boundary.
         This may complete synchronously with a status code of 200, or asynchronously with a status code of 201.
-        If it completes asynchronously, it returns immediately with a response that includes a `buildId`
-        representing the function build process. This `buildId` can be used to poll for completion by calling
-        `'GET /build/{buildId}'`.
+        If it completes asynchronously, it returns immediately with a response that includes a `buildId` representing the function build process.
+        This `buildId` can be used to poll for completion by calling `'GET /build/{buildId}'`.
 
-        Supply additional options in the `metadata.tags` object to provide additional properties on a function
-        that are searchable.
+        Supply additional options in the `metadata.tags` object to provide additional properties on a function that are searchable.
 
         The URL for executing the function will be provided as the `location` property of the response.
 
@@ -2294,10 +2296,8 @@ paths:
         - Functions
       summary: Get the status of a build of a function
       description: |
-        Returns the status of the build of a function. This is used for polling the result of
-        the asynchronous build process of a function. The `status` parameter progresses from
-        `'pending'` to `'building'` to either `'success'` or `'failure'`, which are the final states
-        of the build process.
+        Returns the status of the build of a function. This is used for polling the result of the asynchronous build process of a function.
+        The `status` parameter progresses from `'pending'` to `'building'` to either `'success'` or `'failure'`, which are the final states of the build process.
       operationId: getFunctionBuild
       responses:
         200:
@@ -3452,9 +3452,8 @@ components:
         profile:
           type: object
           description: |
-            Additional information to be included in the intialization token for consumption by the intended recipient of the
-            token. For example, this information can be used to include default parameters of the CLI profile or OAuth parameters
-            that indicate the identity provider to use.
+            Additional information to be included in the initialization token for consumption by the intended recipient of the token.
+            For example, this information can be used to include default parameters of the CLI profile or OAuth parameters that indicate the identity provider to use.
           properties:
             subscription:
               description: The default subscription id the caller should use
@@ -3507,10 +3506,9 @@ components:
           type: string
           description: |
             A valid access token in JWT format.
-            If `protocol` is `pki`, the access token must be signed with a private key
-            associated with the `publicKey` in this request, and the value of the `iss` and `sub` claims must match the values of
-            the `profile.issuerId` and `profile.subject` fields of the initialization token, respectively. If `protocol` is `oauth`,
-            the token must have been obtained from an OAuth identity provider that is already trusted by the system.
+            If `protocol` is `pki`, the access token must be signed with a private key associated with the `publicKey` in this request.
+            The value of the `iss` and `sub` claims must match the values of the `profile.issuerId` and `profile.subject` fields of the initialization token, respectively.
+            If `protocol` is `oauth`, the token must have been obtained from an OAuth identity provider that is already trusted by the system.
         publicKey:
           type: string
           description: |
@@ -3956,7 +3954,7 @@ components:
           description: Array of records representing the query result.
           items:
             type: object
-            descroption: For log aggregation queries, one record of aggregation results. For log queries, one record representing an HTTP request.
+            description: For log aggregation queries, one record of aggregation results. For log queries, one record representing an HTTP request.
 
     RegistryGet:
       type: object
