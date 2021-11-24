@@ -17,6 +17,12 @@ All public releases of the Fusebit HTTP API are documented here, including notab
 <!-- 1. TOC
 {:toc} -->
 
+## Version 1.32.3
+
+_Released 11/23/21_
+
+- **BugFix.** Add support for the new "Pending" AWS Lambda lifecycle state.
+
 ## Version 1.32.2
 
 _Released 11/23/21_
