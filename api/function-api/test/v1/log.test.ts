@@ -91,14 +91,18 @@ describe('Log', () => {
       const logResponse = await logsPromise;
       expect(logResponse).toBeHttp({ statusCode: 200 });
       expect(logResponse.headers['content-type']).toMatch(/text\/event-stream/);
+
+      // Look for the early console.log prior to the exception.
       const i1 = logResponse.data.indexOf('ALL IS WELL');
-      const i2 = logResponse.data.indexOf('Foo');
       expect(i1).toBeGreaterThan(0);
+
+      // Look for the error message in the log response.
+      const i2 = logResponse.data.indexOf('Foo');
       expect(i2).toBeGreaterThan(i1);
     };
   }
 
-  test('sync exception is propagated to logs', create_exception_log_test(false, true), 120000);
+  test.only('sync exception is propagated to logs', create_exception_log_test(false, true), 120000);
 
   test('async exception is propagated to logs', create_exception_log_test(false, false), 120000);
 

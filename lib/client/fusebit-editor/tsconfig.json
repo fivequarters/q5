@@ -2,7 +2,7 @@
   "extends": "../../../tsconfig.json",
   "compilerOptions": { "rootDir": "src", "outDir": "libm" },
   "include": ["src"],
-  "references": [{ "path": "../../shared/event" }, { "path": "../../data/schema" }],
+  "references": [{ "path": "../../shared/event" }, { "path": "../../data/schema" }, { "path": "../../constants" }],
   "typedocOptions": {
     "mode": "file",
     "out": "docs/dist",
