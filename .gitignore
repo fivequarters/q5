@@ -65,3 +65,6 @@ typings/
 .idea/
 
 .fusebit-state
+
+# That desperate need to make sure Makefile never makes it
+Makefile

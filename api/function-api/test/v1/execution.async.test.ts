@@ -232,7 +232,7 @@ describe('Execution Async', () => {
     expect(response).toBeHttp({ statusCode: 200, data: { status: 'success' } });
     response = await request(response.data.location);
     expect(response).toBeHttp({ statusCode: 500 });
-    expect(response.headers['x-fx-response-source']).toEqual('provider');
+    expect(response.headers['x-fx-response-source']).toEqual('function');
     expect(response.data).toMatchObject({
       status: 500,
       statusCode: 500,
@@ -256,7 +256,7 @@ describe('Execution Async', () => {
     expect(response).toBeHttp({ statusCode: 200, data: { status: 'success' } });
     response = await request(response.data.location);
     expect(response).toBeHttp({ statusCode: 500 });
-    expect(response.headers['x-fx-response-source']).toEqual('provider');
+    expect(response.headers['x-fx-response-source']).toEqual('function');
     expect(response.data).toMatchObject({
       status: 500,
       statusCode: 500,

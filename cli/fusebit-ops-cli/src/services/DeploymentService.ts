@@ -559,6 +559,9 @@ export class DeploymentService {
       Text.dim('Data Warehouse: '),
       deployment.dataWarehouseEnabled ? 'Enabled' : 'Disabled',
       Text.eol(),
+      Text.dim('Monitoring: '),
+      deployment.grafana ? deployment.grafana : '',
+      Text.eol(),
       Text.dim('Base URL: '),
       `https://${deployment.deploymentName}.${deployment.region}.${deployment.domainName}`,
     ];

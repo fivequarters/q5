@@ -8,7 +8,7 @@ import authorize from './authorize';
 const corsManagementOptions = {
   origins: '*',
   methods: 'GET,POST,PUT,DELETE,PATCH',
-  exposedHeaders: 'x-fx-logs,x-fx-response-source,content-length',
+  exposedHeaders: 'x-fx-logs,x-fx-response-source,content-length,fusebit-trace-id',
   credentials: true,
 };
 

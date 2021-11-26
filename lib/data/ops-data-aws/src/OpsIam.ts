@@ -3,6 +3,7 @@ import { OpsDataAwsProvider } from './OpsDataAwsProvider';
 import { OpsDataAwsConfig } from './OpsDataAwsConfig';
 import { createRole, createInstanceProfile, detachRolePolicy } from './OpsRole';
 import { createPolicy } from './OpsIamPolicy';
+import * as Constants from '@5qtrs/constants';
 
 export class OpsIam implements IDataSource {
   public static async create(config: OpsDataAwsConfig, provider: OpsDataAwsProvider) {
@@ -249,6 +250,38 @@ export class OpsIam implements IDataSource {
             Effect: 'Allow',
             Action: ['ecr:GetAuthorizationToken'],
             Resource: '*',
+          },
+          {
+            Effect: 'Allow',
+            Action: ['ssm:GetParameter*'],
+            Resource: [
+              `${this.config.arnPrefix}:ssm:${awsConfig.region}:${this.config.mainAccountId}:parameter/${Constants.GRAFANA_CREDENTIALS_SSM_PATH}*`,
+            ],
+          },
+        ],
+      },
+      this.config.iamPermissionsBoundary
+    );
+
+    await createInstanceProfile(
+      awsConfig,
+      this.config.monoGrafanaProfileName,
+      [`${this.config.arnPrefix}:iam::aws:policy/AWSCloudMapRegisterInstanceAccess`],
+      {
+        Version: '2012-10-17',
+        Statement: [
+          {
+            Sid: 'MonitoringS3',
+            Effect: 'Allow',
+            Action: ['s3:ListBucket', 's3:PutObject', 's3:GetObject', 's3:DeleteObject'],
+            Resource: [
+              `${this.config.arnPrefix}:s3:::${this.config.getLokiBucketPrefix()}*`,
+              `${this.config.arnPrefix}:s3:::${this.config.getLokiBucketPrefix()}*/*`,
+              `${this.config.arnPrefix}:s3:::${this.config.getTempoBucketPrefix()}*`,
+              `${this.config.arnPrefix}:s3:::${this.config.getTempoBucketPrefix()}*/*`,
+              `${this.config.arnPrefix}:s3:::${this.config.getGrafanaBootstrapBucket()}*`,
+              `${this.config.arnPrefix}:s3:::${this.config.getGrafanaBootstrapBucket()}*/*`,
+            ],
           },
         ],
       },

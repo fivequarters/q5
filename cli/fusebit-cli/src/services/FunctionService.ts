@@ -1399,6 +1399,10 @@ export class FunctionService {
   
   <script src="${fusebitEditorUrl}"></script>
   <script type="text/javascript">
+    // Set it explicitly after getting, so it's easier to discover even if previously unset.
+    const enableGrafanaLogs = window.location.search.includes('enableGrafanaLogs') || localStorage.getItem('enableGrafanaLogs') === 'true';
+    localStorage.setItem('enableGrafanaLogs', \`\${!!enableGrafanaLogs}\`);
+
     fusebit.createEditor(document.getElementById('editor'), '${profile.boundary}', '${profile.function}', {
         accountId: '${profile.account}',
         subscriptionId: '${profile.subscription}',
@@ -1406,7 +1410,12 @@ export class FunctionService {
         accessToken: '${profile.accessToken}',
     }, {
         template: ${JSON.stringify(template, null, 2)},
-        editor: ${JSON.stringify(editorSettings, null, 2)},
+        editor: {
+          features: {
+            enableGrafanaLogs,
+          },
+          ...${JSON.stringify(editorSettings, null, 2)},
+        },
     }).then(editorContext => {
         editorContext.setFullScreen(true);
     });

@@ -59,6 +59,8 @@ export enum Permissions {
   configRegistry = 'registry-config:put',
   getRegistry = 'registry:get',
   putRegistry = 'registry:put',
+
+  getLogs = 'log:get',
 }
 
 interface IPermissionSet {

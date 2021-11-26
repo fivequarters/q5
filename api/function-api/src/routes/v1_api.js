@@ -45,17 +45,19 @@ const { keyStore, subscriptionCache } = require('./globals');
 
 const storage = require('./handlers/storageRds');
 
+const grafanaHealth = require('./grafana/health');
+
 var corsManagementOptions = {
   origins: '*',
   methods: 'GET,POST,PUT,DELETE,PATCH',
-  exposedHeaders: 'x-fx-logs,x-fx-response-source,content-length',
+  exposedHeaders: 'x-fx-logs,x-fx-response-source,content-length,fusebit-trace-id',
   credentials: true,
 };
 
 var corsExecutionOptions = {
   origins: '*',
   methods: 'GET,POST,PUT,DELETE,PATCH,HEAD',
-  exposedHeaders: 'x-fx-logs,x-fx-response-source,content-length',
+  exposedHeaders: 'x-fx-logs,x-fx-response-source,content-length,fusebit-trace-id',
   credentials: true,
 };
 
@@ -79,6 +81,7 @@ router.get(
     { check: async () => subscriptionCache.healthCheck(), name: 'Subscription cache' },
     { check: async () => RDS.ensureConnection(), name: 'RDS connection' },
     { check: async () => RDS.ensureRDSLiveliness(), name: 'RDS execution' },
+    { check: async () => grafanaHealth.checkGrafanaHealth(), name: 'Grafana' },
   ])
 );
 

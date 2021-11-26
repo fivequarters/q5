@@ -6,8 +6,8 @@ export const NotImplemented = (_, __, next) => next(create_error(501, 'Not imple
 export const debugLogEvent = (req, res, next) => {
   console.log(
     `DEBUG: ${req.method} ${req.url}\n` +
-      `DEBUG: Headers: ${JSON.stringify(req.headers)}\n` +
-      `DEBUG: Params:  ${JSON.stringify(req.params)}\n` +
+      `DEBUG: Headers: ${JSON.stringify(req.headers, null, 2)}\n` +
+      `DEBUG: Params:  ${JSON.stringify(req.params, null, 2)}\n` +
       `DEBUG: Body:    ${JSON.stringify(req.body)}\n` +
       `DEBUG: Json:    ${JSON.stringify(req.json)}\n`
   );

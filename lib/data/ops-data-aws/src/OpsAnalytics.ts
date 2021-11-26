@@ -211,7 +211,7 @@ export async function createAnalyticsPipeline(
 
   return new Promise((resolve, reject) => {
     const subscribeLambdaAnalyticsToCloudWatch =
-      deployment.elasticSearch.length > 0 || deployment.segmentKey.length > 0;
+      deployment.elasticSearch?.length > 0 || deployment.segmentKey?.length > 0;
     return Async.series(
       [
         // prettier-ignore

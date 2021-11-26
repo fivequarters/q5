@@ -251,8 +251,8 @@ describe('Execution', () => {
     });
     expect(response).toBeHttp({ statusCode: 200 });
     response = await request(response.data.location);
-    expect(response.status).toEqual(500);
-    expect(response.headers['x-fx-response-source']).toEqual('provider');
+    expect(response).toBeHttp({ statusCode: 500 });
+    expect(response.headers['x-fx-response-source']).toEqual('function');
     expect(response.data).toMatchObject({
       status: 500,
       statusCode: 500,
@@ -276,7 +276,7 @@ describe('Execution', () => {
     expect(response).toBeHttp({ statusCode: 200 });
     response = await request(response.data.location);
     expect(response.status).toEqual(500);
-    expect(response.headers['x-fx-response-source']).toEqual('provider');
+    expect(response.headers['x-fx-response-source']).toEqual('function');
     expect(response.data).toMatchObject({
       status: 500,
       statusCode: 500,

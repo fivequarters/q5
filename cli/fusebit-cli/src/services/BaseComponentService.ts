@@ -523,6 +523,7 @@ export abstract class BaseComponentService<IComponentType extends IBaseComponent
 
     await new Promise(() => {});
   }
+
   private getEditorHtml(profile: IFusebitExecutionProfile, theme: string, functionSpec?: any): string {
     const template = functionSpec || {};
     const editorSettings = (functionSpec &&
@@ -570,6 +571,10 @@ export abstract class BaseComponentService<IComponentType extends IBaseComponent
   
   <script src="${fusebitEditorUrl}"></script>
   <script type="text/javascript">
+    // Set it explicitly after getting, so it's easier to discover even if previously unset.
+    const enableGrafanaLogs = window.location.search.includes('enableGrafanaLogs') || localStorage.getItem('enableGrafanaLogs') === 'true';
+    localStorage.setItem('enableGrafanaLogs', \`\${!!enableGrafanaLogs}\`);
+
     fusebit.createEditor(document.getElementById('editor'), '${profile.boundary}', '${profile.function}', {
         accountId: '${profile.account}',
         subscriptionId: '${profile.subscription}',
@@ -577,7 +582,12 @@ export abstract class BaseComponentService<IComponentType extends IBaseComponent
         accessToken: '${profile.accessToken}',
     }, {
         template: ${JSON.stringify(template, null, 2)},
-        editor: ${JSON.stringify(editorSettings, null, 2)},
+        editor: {
+          features: {
+            enableGrafanaLogs,
+          },
+          ...${JSON.stringify(editorSettings, null, 2)},
+        },
         entityType: '${this.entityType}',
     }).then(editorContext => {
         editorContext.setFullScreen(true);
