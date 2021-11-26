@@ -1,7 +1,5 @@
-const { v4: uuidv4 } = require('uuid');
 const Runtime = require('@5qtrs/runtime-common');
-
-const traceIdHeader = 'x-fx-trace-id';
+const { makeTraceId, makeTraceSpanId, traceIdHeader } = require('@5qtrs/constants');
 
 const whitelistedReqFields = [
   'headers',
@@ -27,11 +25,41 @@ exports.Modes = {
 
 exports.enterHandler = (modality) => {
   return (req, res, next) => {
-    req.requestId = uuidv4();
-    req.traceId = req.headers[traceIdHeader];
-    if (!req.traceId) {
-      req.headers[traceIdHeader] = req.traceId = req.requestId;
+    let parentTraceId;
+    let parentSpanId;
+
+    // Right now span allocation happens here.  This allows for the parentSpanId to be set on the object and
+    // recorded as part of the event.
+    //
+    // If it wasn't, then the function would be responsible for returning back a big bag of trace/spans and
+    // their DAG as part of it's execution bundle, and there would be substantially less information
+    // available.
+    //
+    // Alternatively, certain elements of that will have to happen anyways for calls that happen outside of
+    // the fusebit ecosystem.  That said, it's straightforward enough to apply a couple rubrics to the urls:
+    //   * Does it take the shape of /v1/run/sub-.../boundary/function?
+    //   * Does it take the shape of /v[12]/account/acc-.../?
+    //   * Does it take the shape of /v2/grafana/?
+    // If it matches any of those, then do not track the logging internally to the function, passing instead
+    // the functions traceId and spanId in the header.
+    //
+    // Otherwise, allocate a new spanId, track basic analytics - duration, result, etc and return that as part
+    // of the payload.
+    if (req.headers[traceIdHeader]) {
+      [parentTraceId, parentSpanId] = req.headers[traceIdHeader].split('.');
+    } else {
+      parentTraceId = makeTraceId();
+      parentSpanId = makeTraceSpanId();
     }
+
+    req.traceId = parentTraceId;
+    req.parentSpanId = parentSpanId;
+    req.spanId = makeTraceSpanId();
+
+    req.headers[traceIdHeader] = `${req.traceId}.${req.spanId}`;
+
+    console.log(`Analytics entry: ${parentTraceId}/${parentSpanId} ==> ${req.spanId} | ${req.headers[traceIdHeader]}`);
+
     res.metrics = {};
 
     let end = res.end;
@@ -87,6 +115,8 @@ exports.enterHandler = (modality) => {
       Runtime.dispatch_event({
         requestId: req.requestId,
         traceId: req.traceId,
+        parentSpanId: req.parentSpanId,
+        spanId: req.spanId,
         startTime: req._startTime,
         endTime: res.endTime,
         request: reqProps,
@@ -94,6 +124,7 @@ exports.enterHandler = (modality) => {
         response: { statusCode: res.statusCode, headers: res.getHeaders() },
         fusebit: fusebit,
         error: res.error,
+        functionLogs: res.functionLogs,
         logs,
       });
     };

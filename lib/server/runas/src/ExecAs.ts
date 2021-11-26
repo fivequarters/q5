@@ -32,7 +32,8 @@ const mintJwtForPermissions = async (
   keyStore: KeyStore,
   params: any,
   permissions: any,
-  mode: string = 'exec'
+  mode: string = 'exec',
+  attributes: any = {}
 ): Promise<string | undefined> => {
   if (!permissions) {
     return undefined;
@@ -40,9 +41,9 @@ const mintJwtForPermissions = async (
 
   const payload: { [key: string]: any } = {
     sub: Constants.makeFunctionSub(params, mode),
+    [Constants.JWT_ATTRIBUTES_CLAIM]: attributes,
+    [Constants.JWT_PERMISSION_CLAIM]: permissions,
   };
-
-  payload[Constants.JWT_PERMISSION_CLAIM] = permissions;
 
   // Create a JWT
   return keyStore.signJwt(payload);

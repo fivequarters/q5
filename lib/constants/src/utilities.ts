@@ -6,6 +6,8 @@ import * as crypto from 'crypto';
 
 import { EntityType } from '@fusebit/schema';
 
+const FUSEBIT_AUTHORIZATION_COOKIE = 'fusebitAuthorization';
+
 const DYNAMO_BACKOFF_TRIES_MAX = 5;
 const DYNAMO_BACKOFF_DELAY = 300;
 
@@ -116,12 +118,29 @@ const createUniqueIdentifier = (entityType: EntityType) => {
   return `${id.prefix}-${crypto.randomBytes(id.len).toString('hex')}`;
 };
 
-const getAuthToken = (req: express.Request): string | undefined => {
-  if (!req.headers.authorization) {
-    return undefined;
+const getAuthToken = (
+  req: express.Request,
+  options: { header: boolean; cookie: boolean } = { header: true, cookie: false }
+): string | undefined => {
+  if (options.header && req.headers.authorization) {
+    const match = req.headers.authorization.match(/^\ *bearer\ +(.+)$/i);
+    return match ? match[1] : undefined;
   }
-  const match = req.headers.authorization.match(/^\ *bearer\ +(.+)$/i);
-  return match ? match[1] : undefined;
+
+  if (options.cookie && req.headers.cookie?.includes(FUSEBIT_AUTHORIZATION_COOKIE)) {
+    const cookies = req.headers.cookie.split(';');
+    const cookieKvs = cookies.map((cookie) => cookie.split('='));
+    const authCookie = cookieKvs.filter(
+      (cookieKv) => cookieKv.length === 2 && cookieKv[0] === FUSEBIT_AUTHORIZATION_COOKIE
+    );
+
+    if (authCookie.length !== 1) {
+      return undefined;
+    }
+
+    return authCookie[0][1];
+  }
+  return undefined;
 };
 
 const mergeDeep = (lhs: any, source: any, isMergingArrays: boolean = false) => {
@@ -167,6 +186,7 @@ const mergeDeep = (lhs: any, source: any, isMergingArrays: boolean = false) => {
 };
 
 export {
+  FUSEBIT_AUTHORIZATION_COOKIE,
   dynamoScanTable,
   expBackoff,
   asyncPool,

@@ -1,0 +1,36 @@
+TODO
+  X Shove data in there in middleware/analytics
+  X Validate data's getting pushed into tempo/loki correctly
+  -------
+// Functional
+  X Log traces to Tempo for a single function invocation
+  X Tweak regex so that the process description is maximally useful for each invocation (hence the log
+      invocations starting to show up).
+  X Modify lambda return to capture http requests and encode their spans in the return payload.
+  X Figure out how to do "annotations" of events (already done via logs) and add a variety of events for
+    interests sake.
+  - Add async storage to function execution so that the right logging jwt is used for each call, right now
+    they are cached which is probably a bad time, also it will contain the wrong traceId.
+  - Add actual security, setting the auth via cookie and reading it on inbound
+
+// Fun
+  > Execute against an integration and a connector that are rebuilt with the new lambda executors and see what
+    happens.
+
+// Display
+  X Create dashboard panels
+  X Create iframe panel that loads that dashboard entry OR create query that pulls data from loki directly
+  - Create on-account-generation panel/datasource population
+  - Change links on response from loki to trigger trace view (multi-tab panel? causes panel to switch)
+    - Doesn't have to be an iframe if doing the query directly. If it is an iframe, then change url to do
+      window.top.postMessage (cc// https://stackoverflow.com/questions/48276602/reactjs-with-iframe-events-and-changes-handling)
+    - The postMessage would then trigger a switch between the two `tab` views, and reload the `trace` panel
+      with the desired traceId.  Not sure exactly how we can trigger that in the html though.
+  - Support full-page explorer view with Viewer credentials as a pop-out.
+
+// Step 2
+  - Monkeypatch http.request and https.request to capture both dispatches (and associate with a new traceId)
+    as well as return codes.
+  - Change lambda-function entrypoint/console wrapper to return logs as part of payload rather than with a separate post
+  - Add filter so that the cookie gets stripped on dispatch/function run (defensive)
+  - Replace all elements of x-fx-trace-id with fusebit-trace-id

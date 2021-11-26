@@ -11,12 +11,23 @@ import { EditorContext } from './EditorContext';
  */
 export function createLogsPanel(element: HTMLElement, editorContext: EditorContext, options?: ILogsPanelOptions) {
   const id = `fusebit-logs-${Math.floor(99999999 * Math.random()).toString(26)}`;
+
+  const iframeUrl = new URL('http://localhost:3001/v2/grafana/bootstrap/d-solo/SNVmMet7k/basic');
+
+  iframeUrl.search = new URLSearchParams({
+    panelId: '2',
+    kiosk: '',
+    refresh: '1s',
+    fusebitAuthorization: editorContext._server.account!.accessToken,
+    'var-accountId': editorContext._server.account!.accountId,
+    'var-subscriptionId': editorContext._server.account!.subscriptionId,
+    'var-boundaryId': editorContext.boundaryId,
+    'var-functionId': editorContext.functionId,
+  }).toString();
+
   element.innerHTML = [
     `<div class="fusebit-logs-inner-container">`,
-    `<div class="fusebit-logs-delete-container"><button class="fusebit-logs-delete-btn" id="${id}-delete"><i class="fa fa-trash"></i></button></div>`,
-    `<div class="fusebit-logs" id="${id}">`,
-    `<pre class="fusebit-logs-content" id="${id}-content"></pre>`,
-    `</div>`,
+    `<iframe src="${iframeUrl.toString()}" style="position: relative; height: 100%; width: 100%;" scrolling="no" frameborder="0"></iframe>`,
     `</div>`,
   ].join('');
   const contentElement = document.getElementById(`${id}-content`) as HTMLElement;
@@ -184,6 +195,7 @@ export function createLogsPanel(element: HTMLElement, editorContext: EditorConte
   });
 
   function append(line: string) {
+    return;
     const annotatedLine = `[${new Date().toLocaleTimeString()}] ${line}\n`;
     let newContent = contentElement.textContent + annotatedLine;
     if (newContent.length > effectiveOptions.maxSize) {

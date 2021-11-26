@@ -1,7 +1,8 @@
-import Crypto from 'crypto';
+import crypto from 'crypto';
 import Path from 'path';
 
 import {
+  FUSEBIT_AUTHORIZATION_COOKIE,
   dynamoScanTable,
   expBackoff,
   asyncPool,
@@ -36,7 +37,10 @@ const valid_boundary_name = /^[A-Za-z0-9\-]{1,63}$/;
 
 const valid_function_name = /^[A-Za-z0-9\-]{1,64}$/;
 
-const traceIdHeader = 'x-fx-trace-id';
+const traceIdHeader = 'fusebit-trace-id';
+
+const makeTraceId = () => crypto.randomBytes(16).toString('hex');
+const makeTraceSpanId = () => crypto.randomBytes(8).toString('hex');
 
 // Stores status of a function build (async operation)
 // This prefix has 1 day TTL in S3
@@ -83,6 +87,7 @@ const RUNAS_SYSTEM_ISSUER_SUFFIX = 'system.fusebit.io';
 
 const JWT_PERMISSION_CLAIM = 'https://fusebit.io/permissions';
 const JWT_PROFILE_CLAIM = 'https://fusebit.io/profile';
+const JWT_ATTRIBUTES_CLAIM = 'https://fusebit.io/attributes';
 
 const RUNAS_KID_LEN = 8;
 
@@ -150,11 +155,12 @@ function get_function_builder_description(options: any) {
 // Create a predictable fixed-length version of the lambda name, to avoid accidentally exceeding any name
 // limits.
 function get_function_builder_name(options: any) {
-  return Crypto.createHash('sha1').update(get_function_builder_description(options)).digest('hex');
+  return crypto.createHash('sha1').update(get_function_builder_description(options)).digest('hex');
 }
 
 function get_module_builder_name(ctx: any, name: string) {
-  return Crypto.createHash('sha1')
+  return crypto
+    .createHash('sha1')
     .update(get_module_builder_description(ctx, name, ctx.options.internal.resolved_dependencies[name]))
     .digest('hex');
 }
@@ -181,7 +187,7 @@ function get_user_function_description(options: any) {
 
 function get_user_function_name(options: any, version?: string) {
   return (
-    Crypto.createHash('sha1').update(get_user_function_description(options)).digest('hex') +
+    crypto.createHash('sha1').update(get_user_function_description(options)).digest('hex') +
     (version !== undefined ? `:${version}` : '')
   );
 }
@@ -322,11 +328,13 @@ export {
   RUNAS_KID_LEN,
   JWT_PERMISSION_CLAIM,
   JWT_PROFILE_CLAIM,
+  JWT_ATTRIBUTES_CLAIM,
   REGISTRY_RESERVED_SCOPE_PREFIX,
   RUNAS_SYSTEM_ISSUER_SUFFIX,
   API_PUBLIC_ENDPOINT,
   API_PUBLIC_HOST,
   MAX_CACHE_REFRESH_RATE,
+  FUSEBIT_AUTHORIZATION_COOKIE,
   dynamoScanTable,
   expBackoff,
   asyncPool,
@@ -339,4 +347,6 @@ export {
   mergeDeep,
   createUniqueIdentifier,
   traceIdHeader,
+  makeTraceId,
+  makeTraceSpanId,
 };
