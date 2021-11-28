@@ -1,0 +1,19 @@
+version: 2
+updates:
+  # Q5 uses top level yarn.lock
+  - package-ecosystem: "yarn"
+    directory: "/"
+    schedule:
+      interval: "daily"
+
+  # Function API builds with top level Dockerfile
+  - package-ecosystem: "docker"
+    directory: "/"
+    schedule:
+      interval: "daily"
+
+  # Add this to all repositories
+  - package-ecosystem: "github-actions"
+    directory: "/"
+    schedule:
+      interval: "daily"
