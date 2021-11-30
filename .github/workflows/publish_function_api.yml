@@ -70,10 +70,6 @@ jobs:
         run: ./tool/cicd/actions/scripts/build_tree.sh
       - name: Qualify - fuse-ops works
         run: node cli/fusebit-ops-cli/libc/index.js stack ls
-      - name: Qualify - fuse works
-        env:
-          FUSE_PROFILE_INTERNAL_321_US_WEST_2_STAGE: ${{ secrets.FUSE_PROFILE_INTERNAL_321_US_WEST_2_STAGE }}
-        run: ./tool/cicd/actions/scripts/test_fuse.sh
       - name: Yarn - image
         run: ./tool/cicd/actions/scripts/build_image.sh
       - name: Publish - function-api
