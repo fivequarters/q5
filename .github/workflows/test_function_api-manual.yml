@@ -1,0 +1,74 @@
+###################################################################
+# Auto-created by the cicd-actions tool
+on: workflow_dispatch
+name: 'CICD: Test Function-API (Manual)'
+jobs:
+  deploy:
+    name: Deploy
+    runs-on: self-hosted
+    steps:
+      - name: Ensure AWS CLI exists and credentials works.
+        run: aws s3 ls
+      - name: Use Node.js
+        uses: actions/setup-node@v1
+        with:
+          node-version: 14.17.2
+      - name: Install yarn
+        run: npm i -g yarn
+      - name: Checkout
+        uses: actions/checkout@v2
+        with:
+          fetch-depth: 0
+      - name: Version
+        id: package-versions
+        run: ./tool/cicd/actions/scripts/export_versions.sh
+      - name: Discovered versions
+        run: >
+          echo "Versions: function_api/${{env.VERSION_FUNCTION_API}}
+          fuse-cli/${{env.VERSION_FUSEBIT_CLI}}
+          fuse-ops/${{env.VERSION_FUSEBIT_OPS_CLI}}"
+      - name: Setup .env files
+        run: >-
+          ./tool/cicd/actions/scripts/create_function_api_env.cicd.us-east-2.749775346857.sh
+      - name: Pre-Build Summary
+        run: |
+          echo function-api: ${VERSION_FUNCTION_API}
+          echo fusebit-cli: ${VERSION_FUSEBIT_CLI}
+          echo fusebit-ops-cli: ${VERSION_FUSEBIT_OPS_CLI}
+      - name: Build
+        run: ./tool/cicd/actions/scripts/build_tree.sh
+      - name: Test - Drop Public Schema
+        run: ./tool/cicd/actions/scripts/cleanup_db.sh
+      - name: Publish - function-api - 749 Only
+        run: ./tool/cicd/actions/scripts/publish_function_api_dev.sh
+      - name: Test - deploy exclusive to cicd/us-east-2
+        env:
+          REGION: us-east-2
+          DEPLOYMENT_NAME: cicd
+          NETWORK_NAME: cicd
+          DEPLOYMENT_DOMAIN: dev.fusebit.io
+        run: ./tool/cicd/actions/scripts/deploy_exclusive_function_api.sh
+      - name: Cleanup Orphaned Resources
+        run: ./tool/cicd/actions/scripts/clean_env.sh
+      - name: Test - function-api
+        env:
+          FUSE_PROFILE: cicd
+        run: ./tool/cicd/actions/scripts/test_function_api.sh
+      - name: Notify slack success
+        if: success()
+        env:
+          SLACK_BOT_TOKEN: ${{ secrets.SLACK_NOTIFICATIONS_BOT_TOKEN }}
+        uses: voxmedia/github-action-slack-notify-build@v1
+        with:
+          channel: pr-review
+          status: SUCCESS
+          color: good
+      - name: Notify slack fail
+        if: failure()
+        env:
+          SLACK_BOT_TOKEN: ${{ secrets.SLACK_NOTIFICATIONS_BOT_TOKEN }}
+        uses: voxmedia/github-action-slack-notify-build@v1
+        with:
+          channel: pr-review
+          status: FAILED
+          color: danger

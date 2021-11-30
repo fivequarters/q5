@@ -1,0 +1,4 @@
+# Publish API Docs
+steps:
+- name: Publish - API Docs
+  run: ./tool/cicd/actions/scripts/publish_api_docs.sh

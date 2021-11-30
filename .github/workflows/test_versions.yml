@@ -1,7 +1,7 @@
 ###################################################################
 # Auto-created by the cicd-actions tool
 on: workflow_dispatch
-name: Checkout the project
+name: Test version checks
 jobs:
   deploy:
     name: Deploy
@@ -22,7 +22,7 @@ jobs:
       - name: Use Node.js
         uses: actions/setup-node@v1
         with:
-          node-version: 14.17.2
+          node-version: 14.16.0
       - name: Cache Node.js modules
         uses: actions/cache@v2
         with:

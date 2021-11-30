@@ -1,7 +1,6 @@
 #!/usr/bin/env bash
 
 # -- Standard Header --
-set -e
 echoerr() { printf "%s\n" "$*" >&2; }
 export FUSEBIT_DEBUG=
 
@@ -9,6 +8,7 @@ export FUSEBIT_DEBUG=
 AWS_PROFILE=${AWS_PROFILE:=default}
 
 # -- Script --
+set -e
 echoerr "Building package"
 yarn bundle fusebit-site
 
