@@ -139,16 +139,22 @@ const helloWorldWithCron = {
   },
 };
 
-const helloWorldWithNode8JavaScript = {
+const helloWorldJavaScript = {
   nodejs: {
     files: {
       'index.js': 'module.exports = (ctx, cb) => cb(null, { body: process.version });',
       'package.json': {
-        engines: {
-          node: '8',
-        },
         dependencies: {},
       },
+    },
+  },
+};
+
+const helloWorldString = {
+  nodejs: {
+    files: {
+      'index.js': 'module.exports = (ctx, cb) => cb(null, { body: process.version });',
+      'package.json': JSON.stringify({ dependencies: {} }),
     },
   },
 };
@@ -177,20 +183,6 @@ const helloWorldWithNode12JavaScript = {
         },
         dependencies: {},
       },
-    },
-  },
-};
-
-const helloWorldWithNode10String = {
-  nodejs: {
-    files: {
-      'index.js': 'module.exports = (ctx, cb) => cb(null, { body: process.version });',
-      'package.json': JSON.stringify({
-        engines: {
-          node: '10',
-        },
-        dependencies: {},
-      }),
     },
   },
 };
@@ -250,17 +242,9 @@ const helloWorldWithBadMustache = {
 };
 
 describe('Function', () => {
-  test('PUT fails with unsupported node.js version 8', async () => {
-    const response = await putFunction(account, boundaryId, function1Id, helloWorldWithNode8JavaScript);
-    expect(response).toBeHttp({ statusCode: 400 });
-  }, 120000);
-
-  test('PUT succeeds with supported node.js version 10', async () => {
+  test('PUT fails with unsupported node.js version 10', async () => {
     const response = await putFunction(account, boundaryId, function1Id, helloWorldWithNode10JavaScript);
-    expect(response).toBeHttp({ statusCode: 200 });
-    const version = await request(response.data.location);
-    expect(version).toBeHttp({ statusCode: 200 });
-    expect(version.data).toMatch(/^v10/);
+    expect(response).toBeHttp({ statusCode: 400 });
   }, 120000);
 
   test('PUT succeeds with supported node.js version 12', async () => {
@@ -580,7 +564,7 @@ describe('Function', () => {
   }, 120000);
 
   test('GET retrieves information of function with package.json as JavaScript object', async () => {
-    let response = await putFunction(account, boundaryId, function2Id, helloWorldWithNode10JavaScript);
+    let response = await putFunction(account, boundaryId, function2Id, helloWorldJavaScript);
     expect(response).toBeHttp({ statusCode: 200, data: { status: 'success' } });
     response = await getFunction(account, boundaryId, function2Id);
     expect(response).toBeHttp({ statusCode: 200 });
@@ -590,7 +574,7 @@ describe('Function', () => {
       id: function2Id,
       location: expect.stringMatching(/^http:|https:/),
     });
-    expect(response.data.nodejs).toEqual(helloWorldWithNode10JavaScript.nodejs);
+    expect(response.data.nodejs).toEqual(helloWorldJavaScript.nodejs);
     expect(response.data.compute).toEqual({ timeout: 30, memorySize: 128, staticIp: false });
     expect(response.data.computeSerialized).toBeUndefined();
     expect(response.data.configuration).toBeUndefined();
@@ -601,7 +585,7 @@ describe('Function', () => {
   }, 120000);
 
   test('GET retrieves information of function with package.json as string', async () => {
-    let response = await putFunction(account, boundaryId, function2Id, helloWorldWithNode10String);
+    let response = await putFunction(account, boundaryId, function2Id, helloWorldString);
     expect(response).toBeHttp({ statusCode: 200, data: { status: 'success' } });
     response = await getFunction(account, boundaryId, function2Id);
     expect(response).toBeHttp({ statusCode: 200 });
@@ -611,7 +595,7 @@ describe('Function', () => {
       id: function2Id,
       location: expect.stringMatching(/^http:|https:/),
     });
-    expect(response.data.nodejs).toEqual(helloWorldWithNode10String.nodejs);
+    expect(response.data.nodejs).toEqual(helloWorldString.nodejs);
     expect(response.data.compute).toEqual({ timeout: 30, memorySize: 128, staticIp: false });
     expect(response.data.computeSerialized).toBeUndefined();
     expect(response.data.configuration).toBeUndefined();
