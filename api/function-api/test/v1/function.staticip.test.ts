@@ -99,9 +99,9 @@ describe('Subscription with staticIp=true', () => {
     const create = await FunctionUtilities.createFunction(params, asyncFunction, fakeAgent as IAgent);
     expect(create).toMatchObject({ code: 201 });
 
-    const build = await FunctionUtilities.waitForFunctionBuild(params, create.buildId as string, 120000);
+    const build = await FunctionUtilities.waitForFunctionBuild(params, create.buildId as string, 240000);
     expect(build).toMatchObject({ code: 200, version: 1 });
-  }, 120000);
+  }, 240000);
 
   test('Create a function with a short timeout fails', async () => {
     const params = getParams(function1Id, account, boundaryId);
