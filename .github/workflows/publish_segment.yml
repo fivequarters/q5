@@ -2,7 +2,7 @@
 # Auto-created by the cicd-actions tool
 on:
   schedule:
-    cron: 5 4 * * *
+    - cron: 5 4 * * *
 name: Publish Segment Files
 jobs:
   deploy:
@@ -66,7 +66,7 @@ jobs:
       - name: Install ZX
         run: npm install -g zx
       - name: Deploy Segment Files
-        run: ./scripts/cicd/actions/update_segment.mjs
+        run: ./tool/cicd/actions/scripts/update_segment.mjs
       - name: Notify slack success
         if: success()
         env:

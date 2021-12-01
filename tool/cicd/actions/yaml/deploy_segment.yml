@@ -2,4 +2,4 @@ steps:
   - name: Install ZX
     run: npm install -g zx
   - name: Deploy Segment Files
-    run: ./scripts/cicd/actions/update_segment.mjs
+    run: ./tool/cicd/actions/scripts/update_segment.mjs

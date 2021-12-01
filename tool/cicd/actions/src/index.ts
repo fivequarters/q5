@@ -137,9 +137,7 @@ const specs: ISpec[] = [
     output: 'publish_segment',
     options: {
       on_trigger: {
-        schedule: {
-          cron: '5 4 * * *',
-        },
+        schedule: [{ cron: '5 4 * * *' }],
       },
     },
   },
