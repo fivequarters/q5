@@ -2,7 +2,7 @@
 # Auto-created by the cicd-actions tool
 on:
   schedule:
-    cron: 5 4 * * *
+    - cron: 5 4 * * *
 name: Publish Segment Files
 jobs:
   deploy:

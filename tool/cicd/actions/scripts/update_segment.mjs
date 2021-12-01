@@ -8,9 +8,9 @@ const keys = [
 ];
 
 (async () => {
-  keys.forEach(async (key) => {
+  for (key of keys) {
     await $`wget https://cdn.segment.com/analytics.js/v1/${key}/analytics.min.js`;
     await $`mv analytics.min.js ${key}.js`;
     await $`aws s3 cp --acl public-read --cache-control max-age=300 ${key}.js s3://fusebit-io-cdn/data/js/`;
-  });
+  }
 })();
