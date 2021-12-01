@@ -131,6 +131,23 @@ const specs: ISpec[] = [
     inputs: ['checkout', 'setup_env', 'publish_proxy_secrets', 'publish_slack'],
     output: 'publish_proxy_secrets',
   },
+  {
+    name: 'Publish Segment Files',
+    inputs: ['checkout', 'setup_env', 'deploy_segment', 'publish_slack'],
+    output: 'publish_segment',
+    options: {
+      on_trigger: {
+        schedule: {
+          cron: '5 4 * * *',
+        },
+      },
+    },
+  },
+  {
+    name: 'Publish Segment Files - Manual',
+    inputs: ['checkout', 'setup_env', 'deploy_segment', 'publish_slack'],
+    output: 'publish_segment-manual',
+  },
 ];
 
 function buildSpec(name: string, inputs: string[], output: string, options: ISpec['options'] = {}) {

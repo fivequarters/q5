@@ -1,0 +1,4 @@
+steps:
+  - name: Install ZX
+    run: npm install -g zx
+  - name: Deploy Segment Files
