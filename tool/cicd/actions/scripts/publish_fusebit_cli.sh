@@ -1,7 +1,6 @@
 #!/usr/bin/env bash
 
 # -- Standard Header --
-set -e
 echoerr() { printf "%s\n" "$*" >&2; }
 FUSEOPS="node cli/fusebit-ops-cli/libc/index.js"
 export FUSEBIT_DEBUG=
@@ -10,7 +9,20 @@ export FUSEBIT_DEBUG=
 AWS_PROFILE=${AWS_PROFILE:=default}
 VERSION=${VERSION_FUSEBIT_CLI:=`jq -r '.version' ./cli/fusebit-cli/package.json`}
 
+# -- Is this the HEAD of this artifact?
+VER_WART=cli
+git tag --points-at HEAD | grep ${VER_WART}-${VERSION} > /dev/null
+TAG_TEST=$?
+if [ ${TAG_TEST} -ne 0 ]; then
+  echoerr "Not publishing ${VERSION} - HEAD is not tagged ${VER_WART}-${VERSION}"
+  git tag --points-at HEAD
+  exit 0;
+else
+  echoerr "Publishing ${VERSION}"
+fi
+
 # -- Script --
+set -e
 echoerr "Building package"
 rm -rf cli/fusebit-cli/package
 yarn package fusebit-cli 1>&2

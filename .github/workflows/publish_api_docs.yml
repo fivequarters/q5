@@ -1,0 +1,55 @@
+###################################################################
+# Auto-created by the cicd-actions tool
+on: workflow_dispatch
+name: Publish API Documentation to Readme.com
+jobs:
+  deploy:
+    name: Deploy
+    runs-on: ubuntu-latest
+    steps:
+      - name: Use Node.js
+        uses: actions/setup-node@v1
+        with:
+          node-version: 14.16.0
+      - name: Checkout
+        uses: actions/checkout@v2
+        with:
+          fetch-depth: 0
+      - name: Version
+        id: package-versions
+        run: ./tool/cicd/actions/scripts/export_versions.sh
+      - name: Discovered versions
+        run: >
+          echo "Versions: function_api/${{env.VERSION_FUNCTION_API}}
+          fuse-cli/${{env.VERSION_FUSEBIT_CLI}}
+          fuse-ops/${{env.VERSION_FUSEBIT_OPS_CLI}}"
+      - name: Publish the OpenAPI docs for v1 to Readme.Com
+        uses: readmeio/github-readme-sync@v2
+        with:
+          readme-oas-key: ${{secrets.README_COM_V1_OAS_KEY}}
+          oas-file-path: ./api/function-api/api_v1.yaml
+          api-version: v2
+      - name: Publish the OpenAPI docs for v2 to Readme.Com
+        uses: readmeio/github-readme-sync@v2
+        with:
+          readme-oas-key: ${{secrets.README_COM_OAS_KEY}}
+          oas-file-path: ./api/function-api/api_v2.yaml
+          api-version: v2
+      - name: Notify slack success
+        if: success()
+        env:
+          SLACK_BOT_TOKEN: ${{ secrets.SLACK_NOTIFICATIONS_BOT_TOKEN }}
+        uses: voxmedia/github-action-slack-notify-build@v1
+        with:
+          channel: pr-review
+          status: SUCCESS
+          color: good
+      - name: Notify slack fail
+        if: failure()
+        env:
+          SLACK_BOT_TOKEN: ${{ secrets.SLACK_NOTIFICATIONS_BOT_TOKEN }}
+        uses: voxmedia/github-action-slack-notify-build@v1
+        with:
+          channel: pr-review
+          status: FAILED
+          color: danger

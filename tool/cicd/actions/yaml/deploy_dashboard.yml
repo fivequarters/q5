@@ -1,0 +1,29 @@
+steps:
+###########################################################################
+# Deploy the dashboard to a variety of deployments
+- name: Install zsh
+  run: sudo apt-get install zsh -y
+- name: Dashboard - us-west-2/stage
+  env:
+    REGION: us-west-2
+    DASHBOARD_NAME: STAGE-US-WEST-2
+    DASHBOARD_REGION: us-west-2
+    DASHBOARD_DEPLOYMENT: stage
+    DASHBOARD: ./tool/monitoring/cloudwatch-dashboard-template.json
+  run: ./tool/cicd/actions/scripts/deploy_dashboard.sh
+- name: Dashboard - us-west-1/api
+  env:
+    REGION: us-west-1
+    DASHBOARD_NAME: API-US-WEST-1
+    DASHBOARD_REGION: us-west-1
+    DASHBOARD_DEPLOYMENT: api
+    DASHBOARD: ./tool/monitoring/cloudwatch-dashboard-template.json
+  run: ./tool/cicd/actions/scripts/deploy_dashboard.sh
+- name: Dashboard - us-east-1/api
+  env:
+    REGION: us-east-1
+    DASHBOARD_NAME: API-US-EAST-1
+    DASHBOARD_REGION: us-east-1
+    DASHBOARD_DEPLOYMENT: api
+    DASHBOARD: ./tool/monitoring/cloudwatch-dashboard-template.json
+  run: ./tool/cicd/actions/scripts/deploy_dashboard.sh

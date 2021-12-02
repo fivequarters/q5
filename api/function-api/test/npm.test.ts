@@ -29,7 +29,7 @@ const funcWithDep = (pkgName: string) => ({
   nodejs: {
     files: {
       'index.js': `const s = require("${pkgName}"); module.exports = (ctx, cb) => cb(null, { body: typeof s });`,
-      'package.json': { engines: { node: '10' }, dependencies: { [pkgName]: '*' } },
+      'package.json': { dependencies: { [pkgName]: '*' } },
     },
   },
 });

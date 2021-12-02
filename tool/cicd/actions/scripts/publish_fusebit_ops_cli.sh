@@ -1,7 +1,6 @@
 #!/usr/bin/env bash
 
 # -- Standard Header --
-set -e
 echoerr() { printf "%s\n" "$*" >&2; }
 FUSEOPS="node cli/fusebit-ops-cli/libc/index.js"
 export FUSEBIT_DEBUG=
@@ -13,7 +12,20 @@ VERSION=${VERSION_FUSEBIT_OPS_CLI:=`jq -r '.version' ./cli/fusebit-ops-cli/packa
 AWS_S3_OPTS="--acl public-read --cache-control max-age=300"
 MAJOR_MINOR=`echo ${VERSION} | sed 's/\([0-9]*\)\.\([0-9]*\)\.\([0-9]*\)/\1.\2/'`
 
+# -- Is this the HEAD of this artifact?
+VER_WART=ops-cli
+git tag --points-at HEAD | grep ${VER_WART}-${VERSION} > /dev/null
+TAG_TEST=$?
+if [ ${TAG_TEST} -ne 0 ]; then
+  echoerr "Not publishing ${VERSION} - HEAD is not tagged ${VER_WART}-${VERSION}"
+  git tag --points-at HEAD
+  exit 0;
+else
+  echoerr "Publishing ${VERSION}"
+fi
+
 # -- Script --
+set -e
 echoerr "Creating fusebit-ops-cli package: ${VERSION} at ${MAJOR_MINOR}"
 rm -rf cli/fusebit-ops-cli/package
 yarn package fusebit-ops-cli 1>&2

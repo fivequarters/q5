@@ -1,0 +1,3 @@
+steps:
+  - name: Test - Delete Old Build Artifacts
+    run: ./tool/cicd/actions/scripts/clean_dirty_artifacts.sh
