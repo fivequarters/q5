@@ -43,7 +43,7 @@ PAGERDUTY_SECRET_PAYLOAD="{\"data\":{\"clientId\":\"${PROXY_PAGERDUTY_CLIENT_ID}
 
 ASANA_SECRET_PAYLOAD="{\"data\":{\"clientId\":\"${PROXY_ASANA_CLIENT_ID}\",\"clientSecret\":\"${PROXY_ASANA_CLIENT_SECRET}\",\"authorizationUrl\":\"https://app.asana.com/-/oauth_authorize\",\"tokenUrl\":\"https://app.asana.com/-/oauth_token\",\"revokeUrl\":\"https://app.asana.com/-/oauth_revoke\"}}"
 
-REDDIT_SECRET_PAYLOAD="{\"data\":{\"clientId\":\"${PROXY_REDDIT_CLIENT_ID}\",\"clientSecret\":\"${PROXY_REDDIT_CLIENT_SECRET}\",\"authorizationUrl\":\"https://app.reddit.com/-/oauth_authorize\",\"tokenUrl\":\"https://app.reddit.com/-/oauth_token\",\"revokeUrl\":\"https://app.reddit.com/-/oauth_revoke\"}}"
+REDDIT_SECRET_PAYLOAD="{\"data\":{\"clientId\":\"${PROXY_REDDIT_CLIENT_ID}\",\"clientSecret\":\"${PROXY_REDDIT_CLIENT_SECRET}\",\"authorizationUrl\":\"https://www.reddit.com/api/v1/authorize\",\"tokenUrl\":\"https://www.reddit.com/api/v1/access_token\",\"revokeUrl\":\"https://www.reddit.com/api/v1/revoke_token\"}}"
 
 # Publish to the designated accounts
 for PROFILE in ${PROXY_SECRET_PUBLISH_PROFILE_LIST}; do
