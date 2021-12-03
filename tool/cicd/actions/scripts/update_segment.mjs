@@ -5,6 +5,7 @@ const keys = [
   'WSACLqGgP5iDXr3iPDubC70ySHfWHWQk',
   'LZUtOoFkuzwcr8YFCAFPeS8iSWS2bQxU',
   'Bw1onkn50qJulNqAucB57Nyc7K71atgg',
+  'gTwm2aSb6Y6Jp273lyO5R5JMU9rJERSi',
 ];
 
 (async () => {
