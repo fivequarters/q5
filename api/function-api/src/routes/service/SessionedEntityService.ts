@@ -165,11 +165,11 @@ export default abstract class SessionedEntityService<
     let replacementTargetId: string | undefined;
     let previousOutput;
     if (!!parentSession.data.replacementTargetId && !!install) {
+      const stepEntity = install.data[step.name];
       if (step.entityType === Model.EntityType.integration) {
         replacementTargetId = install.id;
-        previousOutput = install.data[step.name];
-      } else {
-        const stepEntity = install.data[step.name];
+        previousOutput = stepEntity;
+      } else if (stepEntity) {
         replacementTargetId = stepEntity.entityId;
 
         const connector = await this.connectorService.dao.getEntity({
