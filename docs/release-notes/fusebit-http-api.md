@@ -17,6 +17,12 @@ All public releases of the Fusebit HTTP API are documented here, including notab
 <!-- 1. TOC
 {:toc} -->
 
+## Version 1.32.4
+
+_Released 11/23/21_
+
+- **Enhancement.** Updated proxy service to allow for unique authorization model needed for Reddit integrations.
+
 ## Version 1.32.3
 
 _Released 11/23/21_
