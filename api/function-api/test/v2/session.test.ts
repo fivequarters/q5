@@ -283,6 +283,62 @@ describe('Sessions', () => {
     expect(response).toBeHttp({ statusCode: 200, data: { data: identityData } });
   }, 180000);
 
+  test('Session with a subset of components of the integration', async () => {
+    const { integrationId, connectorIds, steps } = await createPair(account, boundaryId, {}, {}, 2);
+    // create identity for 2nd connector
+    const createIdentityResponse = await ApiRequestMap.identity.post(account, connectorIds[1], {
+      data: { preexisting: true },
+    });
+    expect(createIdentityResponse).toBeHttp({ statusCode: 200 });
+    const identityId2 = createIdentityResponse.data.id;
+    // create install, with identity2 pre-attached
+    const createInstallResponse = await ApiRequestMap.install.post(account, integrationId, {
+      data: {
+        [steps[1]]: {
+          entityId: identityId2,
+          parentEntityId: connectorIds[1],
+        },
+      },
+    });
+    const installId = createInstallResponse.data.id;
+    // create session to only initialize the first connector
+    let response = await ApiRequestMap.integration.session.post(account, integrationId, {
+      redirectUrl: demoRedirectUrl,
+      installId,
+      components: [steps[0]],
+    });
+    const parentSessionId = response.data.id;
+    // start the session to make sure it starts correctly.
+    response = await ApiRequestMap.integration.session.start(account, integrationId, parentSessionId);
+    let loc = getElementsFromUrl(response.headers.location);
+    // ensure the first redirect is to the first connector
+    expect(loc.entityId).toBe(connectorIds[0]);
+    // call the callback to move to the next step
+    response = await ApiRequestMap[loc.entityType].session.callback(account, loc.entityId, loc.sessionId);
+    // ensure the second connector is skipped and that the next redirect goes back to the application
+    expect(response.headers.location).toBeDefined();
+    expect(response.headers.location.indexOf(demoRedirectUrl)).toBe(0);
+    // get session results to verify current data matches data on install/identity
+    response = await ApiRequestMap.integration.session.getResult(account, integrationId, parentSessionId);
+    const identitySessionId = Model.decomposeSubordinateId(response.data.components[0].childSessionId).entityId;
+    // put new data to the first connector's session
+    const identityData = { newData: 'for identity' };
+    await ApiRequestMap.connector.session.put(account, connectorIds[0], identitySessionId, { output: identityData });
+    // finalize session to write session data to entities
+    await ApiRequestMap.integration.session.commitSession(account, integrationId, parentSessionId);
+    const sessionResult = await ApiRequestMap.integration.session.getResult(account, integrationId, parentSessionId);
+    expect(installId).toBe(sessionResult.data.replacementTargetId);
+    response = await waitForCompletion(account, Model.EntityType.install, integrationId, installId);
+    // ensure install has entries for all connectors
+    expect(response.data.data[steps[0]]).toBeDefined();
+    expect(response.data.data[steps[1]]).toBeDefined();
+    // verify that identity if the skipped connector is intact
+    expect(response.data.data[steps[1]].entityId).toBe(identityId2);
+    // verify the identity of the connector included in the session was picked up
+    response = await ApiRequestMap.identity.get(account, connectorIds[0], response.data.data[steps[0]].entityId);
+    expect(response).toBeHttp({ statusCode: 200, data: { data: identityData } });
+  }, 180000);
+
   test('Overwrite 1 of 2 forms', async () => {
     const { integrationId } = await createPair(account, boundaryId, {
       components: [
