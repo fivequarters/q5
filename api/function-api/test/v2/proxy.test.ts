@@ -7,8 +7,8 @@ import { request } from '@5qtrs/request';
 import { Defaults } from '@5qtrs/account';
 import * as Constants from '@5qtrs/constants';
 
-import * as OAuthProxyConfig from '../../libc/routes/service/OAuthProxyConfig';
-import { OAuthProxyService, IOAuthProxyConfiguration } from '../../libc/routes/service/OAuthProxyService';
+import * as OAuthProxyConfig from '../../libc/routes/service/OAuthProxy/OAuthProxyConfig';
+import { OAuthProxyService, IOAuthProxyConfiguration } from '../../libc/routes/service/OAuthProxy/OAuthProxyService';
 
 import { cleanupEntities, ApiRequestMap, createPair } from './sdk';
 import { refreshSubscriptionCache } from '../v1/sdk';

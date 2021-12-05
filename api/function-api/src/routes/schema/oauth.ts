@@ -8,8 +8,13 @@ import * as common from '../middleware/common';
 
 import * as Validation from '../validation/proxy';
 
-import { OAuthProxyService, IOAuthProxyConfiguration, IOAuthProxyService } from '../service/OAuthProxyService';
-import * as OAuthProxyConfig from '../service/OAuthProxyConfig';
+import {
+  OAuthProxyService,
+  IOAuthProxyConfiguration,
+  IOAuthProxyService,
+} from '../service/OAuthProxy/OAuthProxyService';
+import * as OAuthProxyConfig from '../service/OAuthProxy/OAuthProxyConfig';
+import { RedditProxyService } from '../service/OAuthProxy/RedditProxyService';
 
 // Some utility types and type assertions.
 type ProxyRequest = express.Request & {
@@ -50,6 +55,16 @@ function isProxyCallbackRequest(req: ProxyRequest): asserts req is ProxyCallback
   }
 }
 
+const getTypedOAuthProxyService = (proxyType?: string) => {
+  const type = proxyType?.toLowerCase();
+  switch (type) {
+    case 'reddit':
+      return RedditProxyService;
+    default:
+      return OAuthProxyService;
+  }
+};
+
 // Create a router for this type of OAuth Proxy.
 export const createProxyRouter = (subscriptionCache: SubscriptionCache): express.Router => {
   const router = express.Router({ mergeParams: true });
@@ -64,12 +79,13 @@ export const createProxyRouter = (subscriptionCache: SubscriptionCache): express
       return next(http_error(500, 'Proxy is not configured'));
     }
 
+    const TypedOAuthProxyService = getTypedOAuthProxyService(req.params.proxyType);
     /*
      * Use the subscription configuration to get the accountId and subscriptionId to pull the proxy
      * constants from.
      */
     try {
-      req.proxy = new OAuthProxyService(
+      req.proxy = new TypedOAuthProxyService(
         req.params.accountId,
         req.params.subscriptionId,
         req.params.entityId,
