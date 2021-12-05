@@ -795,6 +795,7 @@ export const createPair = async (
     connectorId: conn.id,
     integrationId: integ.id,
     steps: integEntity.data.components.map((comp: Model.IIntegrationComponent) => comp.name),
+    connectorIds: integEntity.data.components.map((comp: Model.IIntegrationComponent) => comp.entityId),
   };
 };
 
