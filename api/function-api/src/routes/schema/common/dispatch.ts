@@ -67,10 +67,10 @@ const router = (
     res.set(result.headers);
     res.status(result.code);
 
-    if (result.bodyEncoding) {
-      res.end(result.body, result.bodyEncoding);
-    } else if (!result.body) {
+    if (!result.body) {
       res.end();
+    } else if (result.bodyEncoding) {
+      res.end(result.body, result.bodyEncoding);
     } else {
       res.json(result.body);
     }
