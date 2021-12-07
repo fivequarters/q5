@@ -77,7 +77,7 @@ export interface IExecuteFunctionOptions {
 
 interface IExecuteFunction {
   body: any;
-  bodyEncoding?: string;
+  bodyEncoding?: BufferEncoding;
   code: number;
   error?: any;
   headers?: any;
