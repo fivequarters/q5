@@ -17,6 +17,12 @@ All public releases of the Fusebit HTTP API are documented here, including notab
 <!-- 1. TOC
 {:toc} -->
 
+## Version 1.32.6
+
+_Released 12/7/21_
+
+- **Enhancement.** Support returning binary payload Buffer objects from v2 invocations.
+
 ## Version 1.32.5
 
 _Released 12/4/21_

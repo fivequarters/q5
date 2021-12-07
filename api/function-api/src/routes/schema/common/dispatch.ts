@@ -66,7 +66,14 @@ const router = (
 
     res.set(result.headers);
     res.status(result.code);
-    res.send(result.body);
+
+    if (result.bodyEncoding) {
+      res.end(result.body, result.bodyEncoding);
+    } else if (!result.body) {
+      res.end();
+    } else {
+      res.json(result.body);
+    }
   };
 
   return dispatchRouter;
