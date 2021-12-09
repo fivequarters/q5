@@ -12,6 +12,9 @@ const Data = Joi.object().keys({
     })
     .unknown(true)
     .default({}),
+  compute: Joi.object().keys({
+    memorySize: Joi.number(),
+  }),
   files: EntityCommon.Files.optional().default({}),
   security: Joi.object().keys({
     permissions: Joi.array().items(

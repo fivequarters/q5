@@ -44,6 +44,9 @@ const Data = Joi.alternatives().try(
         endpoint: Joi.string().required(),
       })
     ),
+    compute: Joi.object().keys({
+      memorySize: Joi.number(),
+    }),
     security: Joi.object().keys({
       permissions: Joi.array().items(
         Joi.object().keys({
