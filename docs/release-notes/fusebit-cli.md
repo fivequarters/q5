@@ -17,6 +17,12 @@ All public releases of the Fusebit CLI are documented here, including notable ch
 <!-- 1. TOC
 {:toc} -->
 
+## Version 1.20.0
+
+_Released 12/13/21_
+
+- **Enhancement.** Support binary files encoded using 'base64' in function, integration, and connector specifications.
+
 ## Version 1.19.1
 
 _Released 11/23/21_

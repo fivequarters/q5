@@ -151,6 +151,7 @@ export interface IIntegrationSchedule {
 
 export interface IIntegrationData {
   files: Record<string, string>;
+  encodedFiles?: Record<string, { data: string; encoding: string }>;
   handler: string;
   configuration: Record<string, any>;
   componentTags: Record<string, string>;
@@ -167,6 +168,7 @@ export interface IIntegration extends IEntity {
 
 export interface IConnectorData {
   files: Record<string, string>;
+  encodedFiles?: Record<string, { data: string; encoding: string }>;
   handler: string;
   configuration: {
     muxIntegration?: IEntityId;

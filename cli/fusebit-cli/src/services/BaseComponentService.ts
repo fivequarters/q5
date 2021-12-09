@@ -128,9 +128,23 @@ export abstract class BaseComponentService<IComponentType extends IBaseComponent
 
     // Load files in package.files, if any, into the entitySpec.
     const files = await globby((pack && pack.files) || ['*.js'], { cwd, gitignore: true, ignore: DefaultIgnores });
+
     await Promise.all(
       files.map(async (filename: string) => {
-        entitySpec.data.files[filename] = (await readFile(join(cwd, filename))).toString();
+        const content = await readFile(join(cwd, filename));
+        if (!content) {
+          return;
+        }
+
+        // Encode files with a null in them as base64
+        if (content.includes('\u0000')) {
+          entitySpec.data.encodedFiles![filename] = {
+            data: content.toString('base64'),
+            encoding: 'base64',
+          };
+        } else {
+          entitySpec.data.files[filename] = content.toString('utf8');
+        }
       })
     );
 
@@ -174,11 +188,28 @@ export abstract class BaseComponentService<IComponentType extends IBaseComponent
 
     // Write all of the files in the specification
     await Promise.all(
-      Object.entries(spec.data.files).map(async ([filename, contents]: string[]) => {
-        await writeFile(join(cwd, filename), contents);
+      Object.entries(spec.data.files).map(async ([filename, content]: [string, any]) => {
+        if (typeof content !== 'string') {
+          content = JSON.stringify(content, null, 2);
+        }
+
+        await writeFile(join(cwd, filename), content);
       })
     );
 
+    // Encoded files win out over non-encoded files when writing.
+    await Promise.all(
+      Object.entries(spec.data.encodedFiles || {}).map(async ([filename, content]: [string, any]) => {
+        // Decode the contents of the buffer.
+        if (content.encoding) {
+          content = Buffer.from(content.data, content.encoding);
+        } else if (typeof content !== 'string') {
+          content = JSON.stringify(content, null, 2);
+        }
+
+        await writeFile(join(cwd, filename), content);
+      })
+    );
     const details = [
       `The ${this.entityTypeName} was downloaded to the ${cwd} directory`,
       ' and the following files were written to disk:',

@@ -971,6 +971,22 @@ components:
       type: object
       description: The collection of filename and content pairs that are packaged with this entity.
 
+    EntityEncodedFiles:
+      type: object
+      description: The collection of filename and encoded content pairs that are packaged with this entity.
+      properties:
+        encodedFileName:
+          description: A file encoded in a particular transport-safe encoding, such as 'base64'
+          type: object
+          properties:
+            data:
+              description: The file payload, encoded in a JSON-safe format.
+              type: string
+            encoding:
+              description: The file encoding, such as 'base64'.
+              type: string
+              example: 'base64'
+
     EntitySecurity:
       type: object
       description: Additional security configuration variables for this entity.
@@ -1074,6 +1090,8 @@ components:
           $ref: '#/components/schemas/ConnectorConfiguration'
         files:
           $ref: '#/components/schemas/EntityFiles'
+        encodedFiles:
+          $ref: '#/components/schemas/EntityEncodedFiles'
         security:
           $ref: '#/components/schemas/EntitySecurity'
 
@@ -1206,10 +1224,9 @@ components:
         configuration:
           $ref: '#/components/schemas/EntityConfiguration'
         files:
-          type: object
-          description: An array of files, keyed by filename, that are included
-            in this integration. This includes the file referenced by the
-            `handler` field.
+          $ref: '#/components/schemas/EntityFiles'
+        encodedFiles:
+          $ref: '#/components/schemas/EntityEncodedFiles'
         componentTags:
           type: object
           description: These tags are added to installs and identities created through

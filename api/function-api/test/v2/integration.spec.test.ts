@@ -136,4 +136,42 @@ describe('Integration spec test suite', () => {
 
     expect(response.data.data.components[0].entityId).toBe(response.data.id);
   }, 180000);
+
+  test('Validate binary files get serialized safely', async () => {
+    const base64Data =
+      'AAEAAAAOAIAAAwBgR1NVQja9NcsAAVM8AAACqE9TLzKXU8F0AAEl7AAAAGBTVEFU5EzMKQABVeQAAABEY21hcKuc0bkAASZMAAAHYGdhc3AAAAAQAAFTNAAAAAhnbHlmCcDnKg==';
+    const expectedMd5 = '4cd0c214d939f965cba0142a827a31b8';
+    const binaryInteg = {
+      id: boundaryId,
+      data: {
+        handler: './integration',
+        files: {
+          'integration.js': [
+            "const fs = require('fs');",
+            "const integration = new (require('@fusebit-int/framework').Integration)();",
+            "integration.router.get('/api/test', async (ctx) => {",
+            '  const fn = `${__dirname}/binary.data`;',
+            '  ctx.body = {',
+            '    length: fs.statSync(fn).size,',
+            "    md5: require('crypto').createHash('md5').update(fs.readFileSync(fn)).digest('hex')",
+            '  };',
+            '});',
+            'module.exports = integration; ',
+          ].join('\n'),
+        },
+        encodedFiles: {
+          'binary.data': {
+            data: base64Data,
+            encoding: 'base64',
+          },
+        },
+      },
+    };
+
+    let response = await ApiRequestMap.integration.postAndWait(account, boundaryId, binaryInteg);
+    expect(response).toBeHttp({ statusCode: 200 });
+
+    response = await ApiRequestMap.integration.dispatch(account, boundaryId, RequestMethod.get, '/api/test');
+    expect(response).toBeHttp({ statusCode: 200, data: { length: 100, md5: expectedMd5 } });
+  }, 180000);
 });

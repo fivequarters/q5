@@ -19,6 +19,7 @@ module.exports = Joi.object().keys({
         'package.json': Joi.alternatives().try(Joi.string(), Joi.object()),
       })
       .unknown(),
+    encodedFiles: Common.encodedFiles.optional(),
   }),
   lambda: Joi.object().keys({
     memorySize: Joi.number().integer().min(64).max(3008),

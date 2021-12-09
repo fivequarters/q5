@@ -267,12 +267,19 @@ export class FunctionService {
     for (const file of files) {
       if (file !== 'fusebit.json') {
         const content = await readFile(join(path, file));
-        const contentString = content ? content.toString() : undefined;
-        if (contentString) {
+        if (content) {
           if (file === envFileName) {
-            functionSpec.configurationSerialized = contentString;
+            functionSpec.configurationSerialized = content.toString('utf8');
           } else {
-            functionSpec.nodejs.files[file] = contentString;
+            if (content.includes('\u0000')) {
+              // Encode files with a null in them as base64
+              functionSpec.nodejs.encodedFiles[file] = {
+                data: content.toString('base64'),
+                encoding: 'base64',
+              };
+            } else {
+              functionSpec.nodejs.files[file] = content.toString('utf8');
+            }
           }
         }
       }
@@ -344,8 +351,30 @@ export class FunctionService {
       if (functionSpec.nodejs) {
         const filesToWrite = functionSpec.nodejs.files || {};
         for (const file of Object.keys(filesToWrite)) {
-          const content = filesToWrite[file];
-          await writeFile(join(path, file), typeof content === 'string' ? content : JSON.stringify(content, null, 2));
+          let content = filesToWrite[file];
+
+          if (typeof content !== 'string') {
+            content = JSON.stringify(content, null, 2);
+          }
+
+          await writeFile(join(path, file), content);
+
+          files.push(file);
+        }
+
+        const encodedFilesToWrite = functionSpec.nodejs.encodedFiles || {};
+        for (const file of Object.keys(encodedFilesToWrite)) {
+          let content = encodedFilesToWrite[file];
+
+          // Decode the contents of the buffer.
+          if (content.encoding) {
+            content = Buffer.from(content.data, content.encoding);
+          } else if (typeof content !== 'string') {
+            content = JSON.stringify(content, null, 2);
+          }
+
+          await writeFile(join(path, file), content);
+
           files.push(file);
         }
       }

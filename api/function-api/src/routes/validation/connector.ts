@@ -12,7 +12,8 @@ const Data = Joi.object().keys({
     })
     .unknown(true)
     .default({}),
-  files: EntityCommon.Files.optional().default({}),
+  files: Common.files.optional().default({}),
+  encodedFiles: Common.encodedFiles.optional().default({}),
   security: Joi.object().keys({
     permissions: Joi.array().items(
       Joi.object().keys({

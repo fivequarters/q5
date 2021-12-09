@@ -32,6 +32,7 @@ const defaultIntegration: Model.IIntegrationData = {
     'integration.js': defaultIntegrationJs,
     'package.json': JSON.stringify(defaultPackageJson('sampleIntegration'), null, 2),
   },
+  encodedFiles: {},
   handler: './integration',
   configuration: {},
   componentTags: {},

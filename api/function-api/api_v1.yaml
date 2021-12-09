@@ -3759,6 +3759,17 @@ components:
                           example: '> 8'
                     dependencies:
                       type: object
+            encodedFiles:
+              type: object
+              properties:
+                binaryFileName.gif:
+                  type: object
+                  properties:
+                    data:
+                      type: string
+                    encoding:
+                      type: string
+                      example: 'base64'
         schedule:
           type: object
           properties:
