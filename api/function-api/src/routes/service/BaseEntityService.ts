@@ -99,7 +99,7 @@ export default abstract class BaseEntityService<E extends Model.IEntity, F exten
       ...functionConfig,
       mountUrl: `/v2/account/${entity.accountId}/subscription/${entity.subscriptionId}/integration/${entity.id}`,
     };
-    console.log(pkg);
+
     const spec: Function.IFunctionSpecification = {
       id: entity.id,
       nodejs: {
