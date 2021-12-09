@@ -1076,6 +1076,8 @@ components:
           $ref: '#/components/schemas/EntityFiles'
         security:
           $ref: '#/components/schemas/EntitySecurity'
+        compute:
+          $ref: '#/components/schemas/EntityCompute'
 
     ConnectorEntity:
       type: object
@@ -1196,6 +1198,14 @@ components:
           type: number
           description: The total number of entities of this type.
 
+    EntityCompute:
+      type: object
+      properties:
+        memorySize:
+          type: string
+          description: The memory size for this integration.
+          example: 512
+
     IntegrationEntityData:
       type: object
       properties:
@@ -1263,6 +1273,8 @@ components:
                   SDK for use by the integration.
         security:
           $ref: '#/components/schemas/EntitySecurity'
+        compute:
+          $ref: '#/components/schemas/EntityCompute'
 
     IntegrationListData:
       type: object
