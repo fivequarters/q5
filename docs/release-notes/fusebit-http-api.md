@@ -22,6 +22,7 @@ All public releases of the Fusebit HTTP API are documented here, including notab
 _Released 12/13/21_
 
 - **Enhancement.** Support binary files encoded using 'base64' in function, integration, and connector specifications.
+- **Enhancement.** Increase runtime memory allocation for functions to 512MB.
 
 ## Version 1.32.6
 
