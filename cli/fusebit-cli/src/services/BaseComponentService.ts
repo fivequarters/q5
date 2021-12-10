@@ -220,7 +220,13 @@ export abstract class BaseComponentService<IComponentType extends IBaseComponent
       details.push(Text.eol());
     });
 
+    Object.keys(spec.data.encodedFiles || {}).forEach((fileName) => {
+      details.push(Text.dim(`• ${fileName}`));
+      details.push(Text.eol());
+    });
+
     delete spec.data.files;
+    delete spec.data.encodedFiles;
 
     // Reconstruct the fusebit.json file
     const config = {
