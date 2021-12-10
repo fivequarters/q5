@@ -24,7 +24,14 @@ export class IntegrationService extends BaseComponentService<IIntegration> {
   public createEmptySpec(): IIntegration {
     return {
       id: 'unknown id',
-      data: { handler: './integration', configuration: {}, components: [], componentTags: {}, files: {} },
+      data: {
+        handler: './integration',
+        configuration: {},
+        components: [],
+        componentTags: {},
+        files: {},
+        encodedFiles: {},
+      },
       tags: {},
     };
   }

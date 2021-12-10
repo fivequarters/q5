@@ -89,6 +89,7 @@ export class FunctionEditorContext extends BaseEditorContext<IFunctionSpecificat
             dependencies: {},
           },
         },
+        encodedFiles: {},
       };
     }
 

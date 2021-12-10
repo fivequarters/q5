@@ -18,6 +18,7 @@ const defaultConnector: Model.IConnectorData = {
   files: {
     'package.json': JSON.stringify(defaultPackage('sampleConnector'), null, 2),
   },
+  encodedFiles: {},
 };
 
 class ConnectorService extends SessionedEntityService<Model.IConnector, Model.IIdentity> {

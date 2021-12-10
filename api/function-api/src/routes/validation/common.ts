@@ -19,4 +19,10 @@ export const tagValue = /^[a-zA-Z0-9_\-\.\/]*$/;
 export const tagNameValues = Joi.string().regex(/^([a-zA-Z0-9_\-\.%\/]+[=]?[a-zA-Z0-9_\-\.%\/]*)$/);
 export const tagQuery = Joi.alternatives().try(tagNameValues, Joi.array().items(tagNameValues));
 
+export const files = Joi.object();
+export const encodedFiles = Joi.object().pattern(
+  /.*/,
+  Joi.object().keys({ data: Joi.string(), encoding: Joi.string() })
+);
+
 export const tags = Joi.object().pattern(tagValue, [Joi.string().regex(tagValue), Joi.allow(null)]);

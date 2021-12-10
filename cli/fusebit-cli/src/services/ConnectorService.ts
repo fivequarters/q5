@@ -26,7 +26,7 @@ export class ConnectorService extends BaseComponentService<IConnector> {
   public createEmptySpec(): IConnector {
     return {
       id: 'unknown id',
-      data: { handler: '', configuration: {}, files: {} },
+      data: { handler: '', configuration: {}, files: {}, encodedFiles: {} },
       tags: {},
     };
   }

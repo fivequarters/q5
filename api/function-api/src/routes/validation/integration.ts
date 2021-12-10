@@ -7,7 +7,8 @@ import * as Common from './common';
 
 const Data = Joi.alternatives().try(
   Joi.object().keys({
-    files: EntityCommon.Files.required(),
+    files: Common.files.required(),
+    encodedFiles: Common.encodedFiles.optional(),
     handler: Joi.string().required(),
     configuration: Joi.object().default({}),
     componentTags: Common.tags,

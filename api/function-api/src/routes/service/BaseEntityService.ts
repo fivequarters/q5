@@ -104,8 +104,9 @@ export default abstract class BaseEntityService<E extends Model.IEntity, F exten
       id: entity.id,
       nodejs: {
         ...(pkg.engines?.node ? { engines: { node: pkg.engines.node } } : {}),
-        files: {
-          ...entity.data.files,
+        files: entity.data.files,
+        encodedFiles: {
+          ...(entity.data.encodedFiles || {}),
 
           // Don't allow the index.js to be overwritten.
           'index.js': [
@@ -174,7 +175,7 @@ export default abstract class BaseEntityService<E extends Model.IEntity, F exten
           `Creation of ${this.entityType} ${entity.id} completed`
         );
       } catch (err) {
-        console.log(`WARNING: Failed to create ${entity.id}: `, err);
+        console.log(`WARNING: Failed to create ${entity.id}: `, JSON.stringify(err));
         entity.state = updateOperationState(entity, Model.EntityState.invalid);
         entity.operationState = updateOperationStatus(
           entity,
@@ -290,9 +291,23 @@ export default abstract class BaseEntityService<E extends Model.IEntity, F exten
 
       try {
         await this.dao.updateEntity(resultEntity);
-      } catch (e) {
-        // Unable to do anything useful here...
-        console.log(`ERROR: Failed to final update on 'update' entity ${entity.id}: ${e}`);
+      } catch (err) {
+        try {
+          // Try to update into a failed state
+          existingEntity.state = updateOperationState(existingEntity, existingEntity.state || Model.EntityState.active);
+          existingEntity.operationState = updateOperationStatus(
+            existingEntity,
+            Model.OperationType.updating,
+            Model.OperationStatus.failed,
+            `Updating of ${this.entityType} ${entity.id} failed`,
+            guessOperationErrorCode(err),
+            errorToOperationErrorDetails(err)
+          );
+          await this.dao.updateEntity(existingEntity);
+        } catch (e) {
+          // Unable to do anything useful here...
+          console.log(`ERROR: Failed to final update on 'update' entity ${entity.id}: ${e}`);
+        }
       }
     });
 

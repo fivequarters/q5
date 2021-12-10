@@ -35,6 +35,7 @@ interface IFunctionSpecification {
   configurationSerialized?: string;
   nodejs: {
     files: { [key: string]: string | object };
+    encodedFiles?: { [key: string]: { data: string; encoding: string } };
   };
   metadata?: any;
   compute?: {

@@ -58,8 +58,4 @@ const EntityIdQuery = Joi.object().keys({
   defaults: Joi.boolean(),
 });
 
-// Add validation that the filename can't start with leading '.'... how to make sure it's safe for windows,
-// too?
-const Files = Joi.object();
-
-export { validateEntity, validatePostEntity, EntityId, EntityIdParams, Files, EntityIdQuery };
+export { validateEntity, validatePostEntity, EntityId, EntityIdParams, EntityIdQuery };

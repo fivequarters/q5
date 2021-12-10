@@ -111,7 +111,7 @@ export abstract class BaseComponentService<IComponentType extends IBaseComponent
 
     // Load package.json, if any.  Only include the type for the files parameter, as that's all that's used
     // here.
-    let pack: { files: string[] } | undefined;
+    let pack: { files: string[]; encodedFiles?: string[] } | undefined;
     try {
       pack = JSON.parse(packageJsonBuffer.toString());
       entitySpec.data.files['package.json'] = packageJsonBuffer.toString();
@@ -128,9 +128,45 @@ export abstract class BaseComponentService<IComponentType extends IBaseComponent
 
     // Load files in package.files, if any, into the entitySpec.
     const files = await globby((pack && pack.files) || ['*.js'], { cwd, gitignore: true, ignore: DefaultIgnores });
+
     await Promise.all(
       files.map(async (filename: string) => {
-        entitySpec.data.files[filename] = (await readFile(join(cwd, filename))).toString();
+        const content = await readFile(join(cwd, filename));
+        if (!content) {
+          return;
+        }
+
+        // Encode files with a null in them as base64
+        if (content.includes('\u0000')) {
+          entitySpec.data.encodedFiles![filename] = {
+            data: content.toString('base64'),
+            encoding: 'base64',
+          };
+        } else {
+          entitySpec.data.files[filename] = content.toString('utf8');
+        }
+      })
+    );
+
+    // Load files to be encoded in package.encodedFiles, if any, into the entitySpec.
+    const encodedFiles = await globby((pack && pack.encodedFiles) || [], {
+      cwd,
+      gitignore: true,
+      ignore: DefaultIgnores,
+    });
+
+    await Promise.all(
+      encodedFiles.map(async (filename: string) => {
+        const content = await readFile(join(cwd, filename));
+        if (!content) {
+          return;
+        }
+
+        // Encode files as base64
+        entitySpec.data.encodedFiles![filename] = {
+          data: content.toString('base64'),
+          encoding: 'base64',
+        };
       })
     );
 
@@ -174,11 +210,23 @@ export abstract class BaseComponentService<IComponentType extends IBaseComponent
 
     // Write all of the files in the specification
     await Promise.all(
-      Object.entries(spec.data.files).map(async ([filename, contents]: string[]) => {
-        await writeFile(join(cwd, filename), contents);
+      Object.entries(spec.data.files).map(async ([filename, content]: [string, any]) => {
+        if (typeof content !== 'string') {
+          content = JSON.stringify(content, null, 2);
+        }
+
+        await writeFile(join(cwd, filename), content);
       })
     );
 
+    // Encoded files win out over non-encoded files when writing.
+    await Promise.all(
+      Object.entries(spec.data.encodedFiles || {}).map(async ([filename, content]: [string, any]) => {
+        // Decode the contents of the buffer.
+        content = Buffer.from(content.data, content.encoding);
+        await writeFile(join(cwd, filename), content);
+      })
+    );
     const details = [
       `The ${this.entityTypeName} was downloaded to the ${cwd} directory`,
       ' and the following files were written to disk:',
@@ -194,7 +242,13 @@ export abstract class BaseComponentService<IComponentType extends IBaseComponent
       details.push(Text.eol());
     });
 
+    Object.keys(spec.data.encodedFiles || {}).forEach((fileName) => {
+      details.push(Text.dim(`• ${fileName}`));
+      details.push(Text.eol());
+    });
+
     delete spec.data.files;
+    delete spec.data.encodedFiles;
 
     // Reconstruct the fusebit.json file
     const config = {
