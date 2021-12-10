@@ -10,6 +10,16 @@ export interface INodejsFileSettings {
 }
 
 /**
+ * List of files that are encoded using base64 or some other encoding, and are otherwise opaque in the editor.
+ */
+export interface INodejsEncodedFileSettings {
+  [property: string]: {
+    data: string;
+    encoding: string;
+  };
+}
+
+/**
  * Settings that define all artifacts describing a Node.js function. Currently this is just the list of files.
  */
 export interface INodejsSettings {
@@ -17,6 +27,7 @@ export interface INodejsSettings {
    * Files making up the Node.js function.
    */
   files: INodejsFileSettings;
+  encodedFiles: INodejsEncodedFileSettings;
 }
 
 /**

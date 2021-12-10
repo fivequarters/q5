@@ -201,12 +201,7 @@ export abstract class BaseComponentService<IComponentType extends IBaseComponent
     await Promise.all(
       Object.entries(spec.data.encodedFiles || {}).map(async ([filename, content]: [string, any]) => {
         // Decode the contents of the buffer.
-        if (content.encoding) {
-          content = Buffer.from(content.data, content.encoding);
-        } else if (typeof content !== 'string') {
-          content = JSON.stringify(content, null, 2);
-        }
-
+        content = Buffer.from(content.data, content.encoding);
         await writeFile(join(cwd, filename), content);
       })
     );

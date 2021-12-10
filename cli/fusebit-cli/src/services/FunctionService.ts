@@ -202,7 +202,7 @@ export class FunctionService {
         if (typeof fusebitJson !== 'object') {
           throw new Error(`The 'fusebit.json' file in the template is not a JSON object.`);
         }
-        fusebitJson.nodejs = { files: {} };
+        fusebitJson.nodejs = { files: {}, encodedFiles: {} };
         for (const fileName in templateFiles) {
           fusebitJson.nodejs.files[fileName] = templateFiles[fileName];
         }
@@ -224,7 +224,7 @@ export class FunctionService {
   }
 
   public async getFunctionSpec(path: string, cron?: string, timezone?: string): Promise<any> {
-    const functionSpec: any = { nodejs: { files: {} } };
+    const functionSpec: any = { nodejs: { files: {}, encodedFiles: {} } };
     const fusebitJson = (await this.getFusebitJson(path)) || {};
 
     functionSpec.metadata = fusebitJson.metadata;
@@ -367,12 +367,7 @@ export class FunctionService {
           let content = encodedFilesToWrite[file];
 
           // Decode the contents of the buffer.
-          if (content.encoding) {
-            content = Buffer.from(content.data, content.encoding);
-          } else if (typeof content !== 'string') {
-            content = JSON.stringify(content, null, 2);
-          }
-
+          content = Buffer.from(content.data, content.encoding);
           await writeFile(join(path, file), content);
 
           files.push(file);
@@ -1229,6 +1224,8 @@ export class FunctionService {
       subscriptionId: functionSpec.subscriptionId,
       boundaryId: functionSpec.boundaryId,
       files: functionSpec.nodejs && functionSpec.nodejs.files ? Object.keys(functionSpec.nodejs.files) : [],
+      encodedFiles:
+        functionSpec.nodejs && functionSpec.nodejs.encodedFiles ? Object.keys(functionSpec.nodejs.encodedFiles) : [],
       configuration: functionSpec.configuration,
       location: functionSpec.location,
       runtime: functionSpec.runtime,
@@ -1275,6 +1272,9 @@ export class FunctionService {
       details.push(Text.dim('Files'));
       details.push(Text.create(functionData.files.map((file) => Text.create(Text.eol(), Text.dim('• '), file))));
 
+      details.push(Text.dim('Encoded Files'));
+      details.push(Text.create(functionData.encodedFiles.map((file) => Text.create(Text.eol(), Text.dim('• '), file))));
+
       if (functionData.configuration) {
         const keys = Object.keys(functionData.configuration);
         if (keys && keys.length) {
@@ -1315,6 +1315,7 @@ export class FunctionService {
       { name: 'Boundary', value: profile.boundary || '' },
       { name: 'Function', value: profile.function || '' },
       { name: 'Files', value: Object.keys(functionSpec.nodejs.files).join(' ') },
+      { name: 'Encoded Files', value: Object.keys(functionSpec.nodejs.encodedFiles).join(' ') },
       { name: 'Configuration', value: functionSpec.configurationSerialized ? `<set via ${envFileName}>` : notSet },
       { name: 'Schedule', value: schedule },
     ];
