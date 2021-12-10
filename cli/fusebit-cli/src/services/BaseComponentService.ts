@@ -111,7 +111,7 @@ export abstract class BaseComponentService<IComponentType extends IBaseComponent
 
     // Load package.json, if any.  Only include the type for the files parameter, as that's all that's used
     // here.
-    let pack: { files: string[] } | undefined;
+    let pack: { files: string[]; encodedFiles?: string[] } | undefined;
     try {
       pack = JSON.parse(packageJsonBuffer.toString());
       entitySpec.data.files['package.json'] = packageJsonBuffer.toString();
@@ -145,6 +145,28 @@ export abstract class BaseComponentService<IComponentType extends IBaseComponent
         } else {
           entitySpec.data.files[filename] = content.toString('utf8');
         }
+      })
+    );
+
+    // Load files to be encoded in package.encodedFiles, if any, into the entitySpec.
+    const encodedFiles = await globby((pack && pack.encodedFiles) || [], {
+      cwd,
+      gitignore: true,
+      ignore: DefaultIgnores,
+    });
+
+    await Promise.all(
+      encodedFiles.map(async (filename: string) => {
+        const content = await readFile(join(cwd, filename));
+        if (!content) {
+          return;
+        }
+
+        // Encode files as base64
+        entitySpec.data.encodedFiles![filename] = {
+          data: content.toString('base64'),
+          encoding: 'base64',
+        };
       })
     );
 

@@ -68,8 +68,13 @@ async function getTemplateOverWriteFiles(path: string): Promise<string[]> {
 }
 
 async function getSaveOverWriteFiles(path: string, functionSpec: any): Promise<string[]> {
-  const functionFiles =
-    functionSpec && functionSpec.nodejs && functionSpec.nodejs.files ? Object.keys(functionSpec.nodejs.files) : [];
+  const functionFiles = [
+    ...(functionSpec && functionSpec.nodejs && functionSpec.nodejs.files ? Object.keys(functionSpec.nodejs.files) : []),
+    ...(functionSpec && functionSpec.nodejs && functionSpec.nodejs.encodedFiles
+      ? Object.keys(functionSpec.nodejs.encodedFiles)
+      : []),
+  ];
+
   if (functionSpec.configuration && Object.keys(functionSpec.configuration).length > 0) {
     functionFiles.push(envFileName);
   } else if (functionSpec.metadata && functionSpec.metadata.fusebit && functionSpec.metadata.fusebit.appSettings) {
@@ -285,7 +290,7 @@ export class FunctionService {
       }
     }
 
-    if (!functionSpec.nodejs.files['index.js']) {
+    if (!functionSpec.nodejs.files['index.js'] && !functionSpec.nodejs.encodedFiles['index.js']) {
       await this.executeService.error(
         'Invalid Function',
         Text.create(
