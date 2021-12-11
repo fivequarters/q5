@@ -26,9 +26,9 @@ const allowedHeaders = [
   'Content-Encoding',
   'Content-Length',
   'Content-Type',
-  // Probably wrong headers below
-  'x-grafana-org-id',
   'cookie',
+  // Probably wrong headers below?
+  // 'x-grafana-org-id',
   'pragma',
   'cache-control',
   'sec-gpc',
@@ -50,6 +50,10 @@ const getResource = (req: express.Request): string => {
   return `/account/${req.headers['fusebit-authorization-account-id']}/log`;
 };
 
+// XXX Okay, so now that auth seems to be propagating, set up an 'initialize' endpoint that creates the
+// necessary datasources and dashboards, and then propagates that information back to profile in some fashion
+// - maybe a query to get the list of dashboards and then pick the one with the specific name?
+
 // Set a cookie for the grafana proxy endpoint to use as the authorization token.
 router.get(
   '/bootstrap/:subPath(*)',
@@ -68,7 +72,7 @@ router.get(
 
     res.set(
       'Set-Cookie',
-      `${FUSEBIT_AUTHORIZATION_COOKIE}=${req.query[FUSEBIT_AUTHORIZATION_COOKIE]}; Path=${grafanaMountPoint}/; Domain=${API_PUBLIC_HOST}; SameSite=none; Secure`
+      `${FUSEBIT_AUTHORIZATION_COOKIE}=${req.query[FUSEBIT_AUTHORIZATION_COOKIE]}; Path=${grafanaMountPoint}/; Domain=${API_PUBLIC_HOST}; SameSite=strict; Secure` /* XXX Trying out strict to see if it works right. */
     );
 
     // Construct the target URL

@@ -1,3 +1,4 @@
 import proxy from './proxy';
+import initialize from './initialize';
 
-export { proxy };
+export { proxy, initialize };
