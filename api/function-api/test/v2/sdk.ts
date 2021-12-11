@@ -695,6 +695,7 @@ export const createPair = async (
   boundaryId: string,
   integConfig?: {
     files?: Record<string, string>;
+    encodedFiles?: Record<string, { data: string; encoding: string }>;
     handler?: string;
     configuration?: Record<string, any>;
     componentTags?: Record<string, string>;

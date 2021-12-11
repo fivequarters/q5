@@ -108,17 +108,24 @@ export default abstract class BaseEntityService<E extends Model.IEntity, F exten
         encodedFiles: {
           ...(entity.data.encodedFiles || {}),
 
-          // Don't allow the index.js to be overwritten.
-          'index.js': [
-            `const config = ${JSON.stringify(config)};`,
-            `let handler = '${functionConfig.handler}';`,
-            "handler = handler[0] === '.' ? `${__dirname}/${handler}`: handler;",
-            `module.exports = require('@fusebit-int/framework').Internal.Handler(handler, config);`,
-          ].join('\n'),
+          // Don't allow the index.js to be overwritten, so always write it in the 'encodedFiles' section (which
+          // gets written after 'files').
+          'index.js': {
+            data: Buffer.from(
+              [
+                `const config = ${JSON.stringify(config)};`,
+                `let handler = '${functionConfig.handler}';`,
+                "handler = handler[0] === '.' ? `${__dirname}/${handler}`: handler;",
+                `module.exports = require('@fusebit-int/framework').Internal.Handler(handler, config);`,
+              ].join('\n')
+            ).toString('base64'),
+            encoding: 'base64',
+          },
         },
       },
       compute: {
         persistLogs: true,
+        memorySize: 512,
       },
       security: this.getFunctionSecuritySpecification(entity),
     };
