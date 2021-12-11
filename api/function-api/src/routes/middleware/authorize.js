@@ -11,6 +11,7 @@ module.exports = function authorize_factory(options) {
   return async function authorize(req, res, next) {
     let token = Constants.getAuthToken(req, { header: true, cookie: options.cookie });
 
+    /* XXX remove getToken? Is that a dead branch? */
     if (!token && options.getToken) {
       token = options.getToken(req);
     }
@@ -50,6 +51,7 @@ module.exports = function authorize_factory(options) {
     const accountId = req.headers['fusebit-authorization-account-id'] || req.params.accountId;
 
     try {
+      console.log(`Resolving agent: ${accountId} ${token}`);
       const resolvedAgent = await getResolvedAgent(accountId, token);
 
       req.resolvedAgent = resolvedAgent;
@@ -65,6 +67,9 @@ module.exports = function authorize_factory(options) {
         const action = options.operation;
         const { issuerId, subject } = resolvedAgent.identities[0];
 
+        console.log(
+          `Extracted token: ${token}, options: ${JSON.stringify(options)} action: ${action} resource: ${resource}`
+        );
         await resolvedAgent.ensureAuthorized(action, resource);
         if (meteringEnabled) {
           meterApiCall({

@@ -18,7 +18,7 @@ export function createLogsPanel(element: HTMLElement, editorContext: EditorConte
     panelId: '2',
     kiosk: '',
     refresh: '1s',
-    fusebitAuthorization: editorContext._server.account!.accessToken,
+    fusebitAuthorization: `${editorContext._server.account!.accountId}/${editorContext._server.account!.accessToken}`,
     'var-accountId': editorContext._server.account!.accountId,
     'var-subscriptionId': editorContext._server.account!.subscriptionId,
     'var-boundaryId': editorContext.boundaryId,

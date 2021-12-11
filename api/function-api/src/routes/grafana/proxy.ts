@@ -4,7 +4,13 @@ import http_error from 'http-errors';
 
 import authorize from '../middleware/authorize';
 
-import { FUSEBIT_AUTHORIZATION_COOKIE, Permissions, API_PUBLIC_ENDPOINT, API_PUBLIC_HOST } from '@5qtrs/constants';
+import {
+  getAuthToken,
+  FUSEBIT_AUTHORIZATION_COOKIE,
+  Permissions,
+  API_PUBLIC_ENDPOINT,
+  API_PUBLIC_HOST,
+} from '@5qtrs/constants';
 
 const router = express.Router({ mergeParams: true });
 
@@ -40,16 +46,8 @@ const grafanaMountPoint = '/v2/grafana';
 // Make sure this gets changed to something non-standard to further challenge attackers.
 const grafanaAuthHeader = 'X-WEBAUTH-USER';
 
-const getTokenFromCookie = (req: express.Request): string => {
-  console.log(`authz: ${req.headers.authz}`);
-  // set the accountid first since getResolvedAgent needs it before resource check
-  req.params.accountId = req.headers.account as string;
-  return req.headers.authz as string;
-};
-
-const getResource = (req: express.Request, token: string): string => {
-  console.log(`account: ${req.headers.account}`);
-  return `/account/${req.headers.account}/log`;
+const getResource = (req: express.Request): string => {
+  return `/account/${req.headers['fusebit-authorization-account-id']}/log`;
 };
 
 // Set a cookie for the grafana proxy endpoint to use as the authorization token.
@@ -85,7 +83,18 @@ router.get(
 
 router.use(
   '*',
-  authorize({ cookie: true, getResource, operation: Permissions.getLogs }),
+  // Extract the accountId and auth token out of the header and put it where the authorize() function expects.
+  (req: express.Request, res: express.Response, next: express.NextFunction) => {
+    const [accountId, token] = (getAuthToken(req, { header: false, cookie: true }) || '').split('/');
+    if (!accountId || !token) {
+      return next(http_error(403));
+    }
+    req.headers['fusebit-authorization-account-id'] = accountId;
+    req.headers.authorization = `Bearer ${token}`;
+
+    return next();
+  },
+  authorize({ getResource, operation: Permissions.getLogs }),
   async (req: express.Request, res: express.Response, next: express.NextFunction) => {
     const headers: any = {};
 
