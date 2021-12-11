@@ -17,12 +17,11 @@ All public releases of the Fusebit HTTP API are documented here, including notab
 <!-- 1. TOC
 {:toc} -->
 
-## Version 1.33.0
+## Version 1.33.1
 
 _Released 12/13/21_
 
 - **Enhancement.** Support binary files encoded using 'base64' in function, integration, and connector specifications.
-- **Enhancement.** Increase runtime memory allocation for functions to 512MB.
 
 ## Version 1.32.6
 
