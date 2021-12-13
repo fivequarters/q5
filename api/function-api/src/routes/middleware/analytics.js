@@ -58,8 +58,6 @@ exports.enterHandler = (modality) => {
 
     req.headers[traceIdHeader] = `${req.traceId}.${req.spanId}`;
 
-    console.log(`Analytics entry: ${parentTraceId}/${parentSpanId} ==> ${req.spanId} | ${req.headers[traceIdHeader]}`);
-
     res.metrics = {};
 
     let end = res.end;

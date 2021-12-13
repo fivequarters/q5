@@ -28,5 +28,5 @@ export const publishSpans = async (req: any, spans: ISpan[]) => {
     })
   );
 
-  await publishTraces(traces);
+  await publishTraces(req.params.accountId, traces);
 };

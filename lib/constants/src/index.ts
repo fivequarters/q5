@@ -2,7 +2,6 @@ import crypto from 'crypto';
 import Path from 'path';
 
 import {
-  FUSEBIT_AUTHORIZATION_COOKIE,
   dynamoScanTable,
   expBackoff,
   asyncPool,
@@ -27,6 +26,9 @@ const API_PUBLIC_ENDPOINT = process.env.LOGS_HOST
   : (process.env.API_SERVER as string);
 
 const API_PUBLIC_HOST = new URL(API_PUBLIC_ENDPOINT || 'http://localhost').host;
+
+const FUSEBIT_QUERY_AUTHZ = 'fusebitAuthorization';
+const FUSEBIT_QUERY_ACCOUNT = 'fusebitAccountId';
 
 let builderVersion: string = 'unknown';
 try {
@@ -334,7 +336,8 @@ export {
   API_PUBLIC_ENDPOINT,
   API_PUBLIC_HOST,
   MAX_CACHE_REFRESH_RATE,
-  FUSEBIT_AUTHORIZATION_COOKIE,
+  FUSEBIT_QUERY_AUTHZ,
+  FUSEBIT_QUERY_ACCOUNT,
   dynamoScanTable,
   expBackoff,
   asyncPool,

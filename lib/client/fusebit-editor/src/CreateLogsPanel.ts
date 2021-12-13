@@ -2,6 +2,8 @@ import * as Events from './Events';
 import { ILogsPanelOptions, LogsPanelOptions } from './Options';
 import { EditorContext } from './EditorContext';
 
+import { FUSEBIT_QUERY_AUTHZ, FUSEBIT_QUERY_ACCOUNT } from '@5qtrs/constants';
+
 /**
  * Creates a logs panel within the specified HTML element and associacted with the existing [[EditorContext]].
  *
@@ -12,13 +14,14 @@ import { EditorContext } from './EditorContext';
 export function createLogsPanel(element: HTMLElement, editorContext: EditorContext, options?: ILogsPanelOptions) {
   const id = `fusebit-logs-${Math.floor(99999999 * Math.random()).toString(26)}`;
 
-  const iframeUrl = new URL('http://localhost:3001/v2/grafana/bootstrap/d-solo/SNVmMet7k/basic');
+  const iframeUrl = new URL('http://localhost:3001/v2/grafana/bootstrap/d-solo/logging/basic');
 
   iframeUrl.search = new URLSearchParams({
     panelId: '2',
     kiosk: '',
     refresh: '1s',
-    fusebitAuthorization: `${editorContext._server.account!.accountId}/${editorContext._server.account!.accessToken}`,
+    [FUSEBIT_QUERY_AUTHZ]: editorContext._server.account!.accessToken,
+    [FUSEBIT_QUERY_ACCOUNT]: editorContext._server.account!.accountId,
     'var-accountId': editorContext._server.account!.accountId,
     'var-subscriptionId': editorContext._server.account!.subscriptionId,
     'var-boundaryId': editorContext.boundaryId,

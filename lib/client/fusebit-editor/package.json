@@ -5,7 +5,9 @@
   "main": "libm/index.js",
   "browser": "libm/index.js",
   "module": "libm/index.js",
-  "sideEffects": ["*.css"],
+  "sideEffects": [
+    "*.css"
+  ],
   "license": "UNLICENSED",
   "author": "fusebit.io",
   "scripts": {
@@ -24,6 +26,7 @@
   "dependencies": {
     "@5qtrs/event": "^0.0.1",
     "@fusebit/schema": "^1.0.0",
+    "@5qtrs/constants": "^0.0.1",
     "js-untar": "^2.0.0",
     "monaco-editor": "^0.28.1",
     "pako": "^2.0.4",

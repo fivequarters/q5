@@ -45,11 +45,13 @@ const publishLogs = async (params: IParams, logEntries: IEntry[]) => {
     payload.streams[0].values.push([fromEventTime(event.time), `traceID=${params.traceId} ${event.msg}`])
   );
 
-  await superagent
+  const response = await superagent
     .post('http://localhost:3100/loki/api/v1/push')
     .set('Content-Type', 'application/json')
-    .set('X-Scope-OrgID', 'acc-123456')
+    .set('X-Scope-OrgID', params.accountId)
     .send(payload);
+
+  console.log(`Log Publish: ${response.status} ${response.body}`);
 };
 
 export { publishLogs };
