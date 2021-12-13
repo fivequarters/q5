@@ -96,7 +96,7 @@ const addErrorBlock = (block: any, failedTests: string[]) => {
   block.blocks.push(section);
 };
 
-const addCommiterBlock = (block: any, commits: ICommitEntry[]) => {
+const addCommitterBlock = (block: any, commits: ICommitEntry[]) => {
   const section = {
     type: 'section',
     fields: [
@@ -187,7 +187,7 @@ const addFooter = (block: any, jenkinsUrl: string, testbotUrl: string) => {
   const block = slackBlockHeader;
 
   addErrorBlock(block, failedTests);
-  addCommiterBlock(block, commits);
+  addCommitterBlock(block, commits);
   addFooter(block, makeJenkinsUrl(), makeTestbotUrl(runId));
 
   // Just in case it fails to send...
