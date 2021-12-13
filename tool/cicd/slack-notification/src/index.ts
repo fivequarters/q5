@@ -17,7 +17,7 @@ const successWebhook = process.env.SUCCESS_WEBHOOK as string;
 const testPathPrefix = '/var/lib/jenkins/workspace/fusebit-test-suite/api/function-api/test/';
 const commitTextFile = '/var/lib/jenkins/workspace/fusebit-test-suite/commit.txt';
 const repositoryCommitUrl = 'https://github.com/fivequarters/q5/commit/';
-const jestOutput: JestOutput = JSON.parse(fs.readFileSync('../../../../api/function-api/testOutput.json', 'utf8'));
+const jestOutput: JestOutput = require('../../../../api/function-api/testOutput.json');
 
 const nameToMention: Record<string, string> = {
   'Matthew Zhao': '<@U01UDTF3VQR>',
