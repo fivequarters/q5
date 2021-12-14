@@ -38,7 +38,7 @@ const makeTestbotUrl = (testBotId: string) =>
 
 const parseCommits = (): ICommitEntry[] => {
   const commitFile = fs.readFileSync(commitTextFile, 'utf8');
-  const commits = commitFile.split('\n');
+  const commits = commitFile.split('\n').filter((ln) => ln.length);
   return commits.map((commit) => {
     const commitSplit = commit.split(',');
     return {
