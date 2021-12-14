@@ -75,23 +75,10 @@ const addErrorBlock = (block: any, failedTests: string[]) => {
       },
       {
         type: 'mrkdwn',
-        text: failedTests[0],
+        text: failedTests.join('\\n'),
       },
     ],
   };
-
-  failedTests.slice(1).forEach((failedTest: string) => {
-    section.fields.push(
-      {
-        type: 'plain_text',
-        text: ' ',
-      },
-      {
-        type: 'mrkdwn',
-        text: failedTest,
-      }
-    );
-  });
 
   block.blocks.push(section);
 };
@@ -133,39 +120,16 @@ const addFooter = (block: any, jenkinsUrl: string, testbotUrl: string) => {
     },
     {
       type: 'section',
-      text: {
-        type: 'mrkdwn',
-        text: ':gear: Open Testbot Report',
-      },
-      accessory: {
-        type: 'button',
-        text: {
-          type: 'plain_text',
-          text: 'Open',
-          emoji: true,
+      fields: [
+        {
+          type: 'mrkdwn',
+          text: `:gear: <${testbotUrl}|Open Testbot Report>`,
         },
-        value: 'click_me_123',
-        url: testbotUrl,
-        action_id: 'button-action',
-      },
-    },
-    {
-      type: 'section',
-      text: {
-        type: 'mrkdwn',
-        text: ':scroll: View the Jenkins Logs',
-      },
-      accessory: {
-        type: 'button',
-        text: {
-          type: 'plain_text',
-          text: 'Open',
-          emoji: true,
+        {
+          type: 'mrkdwn',
+          text: `:scroll: <${jenkinsUrl}|View the Jenkins Logs>`,
         },
-        value: 'click_me_123',
-        url: jenkinsUrl,
-        action_id: 'button-action',
-      },
+      ],
     }
   );
 };
