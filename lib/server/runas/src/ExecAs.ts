@@ -44,6 +44,14 @@ const mintJwtForPermissions = async (
 
   payload[Constants.JWT_PERMISSION_CLAIM] = permissions;
 
+  payload[Constants.JWT_PROFILE_CLAIM] = {
+    accountId: params.accountId,
+    subscriptionId: params.subscriptionId,
+
+    // Include a @fusebit.io email to prevent customer analytics from tracking
+    email: 'function+role@fusebit.io',
+  };
+
   // Create a JWT
   return keyStore.signJwt(payload);
 };
