@@ -47,7 +47,7 @@ REDDIT_SECRET_PAYLOAD="{\"data\":{\"clientId\":\"${PROXY_REDDIT_CLIENT_ID}\",\"c
 
 DISCORD_SECRET_PAYLOAD="{\"data\":{\"clientId\":\"${PROXY_DISCORD_CLIENT_ID}\",\"clientSecret\":\"${PROXY_DISCORD_CLIENT_SECRET}\",\"authorizationUrl\":\"https://discord.com/api/oauth2/authorize\",\"tokenUrl\":\"https://discord.com/api/oauth2/token\",\"revokeUrl\":\"https://discord.com/api/oauth2/token/revoke\"}}"
 
-STACKOVERFLOW_SECRET_PAYLOAD="{\"data\":{\"clientId\":\"${PROXY_STACKOVERFLOW_CLIENT_ID}\",\"clientSecret\":\"${PROXY_STACKOVERFLOW_CLIENT_SECRET}\",\"authorizationUrl\":\"https://stackoverflow.com/oauth\",\"tokenUrl\":\"https://stackoverflow.com/oauth/access_token/json\",\"revokeUrl\":\"https://stackoverflow.com/oauth/unsupported\"}}"
+STACKOVERFLOW_SECRET_PAYLOAD="{\"data\":{\"clientId\":\"${PROXY_STACKOVERFLOW_CLIENT_ID}\",\"clientSecret\":\"${PROXY_STACKOVERFLOW_CLIENT_SECRET}\",\"clientKey\":\"${PROXY_STACKOVERFLOW_CLIENT_KEY}\",\"authorizationUrl\":\"https://stackoverflow.com/oauth\",\"tokenUrl\":\"https://stackoverflow.com/oauth/access_token/json\",\"revokeUrl\":\"https://stackoverflow.com/oauth/unsupported\"}}"
 
 # Publish to the designated accounts
 for PROFILE in ${PROXY_SECRET_PUBLISH_PROFILE_LIST}; do
