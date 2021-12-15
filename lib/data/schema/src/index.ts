@@ -205,6 +205,7 @@ export interface ISessionParameters {
   extendTags: boolean;
   input?: Record<string, any>;
   redirectUrl: string;
+  cancelUrl?: string;
   installId?: string;
 }
 
@@ -223,6 +224,8 @@ export interface ITrunkSessionData {
   mode: SessionMode.trunk;
 
   redirectUrl: string;
+
+  cancelUrl?: string;
 
   components: IStep[];
 

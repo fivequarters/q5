@@ -116,6 +116,7 @@ export default abstract class SessionedEntityService<
         mode: Model.SessionMode.trunk,
         components: stepList,
         redirectUrl: sessionDetails.redirectUrl,
+        cancelUrl: sessionDetails.cancelUrl,
       },
       tags,
       expires: new Date(Date.now() + EPHEMERAL_ENTITY_EXPIRATION).toISOString(),
@@ -317,7 +318,10 @@ export default abstract class SessionedEntityService<
     // Did the session error out, such that the sequence should be aborted and the browser sent to the final
     // redirect with the error details as query parameters?
     if (!step || session.data.output?.error) {
-      const url = new URL(parentSession.data.redirectUrl);
+      const target = session.data.output?.error
+        ? parentSession.data.cancelUrl || parentSession.data.redirectUrl
+        : parentSession.data.redirectUrl;
+      const url = new URL(target);
       if (session.data.output?.error) {
         url.searchParams.set('error', session.data.output.error);
       }

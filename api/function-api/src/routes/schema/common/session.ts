@@ -8,6 +8,7 @@ import * as common from '../../middleware/common';
 import { SessionedEntityService } from '../../service';
 import * as Validation from '../../validation/session';
 import * as ValidationCommon from '../../validation/entities';
+import { ISession, SessionMode } from '@fusebit/schema';
 
 const createSessionRouter = (SessionService: SessionedEntityService<any, any>) => {
   const router = express.Router({ mergeParams: true });
