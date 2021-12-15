@@ -75,7 +75,7 @@ const addErrorBlock = (block: any, failedTests: string[]) => {
       },
       {
         type: 'mrkdwn',
-        text: failedTests.join('\\n'),
+        text: failedTests.join('\n'),
       },
     ],
   };
