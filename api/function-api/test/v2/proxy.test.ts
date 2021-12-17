@@ -116,16 +116,17 @@ describe('Proxy', () => {
     tunnel.tunnel.close();
   });
 
-  const configureProxy = async () => {
+  const configureProxy = async (proxyType: string = 'slack', extendedParameters: Record<string, string> = {}) => {
     await refreshSubscriptionCache(account);
 
-    await OAuthProxyConfig.set<IOAuthProxyConfiguration>('slack', account, {
+    await OAuthProxyConfig.set<IOAuthProxyConfiguration>(proxyType, account, {
       ...proxyIdentity,
       accountId: account.accountId,
       subscriptionId: account.subscriptionId,
       authorizationUrl,
       tokenUrl,
       revokeUrl,
+      ...extendedParameters,
     });
   };
 
@@ -428,6 +429,41 @@ describe('Proxy', () => {
 
   //
   // /token
+  test('Token includes application_key for stackoverflow', async () => {
+    const applicationKey = 'TEST_APPLICATION_KEY' + boundaryId;
+    await configureProxy('stackoverflow', { applicationKey });
+    await createConnector();
+    registerOAuthServer();
+
+    // Prime with a valid code
+    const validCode = 'acode';
+    const proxyService = new OAuthProxyService(account.accountId, account.subscriptionId, boundaryId, 'stackoverflow', {
+      clientId: 'A',
+      clientSecret: 'B',
+      accountId: account.accountId,
+      subscriptionId: account.subscriptionId,
+      authorizationUrl,
+      tokenUrl,
+      revokeUrl,
+    });
+    await proxyService.saveCode(localIdentity.clientId, localIdentity.clientSecret, validCode, validCode, 10000);
+
+    // Request the token and expect the application_key to be returned
+    const response = await request({
+      method: 'POST',
+      url: `${connectorUrl}/proxy/stackoverflow/oauth/token`,
+      data: {
+        grant_type: 'authorization_code',
+        client_id: localIdentity.clientId,
+        client_secret: localIdentity.clientSecret,
+        code: validCode,
+      },
+    });
+    expect(response).toBeHttp({ statusCode: 200 });
+    expect(response.data.access_token).toBe(replacementToken);
+    expect(response.data.application_key).toBe(applicationKey);
+  }, 180000);
+
   test('Token rejects for a variety of bad parameters', async () => {
     await configureProxy();
     await createConnector();
