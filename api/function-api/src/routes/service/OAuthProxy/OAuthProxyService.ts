@@ -34,7 +34,7 @@ export interface IOAuthProxyService {
   loadCode: (peerId: string, peerSecret: string, code: string) => Promise<string>;
 }
 
-export interface IOAuthProxyConfiguration {
+export interface IOAuthProxyConfiguration extends Record<string, string> {
   accountId: string;
   subscriptionId: string;
   clientId: string;
@@ -132,7 +132,7 @@ export class OAuthProxyService implements IOAuthProxyService {
 
   // Called on /token, converts the client_id and secret to the correct credentials and masks the
   // refresh_token so that it's unique per authentication pass.
-  public doTokenRequest = async (reqBody: Record<string, string>, code: string): Promise<superagent.Response> => {
+  public async doTokenRequest(reqBody: Record<string, string>, code: string): Promise<superagent.Response> {
     const body: Record<string, string> = {
       ...reqBody,
       client_id: this.configuration.clientId,
@@ -167,7 +167,7 @@ export class OAuthProxyService implements IOAuthProxyService {
     }
 
     return response;
-  };
+  }
 
   // Retrieve the configuration for the connector this proxy is mounted under.
   public getIdentity = async (): Promise<{ peerId: string; peerSecret: string }> => {
