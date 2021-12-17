@@ -429,9 +429,9 @@ describe('Proxy', () => {
 
   //
   // /token
-  test('Token includes application_key for stackoverflow', async () => {
-    const applicationKey = 'TEST_APPLICATION_KEY' + boundaryId;
-    await configureProxy('stackoverflow', { applicationKey });
+  test('Token includes client_key for stackoverflow', async () => {
+    const clientKey = 'TEST_APPLICATION_KEY' + boundaryId;
+    await configureProxy('stackoverflow', { clientKey });
     await createConnector();
     registerOAuthServer();
 
@@ -448,7 +448,7 @@ describe('Proxy', () => {
     });
     await proxyService.saveCode(localIdentity.clientId, localIdentity.clientSecret, validCode, validCode, 10000);
 
-    // Request the token and expect the application_key to be returned
+    // Request the token and expect the client_key to be returned
     const response = await request({
       method: 'POST',
       url: `${connectorUrl}/proxy/stackoverflow/oauth/token`,
@@ -461,7 +461,7 @@ describe('Proxy', () => {
     });
     expect(response).toBeHttp({ statusCode: 200 });
     expect(response.data.access_token).toBe(replacementToken);
-    expect(response.data.application_key).toBe(applicationKey);
+    expect(response.data.client_key).toBe(clientKey);
   }, 180000);
 
   test('Token rejects for a variety of bad parameters', async () => {
