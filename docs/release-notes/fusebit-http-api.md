@@ -17,6 +17,12 @@ All public releases of the Fusebit HTTP API are documented here, including notab
 <!-- 1. TOC
 {:toc} -->
 
+## Version 1.33.3
+
+_Released 12/14/21_
+
+- **Enhancement.** Extend the function authorization token to include a profile claim.
+
 ## Version 1.33.2
 
 _Released 12/13/21_
