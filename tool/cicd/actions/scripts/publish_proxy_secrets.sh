@@ -47,6 +47,8 @@ REDDIT_SECRET_PAYLOAD="{\"data\":{\"clientId\":\"${PROXY_REDDIT_CLIENT_ID}\",\"c
 
 DISCORD_SECRET_PAYLOAD="{\"data\":{\"clientId\":\"${PROXY_DISCORD_CLIENT_ID}\",\"clientSecret\":\"${PROXY_DISCORD_CLIENT_SECRET}\",\"authorizationUrl\":\"https://discord.com/api/oauth2/authorize\",\"tokenUrl\":\"https://discord.com/api/oauth2/token\",\"revokeUrl\":\"https://discord.com/api/oauth2/token/revoke\"}}"
 
+ZOOM_SECRET_PAYLOAD="{\"data\":{\"clientId\":\"${PROXY_ZOOM_CLIENT_ID}\",\"clientSecret\":\"${PROXY_ZOOM_CLIENT_SECRET}\",\"authorizationUrl\":\"https://zoom.us/oauth/authorize\",\"tokenUrl\":\"https://zoom.us/oauth/token\",\"revokeUrl\":\"hhttps://zoom.us/oauth/revoke\"}}"
+
 # Publish to the designated accounts
 for PROFILE in ${PROXY_SECRET_PUBLISH_PROFILE_LIST}; do
   ./tool/cicd/actions/scripts/set_fuse_profile.sh ${PROFILE}
@@ -61,4 +63,5 @@ for PROFILE in ${PROXY_SECRET_PUBLISH_PROFILE_LIST}; do
   echo ${ASANA_SECRET_PAYLOAD} | fuse storage put - --storageId proxy/asana/configuration
   echo ${REDDIT_SECRET_PAYLOAD} | fuse storage put - --storageId proxy/reddit/configuration
   echo ${DISCORD_SECRET_PAYLOAD} | fuse storage put - --storageId proxy/discord/configuration
+  echo ${ZOOM_SECRET_PAYLOAD} | fuse storage put - --storageId proxy/zoom/configuration
 done
