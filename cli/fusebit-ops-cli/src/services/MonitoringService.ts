@@ -1,12 +1,14 @@
 import { IAwsConfig } from '@5qtrs/aws-config';
 import { AwsCreds, IAwsCredentials } from '@5qtrs/aws-cred';
 import { IExecuteInput } from '@5qtrs/cli';
+import { IOpsNetwork } from '@5qtrs/ops-data';
 import AWS from 'aws-sdk';
 import { ExecuteService } from '.';
 import { OpsService } from './OpsService';
 
 const DISCOVERY_DOMAIN_NAME = 'fusebit.local';
-
+const MASTER_SERVICE_PREFIX = 'leader-';
+const STACK_SERVICE_PREFIX = 'stack-';
 export class MonitoringService {
   public static async create(input: IExecuteInput) {
     const opsSvc = await OpsService.create(input);
@@ -34,55 +36,46 @@ export class MonitoringService {
     });
   }
 
-  private async ensureCloudMap(region: string, vpcId: string, deploymentName: string) {
-    const mapSdk = await this.getCloudMapSdk({ region });
-    const zones = await mapSdk.listNamespaces().promise();
-    for (const zone of zones.Namespaces as AWS.ServiceDiscovery.NamespaceSummariesList) {
-      if (zone.Description === deploymentName) {
-        return;
-      }
+  private async getCloudMap(networkName: string, region?: string) {
+    const opsContext = await this.opsService.getOpsDataContext();
+    let networks = await opsContext.networkData.list();
+    let correctNetwork: IOpsNetwork[];
+    if (region) {
+      correctNetwork = networks.items.filter((network) => network.region === region);
+    } else {
+      correctNetwork = networks.items;
     }
 
+    correctNetwork.filter((net) => net.networkName === networkName);
+    if (correctNetwork.length !== 1) {
+      throw Error('No network found');
+    }
+    const mapSdk = await this.getCloudMapSdk({ region: correctNetwork[0].region });
+    const namespaces = await mapSdk.listNamespaces().promise();
+    const correctNs = namespaces.Namespaces?.filter((ns) => ns.Description === correctNetwork[0].networkName);
+    if (!correctNs || correctNs.length !== 1) {
+      throw Error('Found != 1 service discovery namespaces.');
+    }
+
+    return {
+      network: correctNetwork[0],
+      namespace: correctNs[0],
+    };
+  }
+
+  private async createMainService(networkName: string, monitoringDeploymentName: string, region?: string) {
+    const cloudMap = await this.getCloudMap(networkName, region);
+    const mapSdk = await this.getCloudMapSdk({ region: cloudMap.network.region });
     await mapSdk
-      .createPrivateDnsNamespace({
-        Description: deploymentName,
-        Name: 'fusebit.local',
-        Vpc: vpcId,
+      .createService({
+        DnsConfig: {
+          DnsRecords: [{ Type: 'CNAME', TTL: 1 }],
+          NamespaceId: cloudMap.namespace.Id,
+          RoutingPolicy: 'CNAME',
+        },
+        NamespaceId: cloudMap.namespace.Id,
+        Name: `${MASTER_SERVICE_PREFIX}${monitoringDeploymentName}`,
       })
       .promise();
-  }
-
-  private async ensureRegionOrError(deploymentName?: string, region?: string) {
-    if (region) {
-      return region;
-    }
-
-    if (deploymentName) {
-      const reg = await this.getDeploymentDetails();
-
-      if (reg) {
-        return reg;
-      }
-    }
-
-    throw Error('Deployment region not found.');
-  }
-
-  private async getDeploymentDetails(deploymentName: string) {
-    const opsData = await this.opsService.getOpsDataContext({
-      deploymentName: deploymentName,
-    });
-    const deployments = await opsData.deploymentData.listAll(deploymentName);
-    return deployments.length === 1 ? deployments[0] : undefined;
-  }
-
-  private async getNetworkDetails(deploymentName: string) {
-    const deploymentDetails = await this.getDeploymentDetails(deploymentName);
-    if (!deploymentDetails) {
-      throw Error('Deployment not found!');
-    }
-    const opsData = await this.opsService.getOpsDataContext({ deploymentName });
-    const networks = await opsData.networkData.get(deploymentDetails.networkName, deploymentDetails.region);
-    return networks;
   }
 }

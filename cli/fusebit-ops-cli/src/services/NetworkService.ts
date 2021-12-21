@@ -1,8 +1,12 @@
+import AWS from 'aws-sdk';
 import { IExecuteInput, Confirm } from '@5qtrs/cli';
 import { Text } from '@5qtrs/text';
 import { IOpsNetwork, IOpsNewNetwork, IListOpsNetworkOptions, IListOpsNetworkResult } from '@5qtrs/ops-data';
 import { OpsService } from './OpsService';
 import { ExecuteService } from './ExecuteService';
+import { AwsCreds, IAwsCredentials } from '@5qtrs/aws-cred';
+
+const DISCOVERY_DOMAIN_NAME = 'fusebit.local';
 
 // ----------------
 // Exported Classes
@@ -12,17 +16,27 @@ export class NetworkService {
   private input: IExecuteInput;
   private opsService: OpsService;
   private executeService: ExecuteService;
+  private creds: IAwsCredentials;
 
-  private constructor(input: IExecuteInput, opsService: OpsService, executeService: ExecuteService) {
+  private constructor(
+    input: IExecuteInput,
+    opsService: OpsService,
+    executeService: ExecuteService,
+    creds: IAwsCredentials
+  ) {
     this.input = input;
     this.opsService = opsService;
     this.executeService = executeService;
+    this.creds = creds;
   }
 
   public static async create(input: IExecuteInput) {
     const opsService = await OpsService.create(input);
     const executeService = await ExecuteService.create(input);
-    return new NetworkService(input, opsService, executeService);
+    const opsDataContext = await opsService.getOpsDataContextImpl();
+    const config = await opsDataContext.provider.getAwsConfigForMain();
+    const credentials = await (config.creds as AwsCreds).getCredentials();
+    return new NetworkService(input, opsService, executeService, credentials);
   }
 
   public async checkNetworkExists(network: IOpsNewNetwork): Promise<void> {
@@ -50,6 +64,20 @@ export class NetworkService {
       this.executeService.warning('Network Exists', `There is already a '${Text.bold(network.networkName)}' network`);
       throw new Error('Network already Exists');
     }
+  }
+
+  public async setupNetwork(name: string, region: string) {
+    const opsDataContext = await this.opsService.getOpsDataContext();
+    const networkData = opsDataContext.networkData;
+    const network = await networkData.get(name, region);
+    await this.executeService.execute(
+      {
+        header: 'Setup Network',
+        message: `Adding the '${Text.bold(name)}' network to the Fusebit platform...`,
+        errorHeader: 'Network Error',
+      },
+      async () => this.ensureCloudMap(network.region, network.vpcId, network.networkName)
+    );
   }
 
   public async getNetwork(name: string, region: string): Promise<IOpsNetwork> {
@@ -155,7 +183,7 @@ export class NetworkService {
         message: `Adding the '${Text.bold(network.networkName)}' network to the Fusebit platform...`,
         errorHeader: 'Network Error',
       },
-      () => networkData.add(network)
+      async () => await networkData.add(network)
     );
 
     this.executeService.result(
@@ -234,5 +262,32 @@ export class NetworkService {
     const details = [Text.dim('Account: '), network.accountName, Text.eol(), Text.dim('Region: '), network.region];
 
     await this.executeService.message(Text.bold(network.networkName), Text.create(details));
+  }
+
+  private async getCloudMapSdk(config: any) {
+    return new AWS.ServiceDiscovery({
+      ...config,
+      accessKeyId: this.creds.accessKeyId as string,
+      secretAccessKey: this.creds.secretAccessKey as string,
+      sessionToken: this.creds.sessionToken as string,
+    });
+  }
+
+  private async ensureCloudMap(region: string, vpcId: string, networkName: string) {
+    const mapSdk = await this.getCloudMapSdk({ region });
+    const zones = await mapSdk.listNamespaces().promise();
+    for (const zone of zones.Namespaces as AWS.ServiceDiscovery.NamespaceSummariesList) {
+      if (zone.Description === networkName) {
+        return;
+      }
+    }
+
+    await mapSdk
+      .createPrivateDnsNamespace({
+        Description: networkName,
+        Name: 'fusebit.local',
+        Vpc: vpcId,
+      })
+      .promise();
   }
 }
