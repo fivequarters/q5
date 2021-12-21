@@ -14,7 +14,7 @@ const POSTGRES_PORT = 5432;
 const OPS_MONITORING_TABLE = 'ops.monitoring';
 const LOKI_BUCKET_PREFIX = 'loki-bucket-fusebit-';
 const TEMPO_BUCKET_PREFIX = 'tempo-bucket-fusebit-';
-const RDS_SEC_GROUP_PREFIX = '`fusebit-db-security-group-';
+const RDS_SEC_GROUP_PREFIX = 'fusebit-db-security-group-';
 
 export class MonitoringService {
   public static async create(input: IExecuteInput) {
@@ -227,9 +227,14 @@ export class MonitoringService {
 
   private async getSecGroup(secGroupName: string, region: string) {
     const ec2Sdk = await this.getEc2Sdk({ region });
-    const secGroups = await ec2Sdk.describeSecurityGroups({}).promise();
-    console.log(secGroups.SecurityGroups);
-    const correctSecGroup = secGroups.SecurityGroups?.filter((group) => group.GroupName === secGroupName);
+    const secGroups: AWS.EC2.SecurityGroup[] = [];
+    let nextToken;
+    do {
+      const secGroupsNext = await ec2Sdk.describeSecurityGroups().promise();
+      nextToken = secGroupsNext.NextToken;
+      secGroups.push(...(secGroupsNext.SecurityGroups as AWS.EC2.SecurityGroup[]));
+    } while (nextToken);
+    const correctSecGroup = secGroups.filter((group) => group.GroupName === secGroupName);
     if (correctSecGroup?.length !== 1) {
       throw Error(`Security Group ${secGroupName} not found...`);
     }
