@@ -9,11 +9,12 @@ import { OpsService } from './OpsService';
 const DISCOVERY_DOMAIN_NAME = 'fusebit.local';
 const MASTER_SERVICE_PREFIX = 'leader-';
 const STACK_SERVICE_PREFIX = 'stack-';
-const SECURITY_GROUP_PREFIX = `fusebit-monitoring-`;
+const MONITORING_SEC_GROUP_PREFIX = `fusebit-monitoring-`;
 const POSTGRES_PORT = 5432;
 const OPS_MONITORING_TABLE = 'ops.monitoring';
 const LOKI_BUCKET_PREFIX = 'loki-bucket-fusebit-';
 const TEMPO_BUCKET_PREFIX = 'tempo-bucket-fusebit-';
+const RDS_SEC_GROUP_PREFIX = '`fusebit-db-subnet-group-';
 
 export class MonitoringService {
   public static async create(input: IExecuteInput) {
@@ -53,6 +54,15 @@ export class MonitoringService {
 
   private async getS3Sdk(config: any) {
     return new AWS.S3({
+      ...config,
+      accessKeyId: this.creds.accessKeyId as string,
+      secretAccessKey: this.creds.secretAccessKey as string,
+      sessionToken: this.creds.sessionToken as string,
+    });
+  }
+
+  private async getEc2Sdk(config: any) {
+    return new AWS.EC2({
       ...config,
       accessKeyId: this.creds.accessKeyId as string,
       secretAccessKey: this.creds.secretAccessKey as string,
@@ -175,6 +185,20 @@ export class MonitoringService {
     }
   }
 
+  private async getMonitoringDeploymentByName(monDeployName: string) {
+    const dynamoSdk = await this.getDynamoSdk({ region: this.config.region });
+    const deployment = await dynamoSdk
+      .getItem({
+        TableName: OPS_MONITORING_TABLE,
+        Key: {
+          monitoring_stack_name: { S: monDeployName },
+        },
+      })
+      .promise();
+
+    return deployment.Item as AWS.DynamoDB.AttributeMap;
+  }
+
   private async ensureMonitoringDeploymentItem(monDeploymentName: string, networkName: string) {
     const dynamoSdk = await this.getDynamoSdk({ region: this.config.region });
     const tryGet = await dynamoSdk
@@ -189,22 +213,59 @@ export class MonitoringService {
       return tryGet.Item;
     }
 
-    const insertResult = await dynamoSdk.putItem({
-      TableName: OPS_MONITORING_TABLE,
-      Item: {
-        monitoring_stack_name: {
-          S: monDeploymentName,
+    const insertResult = await dynamoSdk
+      .putItem({
+        TableName: OPS_MONITORING_TABLE,
+        Item: {
+          monitoring_stack_name: {
+            S: monDeploymentName,
+          },
+          network_name: {
+            S: networkName,
+          },
         },
-        network_name: {
-          S: networkName,
-        },
-      },
+      })
+      .promise();
+    return insertResult.Attributes as AWS.DynamoDB.AttributeMap;
+  }
+
+  private async getSecGroup(secGroupName: string, region: string) {
+    const ec2Sdk = await this.getEc2Sdk({ region });
+    const secGroups = await ec2Sdk.describeSecurityGroups({}).promise();
+    const correctSecGroup = secGroups.SecurityGroups?.filter((group) => group.GroupName === secGroupName);
+    if (correctSecGroup?.length !== 1) {
+      throw Error(`Security Group ${secGroupName} not found...`);
+    }
+    return correctSecGroup[0];
+  }
+
+  private async updateRdsSecurityGroup(deploymentName: string, monitoringName: string, region: string) {
+    const ec2Sdk = await this.getEc2Sdk({ region });
+    const rdsSecGroupName = RDS_SEC_GROUP_PREFIX + deploymentName;
+    const monitoringSecGroupName = MONITORING_SEC_GROUP_PREFIX + monitoringName;
+    const rdsSecGroup = await this.getSecGroup(rdsSecGroupName, region);
+    const monitoringDeployment = await this.getMonitoringDeploymentByName(monitoringName);
+    const cloudMap = await this.getCloudMap(monitoringDeployment.network_name.S as string);
+    const secGroup = await ec2Sdk
+      .createSecurityGroup({
+        GroupName: monitoringSecGroupName,
+        VpcId: cloudMap.network.vpcId,
+        Description: 'Network ingress for monitoring deployment' + monitoringName,
+      })
+      .promise();
+
+    await ec2Sdk.authorizeSecurityGroupIngress({
+      GroupName: rdsSecGroup.GroupName,
+      GroupId: rdsSecGroup.GroupId,
+      FromPort: POSTGRES_PORT,
+      ToPort: POSTGRES_PORT,
+      IpProtocol: 'tcp',
+      SourceSecurityGroupName: secGroup.GroupId,
     });
   }
 
   private async createNewMonitoringDeployment(networkName: string, monitoringName: string, region?: string) {
     const cloudMap = await this.getCloudMap(networkName, region);
-    const dynamoSdk = await this.getDynamoSdk({ region: cloudMap.network.region });
     await this.ensureDynamoDBTable();
     await this.ensureMonitoringDeploymentItem(monitoringName, networkName);
     await this.createMainService(networkName, monitoringName, region);
