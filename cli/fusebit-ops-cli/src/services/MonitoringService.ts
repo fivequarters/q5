@@ -9,6 +9,10 @@ import { OpsService } from './OpsService';
 const DISCOVERY_DOMAIN_NAME = 'fusebit.local';
 const MASTER_SERVICE_PREFIX = 'leader-';
 const STACK_SERVICE_PREFIX = 'stack-';
+const SECURITY_GROUP_PREFIX = `fusebit-monitoring-`;
+const POSTGRES_PORT = 5432;
+const OPS_MONITORING_TABLE = 'ops.monitoring';
+
 export class MonitoringService {
   public static async create(input: IExecuteInput) {
     const opsSvc = await OpsService.create(input);
@@ -29,6 +33,15 @@ export class MonitoringService {
 
   private async getCloudMapSdk(config: any) {
     return new AWS.ServiceDiscovery({
+      ...config,
+      accessKeyId: this.creds.accessKeyId as string,
+      secretAccessKey: this.creds.secretAccessKey as string,
+      sessionToken: this.creds.sessionToken as string,
+    });
+  }
+
+  private async getDynamoSdk(config: any) {
+    return new AWS.DynamoDB({
       ...config,
       accessKeyId: this.creds.accessKeyId as string,
       secretAccessKey: this.creds.secretAccessKey as string,
@@ -78,4 +91,27 @@ export class MonitoringService {
       })
       .promise();
   }
+
+  private async ensureS3Bucket(monitoringDeploymentName: string, region?: string) {}
+
+  // Used for storing deployment configs
+  private async ensureDynamoDBTable() {
+    const dynamoSdk = await this.getDynamoSdk({ region: this.config.region });
+    const tables = await dynamoSdk.listTables().promise();
+    if (!tables.TableNames?.some((table) => table === OPS_MONITORING_TABLE)) {
+      await dynamoSdk.createTable({
+        TableName: OPS_MONITORING_TABLE,
+        BillingMode: 'PAY_PER_REQUEST',
+        AttributeDefinitions: [
+          {
+            AttributeName: 'monitoring_stack_name',
+            AttributeType: 'S',
+          },
+        ],
+        KeySchema: [],
+      });
+    }
+  }
+
+  private createNewMonitoringDeployment(networkName: string, monitoringName: string, region?: string) {}
 }
