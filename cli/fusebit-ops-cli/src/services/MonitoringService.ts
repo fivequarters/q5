@@ -1,8 +1,9 @@
+import { v4 as uuidv4 } from 'uuid';
+import AWS from 'aws-sdk';
 import { IAwsConfig } from '@5qtrs/aws-config';
 import { AwsCreds, IAwsCredentials } from '@5qtrs/aws-cred';
 import { IExecuteInput } from '@5qtrs/cli';
 import { IOpsNetwork } from '@5qtrs/ops-data';
-import AWS from 'aws-sdk';
 import { ExecuteService } from '.';
 import { OpsService } from './OpsService';
 
@@ -15,6 +16,14 @@ const OPS_MONITORING_TABLE = 'ops.monitoring';
 const LOKI_BUCKET_PREFIX = 'loki-bucket-fusebit-';
 const TEMPO_BUCKET_PREFIX = 'tempo-bucket-fusebit-';
 const RDS_SEC_GROUP_PREFIX = 'fusebit-db-security-group-';
+const PARAM_MANAGER_PREFIX = '/fusebit/grafana/credentials/';
+
+interface IDatabaseCredentials {
+  username: string;
+  password: string;
+  schemaName: string;
+  endpoint: string;
+}
 
 export class MonitoringService {
   public static async create(input: IExecuteInput) {
@@ -33,6 +42,50 @@ export class MonitoringService {
     private creds: IAwsCredentials,
     private input: IExecuteInput
   ) {}
+
+  private getGrafanaDatabaseMigrationStatement(monDeploymentName: string, password: string) {
+    const statements = [];
+    // Technically, yes this isn't SQL injection proof, but this is secured behind AWS credentials.
+    statements.push(`CREATE USER '${monDeploymentName}' WITH PASSWORD '${password}';`);
+    statements.push(`CREATE SCHEMA IF NOT EXISTS ${monDeploymentName} AUTHORIZATION ${monDeploymentName};`);
+    return statements;
+  }
+
+  private getGrafanaPassword() {
+    return uuidv4();
+  }
+
+  private async storeGrafanaCredentials(credentials: IDatabaseCredentials, region: string) {
+    const SSMSdk = await this.getSSMSdk({ region });
+    const key = PARAM_MANAGER_PREFIX + credentials.schemaName;
+    await SSMSdk.putParameter({
+      Name: key,
+      Value: JSON.stringify(credentials),
+      Type: 'String',
+    }).promise();
+  }
+
+  private async getGrafanaCredentials(monDeploymentName: string, region: string) {
+    const SSMSdk = await this.getSSMSdk({ region });
+    const key = PARAM_MANAGER_PREFIX + monDeploymentName;
+    try {
+      const value = await SSMSdk.getParameter({
+        Name: key,
+      }).promise();
+      return JSON.parse(value.Parameter?.Value as string) as IDatabaseCredentials;
+    } catch (e) {
+      return undefined;
+    }
+  }
+
+  private async getSSMSdk(config: any) {
+    return new AWS.SSM({
+      ...config,
+      accessKeyId: this.creds.accessKeyId as string,
+      secretAccessKey: this.creds.secretAccessKey as string,
+      sessionToken: this.creds.sessionToken as string,
+    });
+  }
 
   private async getCloudMapSdk(config: any) {
     return new AWS.ServiceDiscovery({
