@@ -12,6 +12,8 @@ const STACK_SERVICE_PREFIX = 'stack-';
 const SECURITY_GROUP_PREFIX = `fusebit-monitoring-`;
 const POSTGRES_PORT = 5432;
 const OPS_MONITORING_TABLE = 'ops.monitoring';
+const LOKI_BUCKET_PREFIX = 'loki-bucket-fusebit-';
+const TEMPO_BUCKET_PREFIX = 'tempo-bucket-fusebit-';
 
 export class MonitoringService {
   public static async create(input: IExecuteInput) {
@@ -42,6 +44,15 @@ export class MonitoringService {
 
   private async getDynamoSdk(config: any) {
     return new AWS.DynamoDB({
+      ...config,
+      accessKeyId: this.creds.accessKeyId as string,
+      secretAccessKey: this.creds.secretAccessKey as string,
+      sessionToken: this.creds.sessionToken as string,
+    });
+  }
+
+  private async getS3Sdk(config: any) {
+    return new AWS.S3({
       ...config,
       accessKeyId: this.creds.accessKeyId as string,
       secretAccessKey: this.creds.secretAccessKey as string,
@@ -92,7 +103,58 @@ export class MonitoringService {
       .promise();
   }
 
-  private async ensureS3Bucket(monitoringDeploymentName: string, region?: string) {}
+  private async ensureS3Bucket(monitoringDeploymentName: string, region: string) {
+    const s3Sdk = await this.getS3Sdk({ region });
+    const existingBucket = await s3Sdk.listBuckets().promise();
+    const lokiBuckets = existingBucket.Buckets?.filter(
+      (bucket) => bucket.Name === `${LOKI_BUCKET_PREFIX}${monitoringDeploymentName}`
+    );
+    if (lokiBuckets?.length === 0) {
+      await s3Sdk
+        .createBucket({
+          Bucket: `${LOKI_BUCKET_PREFIX}${monitoringDeploymentName}`,
+        })
+        .promise();
+      await s3Sdk
+        .putBucketEncryption({
+          Bucket: `${LOKI_BUCKET_PREFIX}${monitoringDeploymentName}`,
+          ServerSideEncryptionConfiguration: {
+            Rules: [
+              {
+                ApplyServerSideEncryptionByDefault: {
+                  SSEAlgorithm: 'SSE-S3',
+                },
+              },
+            ],
+          },
+        })
+        .promise();
+      const tempoBuckets = existingBucket.Buckets?.filter(
+        (bucket) => bucket.Name === `${LOKI_BUCKET_PREFIX}${monitoringDeploymentName}`
+      );
+      if (tempoBuckets?.length === 0) {
+        await s3Sdk
+          .createBucket({
+            Bucket: `${TEMPO_BUCKET_PREFIX}${monitoringDeploymentName}`,
+          })
+          .promise();
+        await s3Sdk
+          .putBucketEncryption({
+            Bucket: `${TEMPO_BUCKET_PREFIX}${monitoringDeploymentName}`,
+            ServerSideEncryptionConfiguration: {
+              Rules: [
+                {
+                  ApplyServerSideEncryptionByDefault: {
+                    SSEAlgorithm: 'SSE-S3',
+                  },
+                },
+              ],
+            },
+          })
+          .promise();
+      }
+    }
+  }
 
   // Used for storing deployment configs
   private async ensureDynamoDBTable() {
@@ -113,5 +175,39 @@ export class MonitoringService {
     }
   }
 
-  private createNewMonitoringDeployment(networkName: string, monitoringName: string, region?: string) {}
+  private async ensureMonitoringDeploymentItem(monDeploymentName: string, networkName: string) {
+    const dynamoSdk = await this.getDynamoSdk({ region: this.config.region });
+    const tryGet = await dynamoSdk
+      .getItem({
+        TableName: OPS_MONITORING_TABLE,
+        Key: {
+          monitoring_stack_name: { S: monDeploymentName },
+        },
+      })
+      .promise();
+    if (tryGet.Item) {
+      return tryGet.Item;
+    }
+
+    const insertResult = await dynamoSdk.putItem({
+      TableName: OPS_MONITORING_TABLE,
+      Item: {
+        monitoring_stack_name: {
+          S: monDeploymentName,
+        },
+        network_name: {
+          S: networkName,
+        },
+      },
+    });
+  }
+
+  private async createNewMonitoringDeployment(networkName: string, monitoringName: string, region?: string) {
+    const cloudMap = await this.getCloudMap(networkName, region);
+    const dynamoSdk = await this.getDynamoSdk({ region: cloudMap.network.region });
+    await this.ensureDynamoDBTable();
+    await this.ensureMonitoringDeploymentItem(monitoringName, networkName);
+    await this.createMainService(networkName, monitoringName, region);
+    await this.ensureS3Bucket(monitoringName, cloudMap.network.region);
+  }
 }
