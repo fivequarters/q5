@@ -1,10 +1,15 @@
 import { join } from 'path';
 import create_error from 'http-errors';
 import { Request, Response, NextFunction } from 'express';
-const { getAWSCredentials } = require('../credentials');
+
+import { getAWSCredentials } from '../credentials';
 const version = require(join(__dirname, '..', '..', '..', '..', '..', 'package.json')).version;
 
 process.env.FUNCTION_API_VERSION = version;
+
+interface IHealthResponse extends Record<string, string> {
+  version: string;
+}
 
 interface IHealthCheckTarget {
   check: () => Promise<void>;
@@ -32,7 +37,17 @@ function getHealth(targets: IHealthCheckTarget[]) {
       return next(create_error(500, e));
     }
 
-    return res.json({ version });
+    const GRAFANA_VERSION = process.env.GRAFANA_VERSION;
+
+    let healthPayload: IHealthResponse = {
+      version,
+    };
+
+    if (GRAFANA_VERSION) {
+      healthPayload.grafana = GRAFANA_VERSION;
+    }
+
+    return res.json(healthPayload);
   };
 }
 

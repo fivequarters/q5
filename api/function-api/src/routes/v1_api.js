@@ -45,6 +45,8 @@ const { keyStore, subscriptionCache } = require('./globals');
 
 const storage = require('./handlers/storageRds');
 
+const grafanaHealth = require('./grafana/health');
+
 var corsManagementOptions = {
   origins: '*',
   methods: 'GET,POST,PUT,DELETE,PATCH',
@@ -79,6 +81,7 @@ router.get(
     { check: async () => subscriptionCache.healthCheck(), name: 'Subscription cache' },
     { check: async () => RDS.ensureConnection(), name: 'RDS connection' },
     { check: async () => RDS.ensureRDSLiveliness(), name: 'RDS execution' },
+    { check: async () => grafanaHealth(), name: 'Grafana' },
   ])
 );
 

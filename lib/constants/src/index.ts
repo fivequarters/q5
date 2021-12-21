@@ -26,8 +26,10 @@ const API_PUBLIC_ENDPOINT = process.env.LOGS_HOST
   : (process.env.API_SERVER as string);
 
 const API_PUBLIC_HOST = new URL(API_PUBLIC_ENDPOINT || 'http://localhost').host;
+
+// Grafana is discovered via a private route53 zone
 const GRAFANA_ENDPOINT = process.env.GRAFANA_ENDPOINT
-  ? `https://${process.env.GRAFANA_ENDPOINT}:3000`
+  ? `http://${process.env.GRAFANA_ENDPOINT}:3000`
   : `http://localhost:3000`;
 
 const FUSEBIT_QUERY_AUTHZ = 'fusebitAuthorization';
@@ -337,6 +339,7 @@ export {
   REGISTRY_RESERVED_SCOPE_PREFIX,
   RUNAS_SYSTEM_ISSUER_SUFFIX,
   API_PUBLIC_ENDPOINT,
+  GRAFANA_ENDPOINT,
   API_PUBLIC_HOST,
   MAX_CACHE_REFRESH_RATE,
   FUSEBIT_QUERY_AUTHZ,

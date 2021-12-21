@@ -1,4 +1,5 @@
 import { Command, ICommand } from '@5qtrs/cli';
+import { AddMonitoringCommand } from './AddMonitoringCommand';
 
 // ------------------
 // Internal Constants
@@ -26,6 +27,8 @@ const command: ICommand = {
 export class MonitoringCommand extends Command {
   public static async create() {
     const subCommands = [];
+    subCommands.push(await AddMonitoringCommand.create());
+    command.subCommands = subCommands;
     return new MonitoringCommand(command);
   }
 

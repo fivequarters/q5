@@ -14,7 +14,7 @@ const POSTGRES_PORT = 5432;
 const OPS_MONITORING_TABLE = 'ops.monitoring';
 const LOKI_BUCKET_PREFIX = 'loki-bucket-fusebit-';
 const TEMPO_BUCKET_PREFIX = 'tempo-bucket-fusebit-';
-const RDS_SEC_GROUP_PREFIX = '`fusebit-db-subnet-group-';
+const RDS_SEC_GROUP_PREFIX = '`fusebit-db-security-group-';
 
 export class MonitoringService {
   public static async create(input: IExecuteInput) {
@@ -72,15 +72,15 @@ export class MonitoringService {
 
   private async getCloudMap(networkName: string, region?: string) {
     const opsContext = await this.opsService.getOpsDataContext();
-    let networks = await opsContext.networkData.list();
+    let networks = await opsContext.networkData.listAll();
+    console.log(networks);
     let correctNetwork: IOpsNetwork[];
     if (region) {
-      correctNetwork = networks.items.filter((network) => network.region === region);
+      correctNetwork = networks.filter((network) => network.region === region);
     } else {
-      correctNetwork = networks.items;
+      correctNetwork = networks;
     }
-
-    correctNetwork.filter((net) => net.networkName === networkName);
+    correctNetwork = correctNetwork.filter((net) => net.networkName === networkName);
     if (correctNetwork.length !== 1) {
       throw Error('No network found');
     }
@@ -105,7 +105,7 @@ export class MonitoringService {
         DnsConfig: {
           DnsRecords: [{ Type: 'CNAME', TTL: 1 }],
           NamespaceId: cloudMap.namespace.Id,
-          RoutingPolicy: 'CNAME',
+          RoutingPolicy: 'WEIGHTED',
         },
         NamespaceId: cloudMap.namespace.Id,
         Name: `${MASTER_SERVICE_PREFIX}${monitoringDeploymentName}`,
@@ -125,20 +125,6 @@ export class MonitoringService {
           Bucket: `${LOKI_BUCKET_PREFIX}${monitoringDeploymentName}`,
         })
         .promise();
-      await s3Sdk
-        .putBucketEncryption({
-          Bucket: `${LOKI_BUCKET_PREFIX}${monitoringDeploymentName}`,
-          ServerSideEncryptionConfiguration: {
-            Rules: [
-              {
-                ApplyServerSideEncryptionByDefault: {
-                  SSEAlgorithm: 'SSE-S3',
-                },
-              },
-            ],
-          },
-        })
-        .promise();
       const tempoBuckets = existingBucket.Buckets?.filter(
         (bucket) => bucket.Name === `${LOKI_BUCKET_PREFIX}${monitoringDeploymentName}`
       );
@@ -146,20 +132,6 @@ export class MonitoringService {
         await s3Sdk
           .createBucket({
             Bucket: `${TEMPO_BUCKET_PREFIX}${monitoringDeploymentName}`,
-          })
-          .promise();
-        await s3Sdk
-          .putBucketEncryption({
-            Bucket: `${TEMPO_BUCKET_PREFIX}${monitoringDeploymentName}`,
-            ServerSideEncryptionConfiguration: {
-              Rules: [
-                {
-                  ApplyServerSideEncryptionByDefault: {
-                    SSEAlgorithm: 'SSE-S3',
-                  },
-                },
-              ],
-            },
           })
           .promise();
       }
@@ -170,48 +142,69 @@ export class MonitoringService {
   private async ensureDynamoDBTable() {
     const dynamoSdk = await this.getDynamoSdk({ region: this.config.region });
     const tables = await dynamoSdk.listTables().promise();
-    if (!tables.TableNames?.some((table) => table === OPS_MONITORING_TABLE)) {
-      await dynamoSdk.createTable({
-        TableName: OPS_MONITORING_TABLE,
-        BillingMode: 'PAY_PER_REQUEST',
-        AttributeDefinitions: [
-          {
-            AttributeName: 'monitoring_stack_name',
-            AttributeType: 'S',
-          },
-        ],
-        KeySchema: [],
-      });
+    const correctTable = tables.TableNames?.filter((table) => table === OPS_MONITORING_TABLE);
+    console.log(correctTable);
+    if (!correctTable || correctTable.length !== 1) {
+      const createTableResults = await dynamoSdk
+        .createTable({
+          TableName: OPS_MONITORING_TABLE,
+          BillingMode: 'PAY_PER_REQUEST',
+          AttributeDefinitions: [
+            {
+              AttributeName: 'monitoring_stack_name',
+              AttributeType: 'S',
+            },
+          ],
+          KeySchema: [
+            {
+              AttributeName: 'monitoring_stack_name',
+              KeyType: 'HASH',
+            },
+          ],
+        })
+        .promise();
+      do {
+        const status = await dynamoSdk.describeTable({ TableName: OPS_MONITORING_TABLE }).promise();
+        if (status.Table?.TableStatus === 'ACTIVE') {
+          return;
+        }
+      } while (true);
     }
   }
 
   private async getMonitoringDeploymentByName(monDeployName: string) {
     const dynamoSdk = await this.getDynamoSdk({ region: this.config.region });
-    const deployment = await dynamoSdk
-      .getItem({
-        TableName: OPS_MONITORING_TABLE,
-        Key: {
-          monitoring_stack_name: { S: monDeployName },
-        },
-      })
-      .promise();
+    try {
+      const deployment = await dynamoSdk
+        .getItem({
+          TableName: OPS_MONITORING_TABLE,
+          Key: {
+            monitoring_stack_name: { S: monDeployName },
+          },
+        })
+        .promise();
 
-    return deployment.Item as AWS.DynamoDB.AttributeMap;
+      return deployment.Item as AWS.DynamoDB.AttributeMap;
+    } catch (e) {
+      throw Error('Monitoring deployment not found.');
+    }
   }
 
-  private async ensureMonitoringDeploymentItem(monDeploymentName: string, networkName: string) {
+  private async ensureMonitoringDeploymentItem(monDeploymentName: string, networkName: string, deploymentName: string) {
     const dynamoSdk = await this.getDynamoSdk({ region: this.config.region });
-    const tryGet = await dynamoSdk
-      .getItem({
-        TableName: OPS_MONITORING_TABLE,
-        Key: {
-          monitoring_stack_name: { S: monDeploymentName },
-        },
-      })
-      .promise();
-    if (tryGet.Item) {
-      return tryGet.Item;
-    }
+    try {
+      const tryGet = await dynamoSdk
+        .getItem({
+          TableName: OPS_MONITORING_TABLE,
+          Key: {
+            monitoring_stack_name: { S: monDeploymentName },
+          },
+        })
+        .promise();
+      if (tryGet.Item) {
+        return tryGet.Item;
+      }
+    } catch (_) {}
 
     const insertResult = await dynamoSdk
       .putItem({
@@ -223,6 +216,9 @@ export class MonitoringService {
           network_name: {
             S: networkName,
           },
+          deployment_name: {
+            S: deploymentName,
+          },
         },
       })
       .promise();
@@ -232,6 +228,7 @@ export class MonitoringService {
   private async getSecGroup(secGroupName: string, region: string) {
     const ec2Sdk = await this.getEc2Sdk({ region });
     const secGroups = await ec2Sdk.describeSecurityGroups({}).promise();
+    console.log(secGroups.SecurityGroups);
     const correctSecGroup = secGroups.SecurityGroups?.filter((group) => group.GroupName === secGroupName);
     if (correctSecGroup?.length !== 1) {
       throw Error(`Security Group ${secGroupName} not found...`);
@@ -264,11 +261,28 @@ export class MonitoringService {
     });
   }
 
-  private async createNewMonitoringDeployment(networkName: string, monitoringName: string, region?: string) {
+  private async createNewMonitoringDeployment(
+    networkName: string,
+    monitoringName: string,
+    deploymentName: string,
+    region?: string
+  ) {
     const cloudMap = await this.getCloudMap(networkName, region);
     await this.ensureDynamoDBTable();
-    await this.ensureMonitoringDeploymentItem(monitoringName, networkName);
+    await this.ensureMonitoringDeploymentItem(monitoringName, networkName, deploymentName);
     await this.createMainService(networkName, monitoringName, region);
     await this.ensureS3Bucket(monitoringName, cloudMap.network.region);
+    await this.updateRdsSecurityGroup(deploymentName, monitoringName, cloudMap.network.region);
+  }
+
+  public async MonitoringAdd(networkName: string, deploymentName: string, monitoringName: string, region?: string) {
+    const listing = await this.executeService.execute(
+      {
+        header: 'Add Monitoring Deployment',
+        message: `Adding Monitoring Deployment`,
+        errorHeader: 'Deployment Adding Error',
+      },
+      () => this.createNewMonitoringDeployment(networkName, monitoringName, deploymentName, region)
+    );
   }
 }
