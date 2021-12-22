@@ -17,12 +17,20 @@ const LOKI_BUCKET_PREFIX = 'loki-bucket-fusebit-';
 const TEMPO_BUCKET_PREFIX = 'tempo-bucket-fusebit-';
 const RDS_SEC_GROUP_PREFIX = 'fusebit-db-security-group-';
 const PARAM_MANAGER_PREFIX = '/fusebit/grafana/credentials/';
+const DEFAULT_DATABASE_NAME = 'fusebit';
+const DATABASE_PREFIX = 'fusebit-db-';
 
 interface IDatabaseCredentials {
   username: string;
   password: string;
   schemaName: string;
   endpoint: string;
+}
+
+interface IMonitoringDeployment {
+  monitoringDeploymentName: string;
+  deploymentName: string;
+  networkName: string;
 }
 
 export class MonitoringService {
@@ -51,7 +59,7 @@ export class MonitoringService {
     return statements;
   }
 
-  private getGrafanaPassword() {
+  private genGrafanaPassword() {
     return uuidv4();
   }
 
@@ -78,48 +86,140 @@ export class MonitoringService {
     }
   }
 
+  private async getRdsInformation(deploymentName: string, region: string) {
+    const rdsSdk = await this.getRDSSdk({ region });
+    const secretSdk = await this.getSecretsManagerSdk({ region });
+    const clusters = await rdsSdk.describeDBClusters().promise();
+    const correctClusters = clusters.DBClusters?.filter(
+      (cluster) => cluster.DBClusterIdentifier === DATABASE_PREFIX + deploymentName
+    );
+    const cluster = (correctClusters as AWS.RDS.DBCluster[])[0] as AWS.RDS.DBCluster;
+    const params = {
+      Filters: [
+        { Key: 'tag-key', Values: ['fusebitDeployment'] },
+        { Key: 'tag-value', Values: [process.env.DEPLOYMENT_KEY as string] },
+      ],
+    };
+    const data = await secretSdk.listSecrets(params).promise();
+    if (!data.SecretList) {
+      throw new Error(
+        `Cannot find a unique secret to access Aurora cluster in the Secrets Manager. Expected 1 matching secret, found 0. Delete the Aurora cluster and try again.`
+      );
+    }
+    let filteredSecrets: AWS.SecretsManager.SecretListEntry[] = [];
+
+    for (const secret of data.SecretList) {
+      if (secret.Name?.match(`^rds-db-credentials/fusebit-db-secret-${process.env.DEPLOYMENT_KEY}-[a-zA-Z0-9]{20}$`)) {
+        filteredSecrets.push(secret);
+      }
+    }
+    if (filteredSecrets.length !== 1) {
+      throw new Error(
+        `Cannot find a unique secret to access Aurora cluster in the Secrets Manager. Expected 1 matching secret, found ${
+          filteredSecrets.length !== 0 ? filteredSecrets.length : '0. Delete the Aurora cluster and try again'
+        }`
+      );
+    }
+    const dbArnTag = filteredSecrets[0].Tags?.find((t) => t.Key === 'dbArn');
+    if (!dbArnTag) {
+      throw new Error(
+        `The secret to access Aurora cluster found in the Secrets Manager does not specify the database ARN.`
+      );
+    }
+
+    return {
+      dataSdk: {
+        resourceArn: dbArnTag.Value as string,
+        secretArn: filteredSecrets[0].ARN as string,
+      },
+      cluster,
+    };
+  }
+
+  private async executeInitialGrafanaDbSetup(monDeploymentName: string, region: string) {
+    const getMonDeployment = await this.getMonitoringDeploymentByName(monDeploymentName);
+    const cloudMap = await this.getCloudMap(getMonDeployment.networkName, region);
+    const rdsSdk = await this.getRDSSdk({ region });
+    const rdsDataSdk = await this.getRDSDataSdk({ region });
+    const clusterInfo = await this.getRdsInformation(getMonDeployment.deploymentName, region);
+    const grafanaPassword = await this.genGrafanaPassword();
+    const statements = this.getGrafanaDatabaseMigrationStatement(monDeploymentName, grafanaPassword);
+    for (const stmt of statements) {
+      await rdsDataSdk
+        .executeStatement({
+          ...clusterInfo.dataSdk,
+          sql: stmt,
+          includeResultMetadata: true,
+        })
+        .promise();
+    }
+    await this.storeGrafanaCredentials(
+      {
+        endpoint: clusterInfo.cluster.Endpoint as string,
+        username: monDeploymentName,
+        password: grafanaPassword,
+        schemaName: monDeploymentName,
+      },
+      region
+    );
+  }
+
+  private async getSecretsManagerSdk(config: any) {
+    return new AWS.SecretsManager({
+      ...config,
+      ...this.creds,
+    });
+  }
+
+  private async getRDSDataSdk(config: any) {
+    return new AWS.RDSDataService({
+      ...config,
+      ...this.creds,
+      params: {
+        database: DEFAULT_DATABASE_NAME,
+      },
+    });
+  }
+
+  private async getRDSSdk(config: any) {
+    return new AWS.RDS({
+      ...config,
+      ...this.creds,
+    });
+  }
+
   private async getSSMSdk(config: any) {
     return new AWS.SSM({
       ...config,
-      accessKeyId: this.creds.accessKeyId as string,
-      secretAccessKey: this.creds.secretAccessKey as string,
-      sessionToken: this.creds.sessionToken as string,
+      ...this.creds,
     });
   }
 
   private async getCloudMapSdk(config: any) {
     return new AWS.ServiceDiscovery({
       ...config,
-      accessKeyId: this.creds.accessKeyId as string,
-      secretAccessKey: this.creds.secretAccessKey as string,
-      sessionToken: this.creds.sessionToken as string,
+      ...this.creds,
     });
   }
 
   private async getDynamoSdk(config: any) {
     return new AWS.DynamoDB({
       ...config,
-      accessKeyId: this.creds.accessKeyId as string,
-      secretAccessKey: this.creds.secretAccessKey as string,
-      sessionToken: this.creds.sessionToken as string,
+      ...this.creds,
     });
   }
 
   private async getS3Sdk(config: any) {
     return new AWS.S3({
       ...config,
-      accessKeyId: this.creds.accessKeyId as string,
-      secretAccessKey: this.creds.secretAccessKey as string,
-      sessionToken: this.creds.sessionToken as string,
+      ...this.creds,
     });
   }
 
   private async getEc2Sdk(config: any) {
     return new AWS.EC2({
       ...config,
-      accessKeyId: this.creds.accessKeyId as string,
-      secretAccessKey: this.creds.secretAccessKey as string,
-      sessionToken: this.creds.sessionToken as string,
+      ...this.creds,
     });
   }
 
@@ -204,13 +304,13 @@ export class MonitoringService {
           BillingMode: 'PAY_PER_REQUEST',
           AttributeDefinitions: [
             {
-              AttributeName: 'monitoring_stack_name',
+              AttributeName: 'monitoring_deployment_name',
               AttributeType: 'S',
             },
           ],
           KeySchema: [
             {
-              AttributeName: 'monitoring_stack_name',
+              AttributeName: 'monitoring_deployment_name',
               KeyType: 'HASH',
             },
           ],
@@ -225,19 +325,23 @@ export class MonitoringService {
     }
   }
 
-  private async getMonitoringDeploymentByName(monDeployName: string) {
+  private async getMonitoringDeploymentByName(monDeployName: string): Promise<IMonitoringDeployment> {
     const dynamoSdk = await this.getDynamoSdk({ region: this.config.region });
     try {
       const deployment = await dynamoSdk
         .getItem({
           TableName: OPS_MONITORING_TABLE,
           Key: {
-            monitoring_stack_name: { S: monDeployName },
+            monitoring_deployment_name: { S: monDeployName },
           },
         })
         .promise();
 
-      return deployment.Item as AWS.DynamoDB.AttributeMap;
+      return {
+        deploymentName: deployment.Item?.deployment_name.S as string,
+        networkName: deployment.Item?.network_name.S as string,
+        monitoringDeploymentName: deployment.Item?.monitoring_deployment_name.S as string,
+      };
     } catch (e) {
       throw Error('Monitoring deployment not found.');
     }
@@ -250,7 +354,7 @@ export class MonitoringService {
         .getItem({
           TableName: OPS_MONITORING_TABLE,
           Key: {
-            monitoring_stack_name: { S: monDeploymentName },
+            monitoring_deployment_name: { S: monDeploymentName },
           },
         })
         .promise();
@@ -263,7 +367,7 @@ export class MonitoringService {
       .putItem({
         TableName: OPS_MONITORING_TABLE,
         Item: {
-          monitoring_stack_name: {
+          monitoring_deployment_name: {
             S: monDeploymentName,
           },
           network_name: {
