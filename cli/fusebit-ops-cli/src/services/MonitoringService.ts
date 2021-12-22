@@ -19,6 +19,13 @@ const RDS_SEC_GROUP_PREFIX = 'fusebit-db-security-group-';
 const PARAM_MANAGER_PREFIX = '/fusebit/grafana/credentials/';
 const DEFAULT_DATABASE_NAME = 'fusebit';
 const DATABASE_PREFIX = 'fusebit-db-';
+const API_SG_PREFIX = 'SG-';
+const GRAFANA_PORTS = [
+  /** Tempo GRPC Ingress TCP */ '4317/tcp',
+  /** Tempo GRPC Ingress UDP */ '4317/udp',
+  /** Loki Port */ '3100/tcp',
+  /** Grafana Port */ '3000/tcp',
+];
 
 interface IDatabaseCredentials {
   username: string;
@@ -54,8 +61,12 @@ export class MonitoringService {
   private getGrafanaDatabaseMigrationStatement(monDeploymentName: string, password: string) {
     const statements = [];
     // Technically, yes this isn't SQL injection proof, but this is secured behind AWS credentials.
-    statements.push(`CREATE USER '${monDeploymentName}' WITH PASSWORD '${password}';`);
-    statements.push(`CREATE SCHEMA IF NOT EXISTS ${monDeploymentName} AUTHORIZATION ${monDeploymentName};`);
+    statements.push('DROP USER dev;');
+    statements.push('DROP DATABASE mondev;');
+    statements.push(`CREATE USER ${monDeploymentName} WITH PASSWORD '${password}';`);
+    statements.push(`CREATE DATABASE mon${monDeploymentName};`);
+    statements.push(`ALTER DATABASE mon${monDeploymentName} OWNER TO ${monDeploymentName};`);
+    statements.push(`GRANT ALL PRIVILEGES ON DATABASE mon${monDeploymentName} TO ${monDeploymentName};`);
     return statements;
   }
 
@@ -97,7 +108,7 @@ export class MonitoringService {
     const params = {
       Filters: [
         { Key: 'tag-key', Values: ['fusebitDeployment'] },
-        { Key: 'tag-value', Values: [process.env.DEPLOYMENT_KEY as string] },
+        { Key: 'tag-value', Values: [deploymentName] },
       ],
     };
     const data = await secretSdk.listSecrets(params).promise();
@@ -109,7 +120,7 @@ export class MonitoringService {
     let filteredSecrets: AWS.SecretsManager.SecretListEntry[] = [];
 
     for (const secret of data.SecretList) {
-      if (secret.Name?.match(`^rds-db-credentials/fusebit-db-secret-${process.env.DEPLOYMENT_KEY}-[a-zA-Z0-9]{20}$`)) {
+      if (secret.Name?.match(`^rds-db-credentials/fusebit-db-secret-${deploymentName}-[a-zA-Z0-9]{20}$`)) {
         filteredSecrets.push(secret);
       }
     }
@@ -142,7 +153,7 @@ export class MonitoringService {
     const rdsSdk = await this.getRDSSdk({ region });
     const rdsDataSdk = await this.getRDSDataSdk({ region });
     const clusterInfo = await this.getRdsInformation(getMonDeployment.deploymentName, region);
-    const grafanaPassword = await this.genGrafanaPassword();
+    const grafanaPassword = this.genGrafanaPassword();
     const statements = this.getGrafanaDatabaseMigrationStatement(monDeploymentName, grafanaPassword);
     for (const stmt of statements) {
       await rdsDataSdk
@@ -253,17 +264,19 @@ export class MonitoringService {
   private async createMainService(networkName: string, monitoringDeploymentName: string, region?: string) {
     const cloudMap = await this.getCloudMap(networkName, region);
     const mapSdk = await this.getCloudMapSdk({ region: cloudMap.network.region });
-    await mapSdk
-      .createService({
-        DnsConfig: {
-          DnsRecords: [{ Type: 'CNAME', TTL: 1 }],
+    try {
+      await mapSdk
+        .createService({
+          DnsConfig: {
+            DnsRecords: [{ Type: 'CNAME', TTL: 1 }],
+            NamespaceId: cloudMap.namespace.Id,
+            RoutingPolicy: 'WEIGHTED',
+          },
           NamespaceId: cloudMap.namespace.Id,
-          RoutingPolicy: 'WEIGHTED',
-        },
-        NamespaceId: cloudMap.namespace.Id,
-        Name: `${MASTER_SERVICE_PREFIX}${monitoringDeploymentName}`,
-      })
-      .promise();
+          Name: `${MASTER_SERVICE_PREFIX}${monitoringDeploymentName}`,
+        })
+        .promise();
+    } catch (e) {}
   }
 
   private async ensureS3Bucket(monitoringDeploymentName: string, region: string) {
@@ -404,7 +417,7 @@ export class MonitoringService {
     const monitoringSecGroupName = MONITORING_SEC_GROUP_PREFIX + monitoringName;
     const rdsSecGroup = await this.getSecGroup(rdsSecGroupName, region);
     const monitoringDeployment = await this.getMonitoringDeploymentByName(monitoringName);
-    const cloudMap = await this.getCloudMap(monitoringDeployment.network_name.S as string);
+    const cloudMap = await this.getCloudMap(monitoringDeployment.networkName);
     const secGroup = await ec2Sdk
       .createSecurityGroup({
         GroupName: monitoringSecGroupName,
@@ -413,14 +426,47 @@ export class MonitoringService {
       })
       .promise();
 
-    await ec2Sdk.authorizeSecurityGroupIngress({
-      GroupName: rdsSecGroup.GroupName,
-      GroupId: rdsSecGroup.GroupId,
-      FromPort: POSTGRES_PORT,
-      ToPort: POSTGRES_PORT,
-      IpProtocol: 'tcp',
-      SourceSecurityGroupName: secGroup.GroupId,
-    });
+    await ec2Sdk
+      .authorizeSecurityGroupIngress({
+        GroupId: rdsSecGroup.GroupId,
+        IpPermissions: [
+          {
+            FromPort: POSTGRES_PORT,
+            IpProtocol: 'tcp',
+            ToPort: POSTGRES_PORT,
+            UserIdGroupPairs: [
+              {
+                Description: 'Postgres access from grafana',
+                GroupId: secGroup.GroupId,
+              },
+            ],
+          },
+        ],
+      })
+      .promise();
+    const apiSg = await this.getSecGroup(API_SG_PREFIX + deploymentName, region);
+
+    for (const port of GRAFANA_PORTS) {
+      const [allowPort, proto] = port.split('/');
+      await ec2Sdk
+        .authorizeSecurityGroupIngress({
+          GroupId: secGroup.GroupId,
+          IpPermissions: [
+            {
+              FromPort: parseInt(port),
+              IpProtocol: proto,
+              ToPort: parseInt(port),
+              UserIdGroupPairs: [
+                {
+                  Description: 'API Access',
+                  GroupId: apiSg.GroupId,
+                },
+              ],
+            },
+          ],
+        })
+        .promise();
+    }
   }
 
   private async createNewMonitoringDeployment(
@@ -435,6 +481,10 @@ export class MonitoringService {
     await this.createMainService(networkName, monitoringName, region);
     await this.ensureS3Bucket(monitoringName, cloudMap.network.region);
     await this.updateRdsSecurityGroup(deploymentName, monitoringName, cloudMap.network.region);
+    const creds = await this.getGrafanaCredentials(monitoringName, cloudMap.network.region);
+    if (!creds) {
+      await this.executeInitialGrafanaDbSetup(monitoringName, cloudMap.network.region);
+    }
   }
 
   public async MonitoringAdd(networkName: string, deploymentName: string, monitoringName: string, region?: string) {
