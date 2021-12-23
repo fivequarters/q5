@@ -3,13 +3,13 @@ import AWS from 'aws-sdk';
 import { IAwsConfig } from '@5qtrs/aws-config';
 import { AwsCreds, IAwsCredentials } from '@5qtrs/aws-cred';
 import { IExecuteInput } from '@5qtrs/cli';
+import * as grafanaConfig from '@5qtrs/grafana-config';
 import { IOpsNetwork } from '@5qtrs/ops-data';
 import { ExecuteService } from '.';
 import { OpsService } from './OpsService';
 
 const DISCOVERY_DOMAIN_NAME = 'fusebit.local';
 const MASTER_SERVICE_PREFIX = 'leader-';
-const STACK_SERVICE_PREFIX = 'stack-';
 const MONITORING_SEC_GROUP_PREFIX = `fusebit-monitoring-`;
 const POSTGRES_PORT = 5432;
 const OPS_MONITORING_TABLE = 'ops.monitoring';
@@ -20,6 +20,8 @@ const PARAM_MANAGER_PREFIX = '/fusebit/grafana/credentials/';
 const DEFAULT_DATABASE_NAME = 'fusebit';
 const DATABASE_PREFIX = 'fusebit-db-';
 const API_SG_PREFIX = 'SG-';
+const DB_PREFIX = 'mondb';
+const DB_ENGINE = 'postgres';
 const GRAFANA_PORTS = [
   /** Tempo GRPC Ingress TCP */ '4317/tcp',
   /** Tempo GRPC Ingress UDP */ '4317/udp',
@@ -64,10 +66,46 @@ export class MonitoringService {
     statements.push('DROP USER dev;');
     statements.push('DROP DATABASE mondev;');
     statements.push(`CREATE USER ${monDeploymentName} WITH PASSWORD '${password}';`);
-    statements.push(`CREATE DATABASE mon${monDeploymentName};`);
-    statements.push(`ALTER DATABASE mon${monDeploymentName} OWNER TO ${monDeploymentName};`);
-    statements.push(`GRANT ALL PRIVILEGES ON DATABASE mon${monDeploymentName} TO ${monDeploymentName};`);
+    statements.push(`CREATE DATABASE ${DB_PREFIX}${monDeploymentName};`);
+    statements.push(`ALTER DATABASE ${DB_PREFIX}${monDeploymentName} OWNER TO ${monDeploymentName};`);
+    statements.push(`GRANT ALL PRIVILEGES ON DATABASE ${DB_PREFIX}${monDeploymentName} TO ${monDeploymentName};`);
     return statements;
+  }
+
+  private getDeploymentUrl = (deploymentName: string, region: string, baseDomain: string) =>
+    `https://${deploymentName}.${region}.${baseDomain}`;
+
+  private async getGrafanaIniFile(
+    credentials: IDatabaseCredentials,
+    deployment: IMonitoringDeployment,
+    region?: string
+  ) {
+    const configTemplate = grafanaConfig.getConfigTemplate();
+    const cloudMap = await this.getCloudMap(deployment.networkName);
+    const fusebitDeployment = await this.getFusebitDeployment(deployment.deploymentName, cloudMap.network.region);
+    const baseUrl = this.getDeploymentUrl(
+      fusebitDeployment.deploymentName,
+      fusebitDeployment.region,
+      fusebitDeployment.domainName
+    );
+
+    // Configure database settings
+    configTemplate.database.type = DB_ENGINE;
+    configTemplate.database.user = credentials.username;
+    // Database name is formed from username and DB_PREFIX
+    configTemplate.database.name = DB_PREFIX + credentials.username;
+    configTemplate.database.password = credentials.password;
+    configTemplate.database.host = `${credentials.endpoint}:${POSTGRES_PORT}`;
+    // Configure base URLs
+    configTemplate.server.domain = baseUrl;
+    configTemplate.server.rootUrl = `https://${baseUrl}/v2/grafana/`;
+
+    return grafanaConfig.toIniFile(configTemplate);
+  }
+
+  private async getFusebitDeployment(deploymentName: string, region: string) {
+    const opsCtx = await this.opsService.getOpsDataContext();
+    return opsCtx.deploymentData.get(deploymentName, region);
   }
 
   private genGrafanaPassword() {

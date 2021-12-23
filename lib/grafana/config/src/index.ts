@@ -7,6 +7,6 @@ export const getConfigTemplate = () => {
   return ini.decode(file);
 };
 
-export const toIniFile = (input: string) => {
+export const toIniFile = (input: any) => {
   return ini.encode(input);
 };
