@@ -19,6 +19,9 @@ import { OpsAccountData } from './OpsAccountData';
 import { parseElasticSearchUrl } from './OpsElasticSearch';
 import { debug } from './OpsDebug';
 
+const GRAFANA_BASE_DOMAIN = 'fusebit.local'
+const GRAFANA_LEADER_POSTFIX = '-leader'
+
 // ------------------
 // Internal Functions
 // ------------------
@@ -122,6 +125,7 @@ export class OpsStackData extends DataSource implements IOpsStackData {
         amiId,
         segmentKey,
         elasticSearch,
+        deployment.grafana,
         newStack.env
       ),
       this.cloudWatchAgentForUserData(deploymentName),
@@ -303,6 +307,7 @@ systemctl start docker.fusebit`;
     amiId: string,
     segmentKey: string,
     elasticSearch: string,
+    grafanaKey?: string,
     env?: string
   ) {
     let r = `
@@ -325,6 +330,8 @@ CRON_QUEUE_URL=https://sqs.${region}.amazonaws.com/${account}/${deploymentName}-
 API_STACK_VERSION=${tag}
 API_STACK_ID=${id}
 API_STACK_AMI=${amiId}
+${grafanaKey ? `GRAFANA_ENABLED=true` : ''}
+${grafanaKey ? `GRAFANA_ENDPOINT=${grafanaKey}${GRAFANA_LEADER_POSTFIX}.${GRAFANA_BASE_DOMAIN}`}
 `;
 
     if (segmentKey) {
