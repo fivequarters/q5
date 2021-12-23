@@ -9,9 +9,8 @@ const meteringEnabled = process.env.METERING_ENABLED === 'false' ? false : true;
 
 module.exports = function authorize_factory(options) {
   return async function authorize(req, res, next) {
-    let token = Constants.getAuthToken(req, { header: true, cookie: options.cookie });
+    let token = Constants.getAuthToken(req);
 
-    /* XXX remove getToken? Is that a dead branch? */
     if (!token && options.getToken) {
       token = options.getToken(req);
     }
@@ -85,7 +84,6 @@ module.exports = function authorize_factory(options) {
         }
       }
     } catch (error) {
-      console.log(`Authorization Error: ${error}`);
       if (options.failByCallback) {
         return next(error);
       }

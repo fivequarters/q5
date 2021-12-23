@@ -50,7 +50,6 @@ router.get(
     req.headers['fusebit-authorization-account-id'] = accountId;
     req.headers.authorization = `Bearer ${token}`;
 
-    console.log(`Successfully set header: ${accountId}`);
     return next();
   },
 

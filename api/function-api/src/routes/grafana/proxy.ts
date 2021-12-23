@@ -17,17 +17,7 @@ const allowedHeaders = [
   'Content-Encoding',
   'Content-Length',
   'Content-Type',
-  'cookie',
-  // Probably wrong headers below?
-  // 'x-grafana-org-id',
-  /*
-  'pragma',
-  'cache-control',
-  'sec-gpc',
-  'sec-fetch-site',
-  'sec-fetch-mode',
-  'sec-fetch-dest',
- */
+  'Cookie',
 ].map((entry) => entry.toLowerCase());
 
 /*
@@ -58,7 +48,6 @@ router.use('*', async (req: express.Request, res: express.Response, next: expres
 
   // Proxy the request
   const connection = http.request(requestParams, (resp) => {
-    console.log(`${req.method} ${req.baseUrl} => ${resp.statusCode}`);
     Object.entries(resp.headers).forEach(([key, value]) => res.setHeader(key, value as any));
     resp.pipe(res);
   });
