@@ -67,18 +67,22 @@ class Trace {
 }
 
 const publishTraces = async (accountId: string, traces: Trace[]) => {
-  await Promise.all(
-    traces.map(async (trace) => {
-      const metadata = new grpc.Metadata();
+  try {
+    await Promise.all(
+      traces.map(async (trace) => {
+        const metadata = new grpc.Metadata();
 
-      metadata.set('X-Scope-OrgID', accountId);
-      const exporter = new OTLPTraceExporter({
-        url: 'grpc://localhost:4317',
-        metadata,
-      });
-      await new Promise((resolve) => exporter.export([trace], resolve));
-    })
-  );
+        metadata.set('X-Scope-OrgID', accountId);
+        const exporter = new OTLPTraceExporter({
+          url: 'grpc://localhost:4317',
+          metadata,
+        });
+        await new Promise((resolve) => exporter.export([trace], resolve));
+      })
+    );
+  } catch (err) {
+    console.log(`TEMPO ERROR: `, err);
+  }
 };
 
 export { Trace, publishTraces };

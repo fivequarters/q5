@@ -3,6 +3,8 @@ TODO
   X Validate data's getting pushed into tempo/loki correctly
   -------
 // Functional
+  - test/v1/log.test.ts creates Loki errors for sequencing.
+  - Add fuse-ops command to provision/refresh existing accounts with grafana configuration.
   X Log traces to Tempo for a single function invocation
   X Tweak regex so that the process description is maximally useful for each invocation (hence the log
       invocations starting to show up).
@@ -12,10 +14,8 @@ TODO
   V Add async storage to function execution so that the right logging jwt is used for each call, right now
     they are cached which is probably a bad time, also it will contain the wrong traceId.
       V Don't worry since it's switched to full-on.
-  O Add actual security to /bootstrap endpoint, setting the auth via cookie and reading it on inbound
-  - Don't scroll the window on data refresh, if possible?
-  - Add flag/cookie/local-storage to switch from old to new.
-  - Support logging editor events and errors - auto-expand errors?
+  X Add actual security to /bootstrap endpoint, setting the auth via cookie and reading it on inbound
+  X Add flag/cookie/local-storage to switch from old to new.
 
 // Fun
   > Execute against an integration and a connector that are rebuilt with the new lambda executors and see what
@@ -24,14 +24,16 @@ TODO
 // Display
   X Create dashboard panels
   X Create iframe panel that loads that dashboard entry OR create query that pulls data from loki directly
-  O Create on-account-generation panel/datasource population
-    > Code written, just needs to be wired into the account creation sequence.
+  X Create on-account-generation panel/datasource population
   X Support full-page explorer view with Viewer credentials as a pop-out.
   ? Modify 'Found' to indicate interference of adblock software.
 
 // Step 2
+  - Wire provisioning into account creation process
+  - Don't scroll the window on data refresh, if possible?
+  - Add filter so that the cookie gets stripped on dispatch/function run (defensive)
+  - Support logging editor events and errors - auto-expand errors?
   X Monkeypatch http.request and https.request to capture both dispatches (and associate with a new traceId)
     as well as return codes.
   X Change lambda-function entrypoint/console wrapper to return logs as part of payload rather than with a separate post
-  - Add filter so that the cookie gets stripped on dispatch/function run (defensive)
   X Replace all elements of x-fx-trace-id with fusebit-trace-id

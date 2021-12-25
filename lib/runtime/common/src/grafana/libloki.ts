@@ -44,11 +44,15 @@ const publishLogs = async (params: IParams, logEntries: IEntry[]) => {
     payload.streams[0].values.push([fromEventTime(event.time), `traceID=${params.traceId} ${event.msg}`])
   );
 
-  return superagent
-    .post('http://localhost:3100/loki/api/v1/push')
-    .set('Content-Type', 'application/json')
-    .set('X-Scope-OrgID', params.accountId)
-    .send(payload);
+  try {
+    await superagent
+      .post('http://localhost:3100/loki/api/v1/push')
+      .set('Content-Type', 'application/json')
+      .set('X-Scope-OrgID', params.accountId)
+      .send(payload);
+  } catch (err) {
+    console.log(`LOKI ERROR: `, err, JSON.stringify(payload, null, 2));
+  }
 };
 
 export { publishLogs };
