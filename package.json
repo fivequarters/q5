@@ -207,7 +207,8 @@
       "tool/cicd/slack-notification",
       "lib/aws/aws-waf",
       "tool/lambda-nuke",
-      "lib/grafana/config"
+      "lib/grafana/config",
+      "lib/aws/user-data"
     ]
   }
 }

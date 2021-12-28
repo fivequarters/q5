@@ -255,6 +255,17 @@ export class OpsIam implements IDataSource {
       this.config.iamPermissionsBoundary
     );
 
+    await createInstanceProfile(
+      awsConfig,
+      this.config.monoGrafanaProfileName,
+      [
+        `${this.config.arnPrefix}:iam::aws:policy/AmazonS3FullAccess`,
+        `${this.config.arnPrefix}:iam::aws:policy/AmazonDynamoDBFullAccess`,
+      ],
+      undefined,
+      this.config.iamPermissionsBoundary
+    );
+
     // Clean-up deprecated roles when transiting 1.24.17.
     await detachRolePolicy(
       awsConfig,

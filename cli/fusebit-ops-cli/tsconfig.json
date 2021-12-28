@@ -18,6 +18,7 @@
     { "path": "../../lib/server/registry" },
     { "path": "../../lib/data/db" },
     { "path": "../../lib/server/runas" },
-    { "path": "../../lib/grafana/config" }
+    { "path": "../../lib/grafana/config" },
+    { "path": "../../lib/aws/user-data" }
   ]
 }

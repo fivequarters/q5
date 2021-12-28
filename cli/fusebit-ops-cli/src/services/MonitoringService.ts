@@ -4,6 +4,7 @@ import { IAwsConfig } from '@5qtrs/aws-config';
 import { AwsCreds, IAwsCredentials } from '@5qtrs/aws-cred';
 import { IExecuteInput } from '@5qtrs/cli';
 import * as grafanaConfig from '@5qtrs/grafana-config';
+import awsUserData from '@5qtrs/user-data';
 import { IOpsNetwork } from '@5qtrs/ops-data';
 import { ExecuteService } from '.';
 import { OpsService } from './OpsService';
@@ -22,6 +23,7 @@ const DATABASE_PREFIX = 'fusebit-db-';
 const API_SG_PREFIX = 'SG-';
 const DB_PREFIX = 'mondb';
 const DB_ENGINE = 'postgres';
+const LOGGING_SERVICE_TYPE = 'monitoring';
 const GRAFANA_PORTS = [
   /** Tempo GRPC Ingress TCP */ '4317/tcp',
   /** Tempo GRPC Ingress UDP */ '4317/udp',
@@ -103,6 +105,42 @@ export class MonitoringService {
     return grafanaConfig.toIniFile(configTemplate);
   }
 
+  private async getUserData(deployment: IMonitoringDeployment, region: string) {
+    const cloudMap = await this.getCloudMap(deployment.networkName, region);
+    const dbCredentials = await this.getGrafanaCredentials(deployment.monitoringDeploymentName, region);
+    const grafanaConfig = await this.getGrafanaIniFile(dbCredentials as IDatabaseCredentials, deployment, region);
+    const lokiConfig = await this.getLokiYamlFile();
+    const tempoConfig = await this.getTempoYamlFile();
+    const composeFile = await this.getComposeFile();
+    return `
+${awsUserData.updateSystem()}
+${awsUserData.installAwsCli()}
+${awsUserData.installCloudWatchAgent(LOGGING_SERVICE_TYPE, deployment.monitoringDeploymentName)}
+${awsUserData.installDocker()}
+${awsUserData.addFile(grafanaConfig, '/root/grafana.ini')}
+${awsUserData.addFile(lokiConfig, '/root/loki.yml')}
+${awsUserData.addFile(tempoConfig, '/root/tempo.yml')}
+${awsUserData.addFile(composeFile, '/root/docker-compose.yml')}
+${awsUserData.runDockerCompose('/root/docker-compose.yml')}
+    `;
+  }
+
+  private async getComposeFile() {
+    return this.toBase64('');
+  }
+
+  private async getLokiYamlFile() {
+    return this.toBase64('');
+  }
+
+  private async getTempoYamlFile() {
+    return this.toBase64('');
+  }
+
+  private toBase64(input: string) {
+    return Buffer.from(input, 'utf-8').toString('base64');
+  }
+
   private async getFusebitDeployment(deploymentName: string, region: string) {
     const opsCtx = await this.opsService.getOpsDataContext();
     return opsCtx.deploymentData.get(deploymentName, region);
@@ -118,7 +156,7 @@ export class MonitoringService {
     await SSMSdk.putParameter({
       Name: key,
       Value: JSON.stringify(credentials),
-      Type: 'String',
+      Type: 'SecureString',
     }).promise();
   }
 

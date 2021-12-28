@@ -19,8 +19,8 @@ import { OpsAccountData } from './OpsAccountData';
 import { parseElasticSearchUrl } from './OpsElasticSearch';
 import { debug } from './OpsDebug';
 
-const GRAFANA_BASE_DOMAIN = 'fusebit.local'
-const GRAFANA_LEADER_POSTFIX = '-leader'
+const GRAFANA_BASE_DOMAIN = 'fusebit.local';
+const GRAFANA_LEADER_POSTFIX = '-leader';
 
 // ------------------
 // Internal Functions
@@ -331,7 +331,7 @@ API_STACK_VERSION=${tag}
 API_STACK_ID=${id}
 API_STACK_AMI=${amiId}
 ${grafanaKey ? `GRAFANA_ENABLED=true` : ''}
-${grafanaKey ? `GRAFANA_ENDPOINT=${grafanaKey}${GRAFANA_LEADER_POSTFIX}.${GRAFANA_BASE_DOMAIN}`}
+${grafanaKey ? `GRAFANA_ENDPOINT=${grafanaKey}${GRAFANA_LEADER_POSTFIX}.${GRAFANA_BASE_DOMAIN}` : ''}
 `;
 
     if (segmentKey) {

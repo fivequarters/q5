@@ -18,6 +18,7 @@ const defaultMonoInstanceType = 't3.medium';
 const defaultMonoApiPort = 80;
 const defaultUbuntuServerVersion = '20.04';
 const defaultMonoInstanceProfileName = 'fusebit-EC2-instance';
+const defaultGrafanaInstanceProfileName = 'fusebit-grafana-instance';
 const defaultMonoHealthCheckGracePeriod = 300;
 const defaultCronFilter = 'ctx => true;';
 const defaultCronMaxExecutionsPerWindow = 120;
@@ -175,6 +176,10 @@ export class OpsDataAwsConfig implements IConfig {
 
   public get monoInstanceProfileName(): string {
     return (this.config.value('monoInstanceProfileName') as string) || defaultMonoInstanceProfileName;
+  }
+
+  public get monoGrafanaProfileName(): string {
+    return (this.config.value('monoGrafanaProfileName') as string) || defaultGrafanaInstanceProfileName;
   }
 
   public get monoInstanceProfile(): string {
