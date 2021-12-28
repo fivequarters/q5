@@ -5,6 +5,7 @@ export { AccountService } from './AccountService';
 export { DomainService } from './DomainService';
 export { PortalService } from './PortalService';
 export { NetworkService } from './NetworkService';
+export { OpsService } from './OpsService';
 export { ImageService } from './ImageService';
 export { DeploymentService } from './DeploymentService';
 export { StackService } from './StackService';

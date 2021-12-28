@@ -1,4 +1,6 @@
 import { IDataSource } from '@5qtrs/data';
+import { IAccount } from '@5qtrs/account-data';
+
 import {
   IFusebitSubscription,
   IFusebitAccount,
@@ -59,6 +61,7 @@ export interface IOpsDeploymentData extends IDataSource {
   list(options?: IListOpsDeploymentOptions): Promise<IListOpsDeploymentResult>;
   listAll(deploymentName?: string): Promise<IOpsDeployment[]>;
   listAllSubscriptions(deployment: IOpsDeployment): Promise<IFusebitAccount[]>;
+  listAllAccounts(deployment: IOpsDeployment): Promise<IAccount[]>;
   initAdmin(deployment: IOpsDeployment, init: IInitAdmin): Promise<IInitAdmin>;
   getElasticSearchTemplate(deployment: IOpsDeployment): Promise<string>;
 }
