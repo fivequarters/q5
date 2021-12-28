@@ -23,8 +23,7 @@ export default class AwsData {
   }
 
   public static registerCloudMapInstance(serviceId: string) {
-    return `aws servicediscovery register-instance --service-id "srv-3hxpwincbakdijl5" --instance-id "instance1" --attributes="AWS_INSTANCE_IPV4=35.166.44.63,AWS_INSTANCE_PORT=80"
-    `;
+    return ``;
   }
 
   public static installCloudWatchAgent(serviceType: string, deploymentName: string) {

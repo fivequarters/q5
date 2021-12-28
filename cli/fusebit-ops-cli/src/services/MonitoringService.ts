@@ -30,6 +30,8 @@ const GRAFANA_PORTS = [
   /** Loki Port */ '3100/tcp',
   /** Grafana Port */ '3000/tcp',
 ];
+const NLB_PREFIX = 'nlb-grafana-';
+const NLB_SG_PREFIX = 'fusebit-mon-nlb-';
 
 interface IDatabaseCredentials {
   username: string;
@@ -310,6 +312,13 @@ ${awsUserData.runDockerCompose('/root/docker-compose.yml')}
     });
   }
 
+  private async getElbSdk(config: any) {
+    return new AWS.ELBv2({
+      ...config,
+      ...this.creds,
+    });
+  }
+
   private async getCloudMap(networkName: string, region?: string) {
     const opsContext = await this.opsService.getOpsDataContext();
     let networks = await opsContext.networkData.listAll();
@@ -482,7 +491,7 @@ ${awsUserData.runDockerCompose('/root/docker-compose.yml')}
     } while (nextToken);
     const correctSecGroup = secGroups.filter((group) => group.GroupName === secGroupName);
     if (correctSecGroup?.length !== 1) {
-      throw Error(`Security Group ${secGroupName} not found...`);
+      return undefined;
     }
     return correctSecGroup[0];
   }
@@ -491,7 +500,7 @@ ${awsUserData.runDockerCompose('/root/docker-compose.yml')}
     const ec2Sdk = await this.getEc2Sdk({ region });
     const rdsSecGroupName = RDS_SEC_GROUP_PREFIX + deploymentName;
     const monitoringSecGroupName = MONITORING_SEC_GROUP_PREFIX + monitoringName;
-    const rdsSecGroup = await this.getSecGroup(rdsSecGroupName, region);
+    const rdsSecGroup = (await this.getSecGroup(rdsSecGroupName, region)) as AWS.EC2.SecurityGroup;
     const monitoringDeployment = await this.getMonitoringDeploymentByName(monitoringName);
     const cloudMap = await this.getCloudMap(monitoringDeployment.networkName);
     const secGroup = await ec2Sdk
@@ -520,7 +529,7 @@ ${awsUserData.runDockerCompose('/root/docker-compose.yml')}
         ],
       })
       .promise();
-    const apiSg = await this.getSecGroup(API_SG_PREFIX + deploymentName, region);
+    const apiSg = (await this.getSecGroup(NLB_SG_PREFIX + deploymentName, region)) as AWS.EC2.SecurityGroup;
 
     for (const port of GRAFANA_PORTS) {
       const [allowPort, proto] = port.split('/');
@@ -543,6 +552,72 @@ ${awsUserData.runDockerCompose('/root/docker-compose.yml')}
         })
         .promise();
     }
+  }
+
+  private async ensureNlbSecurityGroup(monDeployName: string, region: string) {
+    const sg = await this.getSecGroup(NLB_SG_PREFIX + monDeployName, region);
+    if (sg) {
+      return sg;
+    }
+
+    const ec2Sdk = await this.getEc2Sdk({ region });
+    const monDep = await this.getMonitoringDeploymentByName(monDeployName);
+    const cloudMap = await this.getCloudMap(monDep.networkName, region);
+
+    const sgCreation = await ec2Sdk
+      .createSecurityGroup({
+        GroupName: NLB_SG_PREFIX + monDeployName,
+        VpcId: cloudMap.network.vpcId,
+        Description: `NLB for grafana deployment ${monDeployName}`,
+      })
+      .promise();
+
+    const apiSg = (await this.getSecGroup(API_SG_PREFIX + monDep.deploymentName, region)) as AWS.EC2.SecurityGroup;
+
+    for (const port of GRAFANA_PORTS) {
+      const [allowPort, proto] = port.split('/');
+      await ec2Sdk
+        .authorizeSecurityGroupIngress({
+          GroupId: sgCreation.GroupId,
+          IpPermissions: [
+            {
+              FromPort: parseInt(port),
+              IpProtocol: proto,
+              ToPort: parseInt(port),
+              UserIdGroupPairs: [
+                {
+                  Description: 'API Access',
+                  GroupId: apiSg.GroupId,
+                },
+              ],
+            },
+          ],
+        })
+        .promise();
+    }
+  }
+
+  private async ensureNlb(monitoringName: string, region: string): Promise<AWS.ELBv2.LoadBalancer> {
+    const monDeployment = await this.getMonitoringDeploymentByName(monitoringName);
+    const cloudMap = await this.getCloudMap(monDeployment.networkName, region);
+    const elbSdk = await this.getElbSdk({ region });
+    const Nlbs = await elbSdk.describeLoadBalancers().promise();
+    const correctNlb = Nlbs.LoadBalancers?.filter((lb) => lb.LoadBalancerName === NLB_PREFIX + monitoringName);
+    if (correctNlb) {
+      return correctNlb[0];
+    }
+    const sgGroup = await this.getSecGroup(NLB_SG_PREFIX + monDeployment.monitoringDeploymentName, region);
+
+    const nlb = await elbSdk
+      .createLoadBalancer({
+        Name: NLB_PREFIX + monitoringName,
+        IpAddressType: 'ipv4',
+        Subnets: cloudMap.network.privateSubnets.map((sub) => sub.id),
+        Type: 'network',
+        SecurityGroups: [sgGroup?.GroupId as string],
+      })
+      .promise();
+    return nlb.LoadBalancers?[0] as AWS.ELBv2.LoadBalancer;
   }
 
   private async createNewMonitoringDeployment(
