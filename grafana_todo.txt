@@ -3,15 +3,24 @@ TODO
   X Validate data's getting pushed into tempo/loki correctly
   -------
 // Functional
+  - Add unit tests to make sure logs get propagated correctly somehow.
+    - Probably blocked on VPN.
+  - Add fuse-ops command to provision/refresh existing accounts with grafana configuration.
+  - Support multiple/variable filters, filtering on account, subscription, boundary, function as present in
+    the url.
+  X test/v1/log.test.ts creates Loki errors for sequencing.
+    X Normalize so that loki writes only happen in runtime/analytics.ts
   X Log traces to Tempo for a single function invocation
   X Tweak regex so that the process description is maximally useful for each invocation (hence the log
       invocations starting to show up).
   X Modify lambda return to capture http requests and encode their spans in the return payload.
   X Figure out how to do "annotations" of events (already done via logs) and add a variety of events for
     interests sake.
-  - Add async storage to function execution so that the right logging jwt is used for each call, right now
+  V Add async storage to function execution so that the right logging jwt is used for each call, right now
     they are cached which is probably a bad time, also it will contain the wrong traceId.
-  - Add actual security, setting the auth via cookie and reading it on inbound
+      V Don't worry since it's switched to full-on.
+  X Add actual security to /bootstrap endpoint, setting the auth via cookie and reading it on inbound
+  X Add flag/cookie/local-storage to switch from old to new.
 
 // Fun
   > Execute against an integration and a connector that are rebuilt with the new lambda executors and see what
@@ -20,17 +29,16 @@ TODO
 // Display
   X Create dashboard panels
   X Create iframe panel that loads that dashboard entry OR create query that pulls data from loki directly
-  - Create on-account-generation panel/datasource population
-  - Change links on response from loki to trigger trace view (multi-tab panel? causes panel to switch)
-    - Doesn't have to be an iframe if doing the query directly. If it is an iframe, then change url to do
-      window.top.postMessage (cc// https://stackoverflow.com/questions/48276602/reactjs-with-iframe-events-and-changes-handling)
-    - The postMessage would then trigger a switch between the two `tab` views, and reload the `trace` panel
-      with the desired traceId.  Not sure exactly how we can trigger that in the html though.
-  - Support full-page explorer view with Viewer credentials as a pop-out.
+  X Create on-account-generation panel/datasource population
+  X Support full-page explorer view with Viewer credentials as a pop-out.
+  ? Modify 'Found' to indicate interference of adblock software.
 
 // Step 2
-  - Monkeypatch http.request and https.request to capture both dispatches (and associate with a new traceId)
-    as well as return codes.
-  - Change lambda-function entrypoint/console wrapper to return logs as part of payload rather than with a separate post
+  - Wire provisioning into account creation process
+  - Don't scroll the window on data refresh, if possible?
   - Add filter so that the cookie gets stripped on dispatch/function run (defensive)
-  - Replace all elements of x-fx-trace-id with fusebit-trace-id
+  - Support logging editor events and errors - auto-expand errors?
+  X Monkeypatch http.request and https.request to capture both dispatches (and associate with a new traceId)
+    as well as return codes.
+  X Change lambda-function entrypoint/console wrapper to return logs as part of payload rather than with a separate post
+  X Replace all elements of x-fx-trace-id with fusebit-trace-id

@@ -16,7 +16,7 @@ afterAll(async () => {
 }, 180000);
 
 describe('Scheduled integrations', () => {
-  test('Creating an every-minute scheduled integration', async () => {
+  test.only('Creating an every-minute scheduled integration', async () => {
     const schedule = [{ cron: '* * * * *', endpoint: '/api/scheduled' }];
     await putScheduledIntegration(boundaryId, schedule);
     await validateIntegrationScheduledRun();
@@ -43,6 +43,7 @@ describe('Scheduled integrations', () => {
     };
     const createIntegrationResponse = await ApiRequestMap.integration.postAndWait(account, id, integrationSpec);
     expect(createIntegrationResponse).toBeHttp({ statusCode: 200 });
+    console.log(`         yarn serve:integration ${id}`);
   };
 
   const validateIntegrationSpec = async (id: string, schedule: any[]) => {

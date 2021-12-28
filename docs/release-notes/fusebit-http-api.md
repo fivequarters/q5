@@ -17,12 +17,24 @@ All public releases of the Fusebit HTTP API are documented here, including notab
 <!-- 1. TOC
 {:toc} -->
 
-## Version 1.33.0
+## Version 1.33.5
+
+_Released 12/17/21_
+
+- **Enhancement.** Proxy support for Stack Overflow.
+
+## Version 1.33.3
+
+_Released 12/14/21_
+
+- **Enhancement.** Extend the function authorization token to include a profile claim.
+
+## Version 1.33.2
 
 _Released 12/13/21_
 
 - **Enhancement.** Support binary files encoded using 'base64' in function, integration, and connector specifications.
-- **Enhancement.** Increase runtime memory allocation for functions to 512MB.
+- **Enhancement.** Increase default memory allocation to v2 artifacts to 512mb.
 
 ## Version 1.32.6
 

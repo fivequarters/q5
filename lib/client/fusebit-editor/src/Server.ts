@@ -188,7 +188,9 @@ export abstract class BaseServer<IFuncSpec> {
    * @ignore
    */
   public attachServerLogs(editorContext: EditorContext): Promise<BaseServer<IFuncSpec>> {
-    if (this.sse) {
+    const enableNewLogs = editorContext.getMetadata().editor.features?.enableNewLogs;
+
+    if (this.sse || enableNewLogs) {
       return Promise.resolve(this);
     } else {
       clearTimeout(this.logsTimeout);

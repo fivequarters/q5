@@ -1,122 +1,120 @@
 import crypto from 'crypto';
 import superagent from 'superagent';
 import express from 'express';
-import http from 'http';
 import http_error from 'http-errors';
 
-import { defaultDatasources, defaultDashboards } from './defaults';
+import { AccountActions } from '@5qtrs/account';
+
+import authorize from '../middleware/authorize';
 
 import * as grafana from './constants';
+import { defaultDatasources, defaultDashboards } from './defaults';
 
 const router = express.Router({ mergeParams: true });
 
 const addAccountId = (accountId: string, obj: any) =>
   JSON.parse(JSON.stringify(obj).replace(new RegExp('{{accountId}}', 'g'), accountId));
 
-/* XXX Needs authz. */
-router.post('/', async (req: express.Request, res: express.Response, next: express.NextFunction) => {
-  const accountId = req.params.accountId;
+router.post(
+  '/',
+  authorize({ operation: AccountActions.updateAccount }),
+  async (req: express.Request, res: express.Response, next: express.NextFunction) => {
+    const accountId = req.params.accountId;
 
-  try {
-    console.log(`Creating organization: ${accountId}`);
-    // Create the organization
-    let response = await superagent
-      .post(`${grafana.location}/api/orgs`)
-      .set(grafana.authHeader, grafana.adminUsername)
-      .send({ name: accountId })
-      .ok((r) => r.status < 399 || r.status === 409);
-    console.log(`  => ${response.status} ${response.text}`);
+    let action: string = 'unknown';
+    try {
+      action = 'Create Organization';
+      // Create the organization
+      let response = await superagent
+        .post(`${grafana.location}/api/orgs`)
+        .set(grafana.authHeader, grafana.adminUsername)
+        .send({ name: accountId })
+        .ok((r) => r.status < 399 || r.status === 409);
 
-    let orgId: number;
-    if (response.status === 409) {
-      console.log(`Getting organization: ${accountId}`);
-      // Organization already exists, query directly
+      let orgId: number;
+      if (response.status === 409) {
+        action = 'Get Organization';
+        // Organization already exists, query directly
+        response = await superagent
+          .get(`${grafana.location}/api/orgs/name/${accountId}`)
+          .set(grafana.authHeader, grafana.adminUsername);
+        orgId = response.body.id;
+      } else {
+        orgId = response.body.orgId;
+      }
+
+      action = 'Create User';
+      // Create the user
       response = await superagent
-        .get(`${grafana.location}/api/orgs/name/${accountId}`)
-        .set(grafana.authHeader, grafana.adminUsername);
-      console.log(`  => ${response.status} ${response.text}`);
-      orgId = response.body.id;
-    } else {
-      orgId = response.body.orgId;
+        .post(`${grafana.location}/api/admin/users`)
+        .set(grafana.authHeader, grafana.adminUsername)
+        .send({
+          name: accountId,
+          email: accountId,
+          login: accountId,
+          password: crypto.randomBytes(16).toString('hex'),
+          OrgId: orgId,
+        })
+        .ok((r) => r.status < 399 || r.status === 412);
+
+      action = 'Create Datasources';
+      // Create the datasources using the admin user
+      const dataSources = addAccountId(accountId, defaultDatasources);
+      await Promise.all(
+        dataSources.map(async (dataSource: any) => {
+          const addResponse = await superagent
+            .post(`${grafana.location}/api/datasources`)
+            .set(grafana.authHeader, grafana.adminUsername)
+            .set(grafana.orgHeader, `${orgId}`)
+            .send(dataSource)
+            .ok((r) => r.status < 399 || r.status === 409);
+
+          if (addResponse.status !== 409) {
+            return addResponse;
+          }
+
+          // Update an existing datasource.
+          const getDataSource = await superagent
+            .get(`${grafana.location}/api/datasources/uid/${dataSource.uid}`)
+            .set(grafana.authHeader, grafana.adminUsername)
+            .set(grafana.orgHeader, `${orgId}`);
+
+          const dataSourceId = getDataSource.body.id;
+
+          return superagent
+            .put(`${grafana.location}/api/datasources/${dataSourceId}`)
+            .set(grafana.authHeader, grafana.adminUsername)
+            .set(grafana.orgHeader, `${orgId}`)
+            .send(dataSource);
+        })
+      );
+
+      action = 'Create Dashboards';
+      // Create the dashboards using the admin user (json)
+      const dashboards = JSON.parse(
+        JSON.stringify(defaultDashboards).replace(new RegExp('{{accountId}}', 'g'), req.params.accountId)
+      );
+
+      await Promise.all(
+        dashboards.map((dashboard: any) =>
+          superagent
+            .post(`${grafana.location}/api/dashboards/db`)
+            .set(grafana.authHeader, grafana.adminUsername)
+            .set(grafana.orgHeader, `${orgId}`)
+            .send({
+              dashboard,
+              overwrite: true,
+            })
+        )
+      );
+
+      res.send({ status: 'ok' });
+    } catch (err) {
+      // Leave this in for the moment just to accelerate diagnostics
+      console.log(action, err.response?.error, err);
+      return next(http_error(500, `Failed step '${action}': ${err.response?.error || err}`));
     }
-
-    console.log(`Creating user for org: ${orgId}`);
-    // Create the user
-    response = await superagent
-      .post(`${grafana.location}/api/admin/users`)
-      .set(grafana.authHeader, grafana.adminUsername)
-      .send({
-        name: accountId,
-        email: accountId,
-        login: accountId,
-        password: crypto.randomBytes(16).toString('hex'),
-        OrgId: orgId,
-      })
-      .ok((r) => r.status < 399 || r.status === 412);
-    console.log(`  => ${response.status} ${response.text}`);
-
-    console.log(`Creating dataSources`);
-    // Create the datasources using the admin user
-    const dataSources = addAccountId(accountId, defaultDatasources);
-    let responses = await Promise.all(
-      dataSources.map(async (dataSource: any) => {
-        const addResponse = await superagent
-          .post(`${grafana.location}/api/datasources`)
-          .set(grafana.authHeader, grafana.adminUsername)
-          .set(grafana.orgHeader, `${orgId}`)
-          .send(dataSource)
-          .ok((r) => r.status < 399 || r.status === 409);
-
-        if (addResponse.status !== 409) {
-          return addResponse;
-        }
-
-        console.log(`... updating ${dataSource.uid}`);
-
-        // Update an existing datasource.
-        const getDataSource = await superagent
-          .get(`${grafana.location}/api/datasources/uid/${dataSource.uid}`)
-          .set(grafana.authHeader, grafana.adminUsername)
-          .set(grafana.orgHeader, `${orgId}`);
-
-        const dataSourceId = getDataSource.body.id;
-
-        return superagent
-          .put(`${grafana.location}/api/datasources/${dataSourceId}`)
-          .set(grafana.authHeader, grafana.adminUsername)
-          .set(grafana.orgHeader, `${orgId}`)
-          .send(dataSource);
-      })
-    );
-    responses.forEach((r: any) => console.log(`  => ${r.status} ${r.text}`));
-
-    console.log(`Creating dashboards`);
-    // Create the dashboards using the admin user (json)
-    const dashboards = JSON.parse(
-      JSON.stringify(defaultDashboards).replace(new RegExp('{{accountId}}', 'g'), req.params.accountId)
-    );
-
-    console.log(JSON.stringify(dashboards, null, 2));
-    responses = await Promise.all(
-      dashboards.map((dashboard: any) =>
-        superagent
-          .post(`${grafana.location}/api/dashboards/db`)
-          .set(grafana.authHeader, grafana.adminUsername)
-          .set(grafana.orgHeader, `${orgId}`)
-          .send({
-            dashboard,
-            overwrite: true,
-          })
-      )
-    );
-    responses.forEach((r: any) => console.log(`  => ${r.status} ${r.text}`));
-
-    res.send({ status: 'ok' });
-  } catch (err) {
-    console.log(err);
-    console.log(err.response?.error);
-    return next(err);
   }
-});
+);
 
 export default router;

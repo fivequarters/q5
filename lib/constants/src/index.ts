@@ -27,11 +27,6 @@ const API_PUBLIC_ENDPOINT = process.env.LOGS_HOST
 
 const API_PUBLIC_HOST = new URL(API_PUBLIC_ENDPOINT || 'http://localhost').host;
 
-// Grafana is discovered via a private route53 zone
-const GRAFANA_ENDPOINT = process.env.GRAFANA_ENDPOINT
-  ? `http://${process.env.GRAFANA_ENDPOINT}:3000`
-  : `http://localhost:3000`;
-
 const FUSEBIT_QUERY_AUTHZ = 'fusebitAuthorization';
 const FUSEBIT_QUERY_ACCOUNT = 'fusebitAccountId';
 

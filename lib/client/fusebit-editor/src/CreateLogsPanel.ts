@@ -14,19 +14,32 @@ import { FUSEBIT_QUERY_AUTHZ, FUSEBIT_QUERY_ACCOUNT } from '@5qtrs/constants';
 export function createLogsPanel(element: HTMLElement, editorContext: EditorContext, options?: ILogsPanelOptions) {
   const id = `fusebit-logs-${Math.floor(99999999 * Math.random()).toString(26)}`;
 
-  const iframeUrl = new URL('http://localhost:3001/v2/grafana/bootstrap/d-solo/logging/basic');
+  const enableNewLogs = editorContext.getMetadata().editor.features?.enableNewLogs;
 
-  iframeUrl.search = new URLSearchParams({
-    panelId: '2',
-    kiosk: '',
-    refresh: '1s',
-    [FUSEBIT_QUERY_AUTHZ]: editorContext._server.account!.accessToken,
-    [FUSEBIT_QUERY_ACCOUNT]: editorContext._server.account!.accountId,
-    'var-accountId': editorContext._server.account!.accountId,
-    'var-subscriptionId': editorContext._server.account!.subscriptionId,
-    'var-boundaryId': editorContext.boundaryId,
-    'var-functionId': editorContext.functionId,
-  }).toString();
+  if (enableNewLogs) {
+    // Create the bootstrap url
+    const iframeUrl = new URL('http://localhost:3001/v2/grafana/bootstrap/d-solo/logging/basic');
+
+    iframeUrl.search = new URLSearchParams({
+      panelId: '2',
+      kiosk: '',
+      refresh: '1s',
+      [FUSEBIT_QUERY_AUTHZ]: editorContext._server.account!.accessToken,
+      [FUSEBIT_QUERY_ACCOUNT]: editorContext._server.account!.accountId,
+      'var-accountId': editorContext._server.account!.accountId,
+      'var-subscriptionId': editorContext._server.account!.subscriptionId,
+      'var-boundaryId': editorContext.boundaryId,
+      'var-functionId': editorContext.functionId,
+    }).toString();
+
+    element.innerHTML = [
+      `<div class="fusebit-logs-inner-container">`,
+      `<iframe src="${iframeUrl.toString()}" style="position: relative; height: 100%; width: 100%;" scrolling="no" frameborder="0"></iframe>`,
+      `</div>`,
+    ].join('');
+
+    return;
+  }
 
   element.innerHTML = [
     `<div class="fusebit-logs-inner-container">`,

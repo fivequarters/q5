@@ -3,8 +3,6 @@ export const defaultDashboards = [
     title: 'basic',
     uid: 'logging',
     timezone: '',
-    version: 7,
-    iteration: 1638408776458,
     editable: false,
     gnetId: null,
     graphTooltip: 0,
@@ -54,7 +52,7 @@ export const defaultDashboards = [
         },
         targets: [
           {
-            expr: '{label="benntest",accountId="$accountId"}',
+            expr: '{accountId="$accountId"}',
             refId: 'A',
           },
         ],

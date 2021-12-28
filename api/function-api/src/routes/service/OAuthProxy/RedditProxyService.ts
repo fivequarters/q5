@@ -6,7 +6,7 @@ import { v4 as uuidv4 } from 'uuid';
 export class RedditProxyService extends OAuthProxyService {
   // Called on /token, converts the client_id and secret to the correct credentials and masks the
   // refresh_token so that it's unique per authentication pass.
-  public doTokenRequest = async (reqBody: Record<string, string>, code: string): Promise<superagent.Response> => {
+  public async doTokenRequest(reqBody: Record<string, string>, code: string): Promise<superagent.Response> {
     const body: Record<string, string> = {
       ...reqBody,
       client_id: this.configuration.clientId,
@@ -46,5 +46,5 @@ export class RedditProxyService extends OAuthProxyService {
     }
 
     return response;
-  };
+  }
 }

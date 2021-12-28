@@ -48,7 +48,6 @@ export const publishEvent = async (event: IEvent, functionLogs: ILogEvents) => {
 
   // Add log events
   functionLogs?.forEach((log) => {
-    console.log(`Publishing event: ${log.time} ${log.msg}`);
     trace.addEvent(log.time, log.msg);
   });
 
@@ -56,6 +55,5 @@ export const publishEvent = async (event: IEvent, functionLogs: ILogEvents) => {
   trace.setStartTime(startTime);
   trace.setEndTime(startTime + event.metrics.common.duration);
 
-  console.log(`publishEvent: ${event.traceId}`);
   await publishTraces(event.fusebit.accountId, [trace]);
 };
