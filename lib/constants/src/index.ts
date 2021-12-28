@@ -26,8 +26,16 @@ const API_PUBLIC_ENDPOINT = process.env.LOGS_HOST
   : (process.env.API_SERVER as string);
 
 const GRAFANA_ENDPOINT = process.env.GRAFANA_ENDPOINT
-  ? `http://${process.env.GRAFANA_ENDPOINT}`
+  ? `http://${process.env.GRAFANA_ENDPOINT}:3000`
   : 'http://localhost:3000';
+
+const LOKI_ENDPOINT = process.env.LOKI_ENDPOINT ? `http://${process.env.LOKI_ENDPOINT}:3100` : `http://localhost:3100`;
+
+const TEMPO_ENDPOINT = process.env.TEMPO_ENDPOINT
+  ? `http://${process.env.TEMPO_ENDPOINT}:3200`
+  : `http://localhost:3200`;
+
+const LOKI_GRPC_INGEST = process.env.LOKI_ENDPOINT ? `grpc://` : '';
 
 const API_PUBLIC_HOST = new URL(API_PUBLIC_ENDPOINT || 'http://localhost').host;
 
@@ -339,6 +347,8 @@ export {
   RUNAS_SYSTEM_ISSUER_SUFFIX,
   API_PUBLIC_ENDPOINT,
   GRAFANA_ENDPOINT,
+  LOKI_ENDPOINT,
+  TEMPO_ENDPOINT,
   API_PUBLIC_HOST,
   MAX_CACHE_REFRESH_RATE,
   FUSEBIT_QUERY_AUTHZ,

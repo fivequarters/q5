@@ -529,7 +529,7 @@ ${awsUserData.runDockerCompose('/root/docker-compose.yml')}
         ],
       })
       .promise();
-    const apiSg = (await this.getSecGroup(NLB_SG_PREFIX + deploymentName, region)) as AWS.EC2.SecurityGroup;
+    const nlbSg = (await this.getSecGroup(NLB_SG_PREFIX + deploymentName, region)) as AWS.EC2.SecurityGroup;
 
     for (const port of GRAFANA_PORTS) {
       const [allowPort, proto] = port.split('/');
@@ -544,7 +544,7 @@ ${awsUserData.runDockerCompose('/root/docker-compose.yml')}
               UserIdGroupPairs: [
                 {
                   Description: 'API Access',
-                  GroupId: apiSg.GroupId,
+                  GroupId: nlbSg.GroupId,
                 },
               ],
             },
@@ -603,7 +603,7 @@ ${awsUserData.runDockerCompose('/root/docker-compose.yml')}
     const elbSdk = await this.getElbSdk({ region });
     const Nlbs = await elbSdk.describeLoadBalancers().promise();
     const correctNlb = Nlbs.LoadBalancers?.filter((lb) => lb.LoadBalancerName === NLB_PREFIX + monitoringName);
-    if (correctNlb) {
+    if (correctNlb && correctNlb.length === 1) {
       return correctNlb[0];
     }
     const sgGroup = await this.getSecGroup(NLB_SG_PREFIX + monDeployment.monitoringDeploymentName, region);
@@ -614,10 +614,44 @@ ${awsUserData.runDockerCompose('/root/docker-compose.yml')}
         IpAddressType: 'ipv4',
         Subnets: cloudMap.network.privateSubnets.map((sub) => sub.id),
         Type: 'network',
-        SecurityGroups: [sgGroup?.GroupId as string],
       })
       .promise();
-    return nlb.LoadBalancers?[0] as AWS.ELBv2.LoadBalancer;
+    return (nlb.LoadBalancers as AWS.ELBv2.LoadBalancers)[0];
+  }
+
+  private async ensureLeaderMapping(monitoringName: string, cnameEndpoint: string, region: string) {
+    const monDep = await this.getMonitoringDeploymentByName(monitoringName);
+    const cloudMap = await this.getCloudMap(monDep.networkName, region);
+    const cloudMapSdk = await this.getCloudMapSdk({ region });
+    const svcSummary = await this.getService(
+      monDep.monitoringDeploymentName,
+      MASTER_SERVICE_PREFIX + monDep.monitoringDeploymentName,
+      region
+    );
+
+    const instances = await cloudMapSdk.listInstances({ ServiceId: svcSummary.Id as string }).promise();
+    let promises: Promise<any>[] = [];
+    instances.Instances?.map(async (inst) =>
+      promises.push(
+        cloudMapSdk.deregisterInstance({ ServiceId: svcSummary.Id as string, InstanceId: inst.Id as string }).promise()
+      )
+    );
+
+    await Promise.all(promises);
+
+    await cloudMapSdk
+      .registerInstance({
+        ServiceId: svcSummary.Id as string,
+        InstanceId: 'NLB',
+        Attributes: { AWS_INSTANCE_CNAME: cnameEndpoint },
+      })
+      .promise();
+  }
+
+  private async getService(monDeploymentName: string, serviceName: string, region: string) {
+    const mapSdk = await this.getCloudMapSdk({ region });
+    const services = await mapSdk.listServices().promise();
+    return services.Services?.filter((svc) => svc.Name === serviceName) as AWS.ServiceDiscovery.ServiceSummary;
   }
 
   private async createNewMonitoringDeployment(
@@ -631,7 +665,10 @@ ${awsUserData.runDockerCompose('/root/docker-compose.yml')}
     await this.ensureMonitoringDeploymentItem(monitoringName, networkName, deploymentName);
     await this.createMainService(networkName, monitoringName, region);
     await this.ensureS3Bucket(monitoringName, cloudMap.network.region);
+    await this.ensureNlbSecurityGroup(monitoringName, cloudMap.network.region);
     await this.updateRdsSecurityGroup(deploymentName, monitoringName, cloudMap.network.region);
+    const nlb = await this.ensureNlb(monitoringName, cloudMap.network.region);
+    await this.ensureLeaderMapping(monitoringName, nlb.DNSName as string, cloudMap.network.region);
     const creds = await this.getGrafanaCredentials(monitoringName, cloudMap.network.region);
     if (!creds) {
       await this.executeInitialGrafanaDbSetup(monitoringName, cloudMap.network.region);

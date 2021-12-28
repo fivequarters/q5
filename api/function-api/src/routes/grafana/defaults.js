@@ -1,3 +1,5 @@
+import * as Constants from '@5qtrs/constants';
+
 export const defaultDashboards = [
   {
     title: 'basic',
@@ -167,7 +169,7 @@ export const defaultDatasources = [
     uid: 'tempo',
     name: 'Tempo',
     type: 'tempo',
-    url: 'http://tempo:3200',
+    url: Constants.TEMPO_ENDPOINT,
     access: 'proxy',
     basicAuth: false,
     isDefault: false,
@@ -184,7 +186,7 @@ export const defaultDatasources = [
     uid: 'loki',
     name: 'Loki',
     type: 'loki',
-    url: 'http://loki:3100',
+    url: Constants.LOKI_ENDPOINT,
     access: 'proxy',
     basicAuth: false,
     isDefault: true,

@@ -43,7 +43,10 @@ export function createLogsPanel(element: HTMLElement, editorContext: EditorConte
 
   element.innerHTML = [
     `<div class="fusebit-logs-inner-container">`,
-    `<iframe src="${iframeUrl.toString()}" style="position: relative; height: 100%; width: 100%;" scrolling="no" frameborder="0"></iframe>`,
+    `<div class="fusebit-logs-delete-container"><button class="fusebit-logs-delete-btn" id="${id}-delete"><i class="fa fa-trash"></i></button></div>`,
+    `<div class="fusebit-logs" id="${id}">`,
+    `<pre class="fusebit-logs-content" id="${id}-content"></pre>`,
+    `</div>`,
     `</div>`,
   ].join('');
   const contentElement = document.getElementById(`${id}-content`) as HTMLElement;
@@ -211,7 +214,6 @@ export function createLogsPanel(element: HTMLElement, editorContext: EditorConte
   });
 
   function append(line: string) {
-    return;
     const annotatedLine = `[${new Date().toLocaleTimeString()}] ${line}\n`;
     let newContent = contentElement.textContent + annotatedLine;
     if (newContent.length > effectiveOptions.maxSize) {
