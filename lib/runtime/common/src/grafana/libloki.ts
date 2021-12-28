@@ -46,7 +46,7 @@ const publishLogs = async (params: IParams, logEntries: IEntry[]) => {
 
   try {
     await superagent
-      .post('http://localhost:3100/loki/api/v1/push')
+      .post('http://loki:3100/loki/api/v1/push')
       .set('Content-Type', 'application/json')
       .set('X-Scope-OrgID', params.accountId)
       .send(payload);
