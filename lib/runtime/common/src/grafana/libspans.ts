@@ -10,10 +10,22 @@ interface ISpan {
   endTime: number;
 }
 
-export const publishSpans = async (req: any, spans: ISpan[]) => {
+interface IParams {
+  fusebit: {
+    accountId: string;
+  };
+  traceId: string;
+  spanId: string;
+}
+
+export const publishSpans = async (params: IParams, spans?: ISpan[]) => {
+  if (!spans) {
+    return;
+  }
+
   const traces = await Promise.all(
     spans.map(async (span) => {
-      const trace = new Trace(`${span.method} ${span.url}`, req.traceId, makeTraceSpanId(), req.spanId);
+      const trace = new Trace(`${span.method} ${span.url}`, params.traceId, makeTraceSpanId(), params.spanId);
       trace.resource.attributes.url = span.url;
       trace.resource.attributes.method = span.method;
       trace.resource.attributes.statusCode = `${span.statusCode}`;
@@ -28,5 +40,5 @@ export const publishSpans = async (req: any, spans: ISpan[]) => {
     })
   );
 
-  await publishTraces(req.params.accountId, traces);
+  await publishTraces(params.fusebit.accountId, traces);
 };

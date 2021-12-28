@@ -123,6 +123,7 @@ exports.enterHandler = (modality) => {
         fusebit: fusebit,
         error: res.error,
         functionLogs: res.functionLogs,
+        functionSpans: res.functionSpans,
         logs,
       });
     };

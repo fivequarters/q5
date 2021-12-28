@@ -1397,6 +1397,10 @@ export class FunctionService {
   
   <script src="${fusebitEditorUrl}"></script>
   <script type="text/javascript">
+    // Set it explicitly after getting, so it's easier to discover even if previously unset.
+    const enableNewLogs = (window.location.search.includes('enableNewLogs') || localStorage.getItem('enableNewLogs')) === 'true';
+    localStorage.setItem('enableNewLogs', \`\${!!enableNewLogs}\`);
+
     fusebit.createEditor(document.getElementById('editor'), '${profile.boundary}', '${profile.function}', {
         accountId: '${profile.account}',
         subscriptionId: '${profile.subscription}',
@@ -1404,7 +1408,12 @@ export class FunctionService {
         accessToken: '${profile.accessToken}',
     }, {
         template: ${JSON.stringify(template, null, 2)},
-        editor: ${JSON.stringify(editorSettings, null, 2)},
+        editor: {
+          features: {
+            enableNewLogs,
+          },
+          ...${JSON.stringify(editorSettings, null, 2)},
+        },
     }).then(editorContext => {
         editorContext.setFullScreen(true);
     });

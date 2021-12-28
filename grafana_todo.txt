@@ -3,7 +3,10 @@ TODO
   X Validate data's getting pushed into tempo/loki correctly
   -------
 // Functional
-  - test/v1/log.test.ts creates Loki errors for sequencing.
+  X test/v1/log.test.ts creates Loki errors for sequencing.
+    X Normalize so that loki writes only happen in runtime/analytics.ts
+  - Add unit tests to make sure logs get propagated correctly somehow.
+    - Probably blocked on VPN.
   - Add fuse-ops command to provision/refresh existing accounts with grafana configuration.
   X Log traces to Tempo for a single function invocation
   X Tweak regex so that the process description is maximally useful for each invocation (hence the log

@@ -385,7 +385,7 @@ afterAll(() => {
 afterAll(async () => {
   resetEnvironment();
   const { account } = getEnv();
-  // await Promise.all(getAllBoundaries().map(async (boundaryId) => deleteAllFunctions(account, boundaryId)));
+  await Promise.all(getAllBoundaries().map(async (boundaryId) => deleteAllFunctions(account, boundaryId)));
 }, 200000);
 
 export { getEnv, nextBoundary };

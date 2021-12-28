@@ -188,7 +188,7 @@ export abstract class BaseServer<IFuncSpec> {
    * @ignore
    */
   public attachServerLogs(editorContext: EditorContext): Promise<BaseServer<IFuncSpec>> {
-    const enableNewLogs = window.location.search.includes('useNewLogs') || localStorage.getItem('useNewLogs');
+    const enableNewLogs = editorContext.getMetadata().editor.features?.enableNewLogs;
 
     if (this.sse || enableNewLogs) {
       return Promise.resolve(this);

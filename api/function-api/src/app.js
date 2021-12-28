@@ -17,7 +17,42 @@ logger.token(
     `${req.baseUrl}${req.query && req.query.token ? req.url.replace(/token=[^\&]+/, 'token={removed}') : req.url}`
 );
 
-app.use(logger(process.stdout.isTTY ? 'dev' : 'combined'));
+const usePrettyLogs = process.stdout.isTTY;
+
+logger.token('prettyStatus', (req, res) => {
+  const status = res.statusCode;
+  if (!usePrettyLogs) {
+    return `${status}`;
+  }
+  const color =
+    status >= 500
+      ? 31 // red
+      : status >= 400
+      ? 33 // yellow
+      : status >= 300
+      ? 36 // cyan
+      : status >= 200
+      ? 32 // green
+      : 0; // no color
+  return `\x1b[${color}m${status}\x1b[0m`;
+});
+
+app.use(
+  logger((tokens, req, res) =>
+    [
+      req.traceId && req.spanId
+        ? `\x1b[90m${req.traceId}:${req.spanId || '_'.repeat(16)}\x1b[0m`
+        : `${' '.repeat(32)} ${' '.repeat(16)}`,
+      tokens.method(req, res).padStart(6, ' '),
+      tokens.url(req, res),
+      tokens.prettyStatus(req, res),
+      tokens.res(req, res, 'content-length'),
+      '-',
+      tokens['response-time'](req, res),
+      'ms',
+    ].join(' ')
+  )
+);
 
 //app.use(captureRequest);
 //logActiveRequests();

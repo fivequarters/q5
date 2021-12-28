@@ -51,7 +51,7 @@ const publishLogs = async (params: IParams, logEntries: IEntry[]) => {
       .set('X-Scope-OrgID', params.accountId)
       .send(payload);
   } catch (err) {
-    console.log(`LOKI ERROR: `, err, JSON.stringify(payload, null, 2));
+    console.log(`LOKI ERROR: ${err} ${err.response?.text}`); // , JSON.stringify(payload, null, 2));
   }
 };
 

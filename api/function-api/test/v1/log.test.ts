@@ -102,7 +102,7 @@ describe('Log', () => {
     };
   }
 
-  test('sync exception is propagated to logs', create_exception_log_test(false, true), 120000);
+  test.only('sync exception is propagated to logs', create_exception_log_test(false, true), 120000);
 
   test('async exception is propagated to logs', create_exception_log_test(false, false), 120000);
 

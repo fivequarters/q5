@@ -14,7 +14,7 @@ import { FUSEBIT_QUERY_AUTHZ, FUSEBIT_QUERY_ACCOUNT } from '@5qtrs/constants';
 export function createLogsPanel(element: HTMLElement, editorContext: EditorContext, options?: ILogsPanelOptions) {
   const id = `fusebit-logs-${Math.floor(99999999 * Math.random()).toString(26)}`;
 
-  const enableNewLogs = window.location.search.includes('useNewLogs') || localStorage.getItem('useNewLogs');
+  const enableNewLogs = editorContext.getMetadata().editor.features?.enableNewLogs;
 
   if (enableNewLogs) {
     // Create the bootstrap url
