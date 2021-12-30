@@ -33,6 +33,13 @@ const GRAFANA_PORTS = [
 const NLB_PREFIX = 'nlb-grafana-';
 const NLB_SG_PREFIX = 'fusebit-mon-nlb-';
 
+// File mapping
+
+const GRAFANA_MAPPING = [];
+const LOKI_MAPPING = [];
+const TEMPO_MAPPING = [];
+const SHARED_MAPPING = [];
+
 interface IDatabaseCredentials {
   username: string;
   password: string;
@@ -67,8 +74,9 @@ export class MonitoringService {
   private getGrafanaDatabaseMigrationStatement(monDeploymentName: string, password: string) {
     const statements = [];
     // Technically, yes this isn't SQL injection proof, but this is secured behind AWS credentials.
-    statements.push('DROP USER dev;');
-    statements.push('DROP DATABASE mondev;');
+    statements.push(`ALTER DATABASE ${DB_PREFIX}${monDeploymentName} OWNER TO fusebit;`);
+    statements.push(`DROP DATABASE ${DB_PREFIX}${monDeploymentName};`);
+    statements.push(`DROP USER ${monDeploymentName};`);
     statements.push(`CREATE USER ${monDeploymentName} WITH PASSWORD '${password}';`);
     statements.push(`CREATE DATABASE ${DB_PREFIX}${monDeploymentName};`);
     statements.push(`ALTER DATABASE ${DB_PREFIX}${monDeploymentName} OWNER TO ${monDeploymentName};`);
@@ -84,7 +92,7 @@ export class MonitoringService {
     deployment: IMonitoringDeployment,
     region?: string
   ) {
-    const configTemplate = grafanaConfig.getConfigTemplate();
+    const configTemplate = grafanaConfig.getGrafanaConfigTemplate();
     const cloudMap = await this.getCloudMap(deployment.networkName);
     const fusebitDeployment = await this.getFusebitDeployment(deployment.deploymentName, cloudMap.network.region);
     const baseUrl = this.getDeploymentUrl(
@@ -102,12 +110,13 @@ export class MonitoringService {
     configTemplate.database.host = `${credentials.endpoint}:${POSTGRES_PORT}`;
     // Configure base URLs
     configTemplate.server.domain = baseUrl;
-    configTemplate.server.rootUrl = `https://${baseUrl}/v2/grafana/`;
+    configTemplate.server.rootUrl = ` ${baseUrl}/v2/grafana/`;
 
-    return grafanaConfig.toIniFile(configTemplate);
+    return this.toBase64(grafanaConfig.toIniFile(configTemplate));
   }
 
-  private async getUserData(deployment: IMonitoringDeployment, region: string) {
+  private async getUserData(monDepName: string, region: string) {
+    const deployment = await this.getMonitoringDeploymentByName(monDepName);
     const cloudMap = await this.getCloudMap(deployment.networkName, region);
     const dbCredentials = await this.getGrafanaCredentials(deployment.monitoringDeploymentName, region);
     const grafanaConfig = await this.getGrafanaIniFile(dbCredentials as IDatabaseCredentials, deployment, region);
@@ -128,6 +137,8 @@ ${awsUserData.runDockerCompose('/root/docker-compose.yml')}
   }
 
   private async getComposeFile() {
+    const composeTemplate = grafanaConfig.getDockerComposeTemplate();
+    console.log(composeTemplate);
     return this.toBase64('');
   }
 
@@ -168,6 +179,7 @@ ${awsUserData.runDockerCompose('/root/docker-compose.yml')}
     try {
       const value = await SSMSdk.getParameter({
         Name: key,
+        WithDecryption: true,
       }).promise();
       return JSON.parse(value.Parameter?.Value as string) as IDatabaseCredentials;
     } catch (e) {
@@ -322,7 +334,6 @@ ${awsUserData.runDockerCompose('/root/docker-compose.yml')}
   private async getCloudMap(networkName: string, region?: string) {
     const opsContext = await this.opsService.getOpsDataContext();
     let networks = await opsContext.networkData.listAll();
-    console.log(networks);
     let correctNetwork: IOpsNetwork[];
     if (region) {
       correctNetwork = networks.filter((network) => network.region === region);
@@ -394,7 +405,6 @@ ${awsUserData.runDockerCompose('/root/docker-compose.yml')}
     const dynamoSdk = await this.getDynamoSdk({ region: this.config.region });
     const tables = await dynamoSdk.listTables().promise();
     const correctTable = tables.TableNames?.filter((table) => table === OPS_MONITORING_TABLE);
-    console.log(correctTable);
     if (!correctTable || correctTable.length !== 1) {
       const createTableResults = await dynamoSdk
         .createTable({
@@ -503,6 +513,9 @@ ${awsUserData.runDockerCompose('/root/docker-compose.yml')}
     const rdsSecGroup = (await this.getSecGroup(rdsSecGroupName, region)) as AWS.EC2.SecurityGroup;
     const monitoringDeployment = await this.getMonitoringDeploymentByName(monitoringName);
     const cloudMap = await this.getCloudMap(monitoringDeployment.networkName);
+    if (await this.getSecGroup(monitoringSecGroupName, region)) {
+      return;
+    }
     const secGroup = await ec2Sdk
       .createSecurityGroup({
         GroupName: monitoringSecGroupName,
@@ -616,6 +629,18 @@ ${awsUserData.runDockerCompose('/root/docker-compose.yml')}
         Type: 'network',
       })
       .promise();
+
+    let success = false;
+    do {
+      const status = await elbSdk
+        .describeLoadBalancers({
+          Names: [(nlb.LoadBalancers as AWS.ELBv2.LoadBalancers)[0].LoadBalancerName as string],
+        })
+        .promise();
+      success = (status.LoadBalancers as AWS.ELBv2.LoadBalancers)[0].State?.Code === 'active';
+      // Sleep a bit before continue so we don't DoS AWS
+      await new Promise((res) => setTimeout(res, 3000));
+    } while (!success);
     return (nlb.LoadBalancers as AWS.ELBv2.LoadBalancers)[0];
   }
 
@@ -639,6 +664,9 @@ ${awsUserData.runDockerCompose('/root/docker-compose.yml')}
 
     await Promise.all(promises);
 
+    // Wait a couple seconds before registering
+    await new Promise((res) => setTimeout(res, 5000));
+
     await cloudMapSdk
       .registerInstance({
         ServiceId: svcSummary.Id as string,
@@ -651,7 +679,9 @@ ${awsUserData.runDockerCompose('/root/docker-compose.yml')}
   private async getService(monDeploymentName: string, serviceName: string, region: string) {
     const mapSdk = await this.getCloudMapSdk({ region });
     const services = await mapSdk.listServices().promise();
-    return services.Services?.filter((svc) => svc.Name === serviceName) as AWS.ServiceDiscovery.ServiceSummary;
+    return (services.Services?.filter(
+      (svc) => svc.Name === serviceName
+    ) as AWS.ServiceDiscovery.ServiceSummariesList)[0];
   }
 
   private async createNewMonitoringDeployment(
@@ -673,6 +703,8 @@ ${awsUserData.runDockerCompose('/root/docker-compose.yml')}
     if (!creds) {
       await this.executeInitialGrafanaDbSetup(monitoringName, cloudMap.network.region);
     }
+
+    const userdata = await this.getUserData(monitoringName, cloudMap.network.region);
   }
 
   public async MonitoringAdd(networkName: string, deploymentName: string, monitoringName: string, region?: string) {
