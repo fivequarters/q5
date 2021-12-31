@@ -87,11 +87,7 @@ export class MonitoringService {
   private getDeploymentUrl = (deploymentName: string, region: string, baseDomain: string) =>
     `https://${deploymentName}.${region}.${baseDomain}`;
 
-  private async getGrafanaIniFile(
-    credentials: IDatabaseCredentials,
-    deployment: IMonitoringDeployment,
-    region?: string
-  ) {
+  private async getGrafanaIniFile(credentials: IDatabaseCredentials, deployment: IMonitoringDeployment) {
     const configTemplate = grafanaConfig.getGrafanaConfigTemplate();
     const cloudMap = await this.getCloudMap(deployment.networkName);
     const fusebitDeployment = await this.getFusebitDeployment(deployment.deploymentName, cloudMap.network.region);
@@ -119,7 +115,7 @@ export class MonitoringService {
     const deployment = await this.getMonitoringDeploymentByName(monDepName);
     const cloudMap = await this.getCloudMap(deployment.networkName, region);
     const dbCredentials = await this.getGrafanaCredentials(deployment.monitoringDeploymentName, region);
-    const grafanaConfig = await this.getGrafanaIniFile(dbCredentials as IDatabaseCredentials, deployment, region);
+    const grafanaConfig = await this.getGrafanaIniFile(dbCredentials as IDatabaseCredentials, deployment);
     const lokiConfig = await this.getLokiYamlFile();
     const tempoConfig = await this.getTempoYamlFile();
     const composeFile = await this.getComposeFile();
@@ -164,7 +160,7 @@ ${awsUserData.runDockerCompose('/root/docker-compose.yml')}
   }
 
   private async storeGrafanaCredentials(credentials: IDatabaseCredentials, region: string) {
-    const SSMSdk = await this.getSSMSdk({ region });
+    const SSMSdk = await this.getAwsSdk(AWS.SSM, { region });
     const key = PARAM_MANAGER_PREFIX + credentials.schemaName;
     await SSMSdk.putParameter({
       Name: key,
@@ -174,7 +170,7 @@ ${awsUserData.runDockerCompose('/root/docker-compose.yml')}
   }
 
   private async getGrafanaCredentials(monDeploymentName: string, region: string) {
-    const SSMSdk = await this.getSSMSdk({ region });
+    const SSMSdk = await this.getAwsSdk(AWS.SSM, { region });
     const key = PARAM_MANAGER_PREFIX + monDeploymentName;
     try {
       const value = await SSMSdk.getParameter({
@@ -188,8 +184,8 @@ ${awsUserData.runDockerCompose('/root/docker-compose.yml')}
   }
 
   private async getRdsInformation(deploymentName: string, region: string) {
-    const rdsSdk = await this.getRDSSdk({ region });
-    const secretSdk = await this.getSecretsManagerSdk({ region });
+    const rdsSdk = await this.getAwsSdk(AWS.RDS, { region });
+    const secretSdk = await this.getAwsSdk(AWS.SecretsManager, { region });
     const clusters = await rdsSdk.describeDBClusters().promise();
     const correctClusters = clusters.DBClusters?.filter(
       (cluster) => cluster.DBClusterIdentifier === DATABASE_PREFIX + deploymentName
@@ -240,8 +236,8 @@ ${awsUserData.runDockerCompose('/root/docker-compose.yml')}
   private async executeInitialGrafanaDbSetup(monDeploymentName: string, region: string) {
     const getMonDeployment = await this.getMonitoringDeploymentByName(monDeploymentName);
     const cloudMap = await this.getCloudMap(getMonDeployment.networkName, region);
-    const rdsSdk = await this.getRDSSdk({ region });
-    const rdsDataSdk = await this.getRDSDataSdk({ region });
+    const rdsSdk = await this.getAwsSdk(AWS.RDS, { region });
+    const rdsDataSdk = await this.getAwsSdk(AWS.RDSDataService, { region });
     const clusterInfo = await this.getRdsInformation(getMonDeployment.deploymentName, region);
     const grafanaPassword = this.genGrafanaPassword();
     const statements = this.getGrafanaDatabaseMigrationStatement(monDeploymentName, grafanaPassword);
@@ -265,67 +261,8 @@ ${awsUserData.runDockerCompose('/root/docker-compose.yml')}
     );
   }
 
-  private async getSecretsManagerSdk(config: any) {
-    return new AWS.SecretsManager({
-      ...config,
-      ...this.creds,
-    });
-  }
-
-  private async getRDSDataSdk(config: any) {
-    return new AWS.RDSDataService({
-      ...config,
-      ...this.creds,
-      params: {
-        database: DEFAULT_DATABASE_NAME,
-      },
-    });
-  }
-
-  private async getRDSSdk(config: any) {
-    return new AWS.RDS({
-      ...config,
-      ...this.creds,
-    });
-  }
-
-  private async getSSMSdk(config: any) {
-    return new AWS.SSM({
-      ...config,
-      ...this.creds,
-    });
-  }
-
-  private async getCloudMapSdk(config: any) {
-    return new AWS.ServiceDiscovery({
-      ...config,
-      ...this.creds,
-    });
-  }
-
-  private async getDynamoSdk(config: any) {
-    return new AWS.DynamoDB({
-      ...config,
-      ...this.creds,
-    });
-  }
-
-  private async getS3Sdk(config: any) {
-    return new AWS.S3({
-      ...config,
-      ...this.creds,
-    });
-  }
-
-  private async getEc2Sdk(config: any) {
-    return new AWS.EC2({
-      ...config,
-      ...this.creds,
-    });
-  }
-
-  private async getElbSdk(config: any) {
-    return new AWS.ELBv2({
+  private async getAwsSdk<T>(type: new (config: any) => T, config: any) {
+    return new type({
       ...config,
       ...this.creds,
     });
@@ -344,7 +281,7 @@ ${awsUserData.runDockerCompose('/root/docker-compose.yml')}
     if (correctNetwork.length !== 1) {
       throw Error('No network found');
     }
-    const mapSdk = await this.getCloudMapSdk({ region: correctNetwork[0].region });
+    const mapSdk = await this.getAwsSdk(AWS.ServiceDiscovery, { region: correctNetwork[0].region });
     const namespaces = await mapSdk.listNamespaces().promise();
     const correctNs = namespaces.Namespaces?.filter((ns) => ns.Description === correctNetwork[0].networkName);
     if (!correctNs || correctNs.length !== 1) {
@@ -359,7 +296,7 @@ ${awsUserData.runDockerCompose('/root/docker-compose.yml')}
 
   private async createMainService(networkName: string, monitoringDeploymentName: string, region?: string) {
     const cloudMap = await this.getCloudMap(networkName, region);
-    const mapSdk = await this.getCloudMapSdk({ region: cloudMap.network.region });
+    const mapSdk = await this.getAwsSdk(AWS.ServiceDiscovery, { region: cloudMap.network.region });
     try {
       await mapSdk
         .createService({
@@ -376,7 +313,7 @@ ${awsUserData.runDockerCompose('/root/docker-compose.yml')}
   }
 
   private async ensureS3Bucket(monitoringDeploymentName: string, region: string) {
-    const s3Sdk = await this.getS3Sdk({ region });
+    const s3Sdk = await this.getAwsSdk(AWS.S3, { region });
     const existingBucket = await s3Sdk.listBuckets().promise();
     const lokiBuckets = existingBucket.Buckets?.filter(
       (bucket) => bucket.Name === `${LOKI_BUCKET_PREFIX}${monitoringDeploymentName}`
@@ -402,7 +339,7 @@ ${awsUserData.runDockerCompose('/root/docker-compose.yml')}
 
   // Used for storing deployment configs
   private async ensureDynamoDBTable() {
-    const dynamoSdk = await this.getDynamoSdk({ region: this.config.region });
+    const dynamoSdk = await this.getAwsSdk(AWS.DynamoDB, { region: this.config.region });
     const tables = await dynamoSdk.listTables().promise();
     const correctTable = tables.TableNames?.filter((table) => table === OPS_MONITORING_TABLE);
     if (!correctTable || correctTable.length !== 1) {
@@ -434,7 +371,7 @@ ${awsUserData.runDockerCompose('/root/docker-compose.yml')}
   }
 
   private async getMonitoringDeploymentByName(monDeployName: string): Promise<IMonitoringDeployment> {
-    const dynamoSdk = await this.getDynamoSdk({ region: this.config.region });
+    const dynamoSdk = await this.getAwsSdk(AWS.DynamoDB, { region: this.config.region });
     try {
       const deployment = await dynamoSdk
         .getItem({
@@ -456,7 +393,7 @@ ${awsUserData.runDockerCompose('/root/docker-compose.yml')}
   }
 
   private async ensureMonitoringDeploymentItem(monDeploymentName: string, networkName: string, deploymentName: string) {
-    const dynamoSdk = await this.getDynamoSdk({ region: this.config.region });
+    const dynamoSdk = await this.getAwsSdk(AWS.DynamoDB, { region: this.config.region });
     try {
       const tryGet = await dynamoSdk
         .getItem({
@@ -491,7 +428,7 @@ ${awsUserData.runDockerCompose('/root/docker-compose.yml')}
   }
 
   private async getSecGroup(secGroupName: string, region: string) {
-    const ec2Sdk = await this.getEc2Sdk({ region });
+    const ec2Sdk = await this.getAwsSdk(AWS.EC2, { region });
     const secGroups: AWS.EC2.SecurityGroup[] = [];
     let nextToken;
     do {
@@ -507,7 +444,7 @@ ${awsUserData.runDockerCompose('/root/docker-compose.yml')}
   }
 
   private async updateRdsSecurityGroup(deploymentName: string, monitoringName: string, region: string) {
-    const ec2Sdk = await this.getEc2Sdk({ region });
+    const ec2Sdk = await this.getAwsSdk(AWS.EC2, { region });
     const rdsSecGroupName = RDS_SEC_GROUP_PREFIX + deploymentName;
     const monitoringSecGroupName = MONITORING_SEC_GROUP_PREFIX + monitoringName;
     const rdsSecGroup = (await this.getSecGroup(rdsSecGroupName, region)) as AWS.EC2.SecurityGroup;
@@ -573,7 +510,7 @@ ${awsUserData.runDockerCompose('/root/docker-compose.yml')}
       return sg;
     }
 
-    const ec2Sdk = await this.getEc2Sdk({ region });
+    const ec2Sdk = await this.getAwsSdk(AWS.EC2, { region });
     const monDep = await this.getMonitoringDeploymentByName(monDeployName);
     const cloudMap = await this.getCloudMap(monDep.networkName, region);
 
@@ -613,7 +550,7 @@ ${awsUserData.runDockerCompose('/root/docker-compose.yml')}
   private async ensureNlb(monitoringName: string, region: string): Promise<AWS.ELBv2.LoadBalancer> {
     const monDeployment = await this.getMonitoringDeploymentByName(monitoringName);
     const cloudMap = await this.getCloudMap(monDeployment.networkName, region);
-    const elbSdk = await this.getElbSdk({ region });
+    const elbSdk = await this.getAwsSdk(AWS.ELBv2, { region });
     const Nlbs = await elbSdk.describeLoadBalancers().promise();
     const correctNlb = Nlbs.LoadBalancers?.filter((lb) => lb.LoadBalancerName === NLB_PREFIX + monitoringName);
     if (correctNlb && correctNlb.length === 1) {
@@ -647,7 +584,7 @@ ${awsUserData.runDockerCompose('/root/docker-compose.yml')}
   private async ensureLeaderMapping(monitoringName: string, cnameEndpoint: string, region: string) {
     const monDep = await this.getMonitoringDeploymentByName(monitoringName);
     const cloudMap = await this.getCloudMap(monDep.networkName, region);
-    const cloudMapSdk = await this.getCloudMapSdk({ region });
+    const cloudMapSdk = await this.getAwsSdk(AWS.ServiceDiscovery, { region });
     const svcSummary = await this.getService(
       monDep.monitoringDeploymentName,
       MASTER_SERVICE_PREFIX + monDep.monitoringDeploymentName,
@@ -677,7 +614,7 @@ ${awsUserData.runDockerCompose('/root/docker-compose.yml')}
   }
 
   private async getService(monDeploymentName: string, serviceName: string, region: string) {
-    const mapSdk = await this.getCloudMapSdk({ region });
+    const mapSdk = await this.getAwsSdk(AWS.ServiceDiscovery, { region });
     const services = await mapSdk.listServices().promise();
     return (services.Services?.filter(
       (svc) => svc.Name === serviceName
