@@ -51,6 +51,8 @@ ZOOM_SECRET_PAYLOAD="{\"data\":{\"clientId\":\"${PROXY_ZOOM_CLIENT_ID}\",\"clien
 
 STACKOVERFLOW_SECRET_PAYLOAD="{\"data\":{\"clientId\":\"${PROXY_STACKOVERFLOW_CLIENT_ID}\",\"clientSecret\":\"${PROXY_STACKOVERFLOW_CLIENT_SECRET}\",\"clientKey\":\"${PROXY_STACKOVERFLOW_CLIENT_KEY}\",\"authorizationUrl\":\"https://stackoverflow.com/oauth\",\"tokenUrl\":\"https://stackoverflow.com/oauth/access_token/json\",\"revokeUrl\":\"https://stackoverflow.com/oauth/unsupported\"}}"
 
+GOOGLE_SECRET_PAYLOAD="{\"data\":{\"clientId\":\"${PROXY_GOOGLE_CLIENT_ID}\",\"clientSecret\":\"${PROXY_GOOGLE_CLIENT_SECRET}\",\"authorizationUrl\":\"https://accounts.google.com/o/oauth2/v2/auth\",\"tokenUrl\":\"https://oauth2.googleapis.com/token\",\"revokeUrl\":\"https://oauth2.googleapis.com/revoke\"}}"
+
 # Publish to the designated accounts
 for PROFILE in ${PROXY_SECRET_PUBLISH_PROFILE_LIST}; do
   ./tool/cicd/actions/scripts/set_fuse_profile.sh ${PROFILE}
@@ -67,4 +69,5 @@ for PROFILE in ${PROXY_SECRET_PUBLISH_PROFILE_LIST}; do
   echo ${DISCORD_SECRET_PAYLOAD} | fuse storage put - --storageId proxy/discord/configuration
   echo ${ZOOM_SECRET_PAYLOAD} | fuse storage put - --storageId proxy/zoom/configuration
   echo ${STACKOVERFLOW_SECRET_PAYLOAD} | fuse storage put - --storageId proxy/stackoverflow/configuration
+  echo ${GOOGLE_SECRET_PAYLOAD} | fuse storage put - --storageId proxy/google/configuration
 done
