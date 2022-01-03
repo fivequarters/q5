@@ -6,7 +6,7 @@ import { OpsService } from './OpsService';
 import { ExecuteService } from './ExecuteService';
 import { AwsCreds, IAwsCredentials } from '@5qtrs/aws-cred';
 
-const DISCOVERY_DOMAIN_NAME = 'fusebit.local';
+const DISCOVERY_DOMAIN_NAME = 'fusebit.internal';
 
 // ----------------
 // Exported Classes
@@ -285,7 +285,7 @@ export class NetworkService {
     await mapSdk
       .createPrivateDnsNamespace({
         Description: networkName,
-        Name: 'fusebit.local',
+        Name: DISCOVERY_DOMAIN_NAME,
         Vpc: vpcId,
       })
       .promise();

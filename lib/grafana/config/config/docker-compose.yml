@@ -4,11 +4,8 @@ services:
     image: grafana/tempo:latest
     command: ['-config.file=/etc/tempo.yaml']
     volumes:
-      # place holder, dynamically configured in fuse-ops
-      - ./tempo-config.yaml:/etc/tempo.yaml
-      - ./tempo-data:/tmp/tempo
-
-      # non place holder, standard logging config
+      - /root/tempo.yml:/etc/tempo.yaml
+      - /root/tempo-data:/tmp/tempo
       - /var/log/:/var/log/
     ports:
       - '4317:4317/udp' # grpc ingest
@@ -18,10 +15,7 @@ services:
     image: grafana/loki:2.3.0
     command: ['-config.file=/etc/loki/loki-config.yaml']
     volumes:
-      # place holder, dynamically configured in fuse-ops
       - /root/loki-config.yaml:/etc/loki/loki-config.yaml
-
-      # non place holder, standard logging config
       - /var/log/:/var/log/
     ports:
       - '3100:3100'
@@ -30,11 +24,7 @@ services:
     image: grafana/grafana:latest
     command: ['--config=conf/grafana-config.ini']
     volumes:
-      # place holder, dynamically configured in fuse-ops
-      - ./grafana-datasources.yaml:/etc/grafana/provisioning/datasources/datasources.yaml
-      - ./grafana-config.ini:/usr/share/grafana/conf/grafana-config.ini
-
-      # non place holder, standard logging config
+      - /root/grafana.ini:/etc/grafana/grafana.ini
       - /var/log/:/var/log/
     ports:
       - '3000:3000'

@@ -9,17 +9,19 @@ import { IOpsNetwork } from '@5qtrs/ops-data';
 import { ExecuteService } from '.';
 import { OpsService } from './OpsService';
 
-const DISCOVERY_DOMAIN_NAME = 'fusebit.local';
+const DISCOVERY_DOMAIN_NAME = 'fusebit.internal';
 const MASTER_SERVICE_PREFIX = 'leader-';
 const MONITORING_SEC_GROUP_PREFIX = `fusebit-monitoring-`;
 const POSTGRES_PORT = 5432;
 const OPS_MONITORING_TABLE = 'ops.monitoring';
+const OPS_MON_STACK_TABLE = 'ops.monitoring.stack';
 const LOKI_BUCKET_PREFIX = 'loki-bucket-fusebit-';
 const TEMPO_BUCKET_PREFIX = 'tempo-bucket-fusebit-';
 const RDS_SEC_GROUP_PREFIX = 'fusebit-db-security-group-';
 const PARAM_MANAGER_PREFIX = '/fusebit/grafana/credentials/';
 const DEFAULT_DATABASE_NAME = 'fusebit';
 const DATABASE_PREFIX = 'fusebit-db-';
+const LT_PREFIX = 'lt-grafana-';
 const API_SG_PREFIX = 'SG-';
 const DB_PREFIX = 'mondb';
 const DB_ENGINE = 'postgres';
@@ -33,12 +35,13 @@ const GRAFANA_PORTS = [
 const NLB_PREFIX = 'nlb-grafana-';
 const NLB_SG_PREFIX = 'fusebit-mon-nlb-';
 
-// File mapping
+// Running on AMD is 20% cheaper for same performance, so why not.
+const INSTANCE_SIZE = 't3a.medium';
 
-const GRAFANA_MAPPING = [];
-const LOKI_MAPPING = [];
-const TEMPO_MAPPING = [];
-const SHARED_MAPPING = [];
+const STACK_ID_MIN_MAX = {
+  min: 100,
+  max: 1000,
+};
 
 interface IDatabaseCredentials {
   username: string;
@@ -47,10 +50,17 @@ interface IDatabaseCredentials {
   endpoint: string;
 }
 
+interface IMonitoringStack {
+  stackId: number;
+  tempoImage: string;
+  lokiImage: string;
+  grafanaImage: string;
+}
 interface IMonitoringDeployment {
   monitoringDeploymentName: string;
   deploymentName: string;
   networkName: string;
+  region: string;
 }
 
 export class MonitoringService {
@@ -111,7 +121,21 @@ export class MonitoringService {
     return this.toBase64(grafanaConfig.toIniFile(configTemplate));
   }
 
-  private async getUserData(monDepName: string, region: string) {
+  private async createLaunchTemplate(monDep: IMonitoringDeployment, stack: IMonitoringStack) {
+    const autoscalingSdk = await this.getAwsSdk(AWS.EC2, { region: monDep.region });
+    await autoscalingSdk
+      .createLaunchTemplate({
+        LaunchTemplateName: LT_PREFIX + monDep.monitoringDeploymentName,
+        LaunchTemplateData: {},
+      })
+      .promise();
+  }
+
+  private generateStackId(): number {
+    return Math.floor(Math.random() * (STACK_ID_MIN_MAX.max - STACK_ID_MIN_MAX.min + 1)) + STACK_ID_MIN_MAX.min;
+  }
+
+  private async getUserData(monDepName: string, region: string, serviceId: string, stackId: number) {
     const deployment = await this.getMonitoringDeploymentByName(monDepName);
     const cloudMap = await this.getCloudMap(deployment.networkName, region);
     const dbCredentials = await this.getGrafanaCredentials(deployment.monitoringDeploymentName, region);
@@ -122,12 +146,14 @@ export class MonitoringService {
     return `
 ${awsUserData.updateSystem()}
 ${awsUserData.installAwsCli()}
+mkdir /root/tempo-data
 ${awsUserData.installCloudWatchAgent(LOGGING_SERVICE_TYPE, deployment.monitoringDeploymentName)}
 ${awsUserData.installDocker()}
 ${awsUserData.addFile(grafanaConfig, '/root/grafana.ini')}
 ${awsUserData.addFile(lokiConfig, '/root/loki.yml')}
 ${awsUserData.addFile(tempoConfig, '/root/tempo.yml')}
 ${awsUserData.addFile(composeFile, '/root/docker-compose.yml')}
+${awsUserData.registerCloudMapInstance(serviceId, stackId.toString())}
 ${awsUserData.runDockerCompose('/root/docker-compose.yml')}
     `;
   }
@@ -370,6 +396,39 @@ ${awsUserData.runDockerCompose('/root/docker-compose.yml')}
     }
   }
 
+  // Used for storing stack configs
+  private async ensureDynamoDBStackTable() {
+    const dynamoSdk = await this.getAwsSdk(AWS.DynamoDB, { region: this.config.region });
+    const tables = await dynamoSdk.listTables().promise();
+    const correctTable = tables.TableNames?.filter((table) => table === OPS_MONITORING_TABLE);
+    if (!correctTable || correctTable.length !== 1) {
+      const createTableResults = await dynamoSdk
+        .createTable({
+          TableName: OPS_MON_STACK_TABLE,
+          BillingMode: 'PAY_PER_REQUEST',
+          AttributeDefinitions: [
+            {
+              AttributeName: 'mon_stack_name',
+              AttributeType: 'S',
+            },
+          ],
+          KeySchema: [
+            {
+              AttributeName: 'mon_stack_name',
+              KeyType: 'HASH',
+            },
+          ],
+        })
+        .promise();
+      do {
+        const status = await dynamoSdk.describeTable({ TableName: OPS_MONITORING_TABLE }).promise();
+        if (status.Table?.TableStatus === 'ACTIVE') {
+          return;
+        }
+      } while (true);
+    }
+  }
+
   private async getMonitoringDeploymentByName(monDeployName: string): Promise<IMonitoringDeployment> {
     const dynamoSdk = await this.getAwsSdk(AWS.DynamoDB, { region: this.config.region });
     try {
@@ -386,13 +445,19 @@ ${awsUserData.runDockerCompose('/root/docker-compose.yml')}
         deploymentName: deployment.Item?.deployment_name.S as string,
         networkName: deployment.Item?.network_name.S as string,
         monitoringDeploymentName: deployment.Item?.monitoring_deployment_name.S as string,
+        region: deployment.Item?.region.S as string,
       };
     } catch (e) {
       throw Error('Monitoring deployment not found.');
     }
   }
 
-  private async ensureMonitoringDeploymentItem(monDeploymentName: string, networkName: string, deploymentName: string) {
+  private async ensureMonitoringDeploymentItem(
+    monDeploymentName: string,
+    networkName: string,
+    deploymentName: string,
+    region: string
+  ) {
     const dynamoSdk = await this.getAwsSdk(AWS.DynamoDB, { region: this.config.region });
     try {
       const tryGet = await dynamoSdk
@@ -420,6 +485,9 @@ ${awsUserData.runDockerCompose('/root/docker-compose.yml')}
           },
           deployment_name: {
             S: deploymentName,
+          },
+          region: {
+            S: region,
           },
         },
       })
@@ -629,7 +697,8 @@ ${awsUserData.runDockerCompose('/root/docker-compose.yml')}
   ) {
     const cloudMap = await this.getCloudMap(networkName, region);
     await this.ensureDynamoDBTable();
-    await this.ensureMonitoringDeploymentItem(monitoringName, networkName, deploymentName);
+    await this.ensureDynamoDBStackTable();
+    await this.ensureMonitoringDeploymentItem(monitoringName, networkName, deploymentName, cloudMap.network.region);
     await this.createMainService(networkName, monitoringName, region);
     await this.ensureS3Bucket(monitoringName, cloudMap.network.region);
     await this.ensureNlbSecurityGroup(monitoringName, cloudMap.network.region);
@@ -640,8 +709,24 @@ ${awsUserData.runDockerCompose('/root/docker-compose.yml')}
     if (!creds) {
       await this.executeInitialGrafanaDbSetup(monitoringName, cloudMap.network.region);
     }
+  }
 
-    const userdata = await this.getUserData(monitoringName, cloudMap.network.region);
+  private async createNewMonitoringStack(monDepName: string) {
+    const monDep = await this.getMonitoringDeploymentByName(monDepName);
+    const stackId = this.generateStackId();
+    const cloudMap = await this.getCloudMap(monDep.networkName, monDep.region);
+    const service = await this.getService(
+      monDepName,
+      MASTER_SERVICE_PREFIX + monDep.monitoringDeploymentName,
+      monDep.region
+    );
+
+    const userData = await this.getUserData(
+      monDep.monitoringDeploymentName,
+      monDep.region,
+      service.Id as string,
+      stackId
+    );
   }
 
   public async MonitoringAdd(networkName: string, deploymentName: string, monitoringName: string, region?: string) {

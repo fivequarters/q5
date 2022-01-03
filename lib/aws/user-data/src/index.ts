@@ -22,8 +22,13 @@ export default class AwsData {
     return `apt install -y awscli`;
   }
 
-  public static registerCloudMapInstance(serviceId: string) {
-    return ``;
+  public static registerCloudMapInstance(serviceId: string, stackId: string) {
+    return `
+  # Get IP of instance
+curl http://169.254.169.254/latest/meta-data/local-ipv4/ > /tmp/ip
+curl http://169.254.169.254/latest/meta-data/instance-id/ > /tmp/instance-id
+aws servicediscovery register-instance --service-id "${serviceId}" --instance-id "$(cat /tmp/ip)" --attributes="AWS_INSTANCE_IPV4=$(cat /tmp/instance-id),STACK_ID=${stackId}"
+  `;
   }
 
   public static installCloudWatchAgent(serviceType: string, deploymentName: string) {
