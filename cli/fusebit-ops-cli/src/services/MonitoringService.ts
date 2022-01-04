@@ -125,8 +125,20 @@ export class MonitoringService {
     const autoscalingSdk = await this.getAwsSdk(AWS.EC2, { region: monDep.region });
     await autoscalingSdk
       .createLaunchTemplate({
-        LaunchTemplateName: LT_PREFIX + monDep.monitoringDeploymentName,
-        LaunchTemplateData: {},
+        LaunchTemplateName: LT_PREFIX + monDep.monitoringDeploymentName + stack.stackId,
+        LaunchTemplateData: {
+          BlockDeviceMappings: [
+            {
+              DeviceName: 'Boot',
+              Ebs: {
+                DeleteOnTermination: true,
+                Encrypted: true,
+                VolumeType: 'gp3',
+                VolumeSize: 30,
+              },
+            },
+          ],
+        },
       })
       .promise();
   }
