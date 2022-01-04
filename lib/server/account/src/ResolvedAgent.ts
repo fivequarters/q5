@@ -122,7 +122,13 @@ export class ResolvedAgent implements IAgent {
   private identity: IIdentity;
   public decodedJwt: any;
 
-  private constructor(dataContext: IAccountDataContext, accountId: string, agent: IAgent, identity: IIdentity, decodedJwt: any) {
+  private constructor(
+    dataContext: IAccountDataContext,
+    accountId: string,
+    agent: IAgent,
+    identity: IIdentity,
+    decodedJwt: any
+  ) {
     this.dataContext = dataContext;
     this.accountId = accountId;
     this.agent = agent;
