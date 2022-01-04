@@ -9,4 +9,6 @@ VERSION=`jq -rc ".version" lib/client/fusebit-editor/package.json`
 git tag editor-${VERSION} || true
 VERSION=`jq -rc ".version" site/portal/package.json`
 git tag portal-${VERSION} || true
+VERSION=`jq -rc ".version" lib/data/schema/package.json`
+git tag schema-${VERSION} || true
 git push --tags || true

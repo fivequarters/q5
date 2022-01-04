@@ -38,8 +38,8 @@ const BANNER = [
 const publishAll = [
   'publish_function_api',
   'publish_fusebit_cli',
-  'publish_fusebit_editor',
   'publish_fusebit_ops_cli',
+  'publish_fusebit_schema',
   'publish_api_docs',
   'publish_proxy_secrets',
   'publish_api_readme_com',
