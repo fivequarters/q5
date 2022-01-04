@@ -17,6 +17,12 @@ All public releases of the Fusebit HTTP API are documented here, including notab
 <!-- 1. TOC
 {:toc} -->
 
+## Version 1.33.6
+
+_Released 1/4/22_
+
+- **BugFix.** Properly handle OAuth flow cancellation when using proxy credentials
+
 ## Version 1.33.5
 
 _Released 12/17/21_
