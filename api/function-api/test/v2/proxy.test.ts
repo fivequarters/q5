@@ -308,6 +308,107 @@ describe('Proxy', () => {
     expect(response.data.refresh_token).toBeUUID();
   }, 180000);
 
+  test('Proxy redirects to the http endpoint when canceled', async () => {
+    await configureProxy();
+    registerOAuthServer();
+
+    // Create the various artifacts
+    const { integrationId, connectorId } = await createPair(
+      account,
+      boundaryId,
+      {},
+      {
+        handler: '@fusebit-int/oauth-connector',
+        configuration: {
+          scope: '',
+          authorizationUrl: `${baseUrl}/connector/${boundaryId}-con/proxy/slack/oauth/authorize`,
+          tokenUrl: `${baseUrl}/connector/${boundaryId}-con/proxy/slack/oauth/token`,
+          ...localIdentity,
+        },
+      }
+    );
+    connectorUrl = `${baseUrl}/connector/${connectorId}`;
+
+    // Create a utility proxyService mostly to access the storage
+    const proxyService = new OAuthProxyService(account.accountId, account.subscriptionId, connectorId, 'slack', {
+      clientId: 'A',
+      clientSecret: 'B',
+      accountId: account.accountId,
+      subscriptionId: account.subscriptionId,
+      authorizationUrl,
+      tokenUrl,
+      revokeUrl,
+    });
+
+    // Create a session
+    const redirectUrl = 'https://monkey.banana';
+    let response = await ApiRequestMap.integration.session.post(account, integrationId, {
+      redirectUrl,
+    });
+    const parentSessionId = response.data.id;
+
+    // Start the "browser" on the session
+    response = await ApiRequestMap.integration.session.start(account, integrationId, parentSessionId);
+    expect(response).toBeHttp({ statusCode: 302 });
+
+    // Get the session for the connector
+    const conUrl = new URL(response.headers.location);
+    const connectorSessionId = conUrl.searchParams.get('session') as string;
+
+    // Load what the connector offers
+    response = await request({ url: response.headers.location, maxRedirects: 0 });
+    expect(response).toBeHttp({ statusCode: 302 });
+
+    // Validate it's pointed at the proxy
+    expect(response.headers.location.indexOf(`${connectorUrl}/proxy/slack/oauth/authorize?`)).toBeGreaterThan(-1);
+    expect(response.headers.location.indexOf('undefined')).toBe(-1);
+    let url = new URL(response.headers.location);
+    expect(url.searchParams.get('client_id')).toBe(localIdentity.clientId);
+
+    // Load what the proxy offers
+    response = await request({ url: response.headers.location, maxRedirects: 0 });
+    expect(response).toBeHttp({ statusCode: 302 });
+    expect(response.headers.location.indexOf(authorizationUrl)).toBe(0);
+
+    // Validate the request has the proxy's clientId
+    url = new URL(response.headers.location);
+    expect(url.searchParams.get('client_id')).toBe(proxyIdentity.clientId);
+    expect(url.searchParams.get('redirect_uri')).toMatch(
+      new RegExp(
+        `/v2/account/${account.accountId}/subscription/${account.subscriptionId}/connector/([^\/]+)/proxy/slack/oauth/callback$`
+      )
+    );
+    const initialRedirectUrl = url.searchParams.get('redirect_uri');
+
+    // Fake a response, bounce back to the proxy with a code
+    const errorMessage = 'cancel_occurred';
+    response = await request({
+      url: `${url.searchParams.get('redirect_uri')}?state=${url.searchParams.get('state')}&error=${errorMessage}`,
+      maxRedirects: 0,
+    });
+    expect(response).toBeHttp({ statusCode: 302 });
+
+    // Redirect to api session callback
+    response = await request({ url: response.headers.location, maxRedirects: 0 });
+    expect(response).toBeHttp({ statusCode: 302 });
+
+    // Redirect to final redirect_uri
+    response = await request({ url: response.headers.location, maxRedirects: 0 });
+    expect(response).toBeHttp({ statusCode: 302 });
+
+    const finalRedirectUrl = new URL(redirectUrl);
+    finalRedirectUrl.searchParams.set('error', errorMessage);
+    finalRedirectUrl.searchParams.set('session', parentSessionId);
+    expect(response.headers.location).toBe(finalRedirectUrl.toString());
+
+    // Validate that it did not call oauth endpoints
+    expect(httpLog.length).toBe(0);
+
+    // Validate that storage includes what's expected compared to what's in the session
+    const session = await ApiRequestMap.connector.session.getResult(account, connectorId, connectorSessionId);
+    expect(session.data.output.error).toBe(errorMessage);
+  }, 180000);
+
   // /authorize:
   //   Call with a bad redirect_uri
   test('Authorize rejects if the redirect_uri does not match', async () => {
