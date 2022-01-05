@@ -8,6 +8,7 @@ import awsUserData from '@5qtrs/user-data';
 import { IOpsNetwork } from '@5qtrs/ops-data';
 import { ExecuteService } from '.';
 import { OpsService } from './OpsService';
+import { AwsAmi } from '@5qtrs/aws-ami';
 
 const DISCOVERY_DOMAIN_NAME = 'fusebit.internal';
 const MASTER_SERVICE_PREFIX = 'leader-';
@@ -38,6 +39,9 @@ const NLB_SG_PREFIX = 'fusebit-mon-nlb-';
 // Running on AMD is 20% cheaper for same performance, so why not.
 const INSTANCE_SIZE = 't3a.medium';
 
+// 20.04 is the latest Ubuntu LTS
+const UBUNTU_VERSION = '20.04';
+
 const STACK_ID_MIN_MAX = {
   min: 100,
   max: 1000,
@@ -55,6 +59,7 @@ interface IMonitoringStack {
   tempoImage: string;
   lokiImage: string;
   grafanaImage: string;
+  amiId?: string;
 }
 interface IMonitoringDeployment {
   monitoringDeploymentName: string;
@@ -80,6 +85,16 @@ export class MonitoringService {
     private creds: IAwsCredentials,
     private input: IExecuteInput
   ) {}
+
+  private async getAmiId(overrideId?: string) {
+    if (overrideId) {
+      return overrideId;
+    }
+
+    const amiService = await AwsAmi.create(this.config);
+    const ami = await amiService.getUbuntuServerAmi(UBUNTU_VERSION);
+    return ami.id;
+  }
 
   private getGrafanaDatabaseMigrationStatement(monDeploymentName: string, password: string) {
     const statements = [];
@@ -123,13 +138,15 @@ export class MonitoringService {
 
   private async createLaunchTemplate(monDep: IMonitoringDeployment, stack: IMonitoringStack) {
     const autoscalingSdk = await this.getAwsSdk(AWS.EC2, { region: monDep.region });
+    const amiId = await this.getAmiId(stack.amiId);
+    const sgId = await this.getSecGroup(MONITORING_SEC_GROUP_PREFIX + monDep.monitoringDeploymentName, monDep.region);
     await autoscalingSdk
       .createLaunchTemplate({
         LaunchTemplateName: LT_PREFIX + monDep.monitoringDeploymentName + stack.stackId,
         LaunchTemplateData: {
           BlockDeviceMappings: [
             {
-              DeviceName: 'Boot',
+              DeviceName: '/dev/sda1',
               Ebs: {
                 DeleteOnTermination: true,
                 Encrypted: true,
@@ -138,6 +155,11 @@ export class MonitoringService {
               },
             },
           ],
+          MetadataOptions: {
+            // It's there in funcion-api, so it's prob there for *some* reason
+            HttpPutResponseHopLimit: 2,
+          },
+          SecurityGroupIds: [sgId?.GroupId as string],
         },
       })
       .promise();
