@@ -9,9 +9,11 @@ import { IOpsNetwork } from '@5qtrs/ops-data';
 import { ExecuteService } from '.';
 import { OpsService } from './OpsService';
 import { AwsAmi } from '@5qtrs/aws-ami';
+import { OpsDataAwsConfig } from '@5qtrs/ops-data-aws';
 
 const DISCOVERY_DOMAIN_NAME = 'fusebit.internal';
 const MASTER_SERVICE_PREFIX = 'leader-';
+const DISCOVERY_SERVICE_PREFIX = 'discovery-';
 const MONITORING_SEC_GROUP_PREFIX = `fusebit-monitoring-`;
 const POSTGRES_PORT = 5432;
 const OPS_MONITORING_TABLE = 'ops.monitoring';
@@ -96,6 +98,32 @@ export class MonitoringService {
     return ami.id;
   }
 
+  private async ensureDiscoveryService(monDep: IMonitoringDeployment) {
+    const getCloudMapService = await this.getService(
+      monDep.monitoringDeploymentName,
+      DISCOVERY_SERVICE_PREFIX + monDep.monitoringDeploymentName,
+      monDep.region
+    );
+    if (getCloudMapService) {
+      return getCloudMapService;
+    }
+    const svcSdk = await this.getAwsSdk(AWS.ServiceDiscovery, { region: monDep.region });
+    const cloudMap = await this.getCloudMap(monDep.networkName, monDep.region);
+    const result = await svcSdk
+      .createService({
+        Name: DISCOVERY_SERVICE_PREFIX + monDep.monitoringDeploymentName,
+        NamespaceId: cloudMap.namespace.Id as string,
+        Description: 'Service Discovery Namespace',
+        DnsConfig: {
+          DnsRecords: [{ Type: 'A', TTL: 5 }],
+          NamespaceId: cloudMap.namespace.Id,
+          RoutingPolicy: 'MULTIVALUE',
+        },
+      })
+      .promise();
+    return result.Service as AWS.ServiceDiscovery.Service;
+  }
+
   private getGrafanaDatabaseMigrationStatement(monDeploymentName: string, password: string) {
     const statements = [];
     // Technically, yes this isn't SQL injection proof, but this is secured behind AWS credentials.
@@ -139,7 +167,10 @@ export class MonitoringService {
   private async createLaunchTemplate(monDep: IMonitoringDeployment, stack: IMonitoringStack) {
     const autoscalingSdk = await this.getAwsSdk(AWS.EC2, { region: monDep.region });
     const amiId = await this.getAmiId(stack.amiId);
+    const discoveryService = await this.ensureDiscoveryService(monDep);
     const sgId = await this.getSecGroup(MONITORING_SEC_GROUP_PREFIX + monDep.monitoringDeploymentName, monDep.region);
+    const userData = await this.getUserData(monDep.monitoringDeploymentName, monDep.region, '', stack.stackId);
+    const awsConfig = await OpsDataAwsConfig.create((await this.opsService.getOpsDataContextImpl()).config);
     await autoscalingSdk
       .createLaunchTemplate({
         LaunchTemplateName: LT_PREFIX + monDep.monitoringDeploymentName + stack.stackId,
@@ -160,6 +191,13 @@ export class MonitoringService {
             HttpPutResponseHopLimit: 2,
           },
           SecurityGroupIds: [sgId?.GroupId as string],
+          UserData: this.toBase64(userData),
+          IamInstanceProfile: {
+            Name: 'fusebit-grafana-instance',
+            // Created by fuse-ops setup
+            Arn: `${awsConfig.arnPrefix}:iam::${this.config.account}:role/fusebit-grafana-instance`,
+          },
+          EbsOptimized: true,
         },
       })
       .promise();
@@ -692,7 +730,9 @@ ${awsUserData.runDockerCompose('/root/docker-compose.yml')}
       MASTER_SERVICE_PREFIX + monDep.monitoringDeploymentName,
       region
     );
-
+    if (!svcSummary) {
+      throw Error('Load Balancer discovery service is not found.');
+    }
     const instances = await cloudMapSdk.listInstances({ ServiceId: svcSummary.Id as string }).promise();
     let promises: Promise<any>[] = [];
     instances.Instances?.map(async (inst) =>
@@ -718,9 +758,8 @@ ${awsUserData.runDockerCompose('/root/docker-compose.yml')}
   private async getService(monDeploymentName: string, serviceName: string, region: string) {
     const mapSdk = await this.getAwsSdk(AWS.ServiceDiscovery, { region });
     const services = await mapSdk.listServices().promise();
-    return (services.Services?.filter(
-      (svc) => svc.Name === serviceName
-    ) as AWS.ServiceDiscovery.ServiceSummariesList)[0];
+    const service = services.Services?.filter((svc) => svc.Name === serviceName);
+    return service ? service[0] : undefined;
   }
 
   private async createNewMonitoringDeployment(
@@ -743,6 +782,7 @@ ${awsUserData.runDockerCompose('/root/docker-compose.yml')}
     if (!creds) {
       await this.executeInitialGrafanaDbSetup(monitoringName, cloudMap.network.region);
     }
+    await this.createNewMonitoringStack(monitoringName);
   }
 
   private async createNewMonitoringStack(monDepName: string) {
@@ -755,12 +795,7 @@ ${awsUserData.runDockerCompose('/root/docker-compose.yml')}
       monDep.region
     );
 
-    const userData = await this.getUserData(
-      monDep.monitoringDeploymentName,
-      monDep.region,
-      service.Id as string,
-      stackId
-    );
+    const lt = await this.createLaunchTemplate(monDep, { stackId, grafanaImage: '', lokiImage: '', tempoImage: '' });
   }
 
   public async MonitoringAdd(networkName: string, deploymentName: string, monitoringName: string, region?: string) {
