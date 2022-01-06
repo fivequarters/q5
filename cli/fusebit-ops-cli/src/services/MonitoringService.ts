@@ -25,10 +25,12 @@ const PARAM_MANAGER_PREFIX = '/fusebit/grafana/credentials/';
 const DEFAULT_DATABASE_NAME = 'fusebit';
 const DATABASE_PREFIX = 'fusebit-db-';
 const LT_PREFIX = 'lt-grafana-';
+const ASG_PREFIX = 'asg-grafana-';
 const API_SG_PREFIX = 'SG-';
 const DB_PREFIX = 'mondb';
 const DB_ENGINE = 'postgres';
 const LOGGING_SERVICE_TYPE = 'monitoring';
+const MIN_MAX = 1;
 const GRAFANA_PORTS = [
   /** Tempo GRPC Ingress TCP */ '4317/tcp',
   /** Tempo GRPC Ingress UDP */ '4317/udp',
@@ -88,12 +90,12 @@ export class MonitoringService {
     private input: IExecuteInput
   ) {}
 
-  private async getAmiId(overrideId?: string) {
+  private async getAmiId(region: string, overrideId?: string) {
     if (overrideId) {
       return overrideId;
     }
 
-    const amiService = await AwsAmi.create(this.config);
+    const amiService = await AwsAmi.create({ ...this.config, region });
     const ami = await amiService.getUbuntuServerAmi(UBUNTU_VERSION);
     return ami.id;
   }
@@ -166,12 +168,12 @@ export class MonitoringService {
 
   private async createLaunchTemplate(monDep: IMonitoringDeployment, stack: IMonitoringStack) {
     const autoscalingSdk = await this.getAwsSdk(AWS.EC2, { region: monDep.region });
-    const amiId = await this.getAmiId(stack.amiId);
+    const amiId = await this.getAmiId(monDep.region, stack.amiId);
     const discoveryService = await this.ensureDiscoveryService(monDep);
     const sgId = await this.getSecGroup(MONITORING_SEC_GROUP_PREFIX + monDep.monitoringDeploymentName, monDep.region);
     const userData = await this.getUserData(monDep.monitoringDeploymentName, monDep.region, '', stack.stackId);
     const awsConfig = await OpsDataAwsConfig.create((await this.opsService.getOpsDataContextImpl()).config);
-    await autoscalingSdk
+    const lt = await autoscalingSdk
       .createLaunchTemplate({
         LaunchTemplateName: LT_PREFIX + monDep.monitoringDeploymentName + stack.stackId,
         LaunchTemplateData: {
@@ -193,12 +195,37 @@ export class MonitoringService {
           SecurityGroupIds: [sgId?.GroupId as string],
           UserData: this.toBase64(userData),
           IamInstanceProfile: {
-            Name: 'fusebit-grafana-instance',
             // Created by fuse-ops setup
-            Arn: `${awsConfig.arnPrefix}:iam::${this.config.account}:role/fusebit-grafana-instance`,
+            Arn: `${awsConfig.arnPrefix}:iam::${this.config.account}:instance-profile/fusebit-grafana-instance`,
           },
           EbsOptimized: true,
+          InstanceType: INSTANCE_SIZE,
+          ImageId: amiId,
         },
+      })
+      .promise();
+    await this.createAutoScalingGroupFromLaunchTemplate(lt.LaunchTemplate?.LaunchTemplateName as string, monDep, stack);
+  }
+
+  private async createAutoScalingGroupFromLaunchTemplate(
+    ltName: string,
+    deployment: IMonitoringDeployment,
+    stack: IMonitoringStack
+  ) {
+    const cloudMap = await this.getCloudMap(deployment.networkName, deployment.region);
+    const autoScalingSdk = await this.getAwsSdk(AWS.AutoScaling, { region: deployment.region });
+    await autoScalingSdk
+      .createAutoScalingGroup({
+        AutoScalingGroupName: ASG_PREFIX + stack.stackId,
+        LaunchTemplate: {
+          LaunchTemplateName: ltName,
+        },
+        MinSize: MIN_MAX,
+        MaxSize: MIN_MAX,
+        DesiredCapacity: MIN_MAX,
+        HealthCheckType: 'ELB',
+        HealthCheckGracePeriod: 300,
+        VPCZoneIdentifier: cloudMap.network.privateSubnets.map((subnet) => subnet.id).join(','),
       })
       .promise();
   }
@@ -216,11 +243,13 @@ export class MonitoringService {
     const tempoConfig = await this.getTempoYamlFile();
     const composeFile = await this.getComposeFile();
     return `
+#!/bin/bash
 ${awsUserData.updateSystem()}
 ${awsUserData.installAwsCli()}
 mkdir /root/tempo-data
 ${awsUserData.installCloudWatchAgent(LOGGING_SERVICE_TYPE, deployment.monitoringDeploymentName)}
 ${awsUserData.installDocker()}
+${awsUserData.installDockerCompose()}
 ${awsUserData.addFile(grafanaConfig, '/root/grafana.ini')}
 ${awsUserData.addFile(lokiConfig, '/root/loki.yml')}
 ${awsUserData.addFile(tempoConfig, '/root/tempo.yml')}

@@ -11,7 +11,7 @@ export default class AwsData {
   }
 
   public static runDockerCompose(composeDir: string) {
-    return `docker compose up -f ${composeDir} -d`;
+    return `docker-compose up -f ${composeDir} -d`;
   }
 
   public static updateSystem() {
@@ -20,6 +20,13 @@ export default class AwsData {
 
   public static installAwsCli() {
     return `apt install -y awscli`;
+  }
+
+  public static installDockerCompose() {
+    return `
+curl -L "https://github.com/docker/compose/releases/download/1.29.2/docker-compose-$(uname -s)-$(uname -m)" -o /usr/local/bin/docker-compose
+chmod +x /usr/local/bin/docker-compose
+    `;
   }
 
   public static registerCloudMapInstance(serviceId: string, stackId: string) {
