@@ -11,7 +11,8 @@ export default class AwsData {
   }
 
   public static runDockerCompose(composeDir: string) {
-    return `docker-compose up -f ${composeDir} -d`;
+    return `cd /root/
+docker-compose up -f ${composeDir} -d`;
   }
 
   public static updateSystem() {
@@ -29,12 +30,16 @@ chmod +x /usr/local/bin/docker-compose
     `;
   }
 
-  public static registerCloudMapInstance(serviceId: string, stackId: string) {
+  public static registerCloudMapInstance(serviceId: string, stackId: string, region: string) {
     return `
-  # Get IP of instance
-curl http://169.254.169.254/latest/meta-data/local-ipv4/ > /tmp/ip
-curl http://169.254.169.254/latest/meta-data/instance-id/ > /tmp/instance-id
-aws servicediscovery register-instance --service-id "${serviceId}" --instance-id "$(cat /tmp/ip)" --attributes="AWS_INSTANCE_IPV4=$(cat /tmp/instance-id),STACK_ID=${stackId}"
+curl http://169.254.169.254/latest/meta-data/instance-id > /tmp/instance-id
+curl http://169.254.169.254/latest/meta-data/local-ipv4 > /tmp/ip
+# Install Node 14
+curl -sL https://deb.nodesource.com/setup_14.x | bash -
+apt install nodejs -y
+cd /root/
+npm install aws-sdk
+REGION=${region} STACK_ID=${stackId.toString()} SERVICE_ID=${serviceId} node /root/register.js
   `;
   }
 

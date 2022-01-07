@@ -171,7 +171,12 @@ export class MonitoringService {
     const amiId = await this.getAmiId(monDep.region, stack.amiId);
     const discoveryService = await this.ensureDiscoveryService(monDep);
     const sgId = await this.getSecGroup(MONITORING_SEC_GROUP_PREFIX + monDep.monitoringDeploymentName, monDep.region);
-    const userData = await this.getUserData(monDep.monitoringDeploymentName, monDep.region, '', stack.stackId);
+    const userData = await this.getUserData(
+      monDep.monitoringDeploymentName,
+      monDep.region,
+      discoveryService.Id as string,
+      stack.stackId
+    );
     const awsConfig = await OpsDataAwsConfig.create((await this.opsService.getOpsDataContextImpl()).config);
     const lt = await autoscalingSdk
       .createLaunchTemplate({
@@ -238,23 +243,23 @@ export class MonitoringService {
     const deployment = await this.getMonitoringDeploymentByName(monDepName);
     const cloudMap = await this.getCloudMap(deployment.networkName, region);
     const dbCredentials = await this.getGrafanaCredentials(deployment.monitoringDeploymentName, region);
-    const grafanaConfig = await this.getGrafanaIniFile(dbCredentials as IDatabaseCredentials, deployment);
+    const grafanaConfigFile = await this.getGrafanaIniFile(dbCredentials as IDatabaseCredentials, deployment);
     const lokiConfig = await this.getLokiYamlFile();
     const tempoConfig = await this.getTempoYamlFile();
     const composeFile = await this.getComposeFile();
-    return `
-#!/bin/bash
+    return `#!/bin/bash
 ${awsUserData.updateSystem()}
 ${awsUserData.installAwsCli()}
 mkdir /root/tempo-data
 ${awsUserData.installCloudWatchAgent(LOGGING_SERVICE_TYPE, deployment.monitoringDeploymentName)}
 ${awsUserData.installDocker()}
 ${awsUserData.installDockerCompose()}
-${awsUserData.addFile(grafanaConfig, '/root/grafana.ini')}
+${awsUserData.addFile(grafanaConfigFile, '/root/grafana.ini')}
 ${awsUserData.addFile(lokiConfig, '/root/loki.yml')}
 ${awsUserData.addFile(tempoConfig, '/root/tempo.yml')}
 ${awsUserData.addFile(composeFile, '/root/docker-compose.yml')}
-${awsUserData.registerCloudMapInstance(serviceId, stackId.toString())}
+${awsUserData.addFile(this.toBase64(grafanaConfig.getRegistrationScript()), '/root/register.js')}
+${awsUserData.registerCloudMapInstance(serviceId, stackId.toString(), region)}
 ${awsUserData.runDockerCompose('/root/docker-compose.yml')}
     `;
   }

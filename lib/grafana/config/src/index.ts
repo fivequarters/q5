@@ -20,3 +20,7 @@ export const toYamlFile = (input: any) => {
 export const toIniFile = (input: any) => {
   return ini.encode(input);
 };
+
+export const getRegistrationScript = () => {
+  return fs.readFileSync(path.join(__dirname, 'ensureService.js'), 'utf-8');
+};
