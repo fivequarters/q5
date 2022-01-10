@@ -43,6 +43,7 @@ router.post(
         orgId = response.body.orgId;
       }
 
+      let userId: number;
       action = 'Create User';
       // Create the user
       response = await superagent
@@ -56,6 +57,24 @@ router.post(
           OrgId: orgId,
         })
         .ok((r) => r.status < 399 || r.status === 412);
+      if (response.status === 412) {
+        action = 'Get User ID';
+        response = await superagent
+          .get(`${grafana.location}/api/users/search?query=${accountId}`)
+          .set(grafana.authHeader, grafana.adminUsername)
+          .set(grafana.orgHeader, `${orgId}`);
+        userId = response.body.users[0].id;
+      } else {
+        userId = response.body.id;
+      }
+
+      action = 'Update Role';
+      // Set the role for the user to Viewer
+      response = await superagent
+        .patch(`${grafana.location}/api/org/users/${userId}`)
+        .set(grafana.authHeader, grafana.adminUsername)
+        .set(grafana.orgHeader, `${orgId}`)
+        .send({ role: 'Viewer' }); // Change this from Viewer to Admin if you want more access.
 
       action = 'Create Datasources';
       // Create the datasources using the admin user

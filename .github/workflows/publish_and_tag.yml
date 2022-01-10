@@ -85,10 +85,10 @@ jobs:
         run: ./tool/cicd/actions/scripts/publish_function_api.sh
       - name: Publish - fusebit-cli
         run: ./tool/cicd/actions/scripts/publish_fusebit_cli.sh
-      - name: Publish - fusebit-editor
-        run: ./tool/cicd/actions/scripts/publish_fusebit_editor.sh
       - name: Publish - fusebit-ops-cli
         run: ./tool/cicd/actions/scripts/publish_fusebit_ops_cli.sh
+      - name: Publish - fusebit-schema
+        run: ./tool/cicd/actions/scripts/publish_fusebit_schema.sh
       - name: Publish - API Docs
         run: ./tool/cicd/actions/scripts/publish_api_docs.sh
       - name: Publish - Global Proxy Secrets

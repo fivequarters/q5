@@ -11,11 +11,18 @@ const routes = require('./routes');
 
 var app = express();
 // Sanitize logged URLs
-logger.token(
-  'url',
-  (req, res) =>
-    `${req.baseUrl}${req.query && req.query.token ? req.url.replace(/token=[^\&]+/, 'token={removed}') : req.url}`
-);
+logger.token('url', (req, res) => {
+  let result = req.url;
+  if (req.query.token) {
+    result = result.replace(/token=[^\&]+/, 'token={removed}');
+  }
+
+  if (req.query.fusebitAuthorization) {
+    result = result.replace(/fusebitAuthorization=[^\&]+/, 'fusebitAuthorization={removed}');
+  }
+
+  return `${req.baseUrl}${result}`;
+});
 
 const usePrettyLogs = process.stdout.isTTY;
 

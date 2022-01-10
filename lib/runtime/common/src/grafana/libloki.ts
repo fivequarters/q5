@@ -8,6 +8,7 @@ interface IParams {
   boundaryId: string;
   functionId: string;
   traceId: string;
+  spanId: string;
 }
 
 interface IEntry {
@@ -41,7 +42,10 @@ const publishLogs = async (params: IParams, logEntries: IEntry[]) => {
   };
 
   logEntries.forEach((event) =>
-    payload.streams[0].values.push([fromEventTime(event.time), `traceID=${params.traceId} ${event.msg}`])
+    payload.streams[0].values.push([
+      fromEventTime(event.time),
+      JSON.stringify({ traceID: params.traceId, spanID: params.spanId, msg: event.msg }),
+    ])
   );
 
   try {

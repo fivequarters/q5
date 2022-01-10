@@ -54,7 +54,8 @@ export const defaultDashboards = [
         },
         targets: [
           {
-            expr: '{accountId="$accountId"}',
+            expr:
+              '{accountId="$accountId",subscriptionId="$subscriptionId",boundaryId="$boundaryId",functionId="$functionId"} | json | line_format "traceID={{.traceId}} {{.msg}}"',
             refId: 'A',
           },
         ],
@@ -169,7 +170,7 @@ export const defaultDatasources = [
     uid: 'tempo',
     name: 'Tempo',
     type: 'tempo',
-    url: Constants.TEMPO_ENDPOINT,
+    url: 'http://tempo:3200',
     access: 'proxy',
     basicAuth: false,
     isDefault: false,
@@ -177,6 +178,12 @@ export const defaultDatasources = [
     editable: false,
     jsonData: {
       httpHeaderName1: 'X-Scope-OrgID',
+      tracesToLogs: {
+        datasourceUid: 'loki',
+        filterBySpanID: true,
+        filterByTraceID: true,
+        tags: ['accountId'],
+      },
     },
     secureJsonData: {
       httpHeaderValue1: '{{accountId}}',
@@ -186,7 +193,7 @@ export const defaultDatasources = [
     uid: 'loki',
     name: 'Loki',
     type: 'loki',
-    url: Constants.LOKI_ENDPOINT,
+    url: 'http://loki:3100',
     access: 'proxy',
     basicAuth: false,
     isDefault: true,

@@ -5,9 +5,9 @@ TODO
 // Functional
   - Add unit tests to make sure logs get propagated correctly somehow.
     - Probably blocked on VPN.
-  - Add fuse-ops command to provision/refresh existing accounts with grafana configuration.
-  - Support multiple/variable filters, filtering on account, subscription, boundary, function as present in
+! - Support multiple/variable filters, filtering on account, subscription, boundary, function as present in
     the url.
+  X Add fuse-ops command to provision/refresh existing accounts with grafana configuration.
   X test/v1/log.test.ts creates Loki errors for sequencing.
     X Normalize so that loki writes only happen in runtime/analytics.ts
   X Log traces to Tempo for a single function invocation
@@ -16,9 +16,6 @@ TODO
   X Modify lambda return to capture http requests and encode their spans in the return payload.
   X Figure out how to do "annotations" of events (already done via logs) and add a variety of events for
     interests sake.
-  V Add async storage to function execution so that the right logging jwt is used for each call, right now
-    they are cached which is probably a bad time, also it will contain the wrong traceId.
-      V Don't worry since it's switched to full-on.
   X Add actual security to /bootstrap endpoint, setting the auth via cookie and reading it on inbound
   X Add flag/cookie/local-storage to switch from old to new.
 
@@ -36,9 +33,14 @@ TODO
 // Step 2
   - Wire provisioning into account creation process
   - Don't scroll the window on data refresh, if possible?
-  - Add filter so that the cookie gets stripped on dispatch/function run (defensive)
   - Support logging editor events and errors - auto-expand errors?
   X Monkeypatch http.request and https.request to capture both dispatches (and associate with a new traceId)
     as well as return codes.
   X Change lambda-function entrypoint/console wrapper to return logs as part of payload rather than with a separate post
   X Replace all elements of x-fx-trace-id with fusebit-trace-id
+
+// Deferred or not relevant anymore
+  V Add async storage to function execution so that the right logging jwt is used for each call, right now
+    they are cached which is probably a bad time, also it will contain the wrong traceId.
+      V Don't worry since it's switched to full-on.
+

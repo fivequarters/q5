@@ -1,0 +1,4 @@
+# Publish fusebit-schema
+steps:
+- name: Publish - fusebit-schema
+  run: ./tool/cicd/actions/scripts/publish_fusebit_schema.sh

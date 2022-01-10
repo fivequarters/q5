@@ -29,12 +29,12 @@ class Trace {
   }
 
   public status = { code: 0 };
-  public attributes = { key: 'value' };
+  public attributes = {};
   public links = [];
   public events: { time: IHRTime; name: string }[] = [];
   public ended = true;
   public resource: { attributes: Record<string, string> } = { attributes: {} };
-  public instrumentationLibrary = { name: 'opentel-fusebit', version: '1.0.0' };
+  public instrumentationLibrary = { name: 'fusebit', version: '1.0.0' };
 
   constructor(serviceName: string, traceId: string, spanId: string, parentSpanId: string) {
     this._traceId = traceId;
@@ -45,7 +45,7 @@ class Trace {
       attributes: {
         'service.name': serviceName,
         'telemetry.sdk.language': 'nodejs',
-        'telemetry.sdk.name': 'opentelemetry',
+        'telemetry.sdk.name': 'fusebit',
         'telemetry.sdk.version': '1.0.0',
       },
     };

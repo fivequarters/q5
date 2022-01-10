@@ -4,6 +4,11 @@ interface IEvent {
   fusebit: {
     accountId: string;
     subscriptionId: string;
+    boundaryId: string;
+    functionId: string;
+    identityId?: string;
+    installId?: string;
+    sessionId?: string;
   };
   timestamp: string;
   request: {
@@ -42,6 +47,16 @@ export const publishEvent = async (event: IEvent, functionLogs: ILogEvents) => {
   trace.resource.attributes.url = event.request.url;
   trace.resource.attributes.method = event.request.method;
   trace.resource.attributes.statusCode = `${event.response.statusCode}`;
+
+  trace.attributes = {
+    accountId: event.fusebit.accountId,
+    subscriptionId: event.fusebit.subscriptionId,
+    boundaryId: event.fusebit.boundaryId,
+    functionId: event.fusebit.functionId,
+    ...(event.fusebit.identityId ? { identityId: event.fusebit.identityId } : {}),
+    ...(event.fusebit.installId ? { installId: event.fusebit.installId } : {}),
+    ...(event.fusebit.sessionId ? { sessionId: event.fusebit.sessionId } : {}),
+  };
   if (event.response.statusCode > 399) {
     trace.status.code = 2;
   }
