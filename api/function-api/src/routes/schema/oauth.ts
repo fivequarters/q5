@@ -51,7 +51,7 @@ function isProxyAuthorizeRequest(req: ProxyRequest): asserts req is ProxyAuthori
   }
 }
 function isProxyCallbackRequest(req: ProxyRequest): asserts req is ProxyCallbackRequest {
-  if (!req.proxy || !req.query.state || !req.query.code) {
+  if (!req.proxy || !req.query.state || !(req.query.code || req.query.error)) {
     throw new Error('Invalid request');
   }
 }
@@ -213,7 +213,9 @@ export const createProxyRouter = (subscriptionCache: SubscriptionCache): express
       try {
         // Save the returned authorization code in the system, bound to the client_id and client_secret that
         // this connector is configured with.
-        await req.proxy.doPeerCallback(req.query.code);
+        if (!req.query.error) {
+          await req.proxy.doPeerCallback(req.query.code);
+        }
       } catch (error) {
         return next(error);
       }
