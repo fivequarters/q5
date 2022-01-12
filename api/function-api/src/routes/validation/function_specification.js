@@ -68,4 +68,5 @@ module.exports = Joi.object().keys({
       }),
     })
     .default({ authentication: 'none' }),
+  fusebitEditor: Common.fusebitEditor,
 });

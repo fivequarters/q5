@@ -26,3 +26,13 @@ export const encodedFiles = Joi.object().pattern(
 );
 
 export const tags = Joi.object().pattern(tagValue, [Joi.string().regex(tagValue), Joi.allow(null)]);
+
+export const fusebitEditor = Joi.object().keys({
+  runConfig: Joi.array().items(
+    Joi.object().keys({
+      method: Joi.string(),
+      url: Joi.string(),
+      payload: Joi.object(),
+    })
+  ),
+});
