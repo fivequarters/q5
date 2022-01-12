@@ -160,7 +160,13 @@ export interface IIntegrationData {
   security?: {
     permissions: IEntityPermission[];
   };
-  fusebitEditor?: Record<string, any>;
+  fusebitEditor?: {
+    runConfig: {
+      url?: string;
+      method?: string;
+      payload?: Record<string, any>;
+    }[];
+  };
 }
 
 export interface IIntegration extends IEntity {

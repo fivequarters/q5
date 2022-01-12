@@ -53,11 +53,7 @@ const Data = Joi.alternatives().try(
         })
       ),
     }),
-    fusebitEditor: Joi.object().keys({
-      method: Joi.string(),
-      url: Joi.string(),
-      payload: Joi.object(),
-    }),
+    fusebitEditor: Common.fusebitEditor,
   }),
   Joi.object().keys({})
 );
