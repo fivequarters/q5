@@ -127,6 +127,7 @@ export default abstract class BaseEntityService<E extends Model.IEntity, F exten
         persistLogs: true,
         memorySize: 512,
       },
+      fusebitEditor: entity.data.fusebitEditor,
       security: this.getFunctionSecuritySpecification(entity),
     };
 

@@ -68,4 +68,9 @@ module.exports = Joi.object().keys({
       }),
     })
     .default({ authentication: 'none' }),
+  fusebitEditor: Joi.object().keys({
+    method: Joi.string(),
+    url: Joi.string(),
+    payload: Joi.object(),
+  }),
 });

@@ -160,6 +160,7 @@ export interface IIntegrationData {
   security?: {
     permissions: IEntityPermission[];
   };
+  fusebitEditor?: Record<string, any>;
 }
 
 export interface IIntegration extends IEntity {

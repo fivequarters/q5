@@ -55,6 +55,11 @@ interface IFunctionSpecification {
     authorization?: any;
     functionPermissions?: any;
   };
+  fusebitEditor?: {
+    method?: string;
+    url?: string;
+    payload?: Record<string, any>;
+  };
 }
 
 interface ICreateFunction {
