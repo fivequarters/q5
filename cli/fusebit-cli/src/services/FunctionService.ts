@@ -1410,7 +1410,7 @@ export class FunctionService {
         template: ${JSON.stringify(template, null, 2)},
         editor: {
           features: {
-            enableNewLogs,
+            enableNewLogs: enableNewLogs || true,
           },
           ...${JSON.stringify(editorSettings, null, 2)},
         },

@@ -53,7 +53,7 @@ export const defaultDashboards = [
         targets: [
           {
             expr:
-              '{accountId="$accountId",subscriptionId="$subscriptionId",boundaryId="$boundaryId",functionId="$functionId"} | json | line_format "traceID={{.traceId}} {{.msg}}"',
+              '{accountId="$accountId",subscriptionId="$subscriptionId",boundaryId="$boundaryId",functionId="$functionId"} | json | line_format "{{.msg}}"',
             refId: 'A',
           },
         ],
