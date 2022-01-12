@@ -2,7 +2,7 @@ version: '3'
 services:
   tempo:
     image: grafana/tempo:latest
-    command: ['-config.file=/etc/tempo.yaml']
+    #command: ['-config.file=/etc/tempo.yaml']
     volumes:
       #      - /root/tempo.yml:/etc/tempo.yaml
       - /root/tempo-data:/tmp/tempo
@@ -13,7 +13,7 @@ services:
 
   loki:
     image: grafana/loki:2.3.0
-    command: ['-config.file=/etc/loki/loki-config.yaml']
+    #command: ['-config.file=/etc/loki/loki-config.yaml']
     volumes:
       #      - /root/loki-config.yaml:/etc/loki/loki-config.yaml
       - /var/log/:/var/log/
@@ -22,7 +22,7 @@ services:
 
   grafana:
     image: grafana/grafana:latest
-    command: ['--config=conf/grafana-config.ini']
+    command: ['--config=/etc/grafana/grafana.ini']
     volumes:
       - /root/grafana.ini:/etc/grafana/grafana.ini
       - /var/log/:/var/log/

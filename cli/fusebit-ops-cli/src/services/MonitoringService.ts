@@ -22,7 +22,6 @@ const LOKI_BUCKET_PREFIX = 'loki-bucket-fusebit-';
 const TEMPO_BUCKET_PREFIX = 'tempo-bucket-fusebit-';
 const RDS_SEC_GROUP_PREFIX = 'fusebit-db-security-group-';
 const PARAM_MANAGER_PREFIX = '/fusebit/grafana/credentials/';
-const DEFAULT_DATABASE_NAME = 'fusebit';
 const DATABASE_PREFIX = 'fusebit-db-';
 const LT_PREFIX = 'lt-grafana-';
 const ASG_PREFIX = 'asg-grafana-';
@@ -251,6 +250,7 @@ export class MonitoringService {
 ${awsUserData.updateSystem()}
 ${awsUserData.installAwsCli()}
 mkdir /root/tempo-data
+chmod 777 /var/log
 ${awsUserData.installCloudWatchAgent(LOGGING_SERVICE_TYPE, deployment.monitoringDeploymentName)}
 ${awsUserData.installDocker()}
 ${awsUserData.installDockerCompose()}
