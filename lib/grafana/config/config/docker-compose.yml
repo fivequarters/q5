@@ -4,7 +4,7 @@ services:
     image: grafana/tempo:latest
     command: ['-config.file=/etc/tempo.yaml']
     volumes:
-      - /root/tempo.yml:/etc/tempo.yaml
+      #      - /root/tempo.yml:/etc/tempo.yaml
       - /root/tempo-data:/tmp/tempo
       - /var/log/:/var/log/
     ports:
@@ -15,7 +15,7 @@ services:
     image: grafana/loki:2.3.0
     command: ['-config.file=/etc/loki/loki-config.yaml']
     volumes:
-      - /root/loki-config.yaml:/etc/loki/loki-config.yaml
+      #      - /root/loki-config.yaml:/etc/loki/loki-config.yaml
       - /var/log/:/var/log/
     ports:
       - '3100:3100'

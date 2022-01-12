@@ -260,14 +260,15 @@ ${awsUserData.addFile(tempoConfig, '/root/tempo.yml')}
 ${awsUserData.addFile(composeFile, '/root/docker-compose.yml')}
 ${awsUserData.addFile(this.toBase64(grafanaConfig.getRegistrationScript()), '/root/register.js')}
 ${awsUserData.registerCloudMapInstance(serviceId, stackId.toString(), region)}
-${awsUserData.runDockerCompose('/root/docker-compose.yml')}
+${awsUserData.runDockerCompose()}
     `;
   }
 
   private async getComposeFile() {
     const composeTemplate = grafanaConfig.getDockerComposeTemplate();
     console.log(composeTemplate);
-    return this.toBase64('');
+
+    return this.toBase64(grafanaConfig.toYamlFile(composeTemplate));
   }
 
   private async getLokiYamlFile() {

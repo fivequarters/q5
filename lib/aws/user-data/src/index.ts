@@ -10,9 +10,9 @@ export default class AwsData {
     return `curl https://get.docker.com | sh`;
   }
 
-  public static runDockerCompose(composeDir: string) {
+  public static runDockerCompose() {
     return `cd /root/
-docker-compose up -f ${composeDir} -d`;
+docker-compose up -d`;
   }
 
   public static updateSystem() {
