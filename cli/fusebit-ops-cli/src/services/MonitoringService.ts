@@ -39,6 +39,9 @@ const GRAFANA_PORTS = [
 const NLB_PREFIX = 'nlb-grafana-';
 const NLB_SG_PREFIX = 'fusebit-mon-nlb-';
 
+// Bootstrap bucket
+const BOOTSTRAP_BUCKET = 'grafana-bootstrap-';
+
 // Running on AMD is 20% cheaper for same performance, so why not.
 const INSTANCE_SIZE = 't3a.medium';
 
@@ -97,6 +100,27 @@ export class MonitoringService {
     const amiService = await AwsAmi.create({ ...this.config, region });
     const ami = await amiService.getUbuntuServerAmi(UBUNTU_VERSION);
     return ami.id;
+  }
+
+  private async setupBootStrapBucket(deploymentName: string, region: string) {
+    const s3Sdk = await this.getAwsSdk(AWS.S3, { region });
+    const buckets = await s3Sdk.listBuckets().promise();
+    if (buckets.Buckets?.filter((bucket) => bucket.Name === BOOTSTRAP_BUCKET + deploymentName).length === 1) {
+      return;
+    }
+    const bucket = await s3Sdk.createBucket({ Bucket: BOOTSTRAP_BUCKET + deploymentName }).promise();
+  }
+
+  private async addBootstrapScriptToBucket(deployment: IMonitoringDeployment, stack: IMonitoringStack, script: string) {
+    const s3Sdk = await this.getAwsSdk(AWS.S3, { region: deployment.region });
+    const file = await s3Sdk
+      .putObject({
+        Bucket: BOOTSTRAP_BUCKET + deployment.monitoringDeploymentName,
+        Key: stack.stackId + '.sh',
+        ContentType: 'text/plain',
+        Body: Buffer.from(script, 'utf-8'),
+      })
+      .promise();
   }
 
   private async ensureDiscoveryService(monDep: IMonitoringDeployment) {
@@ -176,6 +200,8 @@ export class MonitoringService {
       discoveryService.Id as string,
       stack.stackId
     );
+    await this.addBootstrapScriptToBucket(monDep, stack, userData);
+    const bootstrapUserData = await this.getBootStrapUserData(monDep, stack);
     const awsConfig = await OpsDataAwsConfig.create((await this.opsService.getOpsDataContextImpl()).config);
     const lt = await autoscalingSdk
       .createLaunchTemplate({
@@ -197,7 +223,7 @@ export class MonitoringService {
             HttpPutResponseHopLimit: 2,
           },
           SecurityGroupIds: [sgId?.GroupId as string],
-          UserData: this.toBase64(userData),
+          UserData: this.toBase64(bootstrapUserData),
           IamInstanceProfile: {
             // Created by fuse-ops setup
             Arn: `${awsConfig.arnPrefix}:iam::${this.config.account}:instance-profile/fusebit-grafana-instance`,
@@ -238,13 +264,23 @@ export class MonitoringService {
     return Math.floor(Math.random() * (STACK_ID_MIN_MAX.max - STACK_ID_MIN_MAX.min + 1)) + STACK_ID_MIN_MAX.min;
   }
 
+  private async getBootStrapUserData(deploy: IMonitoringDeployment, stack: IMonitoringStack) {
+    return `#!/bin/bash
+${awsUserData.updateSystem()}
+${awsUserData.installAwsCli()}
+aws s3 cp s3://${BOOTSTRAP_BUCKET + deploy.monitoringDeploymentName}/${stack.stackId.toString()}.sh bootstrap.sh
+chmod +x bootstrap.sh
+./bootstrap.sh
+    `;
+  }
+
   private async getUserData(monDepName: string, region: string, serviceId: string, stackId: number) {
     const deployment = await this.getMonitoringDeploymentByName(monDepName);
     const cloudMap = await this.getCloudMap(deployment.networkName, region);
     const dbCredentials = await this.getGrafanaCredentials(deployment.monitoringDeploymentName, region);
     const grafanaConfigFile = await this.getGrafanaIniFile(dbCredentials as IDatabaseCredentials, deployment);
-    const lokiConfig = await this.getLokiYamlFile();
-    const tempoConfig = await this.getTempoYamlFile();
+    const lokiConfig = await this.getLokiYamlFile(deployment);
+    const tempoConfig = await this.getTempoYamlFile(deployment);
     const composeFile = await this.getComposeFile();
     return `#!/bin/bash
 ${awsUserData.updateSystem()}
@@ -271,12 +307,19 @@ ${awsUserData.runDockerCompose()}
     return this.toBase64(grafanaConfig.toYamlFile(composeTemplate));
   }
 
-  private async getLokiYamlFile() {
-    return this.toBase64('');
+  private async getLokiYamlFile(monDep: IMonitoringDeployment) {
+    const template = grafanaConfig.getLokiConfigTemplate() as any;
+    template.storage_config.aws.s3 = `s3://${LOKI_BUCKET_PREFIX + monDep.monitoringDeploymentName}`;
+    template.storage_config.aws.region = monDep.region;
+    return this.toBase64(grafanaConfig.toYamlFile(template));
   }
 
-  private async getTempoYamlFile() {
-    return this.toBase64('');
+  private async getTempoYamlFile(monDep: IMonitoringDeployment) {
+    const template = grafanaConfig.getTempoConfigTemplate() as any;
+    // Configure S3 name
+    template.storage.trace.s3.bucket = TEMPO_BUCKET_PREFIX + monDep.monitoringDeploymentName;
+    template.storage.trace.s3.endpoint = `s3.${monDep.region}.amazonaws.com`;
+    return this.toBase64(grafanaConfig.toYamlFile(template));
   }
 
   private toBase64(input: string) {
@@ -817,6 +860,7 @@ ${awsUserData.runDockerCompose()}
     if (!creds) {
       await this.executeInitialGrafanaDbSetup(monitoringName, cloudMap.network.region);
     }
+    await this.setupBootStrapBucket(monitoringName, cloudMap.network.region);
     await this.createNewMonitoringStack(monitoringName);
   }
 

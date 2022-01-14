@@ -2,20 +2,21 @@ version: '3'
 services:
   tempo:
     image: grafana/tempo:latest
-    #command: ['-config.file=/etc/tempo.yaml']
+    command: ['-config.file=/etc/tempo.yaml']
     volumes:
-      #      - /root/tempo.yml:/etc/tempo.yaml
+      - /root/tempo.yml:/etc/tempo.yaml
       - /root/tempo-data:/tmp/tempo
       - /var/log/:/var/log/
     ports:
+      - '3200:3200/tcp' # http
       - '4317:4317/udp' # grpc ingest
       - '4317:4317/tcp' # grpc ingest
 
   loki:
     image: grafana/loki:2.3.0
-    #command: ['-config.file=/etc/loki/loki-config.yaml']
+    command: ['-config.file=/etc/loki/loki.yaml']
     volumes:
-      #      - /root/loki-config.yaml:/etc/loki/loki-config.yaml
+      - /root/loki.yml:/etc/loki/loki.yaml
       - /var/log/:/var/log/
     ports:
       - '3100:3100'
