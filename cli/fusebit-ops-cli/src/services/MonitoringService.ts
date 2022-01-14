@@ -1,5 +1,5 @@
 import { v4 as uuidv4 } from 'uuid';
-import AWS from 'aws-sdk';
+import AWS, { ELBv2 } from 'aws-sdk';
 import { IAwsConfig } from '@5qtrs/aws-config';
 import { AwsCreds, IAwsCredentials } from '@5qtrs/aws-cred';
 import { IExecuteInput } from '@5qtrs/cli';
@@ -52,6 +52,8 @@ const STACK_ID_MIN_MAX = {
   min: 100,
   max: 1000,
 };
+
+const TG_PREFIX = 'tg-grafana-';
 
 interface IDatabaseCredentials {
   username: string;
@@ -256,6 +258,37 @@ export class MonitoringService {
         HealthCheckType: 'ELB',
         HealthCheckGracePeriod: 300,
         VPCZoneIdentifier: cloudMap.network.privateSubnets.map((subnet) => subnet.id).join(','),
+      })
+      .promise();
+  }
+
+  private async createTargetGroup(monDep: IMonitoringDeployment, stack: IMonitoringStack) {
+    const ELBSdk = await this.getAwsSdk(AWS.ELBv2, { region: monDep.region });
+    const autoscalingSdk = await this.getAwsSdk(AWS.AutoScaling, { region: monDep.region });
+    const network = await this.getCloudMap(monDep.networkName, monDep.region);
+    const promises: Promise<AWS.ELBv2.CreateTargetGroupOutput>[] = [];
+    for (const port of GRAFANA_PORTS) {
+      const [portNumber, proto] = port.split('/');
+      promises.push(
+        ELBSdk.createTargetGroup({
+          Port: parseInt(portNumber),
+          Name: TG_PREFIX + monDep.monitoringDeploymentName + stack.stackId,
+          HealthCheckEnabled: true,
+          HealthCheckProtocol: 'TCP',
+          Protocol: proto.toUpperCase(),
+          VpcId: network.network.vpcId,
+          TargetType: 'instance',
+        }).promise()
+      );
+    }
+
+    const results = await Promise.all(promises);
+    await autoscalingSdk
+      .attachLoadBalancerTargetGroups({
+        TargetGroupARNs: results.map(
+          (result) => (result?.TargetGroups as AWS.ELBv2.TargetGroups)[0].TargetGroupArn
+        ) as string[],
+        AutoScalingGroupName: ASG_PREFIX + stack.stackId,
       })
       .promise();
   }
@@ -796,6 +829,44 @@ ${awsUserData.runDockerCompose()}
       // Sleep a bit before continue so we don't DoS AWS
       await new Promise((res) => setTimeout(res, 3000));
     } while (!success);
+    const promises: Promise<any>[] = [];
+    for (const portProto of GRAFANA_PORTS) {
+      const [port, proto] = portProto.split('/');
+      elbSdk
+        .createTargetGroup({
+          Port: parseInt(port),
+          Name: TG_PREFIX + monitoringName + '-lead',
+          HealthCheckEnabled: true,
+          HealthCheckProtocol: 'TCP',
+          Protocol: proto.toUpperCase(),
+          VpcId: cloudMap.network.vpcId,
+          TargetType: 'instance',
+        })
+        .promise();
+    }
+    const results = (await Promise.all(promises)) as ELBv2.CreateTargetGroupOutput[];
+    const promises2: Promise<any>[] = [];
+    for (const result of results) {
+      promises2.push(
+        elbSdk
+          .createListener({
+            Port: (result.TargetGroups as AWS.ELBv2.TargetGroups)[0].Port as number,
+            Protocol: (result.TargetGroups as AWS.ELBv2.TargetGroups)[0].Protocol as string,
+            LoadBalancerArn: (nlb.LoadBalancers as AWS.ELBv2.LoadBalancers)[0].LoadBalancerArn as string,
+            DefaultActions: [
+              {
+                Type: 'forward',
+                ForwardConfig: {
+                  TargetGroups: [...(result.TargetGroups as AWS.ELBv2.TargetGroups)],
+                },
+              },
+            ],
+          })
+          .promise()
+      );
+    }
+
+    await Promise.all(promises2);
     return (nlb.LoadBalancers as AWS.ELBv2.LoadBalancers)[0];
   }
 
@@ -873,8 +944,9 @@ ${awsUserData.runDockerCompose()}
       MASTER_SERVICE_PREFIX + monDep.monitoringDeploymentName,
       monDep.region
     );
-
-    const lt = await this.createLaunchTemplate(monDep, { stackId, grafanaImage: '', lokiImage: '', tempoImage: '' });
+    const stack = { stackId, grafanaImage: '', lokiImage: '', tempoImage: '' };
+    const lt = await this.createLaunchTemplate(monDep, stack);
+    await this.createTargetGroup(monDep, stack);
   }
 
   public async MonitoringAdd(networkName: string, deploymentName: string, monitoringName: string, region?: string) {
