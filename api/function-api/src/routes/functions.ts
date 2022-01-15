@@ -62,6 +62,7 @@ interface IFunctionSpecification {
       payload?: Record<string, any>;
     }[];
   };
+  canFork: boolean;
 }
 
 interface ICreateFunction {

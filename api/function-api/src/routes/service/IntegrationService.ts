@@ -106,6 +106,20 @@ class IntegrationService extends SessionedEntityService<Model.IIntegration, Mode
     return entity;
   };
 
+  public sanitizeForkedEntity = (
+    sourceEntity: Model.IEntity,
+    target: Model.IEntityId,
+    names?: Record<string, string>
+  ) => {
+    sourceEntity.data.components = sourceEntity.data.components.map((component: Model.IIntegrationComponent) => {
+      return {
+        ...component,
+        entityId: names?.[component.entityId] || component.entityId,
+      };
+    });
+    return sourceEntity;
+  };
+
   public getFunctionSecuritySpecification = (entity: Model.IIntegration) => {
     const resStorage = `/account/{{accountId}}/subscription/{{subscriptionId}}/storage/${this.entityType}/{{functionId}}/`;
     const resEntity = `/account/{{accountId}}/subscription/{{subscriptionId}}/${this.entityType}/{{functionId}}/`;

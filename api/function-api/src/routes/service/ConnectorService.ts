@@ -72,6 +72,49 @@ class ConnectorService extends SessionedEntityService<Model.IConnector, Model.II
     return entity;
   };
 
+  public sanitizeForkedEntity = (
+    sourceEntity: Model.IEntity,
+    target: Model.IEntityId,
+    names?: Record<string, string>
+  ) => {
+    const sanitizedEntity = sourceEntity;
+
+    delete sanitizedEntity.data.configuration.clientId;
+    delete sanitizedEntity.data.configuration.clientSecret;
+    delete sanitizedEntity.data.configuration.constants?.urls?.production;
+    sanitizedEntity.data.configuration.mode = {
+      useProduction: false,
+    };
+
+    // Might require more explicit replacement to protect against badly named items
+    const convertStringAccount = (input: string) =>
+      input
+        .replace(sourceEntity.accountId, target.accountId)
+        .replace(sourceEntity.subscriptionId, target.subscriptionId)
+        .replace(sourceEntity.id, target.id);
+
+    if (sourceEntity.data.configuration.constants?.urls?.proxy) {
+      sanitizedEntity.data.configuration.constants.urls.proxy.tokenUrl = convertStringAccount(
+        sourceEntity.data.configuration.constants.urls.proxy.tokenUrl
+      );
+      sanitizedEntity.data.configuration.constants.urls.proxy.authorizationUrl = convertStringAccount(
+        sourceEntity.data.configuration.constants.urls.proxy.authorizationUrl
+      );
+    }
+    if (sanitizedEntity.data.configuration.constants?.webhookUrl) {
+      sanitizedEntity.data.configuration.constants.webhookUrl = convertStringAccount(
+        sourceEntity.data.configuration.constants.webhookUrl
+      );
+    }
+    if (sanitizedEntity.data.configuration.constants?.callbackUrl) {
+      sanitizedEntity.data.configuration.constants.callbackUrl = convertStringAccount(
+        sourceEntity.data.configuration.constants.callbackUrl
+      );
+    }
+
+    return sanitizedEntity;
+  };
+
   public getFunctionSecuritySpecification = (entity: Model.IConnector) => {
     const resStorage = `/account/{{accountId}}/subscription/{{subscriptionId}}/storage/${this.entityType}/{{functionId}}/`;
     const resEntity = `/account/{{accountId}}/subscription/{{subscriptionId}}/${this.entityType}/{{functionId}}/`;

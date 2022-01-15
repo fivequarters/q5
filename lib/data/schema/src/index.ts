@@ -167,6 +167,7 @@ export interface IIntegrationData {
       payload?: Record<string, any>;
     }[];
   };
+  canFork?: boolean;
 }
 
 export interface IIntegration extends IEntity {

@@ -12,6 +12,7 @@ import * as analytics from '../middleware/analytics';
 
 import { createProxyRouter } from './oauth';
 import connectorFanOut from './connectorFanOut';
+import fork from './fork';
 
 const router = express.Router({ mergeParams: true });
 
@@ -39,7 +40,8 @@ router.use(
   '/integration',
   analytics.setEntityType(Model.EntityType.integration),
   common(integrationService),
-  SubcomponentRouter(installService, ['entityId', 'installId'], Model.EntityType.integration)
+  SubcomponentRouter(installService, ['entityId', 'installId'], Model.EntityType.integration),
+  fork(integrationService, connectorService)
 );
 
 export default router;

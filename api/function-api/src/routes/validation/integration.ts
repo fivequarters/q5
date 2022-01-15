@@ -1,3 +1,5 @@
+import { EntityId } from './entities';
+
 const Joi = require('joi');
 
 import * as EntityCommon from './entities';
@@ -60,5 +62,8 @@ const Data = Joi.alternatives().try(
 
 const Entity = EntityCommon.validateEntity(Data);
 const PostEntity = EntityCommon.validatePostEntity(Data);
+const Fork = EntityId.keys({
+  names: Joi.object(),
+});
 
-export { Entity, PostEntity, Data };
+export { Entity, PostEntity, Data, Fork };

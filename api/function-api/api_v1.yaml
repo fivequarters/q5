@@ -3829,6 +3829,10 @@ components:
                   payload:
                     type: object
                     description: The payload of the default api request
+        canFork:
+          type: boolean
+          description: Whether or not the function can be forked by other users
+          default: false
         security:
           type: object
           description: Properties that impact the runtime security of the function.

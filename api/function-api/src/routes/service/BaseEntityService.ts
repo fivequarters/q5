@@ -1,3 +1,4 @@
+import http_error from 'http-errors';
 import { IAgent } from '@5qtrs/account-data';
 import { Model } from '@5qtrs/db';
 
@@ -128,6 +129,7 @@ export default abstract class BaseEntityService<E extends Model.IEntity, F exten
         memorySize: 512,
       },
       fusebitEditor: entity.data.fusebitEditor,
+      canFork: entity.data.canFork,
       security: this.getFunctionSecuritySpecification(entity),
     };
 
@@ -146,6 +148,33 @@ export default abstract class BaseEntityService<E extends Model.IEntity, F exten
     statusCode: 200,
     result: await this.dao.getEntity(entity),
   });
+
+  public sanitizeForkedEntity = (
+    sourceEntity: Model.IEntity,
+    target: Model.IEntityId,
+    names?: Record<string, string>
+  ): Model.IEntity => {
+    return sourceEntity;
+  };
+
+  public forkEntity = async (
+    resolvedAgent: IAgent,
+    source: Model.IEntityId,
+    target: Model.IEntityId,
+    names?: Record<string, string>
+  ): Promise<IServiceResult> => {
+    const { result: sourceEntity } = await this.getEntity(source);
+    if (!sourceEntity.data.canFork) {
+      throw http_error(403);
+    }
+
+    const sanitizedForkedEntity = this.sanitizeForkedEntity(sourceEntity, target, names);
+    sanitizedForkedEntity.id = target.id;
+    sanitizedForkedEntity.accountId = target.accountId;
+    sanitizedForkedEntity.subscriptionId = target.subscriptionId;
+
+    return this.createEntity(resolvedAgent, sanitizedForkedEntity);
+  };
 
   public createEntity = async (resolvedAgent: IAgent, entity: Model.IEntity): Promise<IServiceResult> => {
     let sanitizedEntity;
