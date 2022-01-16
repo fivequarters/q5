@@ -69,6 +69,7 @@ interface IMonitoringStack {
   grafanaImage: string;
   amiId?: string;
 }
+
 interface IMonitoringDeployment {
   monitoringDeploymentName: string;
   deploymentName: string;
@@ -308,7 +309,7 @@ chmod +x bootstrap.sh
   }
 
   private async getUserData(monDepName: string, region: string, serviceId: string, stackId: number) {
-    const deployment = await this.getMonitoringDeploymentByName(monDepName);
+    const deployment = await this.getMonitoringDeploymentByName(monDepName, region);
     const cloudMap = await this.getCloudMap(deployment.networkName, region);
     const dbCredentials = await this.getGrafanaCredentials(deployment.monitoringDeploymentName, region);
     const grafanaConfigFile = await this.getGrafanaIniFile(dbCredentials as IDatabaseCredentials, deployment);
@@ -443,7 +444,7 @@ ${awsUserData.runDockerCompose()}
   }
 
   private async executeInitialGrafanaDbSetup(monDeploymentName: string, region: string) {
-    const getMonDeployment = await this.getMonitoringDeploymentByName(monDeploymentName);
+    const getMonDeployment = await this.getMonitoringDeploymentByName(monDeploymentName, region);
     const cloudMap = await this.getCloudMap(getMonDeployment.networkName, region);
     const rdsSdk = await this.getAwsSdk(AWS.RDS, { region });
     const rdsDataSdk = await this.getAwsSdk(AWS.RDSDataService, { region });
@@ -612,15 +613,19 @@ ${awsUserData.runDockerCompose()}
     }
   }
 
-  private async getMonitoringDeploymentByName(monDeployName: string): Promise<IMonitoringDeployment> {
+  private async getMonitoringDeploymentByName(monDeployName: string, region?: string): Promise<IMonitoringDeployment> {
     const dynamoSdk = await this.getAwsSdk(AWS.DynamoDB, { region: this.config.region });
     try {
+      const keys: any = {
+        monitoring_deployment_name: { S: monDeployName },
+      };
+      if (region) {
+        keys.region = { S: region };
+      }
       const deployment = await dynamoSdk
         .getItem({
           TableName: OPS_MONITORING_TABLE,
-          Key: {
-            monitoring_deployment_name: { S: monDeployName },
-          },
+          Key: keys,
         })
         .promise();
 
@@ -699,7 +704,7 @@ ${awsUserData.runDockerCompose()}
     const rdsSecGroupName = RDS_SEC_GROUP_PREFIX + deploymentName;
     const monitoringSecGroupName = MONITORING_SEC_GROUP_PREFIX + monitoringName;
     const rdsSecGroup = (await this.getSecGroup(rdsSecGroupName, region)) as AWS.EC2.SecurityGroup;
-    const monitoringDeployment = await this.getMonitoringDeploymentByName(monitoringName);
+    const monitoringDeployment = await this.getMonitoringDeploymentByName(monitoringName, region);
     const cloudMap = await this.getCloudMap(monitoringDeployment.networkName);
     if (await this.getSecGroup(monitoringSecGroupName, region)) {
       return;
@@ -762,7 +767,7 @@ ${awsUserData.runDockerCompose()}
     }
 
     const ec2Sdk = await this.getAwsSdk(AWS.EC2, { region });
-    const monDep = await this.getMonitoringDeploymentByName(monDeployName);
+    const monDep = await this.getMonitoringDeploymentByName(monDeployName, region);
     const cloudMap = await this.getCloudMap(monDep.networkName, region);
 
     const sgCreation = await ec2Sdk
@@ -799,7 +804,7 @@ ${awsUserData.runDockerCompose()}
   }
 
   private async ensureNlb(monitoringName: string, region: string): Promise<AWS.ELBv2.LoadBalancer> {
-    const monDeployment = await this.getMonitoringDeploymentByName(monitoringName);
+    const monDeployment = await this.getMonitoringDeploymentByName(monitoringName, region);
     const cloudMap = await this.getCloudMap(monDeployment.networkName, region);
     const elbSdk = await this.getAwsSdk(AWS.ELBv2, { region });
     const Nlbs = await elbSdk.describeLoadBalancers().promise();
@@ -871,7 +876,7 @@ ${awsUserData.runDockerCompose()}
   }
 
   private async ensureLeaderMapping(monitoringName: string, cnameEndpoint: string, region: string) {
-    const monDep = await this.getMonitoringDeploymentByName(monitoringName);
+    const monDep = await this.getMonitoringDeploymentByName(monitoringName, region);
     const cloudMap = await this.getCloudMap(monDep.networkName, region);
     const cloudMapSdk = await this.getAwsSdk(AWS.ServiceDiscovery, { region });
     const svcSummary = await this.getService(
@@ -932,11 +937,16 @@ ${awsUserData.runDockerCompose()}
       await this.executeInitialGrafanaDbSetup(monitoringName, cloudMap.network.region);
     }
     await this.setupBootStrapBucket(monitoringName, cloudMap.network.region);
-    await this.createNewMonitoringStack(monitoringName);
   }
 
-  private async createNewMonitoringStack(monDepName: string) {
-    const monDep = await this.getMonitoringDeploymentByName(monDepName);
+  private async createNewMonitoringStack(
+    monDepName: string,
+    grafanaTag?: string,
+    tempoTag?: string,
+    lokiTag?: string,
+    region?: string
+  ) {
+    const monDep = await this.getMonitoringDeploymentByName(monDepName, region);
     const stackId = this.generateStackId();
     const cloudMap = await this.getCloudMap(monDep.networkName, monDep.region);
     const service = await this.getService(
@@ -944,9 +954,15 @@ ${awsUserData.runDockerCompose()}
       MASTER_SERVICE_PREFIX + monDep.monitoringDeploymentName,
       monDep.region
     );
-    const stack = { stackId, grafanaImage: '', lokiImage: '', tempoImage: '' };
+    const stack = {
+      stackId,
+      grafanaImage: await this.getGrafanaImage(grafanaTag),
+      lokiImage: await this.getLokiImage(lokiTag),
+      tempoImage: await this.getTempoImage(tempoTag),
+    };
     const lt = await this.createLaunchTemplate(monDep, stack);
     await this.createTargetGroup(monDep, stack);
+    await this.input.io.writeLine(`Stack created: ${stack.stackId}`);
   }
 
   public async MonitoringAdd(networkName: string, deploymentName: string, monitoringName: string, region?: string) {
@@ -958,5 +974,71 @@ ${awsUserData.runDockerCompose()}
       },
       () => this.createNewMonitoringDeployment(networkName, monitoringName, deploymentName, region)
     );
+  }
+
+  public async StackAdd(
+    monitoringDeploymentName: string,
+    grafanaTag?: string,
+    tempoTag?: string,
+    lokiTag?: string,
+    region?: string
+  ) {
+    const createResult = await this.executeService.execute(
+      {
+        header: 'Add Monitoring Stack',
+        message: 'Adding monitoring stack for the Fusebit platform.',
+        errorHeader: 'Stack Adding Error',
+      },
+      () => this.createNewMonitoringStack(monitoringDeploymentName, grafanaTag, tempoTag, lokiTag, region)
+    );
+  }
+
+  /**
+   * This supports a couple ways to input the grafana docker image.
+   * - <fusebit/grafana:version>: This will make the system convert it to a tag to use the ECR Public Fusebit OSS repo
+   * - <whatever/grafana:version>: This will support transparently passing the image path and tag to the system.
+   * - <grafana:version>: the special case with how dockerhub supports the usage of official images without specifying the repo owner,
+   *   the behavior will be consistent with <whatever/grafana:version> above
+   * - <version>: This will default to using the upstream dockerhub/grafana/grafana image with defined version
+   * - No input: This will default to grafana/grafana:latest
+   */
+  public async getGrafanaImage(grafanaImageTag?: string): Promise<string> {
+    if (grafanaImageTag?.includes('fusebit/')) {
+      return `public.ecr.aws/` + grafanaImageTag;
+    }
+    if (grafanaImageTag?.includes('/')) {
+      return grafanaImageTag;
+    }
+    if (grafanaImageTag?.startsWith('grafana:')) {
+      return grafanaImageTag;
+    }
+    if (grafanaImageTag) {
+      return `grafana/grafana:${grafanaImageTag}`;
+    }
+    return 'grafana/grafana:latest';
+  }
+
+  public async getTempoImage(imageTag?: string): Promise<string> {
+    if (imageTag?.includes('/')) {
+      return imageTag;
+    }
+
+    if (imageTag) {
+      return `grafana/tempo:${imageTag}`;
+    }
+
+    return 'grafana/tempo:latest';
+  }
+
+  public async getLokiImage(imageTag?: string): Promise<string> {
+    if (imageTag?.includes('/')) {
+      return imageTag;
+    }
+
+    if (imageTag) {
+      return `grafana/loki:${imageTag}`;
+    }
+
+    return `grafana/loki:latest`;
   }
 }
