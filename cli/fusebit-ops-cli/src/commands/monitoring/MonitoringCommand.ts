@@ -1,5 +1,7 @@
 import { Command, ICommand } from '@5qtrs/cli';
 import { AddMonitoringCommand } from './AddMonitoringCommand';
+import { GetMonitoringCommand } from './GetMonitoringCommand';
+import { ListMonitoringCommand } from './ListMonitoringCommand';
 import { StackCommand } from './stack/StackCommand';
 
 // ------------------
@@ -31,6 +33,8 @@ export class MonitoringCommand extends Command {
     const subCommands = [];
     subCommands.push(await AddMonitoringCommand.create());
     subCommands.push(await StackCommand.create());
+    subCommands.push(await ListMonitoringCommand.create());
+    subCommands.push(await GetMonitoringCommand.create());
     command.subCommands = subCommands;
     return new MonitoringCommand(command);
   }

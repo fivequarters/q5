@@ -10,6 +10,7 @@ import { ExecuteService } from '.';
 import { OpsService } from './OpsService';
 import { AwsAmi } from '@5qtrs/aws-ami';
 import { OpsDataAwsConfig } from '@5qtrs/ops-data-aws';
+import { Text } from '@5qtrs/text';
 
 const DISCOVERY_DOMAIN_NAME = 'fusebit.internal';
 const MASTER_SERVICE_PREFIX = 'leader-';
@@ -553,7 +554,7 @@ ${awsUserData.runDockerCompose()}
     const tables = await dynamoSdk.listTables().promise();
     const correctTable = tables.TableNames?.filter((table) => table === OPS_MONITORING_TABLE);
     if (!correctTable || correctTable.length !== 1) {
-      const createTableResults = await dynamoSdk
+      await dynamoSdk
         .createTable({
           TableName: OPS_MONITORING_TABLE,
           BillingMode: 'PAY_PER_REQUEST',
@@ -584,7 +585,7 @@ ${awsUserData.runDockerCompose()}
   private async ensureDynamoDBStackTable() {
     const dynamoSdk = await this.getAwsSdk(AWS.DynamoDB, { region: this.config.region });
     const tables = await dynamoSdk.listTables().promise();
-    const correctTable = tables.TableNames?.filter((table) => table === OPS_MONITORING_TABLE);
+    const correctTable = tables.TableNames?.filter((table) => table === OPS_MON_STACK_TABLE);
     if (!correctTable || correctTable.length !== 1) {
       const createTableResults = await dynamoSdk
         .createTable({
@@ -616,26 +617,26 @@ ${awsUserData.runDockerCompose()}
   private async getMonitoringDeploymentByName(monDeployName: string, region?: string): Promise<IMonitoringDeployment> {
     const dynamoSdk = await this.getAwsSdk(AWS.DynamoDB, { region: this.config.region });
     try {
-      const keys: any = {
-        monitoring_deployment_name: { S: monDeployName },
-      };
-      if (region) {
-        keys.region = { S: region };
+      const items = await dynamoSdk.scan({ TableName: OPS_MONITORING_TABLE }).promise();
+      const deployment = items.Items?.filter((item) => {
+        if (region) {
+          if (item.region.S !== region) {
+            return false;
+          }
+        }
+        return item.monitoring_deployment_name.S === monDeployName;
+      });
+      if (!deployment) {
+        throw Error('Monitoring deployment not found');
       }
-      const deployment = await dynamoSdk
-        .getItem({
-          TableName: OPS_MONITORING_TABLE,
-          Key: keys,
-        })
-        .promise();
-
       return {
-        deploymentName: deployment.Item?.deployment_name.S as string,
-        networkName: deployment.Item?.network_name.S as string,
-        monitoringDeploymentName: deployment.Item?.monitoring_deployment_name.S as string,
-        region: deployment.Item?.region.S as string,
+        deploymentName: deployment[0].deployment_name.S as string,
+        networkName: deployment[0].network_name.S as string,
+        monitoringDeploymentName: deployment[0].monitoring_deployment_name.S as string,
+        region: deployment[0].region.S as string,
       };
     } catch (e) {
+      console.log(e);
       throw Error('Monitoring deployment not found.');
     }
   }
@@ -965,6 +966,67 @@ ${awsUserData.runDockerCompose()}
     await this.input.io.writeLine(`Stack created: ${stack.stackId}`);
   }
 
+  public async listDeployments() {
+    const dynamoSdk = await this.getAwsSdk(AWS.DynamoDB, { region: this.config.region });
+    const deployments = await dynamoSdk.scan({ TableName: OPS_MONITORING_TABLE }).promise();
+    const deploymentsJson = [];
+    for (const deployment of deployments.Items as AWS.DynamoDB.ItemList) {
+      deploymentsJson.push({
+        deploymentName: deployment.deployment_name.S as string,
+        networkName: deployment.network_name.S as string,
+        monitoringDeploymentName: deployment.monitoring_deployment_name.S as string,
+        region: deployment.region.S as string,
+      });
+    }
+    if (this.input.options.output === 'json') {
+      await this.input.io.writeRaw(JSON.stringify(deploymentsJson));
+      return;
+    }
+    if (deploymentsJson.length === 0) {
+      await this.executeService.warning('Monitoring Deployments not found', 'No monitoring deployment found.');
+      return;
+    }
+    for (const deployment of deploymentsJson) {
+      const details = [
+        Text.dim('Region: '),
+        deployment.region,
+        Text.eol(),
+        Text.dim('Name: '),
+        deployment.monitoringDeploymentName,
+        Text.eol(),
+        Text.dim('Deployment Name: '),
+        deployment.deploymentName,
+        Text.eol(),
+        Text.dim('Network Name: '),
+        deployment.networkName,
+        Text.eol(),
+      ];
+      await this.executeService.message(Text.bold('Deployments'), Text.create(details));
+    }
+  }
+
+  public async MonitoringGet(deploymentName: string, region?: string) {
+    const deployment = await this.getMonitoringDeploymentByName(deploymentName, region);
+    if (this.input.options.output === 'json') {
+      await this.input.io.writeRaw(JSON.stringify(deployment));
+    }
+    const details = [
+      Text.dim('Region: '),
+      deployment.region,
+      Text.eol(),
+      Text.dim('Name: '),
+      deployment.monitoringDeploymentName,
+      Text.eol(),
+      Text.dim('Deployment Name: '),
+      deployment.deploymentName,
+      Text.eol(),
+      Text.dim('Network Name: '),
+      deployment.networkName,
+      Text.eol(),
+    ];
+    await this.executeService.message(Text.bold(deploymentName), Text.create(details));
+  }
+
   public async MonitoringAdd(networkName: string, deploymentName: string, monitoringName: string, region?: string) {
     const listing = await this.executeService.execute(
       {
@@ -973,6 +1035,17 @@ ${awsUserData.runDockerCompose()}
         errorHeader: 'Deployment Adding Error',
       },
       () => this.createNewMonitoringDeployment(networkName, monitoringName, deploymentName, region)
+    );
+  }
+
+  public async MonitoringList() {
+    const listing = await this.executeService.execute(
+      {
+        header: 'Listing Monitoring Deployments',
+        message: 'Listing monitoring deployments on the Fusebit platform',
+        errorHeader: 'Deployment Listing Error',
+      },
+      () => this.listDeployments()
     );
   }
 
