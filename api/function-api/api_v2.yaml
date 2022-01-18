@@ -1007,30 +1007,30 @@ components:
 
     EntityFusebitEditor:
       type: object
-        properties:
-          runConfig:
-            type: array
-            items:
-              type: object
-              description: Optional configuration values for the Fusebit Editor
-              properties:
-                method:
-                  type: string
-                  description: The method to use in the default api request
-                  example: 'get'
-                  enum:
-                    - get
-                    - post
-                    - put
-                    - patch
-                    - delete
-                url:
-                  type: string
-                  description: The endpoint of the default api request
-                  example: '/api/tenant/user-1/test'
-                payload:
-                  type: object
-                  description: The payload of the default api request
+      properties:
+        runConfig:
+          type: array
+          items:
+            type: object
+            description: Optional configuration values for the Fusebit Editor
+            properties:
+              method:
+                type: string
+                description: The method to use in the default api request
+                example: 'get'
+                enum:
+                  - get
+                  - post
+                  - put
+                  - patch
+                  - delete
+              url:
+                type: string
+                description: The endpoint of the default api request
+                example: '/api/tenant/user-1/test'
+              payload:
+                type: object
+                description: The payload of the default api request
 
     SessionId:
       type: string
