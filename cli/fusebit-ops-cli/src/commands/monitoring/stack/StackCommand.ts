@@ -10,14 +10,6 @@ const command: ICommand = {
   cmd: 'stack',
   summary: 'Manage Fusebit Monitoring stacks',
   description: 'Manage Fusebit monitoring stacks',
-  options: [
-    {
-      name: 'output',
-      aliases: ['o'],
-      description: "The format to display the output: 'pretty', 'json'",
-      default: 'pretty',
-    },
-  ],
 };
 
 // ----------------

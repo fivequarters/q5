@@ -32,8 +32,8 @@ const DB_ENGINE = 'postgres';
 const LOGGING_SERVICE_TYPE = 'monitoring';
 const MIN_MAX = 1;
 const GRAFANA_PORTS = [
-  /** Tempo GRPC Ingress TCP */ '4317/tcp',
-  /** Tempo GRPC Ingress UDP */ '4317/udp',
+  /** Tempo GRPC Ingress UDP */ '4317/tcp',
+  /** Tempo Port */ '3200/tcp',
   /** Loki Port */ '3100/tcp',
   /** Grafana Port */ '3000/tcp',
 ];
@@ -43,7 +43,7 @@ const NLB_SG_PREFIX = 'fusebit-mon-nlb-';
 // Bootstrap bucket
 const BOOTSTRAP_BUCKET = 'grafana-bootstrap-';
 
-// Running on AMD is 20% cheaper for same performance, so why not.
+// Running on AMD(a) is 20% cheaper for the same performance.
 const INSTANCE_SIZE = 't3a.medium';
 
 // 20.04 is the latest Ubuntu LTS
@@ -155,10 +155,6 @@ export class MonitoringService {
 
   private getGrafanaDatabaseMigrationStatement(monDeploymentName: string, password: string) {
     const statements = [];
-    // Technically, yes this isn't SQL injection proof, but this is secured behind AWS credentials.
-    statements.push(`ALTER DATABASE ${DB_PREFIX}${monDeploymentName} OWNER TO fusebit;`);
-    statements.push(`DROP DATABASE ${DB_PREFIX}${monDeploymentName};`);
-    statements.push(`DROP USER ${monDeploymentName};`);
     statements.push(`CREATE USER ${monDeploymentName} WITH PASSWORD '${password}';`);
     statements.push(`CREATE DATABASE ${DB_PREFIX}${monDeploymentName};`);
     statements.push(`ALTER DATABASE ${DB_PREFIX}${monDeploymentName} OWNER TO ${monDeploymentName};`);
@@ -202,7 +198,7 @@ export class MonitoringService {
       monDep.monitoringDeploymentName,
       monDep.region,
       discoveryService.Id as string,
-      stack.stackId
+      stack
     );
     await this.addBootstrapScriptToBucket(monDep, stack, userData);
     const bootstrapUserData = await this.getBootStrapUserData(monDep, stack);
@@ -250,7 +246,7 @@ export class MonitoringService {
     const autoScalingSdk = await this.getAwsSdk(AWS.AutoScaling, { region: deployment.region });
     await autoScalingSdk
       .createAutoScalingGroup({
-        AutoScalingGroupName: ASG_PREFIX + stack.stackId,
+        AutoScalingGroupName: ASG_PREFIX + deployment.monitoringDeploymentName + stack.stackId,
         LaunchTemplate: {
           LaunchTemplateName: ltName,
         },
@@ -264,35 +260,35 @@ export class MonitoringService {
       .promise();
   }
 
-  private async createTargetGroup(monDep: IMonitoringDeployment, stack: IMonitoringStack) {
-    const ELBSdk = await this.getAwsSdk(AWS.ELBv2, { region: monDep.region });
-    const autoscalingSdk = await this.getAwsSdk(AWS.AutoScaling, { region: monDep.region });
-    const network = await this.getCloudMap(monDep.networkName, monDep.region);
-    const promises: Promise<AWS.ELBv2.CreateTargetGroupOutput>[] = [];
-    for (const port of GRAFANA_PORTS) {
-      const [portNumber, proto] = port.split('/');
-      promises.push(
-        ELBSdk.createTargetGroup({
-          Port: parseInt(portNumber),
-          Name: TG_PREFIX + monDep.monitoringDeploymentName + stack.stackId,
-          HealthCheckEnabled: true,
-          HealthCheckProtocol: 'TCP',
-          Protocol: proto.toUpperCase(),
-          VpcId: network.network.vpcId,
-          TargetType: 'instance',
-        }).promise()
-      );
-    }
-
-    const results = await Promise.all(promises);
-    await autoscalingSdk
+  private async promoteStack(deploymentName: string, stackId: number, region?: string) {
+    const deployment = await this.getMonitoringDeploymentByName(deploymentName, region);
+    const asSdk = await this.getAwsSdk(AWS.AutoScaling, { region: deployment.region });
+    const tgs = await this.getTgs(deployment);
+    await asSdk
       .attachLoadBalancerTargetGroups({
-        TargetGroupARNs: results.map(
-          (result) => (result?.TargetGroups as AWS.ELBv2.TargetGroups)[0].TargetGroupArn
-        ) as string[],
-        AutoScalingGroupName: ASG_PREFIX + stack.stackId,
+        TargetGroupARNs: tgs?.map((tg) => tg.TargetGroupArn as string) as string[],
+        AutoScalingGroupName: ASG_PREFIX + deploymentName + stackId,
       })
       .promise();
+  }
+
+  private async demoteStack(deploymentName: string, stackId: number, region?: string) {
+    const deployment = await this.getMonitoringDeploymentByName(deploymentName, region);
+    const asSdk = await this.getAwsSdk(AWS.AutoScaling, { region: deployment.region });
+    const tgs = await this.getTgs(deployment);
+    await asSdk
+      .detachLoadBalancerTargetGroups({
+        TargetGroupARNs: tgs?.map((tg) => tg.TargetGroupArn as string) as string[],
+        AutoScalingGroupName: ASG_PREFIX + deploymentName + stackId,
+      })
+      .promise();
+  }
+
+  private async getTgs(deployment: IMonitoringDeployment) {
+    const elbSdk = await this.getAwsSdk(AWS.ELBv2, { region: deployment.region });
+    const nlb = await this.ensureNlb(deployment.monitoringDeploymentName, deployment.region);
+    const tgs = await elbSdk.describeTargetGroups({ LoadBalancerArn: nlb.LoadBalancerArn }).promise();
+    return tgs.TargetGroups?.filter((tg) => tg.TargetGroupName?.includes('lead'));
   }
 
   private generateStackId(): number {
@@ -309,17 +305,14 @@ chmod +x bootstrap.sh
     `;
   }
 
-  private async getUserData(monDepName: string, region: string, serviceId: string, stackId: number) {
+  private async getUserData(monDepName: string, region: string, serviceId: string, stack: IMonitoringStack) {
     const deployment = await this.getMonitoringDeploymentByName(monDepName, region);
-    const cloudMap = await this.getCloudMap(deployment.networkName, region);
     const dbCredentials = await this.getGrafanaCredentials(deployment.monitoringDeploymentName, region);
     const grafanaConfigFile = await this.getGrafanaIniFile(dbCredentials as IDatabaseCredentials, deployment);
     const lokiConfig = await this.getLokiYamlFile(deployment);
     const tempoConfig = await this.getTempoYamlFile(deployment);
-    const composeFile = await this.getComposeFile();
+    const composeFile = await this.getComposeFile(stack);
     return `#!/bin/bash
-${awsUserData.updateSystem()}
-${awsUserData.installAwsCli()}
 mkdir /root/tempo-data
 chmod 777 /var/log
 ${awsUserData.installCloudWatchAgent(LOGGING_SERVICE_TYPE, deployment.monitoringDeploymentName)}
@@ -330,15 +323,16 @@ ${awsUserData.addFile(lokiConfig, '/root/loki.yml')}
 ${awsUserData.addFile(tempoConfig, '/root/tempo.yml')}
 ${awsUserData.addFile(composeFile, '/root/docker-compose.yml')}
 ${awsUserData.addFile(this.toBase64(grafanaConfig.getRegistrationScript()), '/root/register.js')}
-${awsUserData.registerCloudMapInstance(serviceId, stackId.toString(), region)}
+${awsUserData.registerCloudMapInstance(serviceId, stack.stackId.toString(), region)}
 ${awsUserData.runDockerCompose()}
     `;
   }
 
-  private async getComposeFile() {
-    const composeTemplate = grafanaConfig.getDockerComposeTemplate();
-    console.log(composeTemplate);
-
+  private async getComposeFile(stack: IMonitoringStack) {
+    const composeTemplate = grafanaConfig.getDockerComposeTemplate() as any;
+    composeTemplate.services.tempo.image = stack.tempoImage;
+    composeTemplate.services.loki.image = stack.lokiImage;
+    composeTemplate.services.grafana.image = stack.grafanaImage;
     return this.toBase64(grafanaConfig.toYamlFile(composeTemplate));
   }
 
@@ -746,7 +740,7 @@ ${awsUserData.runDockerCompose()}
           IpPermissions: [
             {
               FromPort: parseInt(port),
-              IpProtocol: proto,
+              IpProtocol: '-1',
               ToPort: parseInt(port),
               UserIdGroupPairs: [
                 {
@@ -841,10 +835,10 @@ ${awsUserData.runDockerCompose()}
       elbSdk
         .createTargetGroup({
           Port: parseInt(port),
-          Name: TG_PREFIX + monitoringName + '-lead',
+          Name: TG_PREFIX + monitoringName + '-lead-' + parseInt(port),
           HealthCheckEnabled: true,
           HealthCheckProtocol: 'TCP',
-          Protocol: proto.toUpperCase(),
+          Protocol: 'TCP_UDP',
           VpcId: cloudMap.network.vpcId,
           TargetType: 'instance',
         })
@@ -962,7 +956,6 @@ ${awsUserData.runDockerCompose()}
       tempoImage: await this.getTempoImage(tempoTag),
     };
     const lt = await this.createLaunchTemplate(monDep, stack);
-    await this.createTargetGroup(monDep, stack);
     await this.input.io.writeLine(`Stack created: ${stack.stackId}`);
   }
 

@@ -14,14 +14,6 @@ const command: ICommand = {
   summary: 'Manage Fusebit monitoring system',
   // GLT refers to Grafana-Loki-Tempo
   description: 'Manage Fusebit Monitoring system (glt stack)',
-  options: [
-    {
-      name: 'output',
-      aliases: ['o'],
-      description: "The format to display the output: 'pretty', 'json'",
-      default: 'pretty',
-    },
-  ],
 };
 
 // ----------------
