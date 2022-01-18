@@ -53,6 +53,8 @@ STACKOVERFLOW_SECRET_PAYLOAD="{\"data\":{\"clientId\":\"${PROXY_STACKOVERFLOW_CL
 
 GOOGLE_SECRET_PAYLOAD="{\"data\":{\"clientId\":\"${PROXY_GOOGLE_CLIENT_ID}\",\"clientSecret\":\"${PROXY_GOOGLE_CLIENT_SECRET}\",\"authorizationUrl\":\"https://accounts.google.com/o/oauth2/v2/auth\",\"tokenUrl\":\"https://oauth2.googleapis.com/token\",\"revokeUrl\":\"https://oauth2.googleapis.com/revoke\"}}"
 
+QUICKBOOKS_SECRET_PAYLOAD="{\"data\":{\"clientId\":\"${PROXY_QUICKBOOKS_CLIENT_ID}\",\"clientSecret\":\"${PROXY_QUICKBOOKS_CLIENT_SECRET}\",\"authorizationUrl\":\"https://appcenter.intuit.com/connect/oauth2\",\"tokenUrl\":\"https://oauth.platform.intuit.com/oauth2/v1/tokens/bearer\",\"revokeUrl\":\"https://developer.api.intuit.com/v2/oauth2/tokens/revoke\"}}"
+
 # Publish to the designated accounts
 for PROFILE in ${PROXY_SECRET_PUBLISH_PROFILE_LIST}; do
   ./tool/cicd/actions/scripts/set_fuse_profile.sh ${PROFILE}
@@ -70,4 +72,5 @@ for PROFILE in ${PROXY_SECRET_PUBLISH_PROFILE_LIST}; do
   echo ${ZOOM_SECRET_PAYLOAD} | fuse storage put - --storageId proxy/zoom/configuration
   echo ${STACKOVERFLOW_SECRET_PAYLOAD} | fuse storage put - --storageId proxy/stackoverflow/configuration
   echo ${GOOGLE_SECRET_PAYLOAD} | fuse storage put - --storageId proxy/google/configuration
+  echo ${QUICKBOOKS_SECRET_PAYLOAD} | fuse storage put - --storageId proxy/quickbooks/configuration
 done
