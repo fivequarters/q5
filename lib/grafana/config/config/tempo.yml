@@ -22,6 +22,12 @@ compactor:
     block_retention: 1h
     compacted_block_retention: 10m
 
+memberlist:
+  abort_if_cluster_join_fails: false
+  bind_port: 7946
+  join_members:
+    - placeholder.fusebit.internal:3200
+
 storage:
   trace:
     backend: s3

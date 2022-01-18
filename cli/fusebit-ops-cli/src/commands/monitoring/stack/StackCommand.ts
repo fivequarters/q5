@@ -1,5 +1,7 @@
 import { Command, ICommand } from '@5qtrs/cli';
+import { PromoteStackCommand } from '../../stack/PromoteStackCommand';
 import { AddStackCommand } from './AddStackCommand';
+import { DemoteStackCommand } from './DemoteStackCommand';
 
 // ------------------
 // Internal Constants
@@ -21,6 +23,8 @@ export class StackCommand extends Command {
     // WTF vscode
     const subCommands: any[] = [];
     subCommands.push(await AddStackCommand.create());
+    subCommands.push(await PromoteStackCommand.create());
+    subCommands.push(await DemoteStackCommand.create());
     command.subCommands = subCommands;
     return new StackCommand(command);
   }

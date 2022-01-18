@@ -1059,6 +1059,28 @@ ${awsUserData.runDockerCompose()}
     );
   }
 
+  public async StackPromote(deploymentName: string, stackId: number, region?: string) {
+    const promoteResult = await this.executeService.execute(
+      {
+        header: `Promote Stack ${stackId}`,
+        message: `Promoting stack ${stackId} for deployment ${deploymentName}`,
+        errorHeader: `Promoting ${stackId} failed`,
+      },
+      () => this.promoteStack(deploymentName, stackId, region)
+    );
+  }
+
+  public async StackDemote(deploymentName: string, stackId: number, region?: string) {
+    const demoteResult = await this.executeService.execute(
+      {
+        header: `Demote Stack ${stackId}`,
+        message: `Demoting stack ${stackId} for deployment ${deploymentName}`,
+        errorHeader: `Promoting ${stackId} failed`,
+      },
+      () => this.demoteStack(deploymentName, stackId, region)
+    );
+  }
+
   /**
    * This supports a couple ways to input the grafana docker image.
    * - <fusebit/grafana:version>: This will make the system convert it to a tag to use the ECR Public Fusebit OSS repo
