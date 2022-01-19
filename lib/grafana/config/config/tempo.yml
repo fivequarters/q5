@@ -26,7 +26,7 @@ memberlist:
   abort_if_cluster_join_fails: false
   bind_port: 7946
   join_members:
-    - placeholder.fusebit.internal:3200
+    - placeholder.fusebit.internal:7946
 
 storage:
   trace:

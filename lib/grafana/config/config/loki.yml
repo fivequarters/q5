@@ -63,5 +63,10 @@ ruler:
   alertmanager_url: http://localhost:9093
   ring:
     kvstore:
-      store: inmemory
+      store: memberlist
   enable_api: true
+
+memberlist_config:
+  bind_port: 7947
+  join_members:
+    - placeholder.fusebit.internal:7947

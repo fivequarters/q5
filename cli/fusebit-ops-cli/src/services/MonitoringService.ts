@@ -36,6 +36,8 @@ const GRAFANA_PORTS = [
   /** Tempo Port */ '3200/tcp',
   /** Loki Port */ '3100/tcp',
   /** Grafana Port */ '3000/tcp',
+  /** Tempo memberlist */ '7946/tcp',
+  /** Loki memberlist */ '7947/tcp',
 ];
 const NLB_PREFIX = 'nlb-grafana-';
 const NLB_SG_PREFIX = 'fusebit-mon-nlb-';
@@ -340,6 +342,9 @@ ${awsUserData.runDockerCompose()}
     const template = grafanaConfig.getLokiConfigTemplate() as any;
     template.storage_config.aws.s3 = `s3://${LOKI_BUCKET_PREFIX + monDep.monitoringDeploymentName}`;
     template.storage_config.aws.region = monDep.region;
+    template.memberlist_config.join_members = [
+      'dns+' + DISCOVERY_SERVICE_PREFIX + monDep.monitoringDeploymentName + '.' + DISCOVERY_DOMAIN_NAME,
+    ];
     return this.toBase64(grafanaConfig.toYamlFile(template));
   }
 
@@ -348,6 +353,9 @@ ${awsUserData.runDockerCompose()}
     // Configure S3 name
     template.storage.trace.s3.bucket = TEMPO_BUCKET_PREFIX + monDep.monitoringDeploymentName;
     template.storage.trace.s3.endpoint = `s3.${monDep.region}.amazonaws.com`;
+    template.memberlist.join_members = [
+      'dns+' + DISCOVERY_DOMAIN_NAME + monDep.monitoringDeploymentName + '.' + DISCOVERY_DOMAIN_NAME,
+    ];
     return this.toBase64(grafanaConfig.toYamlFile(template));
   }
 
@@ -832,17 +840,19 @@ ${awsUserData.runDockerCompose()}
     const promises: Promise<any>[] = [];
     for (const portProto of GRAFANA_PORTS) {
       const [port, proto] = portProto.split('/');
-      elbSdk
-        .createTargetGroup({
-          Port: parseInt(port),
-          Name: TG_PREFIX + monitoringName + '-lead-' + parseInt(port),
-          HealthCheckEnabled: true,
-          HealthCheckProtocol: 'TCP',
-          Protocol: 'TCP_UDP',
-          VpcId: cloudMap.network.vpcId,
-          TargetType: 'instance',
-        })
-        .promise();
+      promises.push(
+        elbSdk
+          .createTargetGroup({
+            Port: parseInt(port),
+            Name: TG_PREFIX + monitoringName + '-lead-' + parseInt(port),
+            HealthCheckEnabled: true,
+            HealthCheckProtocol: 'TCP',
+            Protocol: 'TCP_UDP',
+            VpcId: cloudMap.network.vpcId,
+            TargetType: 'instance',
+          })
+          .promise()
+      );
     }
     const results = (await Promise.all(promises)) as ELBv2.CreateTargetGroupOutput[];
     const promises2: Promise<any>[] = [];
@@ -856,9 +866,7 @@ ${awsUserData.runDockerCompose()}
             DefaultActions: [
               {
                 Type: 'forward',
-                ForwardConfig: {
-                  TargetGroups: [...(result.TargetGroups as AWS.ELBv2.TargetGroups)],
-                },
+                TargetGroupArn: (result.TargetGroups as ELBv2.TargetGroups)[0].TargetGroupArn,
               },
             ],
           })
