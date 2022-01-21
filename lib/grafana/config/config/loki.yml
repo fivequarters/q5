@@ -66,7 +66,7 @@ ruler:
       store: memberlist
   enable_api: true
 
-memberlist_config:
+memberlist:
   bind_port: 7947
   join_members:
     - placeholder.fusebit.internal:7947

@@ -32,7 +32,7 @@ const DB_ENGINE = 'postgres';
 const LOGGING_SERVICE_TYPE = 'monitoring';
 const MIN_MAX = 1;
 const GRAFANA_PORTS = [
-  /** Tempo GRPC Ingress UDP */ '4317/tcp',
+  /** Tempo GRPC Ingress TCP */ '4317/tcp',
   /** Tempo Port */ '3200/tcp',
   /** Loki Port */ '3100/tcp',
   /** Grafana Port */ '3000/tcp',
@@ -40,7 +40,6 @@ const GRAFANA_PORTS = [
   /** Loki memberlist */ '7947/tcp',
 ];
 const NLB_PREFIX = 'nlb-grafana-';
-const NLB_SG_PREFIX = 'fusebit-mon-nlb-';
 
 // Bootstrap bucket
 const BOOTSTRAP_BUCKET = 'grafana-bootstrap-';
@@ -191,8 +190,49 @@ export class MonitoringService {
     return this.toBase64(grafanaConfig.toIniFile(configTemplate));
   }
 
+  private async cleanupStack(monDep: IMonitoringDeployment, stack: IMonitoringStack) {
+    const dynamoSdk = await this.getAwsSdk(AWS.DynamoDB, { region: this.config.region });
+    dynamoSdk
+      .deleteItem({
+        TableName: OPS_MON_STACK_TABLE,
+        Key: {
+          monDeploymentName: { S: monDep.monitoringDeploymentName },
+          regionStackId: { S: [monDep.region, stack.stackId.toString()].join('::') },
+        },
+      })
+      .promise();
+    const asgSdk = await this.getAwsSdk(AWS.AutoScaling, { region: monDep.region });
+    await asgSdk
+      .deleteAutoScalingGroup({
+        AutoScalingGroupName: ASG_PREFIX + monDep.monitoringDeploymentName + stack.stackId,
+        ForceDelete: true,
+      })
+      .promise();
+    const ec2Sdk = await this.getAwsSdk(AWS.EC2, { region: monDep.region });
+    await ec2Sdk
+      .deleteLaunchTemplate({
+        LaunchTemplateName: LT_PREFIX + monDep.monitoringDeploymentName + stack.stackId,
+      })
+      .promise();
+    const discoverySdk = await this.getAwsSdk(AWS.ServiceDiscovery, { region: monDep.region });
+    const service = await this.getService(
+      monDep.monitoringDeploymentName,
+      DISCOVERY_SERVICE_PREFIX + monDep.monitoringDeploymentName,
+      monDep.region
+    );
+    const instances = await discoverySdk.listInstances({ ServiceId: service?.Id as string }).promise();
+    for (const instance of instances.Instances as AWS.ServiceDiscovery.InstanceSummaryList) {
+      if (instance.Attributes?.STACK !== stack.stackId.toString()) {
+        continue;
+      }
+      await discoverySdk
+        .deregisterInstance({ ServiceId: service?.Id as string, InstanceId: instance.Id as string })
+        .promise();
+    }
+  }
+
   private async createLaunchTemplate(monDep: IMonitoringDeployment, stack: IMonitoringStack) {
-    const autoscalingSdk = await this.getAwsSdk(AWS.EC2, { region: monDep.region });
+    const ec2Sdk = await this.getAwsSdk(AWS.EC2, { region: monDep.region });
     const amiId = await this.getAmiId(monDep.region, stack.amiId);
     const discoveryService = await this.ensureDiscoveryService(monDep);
     const sgId = await this.getSecGroup(MONITORING_SEC_GROUP_PREFIX + monDep.monitoringDeploymentName, monDep.region);
@@ -205,7 +245,7 @@ export class MonitoringService {
     await this.addBootstrapScriptToBucket(monDep, stack, userData);
     const bootstrapUserData = await this.getBootStrapUserData(monDep, stack);
     const awsConfig = await OpsDataAwsConfig.create((await this.opsService.getOpsDataContextImpl()).config);
-    const lt = await autoscalingSdk
+    const lt = await ec2Sdk
       .createLaunchTemplate({
         LaunchTemplateName: LT_PREFIX + monDep.monitoringDeploymentName + stack.stackId,
         LaunchTemplateData: {
@@ -316,6 +356,7 @@ chmod +x bootstrap.sh
     const composeFile = await this.getComposeFile(stack);
     return `#!/bin/bash
 mkdir /root/tempo-data
+mkdir /root/loki
 chmod 777 /var/log
 ${awsUserData.installCloudWatchAgent(LOGGING_SERVICE_TYPE, deployment.monitoringDeploymentName)}
 ${awsUserData.installDocker()}
@@ -340,9 +381,8 @@ ${awsUserData.runDockerCompose()}
 
   private async getLokiYamlFile(monDep: IMonitoringDeployment) {
     const template = grafanaConfig.getLokiConfigTemplate() as any;
-    template.storage_config.aws.s3 = `s3://${LOKI_BUCKET_PREFIX + monDep.monitoringDeploymentName}`;
-    template.storage_config.aws.region = monDep.region;
-    template.memberlist_config.join_members = [
+    template.storage_config.aws.s3 = `s3://${monDep.region}/${LOKI_BUCKET_PREFIX + monDep.monitoringDeploymentName}`;
+    template.memberlist.join_members = [
       'dns+' + DISCOVERY_SERVICE_PREFIX + monDep.monitoringDeploymentName + '.' + DISCOVERY_DOMAIN_NAME,
     ];
     return this.toBase64(grafanaConfig.toYamlFile(template));
@@ -562,14 +602,22 @@ ${awsUserData.runDockerCompose()}
           BillingMode: 'PAY_PER_REQUEST',
           AttributeDefinitions: [
             {
-              AttributeName: 'monitoring_deployment_name',
+              AttributeName: 'monDeploymentName',
+              AttributeType: 'S',
+            },
+            {
+              AttributeName: 'region',
               AttributeType: 'S',
             },
           ],
           KeySchema: [
             {
-              AttributeName: 'monitoring_deployment_name',
+              AttributeName: 'monDeploymentName',
               KeyType: 'HASH',
+            },
+            {
+              AttributeName: 'region',
+              KeyType: 'RANGE',
             },
           ],
         })
@@ -589,20 +637,28 @@ ${awsUserData.runDockerCompose()}
     const tables = await dynamoSdk.listTables().promise();
     const correctTable = tables.TableNames?.filter((table) => table === OPS_MON_STACK_TABLE);
     if (!correctTable || correctTable.length !== 1) {
-      const createTableResults = await dynamoSdk
+      await dynamoSdk
         .createTable({
           TableName: OPS_MON_STACK_TABLE,
           BillingMode: 'PAY_PER_REQUEST',
           AttributeDefinitions: [
             {
-              AttributeName: 'mon_stack_name',
+              AttributeName: 'monDeploymentName',
+              AttributeType: 'S',
+            },
+            {
+              AttributeName: 'regionStackId',
               AttributeType: 'S',
             },
           ],
           KeySchema: [
             {
-              AttributeName: 'mon_stack_name',
+              AttributeName: 'monDeploymentName',
               KeyType: 'HASH',
+            },
+            {
+              AttributeName: 'regionStackId',
+              KeyType: 'RANGE',
             },
           ],
         })
@@ -626,21 +682,37 @@ ${awsUserData.runDockerCompose()}
             return false;
           }
         }
-        return item.monitoring_deployment_name.S === monDeployName;
+        return item.monDeploymentName.S === monDeployName;
       });
       if (!deployment) {
         throw Error('Monitoring deployment not found');
       }
       return {
-        deploymentName: deployment[0].deployment_name.S as string,
-        networkName: deployment[0].network_name.S as string,
-        monitoringDeploymentName: deployment[0].monitoring_deployment_name.S as string,
+        deploymentName: deployment[0].deploymentName.S as string,
+        networkName: deployment[0].networkName.S as string,
+        monitoringDeploymentName: deployment[0].monDeploymentName.S as string,
         region: deployment[0].region.S as string,
       };
     } catch (e) {
-      console.log(e);
       throw Error('Monitoring deployment not found.');
     }
+  }
+
+  private async ensureMonitoringDeploymentStackItem(deploymentName: string, stack: IMonitoringStack, region: string) {
+    const dynamoSdk = await this.getAwsSdk(AWS.DynamoDB, { region: this.config.region });
+    await dynamoSdk
+      .putItem({
+        TableName: OPS_MON_STACK_TABLE,
+        Item: {
+          monDeploymentName: { S: deploymentName },
+          regionStackId: { S: [region, stack.stackId.toString()].join('::') },
+          amiId: { S: stack.amiId ? stack.amiId : `default - ubuntu ${UBUNTU_VERSION}` },
+          grafanaVersion: { S: stack.grafanaImage },
+          tempoVersion: { S: stack.tempoImage },
+          lokiVersion: { S: stack.lokiImage },
+        },
+      })
+      .promise();
   }
 
   private async ensureMonitoringDeploymentItem(
@@ -656,6 +728,7 @@ ${awsUserData.runDockerCompose()}
           TableName: OPS_MONITORING_TABLE,
           Key: {
             monitoring_deployment_name: { S: monDeploymentName },
+            region: { S: region },
           },
         })
         .promise();
@@ -668,13 +741,13 @@ ${awsUserData.runDockerCompose()}
       .putItem({
         TableName: OPS_MONITORING_TABLE,
         Item: {
-          monitoring_deployment_name: {
+          monDeploymentName: {
             S: monDeploymentName,
           },
-          network_name: {
+          networkName: {
             S: networkName,
           },
-          deployment_name: {
+          deploymentName: {
             S: deploymentName,
           },
           region: {
@@ -738,7 +811,10 @@ ${awsUserData.runDockerCompose()}
         ],
       })
       .promise();
-    const nlbSg = (await this.getSecGroup(NLB_SG_PREFIX + deploymentName, region)) as AWS.EC2.SecurityGroup;
+    const apiSg = (await this.getSecGroup(
+      API_SG_PREFIX + cloudMap.network.networkName,
+      region
+    )) as AWS.EC2.SecurityGroup;
 
     for (const port of GRAFANA_PORTS) {
       const [allowPort, proto] = port.split('/');
@@ -747,56 +823,32 @@ ${awsUserData.runDockerCompose()}
           GroupId: secGroup.GroupId,
           IpPermissions: [
             {
-              FromPort: parseInt(port),
-              IpProtocol: '-1',
-              ToPort: parseInt(port),
-              UserIdGroupPairs: [
+              FromPort: parseInt(allowPort),
+              IpProtocol: proto,
+              ToPort: parseInt(allowPort),
+              IpRanges: [
                 {
-                  Description: 'API Access',
-                  GroupId: nlbSg.GroupId,
+                  CidrIp: '10.0.0.0/16',
+                  Description: 'Allow all for now to test',
                 },
               ],
             },
           ],
         })
         .promise();
-    }
-  }
 
-  private async ensureNlbSecurityGroup(monDeployName: string, region: string) {
-    const sg = await this.getSecGroup(NLB_SG_PREFIX + monDeployName, region);
-    if (sg) {
-      return sg;
-    }
-
-    const ec2Sdk = await this.getAwsSdk(AWS.EC2, { region });
-    const monDep = await this.getMonitoringDeploymentByName(monDeployName, region);
-    const cloudMap = await this.getCloudMap(monDep.networkName, region);
-
-    const sgCreation = await ec2Sdk
-      .createSecurityGroup({
-        GroupName: NLB_SG_PREFIX + monDeployName,
-        VpcId: cloudMap.network.vpcId,
-        Description: `NLB for grafana deployment ${monDeployName}`,
-      })
-      .promise();
-
-    const apiSg = (await this.getSecGroup(API_SG_PREFIX + monDep.deploymentName, region)) as AWS.EC2.SecurityGroup;
-
-    for (const port of GRAFANA_PORTS) {
-      const [allowPort, proto] = port.split('/');
       await ec2Sdk
         .authorizeSecurityGroupIngress({
-          GroupId: sgCreation.GroupId,
+          GroupId: secGroup.GroupId,
           IpPermissions: [
             {
-              FromPort: parseInt(port),
+              FromPort: parseInt(allowPort),
+              ToPort: parseInt(allowPort),
               IpProtocol: proto,
-              ToPort: parseInt(port),
               UserIdGroupPairs: [
                 {
-                  Description: 'API Access',
-                  GroupId: apiSg.GroupId,
+                  Description: 'Gossip Access ' + parseInt(allowPort),
+                  GroupId: secGroup.GroupId,
                 },
               ],
             },
@@ -815,7 +867,6 @@ ${awsUserData.runDockerCompose()}
     if (correctNlb && correctNlb.length === 1) {
       return correctNlb[0];
     }
-    const sgGroup = await this.getSecGroup(NLB_SG_PREFIX + monDeployment.monitoringDeploymentName, region);
 
     const nlb = await elbSdk
       .createLoadBalancer({
@@ -823,6 +874,7 @@ ${awsUserData.runDockerCompose()}
         IpAddressType: 'ipv4',
         Subnets: cloudMap.network.privateSubnets.map((sub) => sub.id),
         Type: 'network',
+        Scheme: 'internal',
       })
       .promise();
 
@@ -931,7 +983,6 @@ ${awsUserData.runDockerCompose()}
     await this.ensureMonitoringDeploymentItem(monitoringName, networkName, deploymentName, cloudMap.network.region);
     await this.createMainService(networkName, monitoringName, region);
     await this.ensureS3Bucket(monitoringName, cloudMap.network.region);
-    await this.ensureNlbSecurityGroup(monitoringName, cloudMap.network.region);
     await this.updateRdsSecurityGroup(deploymentName, monitoringName, cloudMap.network.region);
     const nlb = await this.ensureNlb(monitoringName, cloudMap.network.region);
     await this.ensureLeaderMapping(monitoringName, nlb.DNSName as string, cloudMap.network.region);
@@ -940,6 +991,11 @@ ${awsUserData.runDockerCompose()}
       await this.executeInitialGrafanaDbSetup(monitoringName, cloudMap.network.region);
     }
     await this.setupBootStrapBucket(monitoringName, cloudMap.network.region);
+  }
+
+  private async deleteMonitoringStack(monDepName: string, stackId: string, region?: string) {
+    const monDep = await this.getMonitoringDeploymentByName(monDepName, region);
+    await this.cleanupStack(monDep, { stackId: parseInt(stackId), tempoImage: '', lokiImage: '', grafanaImage: '' });
   }
 
   private async createNewMonitoringStack(
@@ -951,18 +1007,13 @@ ${awsUserData.runDockerCompose()}
   ) {
     const monDep = await this.getMonitoringDeploymentByName(monDepName, region);
     const stackId = this.generateStackId();
-    const cloudMap = await this.getCloudMap(monDep.networkName, monDep.region);
-    const service = await this.getService(
-      monDepName,
-      MASTER_SERVICE_PREFIX + monDep.monitoringDeploymentName,
-      monDep.region
-    );
     const stack = {
       stackId,
       grafanaImage: await this.getGrafanaImage(grafanaTag),
       lokiImage: await this.getLokiImage(lokiTag),
       tempoImage: await this.getTempoImage(tempoTag),
     };
+    await this.ensureMonitoringDeploymentStackItem(monDepName, stack, monDep.region);
     const lt = await this.createLaunchTemplate(monDep, stack);
     await this.input.io.writeLine(`Stack created: ${stack.stackId}`);
   }
@@ -973,9 +1024,9 @@ ${awsUserData.runDockerCompose()}
     const deploymentsJson = [];
     for (const deployment of deployments.Items as AWS.DynamoDB.ItemList) {
       deploymentsJson.push({
-        deploymentName: deployment.deployment_name.S as string,
-        networkName: deployment.network_name.S as string,
-        monitoringDeploymentName: deployment.monitoring_deployment_name.S as string,
+        deploymentName: deployment.deploymentName.S as string,
+        networkName: deployment.networkName.S as string,
+        monitoringDeploymentName: deployment.monDeploymentName.S as string,
         region: deployment.region.S as string,
       });
     }
@@ -1003,6 +1054,59 @@ ${awsUserData.runDockerCompose()}
         Text.eol(),
       ];
       await this.executeService.message(Text.bold('Deployments'), Text.create(details));
+    }
+  }
+
+  public async listStacks(deploymentName?: string) {
+    const dynamoSdk = await this.getAwsSdk(AWS.DynamoDB, { region: this.config.region });
+    const items = await dynamoSdk.scan({ TableName: OPS_MON_STACK_TABLE }).promise();
+    let itemsJson = [];
+    for (const item of items.Items as AWS.DynamoDB.ItemList) {
+      const [region, stackId] = item.regionStackId.S?.split('::') as string[];
+      itemsJson.push({
+        region,
+        stackId,
+        deploymentName: item.monDeploymentName.S as string,
+        amiId: item.amiId.S as string,
+        grafanaVersion: item.grafanaVersion.S as string,
+        lokiVersion: item.lokiVersion.S as string,
+        tempoVersion: item.tempoVersion.S as string,
+      });
+    }
+    if (deploymentName) {
+      itemsJson = itemsJson.filter((item) => item.deploymentName === deploymentName);
+    }
+
+    if (this.input.options.output === 'json') {
+      await this.input.io.writeRaw(JSON.stringify(itemsJson));
+      return;
+    }
+
+    for (const stack of itemsJson) {
+      const details = [
+        Text.dim('Region: '),
+        stack.region,
+        Text.eol(),
+        Text.dim('Id: '),
+        stack.stackId,
+        Text.eol(),
+        Text.dim('Deployment Name: '),
+        stack.deploymentName,
+        Text.eol(),
+        Text.dim('AmiId: '),
+        stack.amiId,
+        Text.eol(),
+        Text.dim('Grafana Version: '),
+        stack.grafanaVersion,
+        Text.eol(),
+        Text.dim('Loki Version: '),
+        stack.lokiVersion,
+        Text.eol(),
+        Text.dim('Tempo Version: '),
+        stack.tempoVersion,
+        Text.eol(),
+      ];
+      await this.executeService.message(Text.bold(stack.stackId), Text.create(details));
     }
   }
 
@@ -1086,6 +1190,28 @@ ${awsUserData.runDockerCompose()}
         errorHeader: `Promoting ${stackId} failed`,
       },
       () => this.demoteStack(deploymentName, stackId, region)
+    );
+  }
+
+  public async StackRemove(monDepName: string, stackId: string, region?: string) {
+    await this.executeService.execute(
+      {
+        header: `Remove Stack ${stackId}`,
+        message: `Removing Stack ${stackId} from the Fusebit platform`,
+        errorMessage: `Removing Stack ${stackId} failed`,
+      },
+      () => this.deleteMonitoringStack(monDepName, stackId, region)
+    );
+  }
+
+  public async StackList(deploymentName?: string) {
+    await this.executeService.execute(
+      {
+        header: 'List Stacks',
+        message: 'Listing Monitoring Stacks',
+        errorHeader: 'Listing Stacks Failed',
+      },
+      () => this.listStacks(deploymentName)
     );
   }
 

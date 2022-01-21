@@ -18,6 +18,7 @@ services:
     volumes:
       - /root/loki.yml:/etc/loki/loki.yaml
       - /var/log/:/var/log/
+      - /root/loki:/loki/
     ports:
       - '3100:3100'
 
