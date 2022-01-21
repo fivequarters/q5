@@ -55,6 +55,9 @@ GOOGLE_SECRET_PAYLOAD="{\"data\":{\"clientId\":\"${PROXY_GOOGLE_CLIENT_ID}\",\"c
 
 QUICKBOOKS_SECRET_PAYLOAD="{\"data\":{\"clientId\":\"${PROXY_QUICKBOOKS_CLIENT_ID}\",\"clientSecret\":\"${PROXY_QUICKBOOKS_CLIENT_SECRET}\",\"authorizationUrl\":\"https://appcenter.intuit.com/connect/oauth2\",\"tokenUrl\":\"https://oauth.platform.intuit.com/oauth2/v1/tokens/bearer\",\"revokeUrl\":\"https://developer.api.intuit.com/v2/oauth2/tokens/revoke\"}}"
 
+LINKEDIN_SECRET_PAYLOAD="{\"data\":{\"clientId\":\"${PROXY_LINKEDIN_CLIENT_ID}\",\"clientSecret\":\"${PROXY_LINKEDIN_CLIENT_SECRET}\",\"authorizationUrl\":\"https://www.linkedin.com/oauth/v2/authorization\",\"tokenUrl\":\"https://www.linkedin.com/oauth/v2/accessToken\",\"revokeUrl\":\"https://www.linkedin.com/oauth/v2/revoke\"}}"
+
+
 # Publish to the designated accounts
 for PROFILE in ${PROXY_SECRET_PUBLISH_PROFILE_LIST}; do
   ./tool/cicd/actions/scripts/set_fuse_profile.sh ${PROFILE}
@@ -73,4 +76,5 @@ for PROFILE in ${PROXY_SECRET_PUBLISH_PROFILE_LIST}; do
   echo ${STACKOVERFLOW_SECRET_PAYLOAD} | fuse storage put - --storageId proxy/stackoverflow/configuration
   echo ${GOOGLE_SECRET_PAYLOAD} | fuse storage put - --storageId proxy/google/configuration
   echo ${QUICKBOOKS_SECRET_PAYLOAD} | fuse storage put - --storageId proxy/quickbooks/configuration
+  echo ${LINKEDIN_SECRET_PAYLOAD} | fuse storage put - --storageId proxy/linkedin/configuration
 done
