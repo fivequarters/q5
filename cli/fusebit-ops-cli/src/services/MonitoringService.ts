@@ -1226,7 +1226,7 @@ ${awsUserData.runDockerCompose()}
    */
   public async getGrafanaImage(grafanaImageTag?: string): Promise<string> {
     if (grafanaImageTag?.includes('fusebit/')) {
-      return `public.ecr.aws/` + grafanaImageTag;
+      return `public.ecr.aws/fusebit/` + grafanaImageTag;
     }
     if (grafanaImageTag?.includes('/')) {
       return grafanaImageTag;
