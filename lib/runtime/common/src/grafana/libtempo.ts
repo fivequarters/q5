@@ -1,5 +1,6 @@
 const { OTLPTraceExporter } = require('@opentelemetry/exporter-trace-otlp-grpc');
 const grpc = require('@grpc/grpc-js');
+import * as Constants from '@5qtrs/constants';
 
 type IHRTime = [number, number];
 
@@ -74,7 +75,7 @@ const publishTraces = async (accountId: string, traces: Trace[]) => {
 
         metadata.set('X-Scope-OrgID', accountId);
         const exporter = new OTLPTraceExporter({
-          url: 'grpc://tempo:4317',
+          url: `${Constants.TEMPO_GRPC_INGEST}:4317`,
           metadata,
         });
         await new Promise((resolve) => exporter.export([trace], resolve));

@@ -29,13 +29,17 @@ const GRAFANA_ENDPOINT = process.env.GRAFANA_ENDPOINT
   ? `http://${process.env.GRAFANA_ENDPOINT}:3000`
   : 'http://localhost:3000';
 
-const LOKI_ENDPOINT = process.env.LOKI_ENDPOINT ? `http://${process.env.LOKI_ENDPOINT}:3100` : `http://localhost:3100`;
+const LOKI_ENDPOINT = process.env.GRAFANA_ENDPOINT
+  ? `http://${process.env.GRAFANA_ENDPOINT}:3100`
+  : `http://localhost:3100`;
 
-const TEMPO_ENDPOINT = process.env.TEMPO_ENDPOINT
-  ? `http://${process.env.TEMPO_ENDPOINT}:3200`
+const TEMPO_ENDPOINT = process.env.GRAFANA_ENDPOINT
+  ? `http://${process.env.GRAFANA_ENDPOINT}:3200`
   : `http://localhost:3200`;
 
-const LOKI_GRPC_INGEST = process.env.LOKI_ENDPOINT ? `grpc://` : '';
+const LOKI_GRPC_INGEST = process.env.GRAFANA_ENDPOINT ? `grpc://${process.env.GRAFANA_ENDPOINT}` : '';
+
+const TEMPO_GRPC_INGEST = process.env.GRAFANA_ENDPOINT ? `grpc://${process.env.GRAFANA_ENDPOINT}` : '';
 
 const API_PUBLIC_HOST = new URL(API_PUBLIC_ENDPOINT || 'http://localhost').host;
 
@@ -348,6 +352,8 @@ export {
   API_PUBLIC_ENDPOINT,
   GRAFANA_ENDPOINT,
   LOKI_ENDPOINT,
+  TEMPO_GRPC_INGEST,
+  LOKI_GRPC_INGEST,
   TEMPO_ENDPOINT,
   API_PUBLIC_HOST,
   MAX_CACHE_REFRESH_RATE,
