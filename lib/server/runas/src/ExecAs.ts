@@ -41,8 +41,6 @@ const mintJwtForPermissions = async (
 
   const payload: { [key: string]: any } = {
     sub: Constants.makeFunctionSub(params, mode),
-    [Constants.JWT_ATTRIBUTES_CLAIM]: attributes,
-    [Constants.JWT_PERMISSION_CLAIM]: permissions,
   };
 
   payload[Constants.JWT_PERMISSION_CLAIM] = permissions;
