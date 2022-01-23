@@ -1,8 +1,8 @@
 import { join } from 'path';
 import create_error from 'http-errors';
 import { Request, Response, NextFunction } from 'express';
-
 import { getAWSCredentials } from '../credentials';
+
 const version = require(join(__dirname, '..', '..', '..', '..', '..', 'package.json')).version;
 
 process.env.FUNCTION_API_VERSION = version;
