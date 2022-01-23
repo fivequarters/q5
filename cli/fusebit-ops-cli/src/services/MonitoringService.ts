@@ -361,6 +361,7 @@ chmod +x bootstrap.sh
 mkdir /root/tempo-data
 mkdir /root/loki
 chmod 777 /var/log
+chmod 777 -R /root/loki
 ${awsUserData.installCloudWatchAgent('grafana', LOGGING_SERVICE_TYPE, deployment.monitoringDeploymentName)}
 ${awsUserData.installDocker()}
 ${awsUserData.installDockerCompose()}
@@ -385,6 +386,7 @@ ${awsUserData.runDockerCompose()}
   private async getLokiYamlFile(monDep: IMonitoringDeployment) {
     const template = grafanaConfig.getLokiConfigTemplate() as any;
     template.storage_config.aws.s3 = `s3://${monDep.region}/${LOKI_BUCKET_PREFIX + monDep.monitoringDeploymentName}`;
+    template.storage_config.aws.region = monDep.region;
     template.memberlist.join_members = [
       'dns+' + DISCOVERY_SERVICE_PREFIX + monDep.monitoringDeploymentName + '.' + DISCOVERY_DOMAIN_NAME,
     ];
@@ -713,7 +715,7 @@ ${awsUserData.runDockerCompose()}
           grafanaVersion: { S: stack.grafanaImage },
           tempoVersion: { S: stack.tempoImage },
           lokiVersion: { S: stack.lokiImage },
-          active: { B: false },
+          active: { BOOL: false },
         },
       })
       .promise();
@@ -729,12 +731,17 @@ ${awsUserData.runDockerCompose()}
       .promise();
 
     const updatedItem = item.Item as AWS.DynamoDB.AttributeMap;
-    updatedItem.active = { B: active };
-
     await dynamoSdk
       .updateItem({
         TableName: OPS_MON_STACK_TABLE,
-        Key: updatedItem,
+        Key: {
+          monDeploymentName: { S: updatedItem.monDeploymentName.S as string },
+          regionStackId: { S: updatedItem.regionStackId.S as string },
+        },
+        UpdateExpression: 'SET active = :active',
+        ExpressionAttributeValues: {
+          ':active': { BOOL: active },
+        },
       })
       .promise();
   }
@@ -1127,7 +1134,7 @@ ${awsUserData.runDockerCompose()}
         grafanaVersion: item.grafanaVersion.S as string,
         lokiVersion: item.lokiVersion.S as string,
         tempoVersion: item.tempoVersion.S as string,
-        active: item.active?.B,
+        active: item.active?.BOOL,
       });
     }
     if (deploymentName) {
@@ -1320,7 +1327,7 @@ ${awsUserData.runDockerCompose()}
     if (imageTag) {
       return `grafana/loki:${imageTag}`;
     }
-
-    return `grafana/loki:latest`;
+    // Loki latest does not work, running 2.3.0 by default.
+    return `grafana/loki:2.3.0`;
   }
 }
