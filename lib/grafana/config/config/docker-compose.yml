@@ -30,3 +30,7 @@ services:
       - /var/log/:/var/log/
     ports:
       - '3000:3000'
+  health:
+    image: grafana/grafana-health:latest
+    ports:
+      - '9999:9999'

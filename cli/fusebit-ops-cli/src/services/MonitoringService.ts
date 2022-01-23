@@ -2,7 +2,7 @@ import { v4 as uuidv4 } from 'uuid';
 import AWS, { ELBv2 } from 'aws-sdk';
 import { IAwsConfig } from '@5qtrs/aws-config';
 import { AwsCreds, IAwsCredentials } from '@5qtrs/aws-cred';
-import { IExecuteInput } from '@5qtrs/cli';
+import { IExecuteInput, Confirm, IConfirmDetail } from '@5qtrs/cli';
 import * as grafanaConfig from '@5qtrs/grafana-config';
 import awsUserData from '@5qtrs/user-data';
 import { IOpsNetwork } from '@5qtrs/ops-data';
@@ -312,6 +312,7 @@ export class MonitoringService {
         AutoScalingGroupName: ASG_PREFIX + deploymentName + stackId,
       })
       .promise();
+    await this.updateStackActiveness(true, deploymentName, stackId.toString(), deployment.region);
   }
 
   private async demoteStack(deploymentName: string, stackId: number, region?: string) {
@@ -324,6 +325,8 @@ export class MonitoringService {
         AutoScalingGroupName: ASG_PREFIX + deploymentName + stackId,
       })
       .promise();
+
+    await this.updateStackActiveness(false, deploymentName, stackId.toString(), deployment.region);
   }
 
   private async getTgs(deployment: IMonitoringDeployment) {
@@ -358,7 +361,7 @@ chmod +x bootstrap.sh
 mkdir /root/tempo-data
 mkdir /root/loki
 chmod 777 /var/log
-${awsUserData.installCloudWatchAgent(LOGGING_SERVICE_TYPE, deployment.monitoringDeploymentName)}
+${awsUserData.installCloudWatchAgent('grafana', LOGGING_SERVICE_TYPE, deployment.monitoringDeploymentName)}
 ${awsUserData.installDocker()}
 ${awsUserData.installDockerCompose()}
 ${awsUserData.addFile(grafanaConfigFile, '/root/grafana.ini')}
@@ -710,7 +713,28 @@ ${awsUserData.runDockerCompose()}
           grafanaVersion: { S: stack.grafanaImage },
           tempoVersion: { S: stack.tempoImage },
           lokiVersion: { S: stack.lokiImage },
+          active: { B: false },
         },
+      })
+      .promise();
+  }
+
+  private async updateStackActiveness(active: boolean, deploymentName: string, stackId: string, region: string) {
+    const dynamoSdk = await this.getAwsSdk(AWS.DynamoDB, { region: this.config.region });
+    const item = await dynamoSdk
+      .getItem({
+        TableName: OPS_MON_STACK_TABLE,
+        Key: { monDeploymentName: { S: deploymentName }, regionStackId: { S: [region, stackId].join('::') } },
+      })
+      .promise();
+
+    const updatedItem = item.Item as AWS.DynamoDB.AttributeMap;
+    updatedItem.active = { B: active };
+
+    await dynamoSdk
+      .updateItem({
+        TableName: OPS_MON_STACK_TABLE,
+        Key: updatedItem,
       })
       .promise();
   }
@@ -898,7 +922,9 @@ ${awsUserData.runDockerCompose()}
             Port: parseInt(port),
             Name: TG_PREFIX + monitoringName + '-lead-' + parseInt(port),
             HealthCheckEnabled: true,
-            HealthCheckProtocol: 'TCP',
+            HealthCheckProtocol: 'HTTP',
+            HealthCheckPath: '/healthz',
+            HealthCheckPort: '9999',
             Protocol: 'TCP_UDP',
             VpcId: cloudMap.network.vpcId,
             TargetType: 'instance',
@@ -906,6 +932,19 @@ ${awsUserData.runDockerCompose()}
           .promise()
       );
     }
+    // Appearently if cross zone is not enabled, TCP connections fail as Grafana deployments only exist in a single AZ.
+    await elbSdk
+      .modifyLoadBalancerAttributes({
+        LoadBalancerArn: (nlb.LoadBalancers as AWS.ELBv2.LoadBalancers)[0].LoadBalancerArn as string,
+        Attributes: [
+          {
+            Key: 'load_balancing.cross_zone.enabled',
+            Value: 'true',
+          },
+        ],
+      })
+      .promise();
+
     const results = (await Promise.all(promises)) as ELBv2.CreateTargetGroupOutput[];
     const promises2: Promise<any>[] = [];
     for (const result of results) {
@@ -1071,6 +1110,7 @@ ${awsUserData.runDockerCompose()}
         grafanaVersion: item.grafanaVersion.S as string,
         lokiVersion: item.lokiVersion.S as string,
         tempoVersion: item.tempoVersion.S as string,
+        active: item.active?.B,
       });
     }
     if (deploymentName) {
@@ -1104,6 +1144,9 @@ ${awsUserData.runDockerCompose()}
         Text.eol(),
         Text.dim('Tempo Version: '),
         stack.tempoVersion,
+        Text.eol(),
+        Text.dim('Status: '),
+        stack.active ? 'Active' : 'Inactive',
         Text.eol(),
       ];
       await this.executeService.message(Text.bold(stack.stackId), Text.create(details));

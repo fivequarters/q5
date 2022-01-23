@@ -43,7 +43,7 @@ REGION=${region} STACK_ID=${stackId.toString()} SERVICE_ID=${serviceId} node /ro
   `;
   }
 
-  public static installCloudWatchAgent(serviceType: string, deploymentName: string) {
+  public static installCloudWatchAgent(folderName: string, serviceType: string, deploymentName: string) {
     return `
 wget https://s3.amazonaws.com/amazoncloudwatch-agent/ubuntu/amd64/latest/amazon-cloudwatch-agent.deb
 dpkg -i -E ./amazon-cloudwatch-agent.deb
@@ -55,7 +55,7 @@ cat > /opt/aws/amazon-cloudwatch-agent/bin/config.json << EOF
       "files": {
         "collect_list": [
           {
-            "file_path": "/var/log/",
+            "file_path": "/var/log/${folderName}",
             "log_group_name": "/fusebit-${serviceType}/${deploymentName}",
             "log_stream_name": "{instance_id}"
           }
