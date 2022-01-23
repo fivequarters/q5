@@ -262,7 +262,6 @@ export class OpsIam implements IDataSource {
         `${this.config.arnPrefix}:iam::aws:policy/AmazonS3FullAccess`,
         `${this.config.arnPrefix}:iam::aws:policy/AmazonDynamoDBFullAccess`,
         `${this.config.arnPrefix}:iam::aws:policy/AWSCloudMapRegisterInstanceAccess`,
-        `${this.config.arnPrefix}:iam::aws:policy/service-role/AmazonEC2RoleforSSM`,
       ],
       undefined,
       this.config.iamPermissionsBoundary
