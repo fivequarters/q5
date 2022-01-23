@@ -850,10 +850,9 @@ ${awsUserData.runDockerCompose()}
               FromPort: parseInt(allowPort),
               IpProtocol: proto,
               ToPort: parseInt(allowPort),
-              IpRanges: [
+              UserIdGroupPairs: [
                 {
-                  CidrIp: '10.0.0.0/16',
-                  Description: 'Allow all for now to test',
+                  GroupId: apiSg.GroupId as string,
                 },
               ],
             },
@@ -880,6 +879,23 @@ ${awsUserData.runDockerCompose()}
         })
         .promise();
     }
+    await ec2Sdk
+      .authorizeSecurityGroupIngress({
+        GroupId: secGroup.GroupId as string,
+        IpPermissions: [
+          {
+            FromPort: 9999,
+            IpProtocol: 'TCP',
+            ToPort: 9999,
+            IpRanges: [
+              {
+                CidrIp: '0.0.0.0/0',
+              },
+            ],
+          },
+        ],
+      })
+      .promise();
   }
 
   private async ensureNlb(monitoringName: string, region: string): Promise<AWS.ELBv2.LoadBalancer> {
@@ -991,7 +1007,8 @@ ${awsUserData.runDockerCompose()}
 
     await Promise.all(promises);
 
-    // Wait a couple seconds before registering
+    // Wait a couple seconds before registering, in theory polling is the best way, but with so many instances to pull
+    // it does not make sense to poll one by one.
     await new Promise((res) => setTimeout(res, 5000));
 
     await cloudMapSdk
