@@ -9,21 +9,21 @@ const command: ICommand = {
   arguments: [
     {
       name: 'networkName',
-      description: 'the name of the network',
+      description: 'The name of the network.',
     },
     {
       name: 'deploymentName',
-      description: 'the api deployment you want to use this deployment with',
+      description: 'The function-api deployment you want to use to back this monitoring deployment.',
     },
     {
       name: 'monitoringName',
-      description: 'the monitoring deployment you want to add to the Fusebit platform',
+      description: 'The name of the monitoring deployment you want to add to the Fusebit platform.',
     },
   ],
   options: [
     {
       name: 'region',
-      description: 'the region of the network',
+      description: 'The region of the network.',
     },
   ],
 };

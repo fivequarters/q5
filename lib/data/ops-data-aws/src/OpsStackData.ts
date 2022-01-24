@@ -341,7 +341,6 @@ SEGMENT_KEY=${segmentKey}
     if (grafanaKey) {
       // Grafana enabled is separately defined variable because when grafana is enabled but no endpoint is specified will automatically forward grafana traffic to localhost
       r += `
-GRAFANA_ENABLED=true
 GRAFANA_ENDPOINT=${GRAFANA_LEADER_PREFIX}${grafanaKey}${FUSEBIT_INTERNAL_DISCOVERY_DOMAIN_POSTFIX}
       `;
     }

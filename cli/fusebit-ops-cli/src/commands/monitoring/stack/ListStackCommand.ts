@@ -5,11 +5,11 @@ const command: ICommand = {
   name: 'List Monitoring Stacks',
   cmd: 'ls',
   summary: 'List Fusebit Monitoring Stacks',
-  description: 'Listing Fusebit Monitoring Stacks',
+  description: 'Listing monitoring stacks on the Fusebit platform.',
   options: [
     {
-      name: 'deploymentName',
-      description: 'The deployment the stacks belong to.',
+      name: 'monitoringDeploymentName',
+      description: 'The monitoring deployment the stacks belong to.',
     },
   ],
 };

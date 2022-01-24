@@ -11,9 +11,8 @@ import { StackCommand } from './stack/StackCommand';
 const command: ICommand = {
   name: 'Monitoring',
   cmd: 'monitoring',
-  summary: 'Manage Fusebit monitoring system',
-  // GLT refers to Grafana-Loki-Tempo
-  description: 'Manage Fusebit Monitoring system (glt stack)',
+  summary: 'Manage Fusebit Monitoring Systems',
+  description: 'Manage monitoring systems on the Fusebit platform.',
 };
 
 // ----------------

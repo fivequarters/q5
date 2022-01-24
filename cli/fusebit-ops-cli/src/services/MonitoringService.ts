@@ -47,7 +47,7 @@ const BOOTSTRAP_BUCKET = 'grafana-bootstrap-';
 // Running on AMD(a) is 20% cheaper for the same performance.
 const INSTANCE_SIZE = 't3a.medium';
 
-// 20.04 is the latest Ubuntu LTS
+// 20.04 is the latest Ubuntu LTS.
 const UBUNTU_VERSION = '20.04';
 
 const STACK_ID_MIN_MAX = {
@@ -56,6 +56,7 @@ const STACK_ID_MIN_MAX = {
 };
 
 const TG_PREFIX = 'tg-grafana-';
+const EC2_INSTANCE_PREFIX = 'grafana-';
 
 interface IDatabaseCredentials {
   username: string;
@@ -149,6 +150,20 @@ export class MonitoringService {
           NamespaceId: cloudMap.namespace.Id,
           RoutingPolicy: 'MULTIVALUE',
         },
+        Tags: [
+          {
+            Key: 'accountId',
+            Value: this.config.account,
+          },
+          {
+            Key: 'deploymentName',
+            Value: monDep.monitoringDeploymentName,
+          },
+          {
+            Key: 'region',
+            Value: monDep.region,
+          },
+        ],
       })
       .promise();
     return result.Service as AWS.ServiceDiscovery.Service;
@@ -176,14 +191,11 @@ export class MonitoringService {
       fusebitDeployment.domainName
     );
 
-    // Configure database settings
     configTemplate.database.type = DB_ENGINE;
     configTemplate.database.user = credentials.username;
-    // Database name is formed from username and DB_PREFIX
     configTemplate.database.name = DB_PREFIX + credentials.username;
     configTemplate.database.password = credentials.password;
     configTemplate.database.host = `${credentials.endpoint}:${POSTGRES_PORT}`;
-    // Configure base URLs
     configTemplate.server.domain = baseUrl;
     configTemplate.server.rootUrl = ` ${baseUrl}/v2/grafana/`;
 
@@ -261,19 +273,40 @@ export class MonitoringService {
             },
           ],
           MetadataOptions: {
-            // It's there in funcion-api, so it's prob there for *some* reason
             HttpPutResponseHopLimit: 2,
           },
           SecurityGroupIds: [sgId?.GroupId as string],
           UserData: this.toBase64(bootstrapUserData),
           IamInstanceProfile: {
-            // Created by fuse-ops setup
             Arn: `${awsConfig.arnPrefix}:iam::${this.config.account}:instance-profile/fusebit-grafana-instance`,
           },
           EbsOptimized: true,
           InstanceType: INSTANCE_SIZE,
           ImageId: amiId,
         },
+        TagSpecifications: [
+          {
+            ResourceType: 'ec2',
+            Tags: [
+              {
+                Key: 'accountId',
+                Value: this.config.account,
+              },
+              {
+                Key: 'deploymentName',
+                Value: monDep.monitoringDeploymentName,
+              },
+              {
+                Key: 'region',
+                Value: monDep.region,
+              },
+              {
+                Key: 'Name',
+                Value: EC2_INSTANCE_PREFIX + monDep.monitoringDeploymentName + '-' + stack.stackId,
+              },
+            ],
+          },
+        ],
       })
       .promise();
     await this.createAutoScalingGroupFromLaunchTemplate(lt.LaunchTemplate?.LaunchTemplateName as string, monDep, stack);
@@ -298,6 +331,20 @@ export class MonitoringService {
         HealthCheckType: 'ELB',
         HealthCheckGracePeriod: 300,
         VPCZoneIdentifier: cloudMap.network.privateSubnets.map((subnet) => subnet.id).join(','),
+        Tags: [
+          {
+            Key: 'accountId',
+            Value: this.config.account,
+          },
+          {
+            Key: 'deploymentName',
+            Value: deployment.monitoringDeploymentName,
+          },
+          {
+            Key: 'region',
+            Value: deployment.region,
+          },
+        ],
       })
       .promise();
   }
@@ -360,7 +407,7 @@ chmod +x bootstrap.sh
     return `#!/bin/bash
 mkdir /root/tempo-data
 mkdir /root/loki
-chmod 777 /var/log
+chmod 777 -R /var/log
 chmod 777 -R /root/loki
 ${awsUserData.installCloudWatchAgent('grafana', LOGGING_SERVICE_TYPE, deployment.monitoringDeploymentName)}
 ${awsUserData.installDocker()}
@@ -395,7 +442,6 @@ ${awsUserData.runDockerCompose()}
 
   private async getTempoYamlFile(monDep: IMonitoringDeployment) {
     const template = grafanaConfig.getTempoConfigTemplate() as any;
-    // Configure S3 name
     template.storage.trace.s3.bucket = TEMPO_BUCKET_PREFIX + monDep.monitoringDeploymentName;
     template.storage.trace.s3.endpoint = `s3.${monDep.region}.amazonaws.com`;
     template.memberlist.join_members = [
@@ -565,6 +611,20 @@ ${awsUserData.runDockerCompose()}
           },
           NamespaceId: cloudMap.namespace.Id,
           Name: `${MASTER_SERVICE_PREFIX}${monitoringDeploymentName}`,
+          Tags: [
+            {
+              Key: 'accountId',
+              Value: this.config.account,
+            },
+            {
+              Key: 'deploymentName',
+              Value: monitoringDeploymentName,
+            },
+            {
+              Key: 'region',
+              Value: cloudMap.network.region,
+            },
+          ],
         })
         .promise();
     } catch (e) {}
@@ -595,7 +655,6 @@ ${awsUserData.runDockerCompose()}
     }
   }
 
-  // Used for storing deployment configs
   private async ensureDynamoDBTable() {
     const dynamoSdk = await this.getAwsSdk(AWS.DynamoDB, { region: this.config.region });
     const tables = await dynamoSdk.listTables().promise();
@@ -636,7 +695,6 @@ ${awsUserData.runDockerCompose()}
     }
   }
 
-  // Used for storing stack configs
   private async ensureDynamoDBStackTable() {
     const dynamoSdk = await this.getAwsSdk(AWS.DynamoDB, { region: this.config.region });
     const tables = await dynamoSdk.listTables().promise();
@@ -857,9 +915,10 @@ ${awsUserData.runDockerCompose()}
               FromPort: parseInt(allowPort),
               IpProtocol: proto,
               ToPort: parseInt(allowPort),
-              UserIdGroupPairs: [
+              IpRanges: [
                 {
-                  GroupId: apiSg.GroupId as string,
+                  CidrIp: '0.0.0.0/0',
+                  Description: 'Allow traffic from anywhere within the VPC.',
                 },
               ],
             },
@@ -922,6 +981,20 @@ ${awsUserData.runDockerCompose()}
         Subnets: cloudMap.network.privateSubnets.map((sub) => sub.id),
         Type: 'network',
         Scheme: 'internal',
+        Tags: [
+          {
+            Key: 'accountId',
+            Value: this.config.account,
+          },
+          {
+            Key: 'deploymentName',
+            Value: monDeployment.monitoringDeploymentName,
+          },
+          {
+            Key: 'region',
+            Value: monDeployment.region,
+          },
+        ],
       })
       .promise();
 
@@ -933,7 +1006,6 @@ ${awsUserData.runDockerCompose()}
         })
         .promise();
       success = (status.LoadBalancers as AWS.ELBv2.LoadBalancers)[0].State?.Code === 'active';
-      // Sleep a bit before continue so we don't DoS AWS
       await new Promise((res) => setTimeout(res, 3000));
     } while (!success);
     const promises: Promise<any>[] = [];
@@ -951,11 +1023,24 @@ ${awsUserData.runDockerCompose()}
             Protocol: 'TCP_UDP',
             VpcId: cloudMap.network.vpcId,
             TargetType: 'instance',
+            Tags: [
+              {
+                Key: 'accountId',
+                Value: this.config.account,
+              },
+              {
+                Key: 'deploymentName',
+                Value: monDeployment.monitoringDeploymentName,
+              },
+              {
+                Key: 'region',
+                Value: monDeployment.region,
+              },
+            ],
           })
           .promise()
       );
     }
-    // Appearently if cross zone is not enabled, TCP connections fail as Grafana deployments only exist in a single AZ.
     await elbSdk
       .modifyLoadBalancerAttributes({
         LoadBalancerArn: (nlb.LoadBalancers as AWS.ELBv2.LoadBalancers)[0].LoadBalancerArn as string,
@@ -983,6 +1068,20 @@ ${awsUserData.runDockerCompose()}
                 TargetGroupArn: (result.TargetGroups as ELBv2.TargetGroups)[0].TargetGroupArn,
               },
             ],
+            Tags: [
+              {
+                Key: 'accountId',
+                Value: this.config.account,
+              },
+              {
+                Key: 'deploymentName',
+                Value: monDeployment.monitoringDeploymentName,
+              },
+              {
+                Key: 'region',
+                Value: monDeployment.region,
+              },
+            ],
           })
           .promise()
       );
@@ -1002,7 +1101,7 @@ ${awsUserData.runDockerCompose()}
       region
     );
     if (!svcSummary) {
-      throw Error('Load Balancer discovery service is not found.');
+      throw Error('Load balancer leader service is not found.');
     }
     const instances = await cloudMapSdk.listInstances({ ServiceId: svcSummary.Id as string }).promise();
     let promises: Promise<any>[] = [];
@@ -1014,8 +1113,7 @@ ${awsUserData.runDockerCompose()}
 
     await Promise.all(promises);
 
-    // Wait a couple seconds before registering, in theory polling is the best way, but with so many instances to pull
-    // it does not make sense to poll one by one.
+    // Because this can contain many resources to be deregistered, it is easier to have a hard wait.
     await new Promise((res) => setTimeout(res, 5000));
 
     await cloudMapSdk

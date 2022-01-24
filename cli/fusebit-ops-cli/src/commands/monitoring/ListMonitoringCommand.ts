@@ -5,7 +5,7 @@ const command: ICommand = {
   name: 'List Monitoring Deployments',
   cmd: 'ls',
   summary: 'List Fusebit Monitoring Deployments',
-  description: 'List Fusebit Monitoring Deployments',
+  description: 'List monitoring deployments on the Fusebit platform.',
 };
 
 export class ListMonitoringCommand extends Command {

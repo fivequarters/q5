@@ -4,8 +4,8 @@ import { MonitoringService } from '../../../services/MonitoringService';
 const command: ICommand = {
   name: 'Add Monitoring Stack',
   cmd: 'add',
-  summary: 'Add an Fusebit Monitoring Stack',
-  description: 'Add an Fusebit Monitoring Stack',
+  summary: 'Add a Fusebit Monitoring Stack',
+  description: 'Add a monitoring stack to the Fusebit platform.',
   arguments: [
     {
       name: 'monitoringName',
@@ -15,19 +15,19 @@ const command: ICommand = {
   options: [
     {
       name: 'region',
-      description: 'the region of the network',
+      description: 'The region that the Fusebit monitoring deployment resides in.',
     },
     {
       name: 'grafanaTag',
-      description: 'the tag of the Grafana docker image',
+      description: 'The version of the Grafana docker image.',
     },
     {
       name: 'lokiTag',
-      description: 'the tag of the Loki docker image',
+      description: 'The version of the Loki docker image.',
     },
     {
       name: 'tempoTag',
-      description: 'the tag of the Tempo docker image',
+      description: 'The version of the Tempo docker image.',
     },
   ],
 };

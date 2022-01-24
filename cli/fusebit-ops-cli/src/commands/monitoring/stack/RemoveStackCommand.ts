@@ -4,16 +4,16 @@ import { MonitoringService } from '../../../services/MonitoringService';
 const command: ICommand = {
   name: 'Remove Monitoring Stack',
   cmd: 'rm',
-  summary: 'Remove an Fusebit Monitoring Stack',
-  description: 'Remove an Fusebit Monitoring Stack',
+  summary: 'Remove a Fusebit Monitoring Stack',
+  description: 'Remove a stack from the Fusebit platform.',
   arguments: [
     {
       name: 'monitoringDeploymentName',
-      description: 'the monitoring deployment you want to remove stacks from',
+      description: 'The monitoring deployment you want to remove stacks from.',
     },
     {
       name: 'stackid',
-      description: 'The stack you want to remove',
+      description: 'The id of the stack you want to remove.',
     },
   ],
   options: [

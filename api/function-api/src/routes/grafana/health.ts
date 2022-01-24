@@ -2,8 +2,7 @@ import superagent from 'superagent';
 import * as Constants from '@5qtrs/constants';
 
 export const checkGrafanaHealth = async () => {
-  // Grafana is an optional addon, only check it's health if it is enabled
-  if (!process.env.GRAFANA_ENABLED) {
+  if (!process.env.GRAFANA_ENDPOINT) {
     return;
   }
 

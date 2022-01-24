@@ -12,8 +12,8 @@ import { RemoveStackCommand } from './RemoveStackCommand';
 const command: ICommand = {
   name: 'Stack',
   cmd: 'stack',
-  summary: 'Manage Fusebit Monitoring stacks',
-  description: 'Manage Fusebit monitoring stacks',
+  summary: 'Manage Fusebit Monitoring Stacks',
+  description: 'Manage monitoring stacks on the Fusebit platform.',
 };
 
 // ----------------

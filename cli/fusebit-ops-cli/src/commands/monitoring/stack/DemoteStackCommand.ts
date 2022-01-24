@@ -8,18 +8,18 @@ const command: ICommand = {
   description: 'Demote a Fusebit Monitoring Stack',
   arguments: [
     {
-      name: 'deploymentName',
-      description: 'The Monitoring Deployment you want to demote stacks from',
+      name: 'monitoringDeploymentName',
+      description: 'The monitoring deployment you want to demote the stack from.',
     },
     {
       name: 'stackId',
-      description: 'The id of the stack you want to demote',
+      description: 'The id of the stack you want to demote.',
     },
   ],
   options: [
     {
       name: 'region',
-      description: 'the region of the Fusebit Monitoring deployment',
+      description: 'The region that the monitoring deployment resides in.',
     },
   ],
 };

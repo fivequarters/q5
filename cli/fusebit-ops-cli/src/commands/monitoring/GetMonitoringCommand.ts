@@ -5,17 +5,17 @@ const command: ICommand = {
   name: 'Get Monitoring Deployment',
   cmd: 'get',
   summary: 'Get Fusebit Monitoring Deployment',
-  description: 'Get Fusebit Monitoring Deployment',
+  description: 'Get details of a Fusebit monitoring deployment.',
   arguments: [
     {
       name: 'monitoringName',
-      description: 'The monitoring deployment you want to get.',
+      description: 'The monitoring deployment you want to get details about.',
     },
   ],
   options: [
     {
       name: 'region',
-      description: 'The region of the Monitoring deployment',
+      description: 'The region of the monitoring deployment.',
     },
   ],
 };

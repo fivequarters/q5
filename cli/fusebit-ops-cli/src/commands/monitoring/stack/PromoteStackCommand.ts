@@ -5,21 +5,21 @@ const command: ICommand = {
   name: 'Promote Monitoring Stack',
   cmd: 'promote',
   summary: 'Promote Fusebit Monitoring Stack',
-  description: 'Promote a Fusebit Monitoring Stack',
+  description: 'Promote a monitoring stack on the Fusebit platform.',
   arguments: [
     {
       name: 'deploymentName',
-      description: 'The Monitoring Deployment you want to promote stacks to',
+      description: 'The monitoring deployment you want to promote stacks in.',
     },
     {
       name: 'stackId',
-      description: 'The id of the stack you want to promote',
+      description: 'The id of the stack you want to promote.',
     },
   ],
   options: [
     {
       name: 'region',
-      description: 'the region of the Fusebit Monitoring deployment',
+      description: 'The region that the monitoring deployment resides.',
     },
   ],
 };
