@@ -1,5 +1,3 @@
-import * as Constants from '@5qtrs/constants';
-
 export const defaultDashboards = [
   {
     title: 'basic',

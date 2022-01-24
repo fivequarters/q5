@@ -12,6 +12,4 @@ export const checkGrafanaHealth = async () => {
   if (!result.ok) {
     throw Error('Health check failed for Grafana');
   }
-
-  process.env.GRAFANA_VERSION = result.body.version;
 };
