@@ -283,10 +283,33 @@ export class MonitoringService {
           EbsOptimized: true,
           InstanceType: INSTANCE_SIZE,
           ImageId: amiId,
+          TagSpecifications: [
+            {
+              ResourceType: 'ec2',
+              Tags: [
+                {
+                  Key: 'accountId',
+                  Value: this.config.account,
+                },
+                {
+                  Key: 'deploymentName',
+                  Value: monDep.monitoringDeploymentName,
+                },
+                {
+                  Key: 'region',
+                  Value: monDep.region,
+                },
+                {
+                  Key: 'Name',
+                  Value: EC2_INSTANCE_PREFIX + monDep.monitoringDeploymentName + '-' + stack.stackId,
+                },
+              ],
+            },
+          ],
         },
         TagSpecifications: [
           {
-            ResourceType: 'ec2',
+            ResourceType: 'launch-template',
             Tags: [
               {
                 Key: 'accountId',
@@ -299,10 +322,6 @@ export class MonitoringService {
               {
                 Key: 'region',
                 Value: monDep.region,
-              },
-              {
-                Key: 'Name',
-                Value: EC2_INSTANCE_PREFIX + monDep.monitoringDeploymentName + '-' + stack.stackId,
               },
             ],
           },
