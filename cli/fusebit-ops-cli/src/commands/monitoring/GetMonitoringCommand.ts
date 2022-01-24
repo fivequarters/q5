@@ -33,7 +33,7 @@ export class GetMonitoringCommand extends Command {
     const [monitoringName] = input.arguments as string[];
     const region = input.options.region as string | undefined;
     const svc = await MonitoringService.create(input);
-    await svc.MonitoringGet(monitoringName, region);
+    await svc.monitoringGet(monitoringName, region);
     return 0;
   }
 }

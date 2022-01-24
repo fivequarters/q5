@@ -37,7 +37,7 @@ export class PromoteStackCommand extends Command {
     const [deploymentName, stackId] = input.arguments as string[];
     let region = input.options.region as string | undefined;
     const svc = await MonitoringService.create(input);
-    await svc.StackPromote(deploymentName, parseInt(stackId), region);
+    await svc.stackPromote(deploymentName, parseInt(stackId), region);
     return 0;
   }
 }

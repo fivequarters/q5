@@ -37,7 +37,7 @@ export class RemoveStackCommand extends Command {
     const [deploymentName, stackId] = input.arguments as string[];
     const region = input.options.region as string | undefined;
     const svc = await MonitoringService.create(input);
-    await svc.StackRemove(deploymentName, stackId, region);
+    await svc.stackRemove(deploymentName, stackId, region);
     return 0;
   }
 }

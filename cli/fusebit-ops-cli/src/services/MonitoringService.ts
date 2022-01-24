@@ -1027,6 +1027,7 @@ ${awsUserData.runDockerCompose()}
       .promise();
 
     let success = false;
+    let tries = 100;
     do {
       const status = await elbSdk
         .describeLoadBalancers({
@@ -1035,7 +1036,11 @@ ${awsUserData.runDockerCompose()}
         .promise();
       success = (status.LoadBalancers as AWS.ELBv2.LoadBalancers)[0].State?.Code === 'active';
       await new Promise((res) => setTimeout(res, 3000));
-    } while (!success);
+      tries--;
+    } while (!success && tries > 0);
+    if (!success) {
+      throw Error('NLB did not get ready within 5 minutes, is AWS down?');
+    }
     const promises: Promise<any>[] = [];
     for (const portProto of GRAFANA_PORTS) {
       const [port, proto] = portProto.split('/');
@@ -1299,7 +1304,7 @@ ${awsUserData.runDockerCompose()}
     }
   }
 
-  public async MonitoringGet(monDeploymentName: string, region?: string) {
+  public async monitoringGet(monDeploymentName: string, region?: string) {
     const deployment = await this.getMonitoringDeploymentByName(monDeploymentName, region);
     if (this.input.options.output === 'json') {
       await this.input.io.writeRaw(JSON.stringify(deployment));
@@ -1321,7 +1326,7 @@ ${awsUserData.runDockerCompose()}
     await this.executeService.message(Text.bold(monDeploymentName), Text.create(details));
   }
 
-  public async MonitoringAdd(networkName: string, deploymentName: string, monDeploymentName: string, region?: string) {
+  public async monitoringAdd(networkName: string, deploymentName: string, monDeploymentName: string, region?: string) {
     const listing = await this.executeService.execute(
       {
         header: 'Add Monitoring Deployment',
@@ -1332,7 +1337,7 @@ ${awsUserData.runDockerCompose()}
     );
   }
 
-  public async MonitoringList() {
+  public async monitoringList() {
     const listing = await this.executeService.execute(
       {
         header: 'Listing Monitoring Deployments',
@@ -1343,7 +1348,7 @@ ${awsUserData.runDockerCompose()}
     );
   }
 
-  public async StackAdd(
+  public async stackAdd(
     monDeploymentName: string,
     grafanaTag?: string,
     tempoTag?: string,
@@ -1360,7 +1365,7 @@ ${awsUserData.runDockerCompose()}
     );
   }
 
-  public async StackPromote(monDeploymentName: string, stackId: number, region?: string) {
+  public async stackPromote(monDeploymentName: string, stackId: number, region?: string) {
     const promoteResult = await this.executeService.execute(
       {
         header: `Promote Stack ${stackId}`,
@@ -1371,7 +1376,7 @@ ${awsUserData.runDockerCompose()}
     );
   }
 
-  public async StackDemote(monDeploymentName: string, stackId: number, region?: string) {
+  public async stackDemote(monDeploymentName: string, stackId: number, region?: string) {
     const demoteResult = await this.executeService.execute(
       {
         header: `Demote Stack ${stackId}`,
@@ -1382,7 +1387,7 @@ ${awsUserData.runDockerCompose()}
     );
   }
 
-  public async StackRemove(monDeploymentName: string, stackId: string, region?: string) {
+  public async stackRemove(monDeploymentName: string, stackId: string, region?: string) {
     await this.executeService.execute(
       {
         header: `Remove Stack ${stackId}`,
@@ -1393,7 +1398,7 @@ ${awsUserData.runDockerCompose()}
     );
   }
 
-  public async StackList(monDeploymentName?: string) {
+  public async stackList(monDeploymentName?: string) {
     await this.executeService.execute(
       {
         header: 'List Stacks',

@@ -48,7 +48,7 @@ export class AddStackCommand extends Command {
     let lokiTag = input.options.lokiTag as string | undefined;
     let tempoTag = input.options.tempoTag as string | undefined;
     const svc = await MonitoringService.create(input);
-    await svc.StackAdd(monitoringName, grafanaTag, tempoTag, lokiTag, region);
+    await svc.stackAdd(monitoringName, grafanaTag, tempoTag, lokiTag, region);
     return 0;
   }
 }

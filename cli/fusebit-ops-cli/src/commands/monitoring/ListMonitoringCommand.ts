@@ -19,7 +19,7 @@ export class ListMonitoringCommand extends Command {
 
   protected async onExecute(input: IExecuteInput): Promise<number> {
     const svc = await MonitoringService.create(input);
-    await svc.MonitoringList();
+    await svc.monitoringList();
     return 0;
   }
 }

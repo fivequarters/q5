@@ -37,7 +37,7 @@ export class DemoteStackCommand extends Command {
     const [deploymentName, stackId] = input.arguments as string[];
     let region = input.options.region as string | undefined;
     const svc = await MonitoringService.create(input);
-    await svc.StackDemote(deploymentName, parseInt(stackId), region);
+    await svc.stackDemote(deploymentName, parseInt(stackId), region);
     return 0;
   }
 }
