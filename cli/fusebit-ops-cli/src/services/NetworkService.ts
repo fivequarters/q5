@@ -66,20 +66,6 @@ export class NetworkService {
     }
   }
 
-  public async setupNetwork(name: string, region: string) {
-    const opsDataContext = await this.opsService.getOpsDataContext();
-    const networkData = opsDataContext.networkData;
-    const network = await networkData.get(name, region);
-    await this.executeService.execute(
-      {
-        header: 'Setup Network',
-        message: `Adding the '${Text.bold(name)}' network to the Fusebit platform...`,
-        errorHeader: 'Network Error',
-      },
-      async () => this.ensureCloudMap(network.region, network.vpcId, network.networkName)
-    );
-  }
-
   public async getNetwork(name: string, region: string): Promise<IOpsNetwork> {
     const opsDataContext = await this.opsService.getOpsDataContext();
     const networkData = opsDataContext.networkData;
@@ -183,7 +169,7 @@ export class NetworkService {
         message: `Adding the '${Text.bold(network.networkName)}' network to the Fusebit platform...`,
         errorHeader: 'Network Error',
       },
-      async () => await networkData.add(network)
+      () => networkData.add(network)
     );
 
     this.executeService.result(
@@ -273,7 +259,7 @@ export class NetworkService {
     });
   }
 
-  private async ensureCloudMap(region: string, vpcId: string, networkName: string) {
+  public async ensureCloudMap(region: string, vpcId: string, networkName: string) {
     const mapSdk = await this.getCloudMapSdk({ region });
     const zones = await mapSdk.listNamespaces().promise();
     for (const zone of zones.Namespaces as AWS.ServiceDiscovery.NamespaceSummariesList) {

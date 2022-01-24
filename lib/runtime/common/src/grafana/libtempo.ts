@@ -75,7 +75,7 @@ const publishTraces = async (accountId: string, traces: Trace[]) => {
 
         metadata.set('X-Scope-OrgID', accountId);
         const exporter = new OTLPTraceExporter({
-          url: `${Constants.TEMPO_GRPC_INGEST}:4317`,
+          url: Constants.TEMPO_GRPC_INGEST,
           metadata,
         });
         await new Promise((resolve) => exporter.export([trace], resolve));

@@ -83,6 +83,7 @@ export class OpsNetworkData extends DataSource implements IOpsNetworkData {
       network.existingPublicSubnetIds,
       network.existingPrivateSubnetIds
     );
+
     return {
       networkName: network.networkName,
       accountName: network.accountName,

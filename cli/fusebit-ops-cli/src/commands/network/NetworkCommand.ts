@@ -1,7 +1,6 @@
 import { Command, ICommand } from '@5qtrs/cli';
 import { AddNetworkCommand } from './AddNetworkCommand';
 import { ListNetworkCommand } from './ListNetworkCommand';
-import { SetupNetworkCommand } from './SetupNetworkCommand';
 
 // ------------------
 // Internal Constants
@@ -23,7 +22,6 @@ export class NetworkCommand extends Command {
     const subCommands = [];
     subCommands.push(await AddNetworkCommand.create());
     subCommands.push(await ListNetworkCommand.create());
-    subCommands.push(await SetupNetworkCommand.create());
     command.subCommands = subCommands;
     return new NetworkCommand(command);
   }

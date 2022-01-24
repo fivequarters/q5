@@ -9,7 +9,7 @@ const command: ICommand = {
   arguments: [
     {
       name: 'monitoringName',
-      description: 'the monitoring deployment you want to add stacks against.',
+      description: 'The monitoring deployment you want to add stacks against.',
     },
   ],
   options: [

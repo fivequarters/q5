@@ -39,7 +39,7 @@ const TEMPO_ENDPOINT = process.env.GRAFANA_ENDPOINT
 
 const LOKI_GRPC_INGEST = process.env.GRAFANA_ENDPOINT ? `grpc://${process.env.GRAFANA_ENDPOINT}` : '';
 
-const TEMPO_GRPC_INGEST = process.env.GRAFANA_ENDPOINT ? `grpc://${process.env.GRAFANA_ENDPOINT}` : '';
+const TEMPO_GRPC_INGEST = process.env.GRAFANA_ENDPOINT ? `grpc://${process.env.GRAFANA_ENDPOINT}:4317` : '';
 
 const API_PUBLIC_HOST = new URL(API_PUBLIC_ENDPOINT || 'http://localhost').host;
 
