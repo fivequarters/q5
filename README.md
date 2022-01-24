@@ -149,5 +149,6 @@ Here is a quick list of commands for working with the workspaces in the reposito
 | Move a Workspace                      | `yarn move <workspace-name> <new-path>`                      |
 | Delete a Workspace                    | `yarn delete <workspace-name> <new-path>`                    |
 | Generate API documentation            | `yarn doc <workspace-name>`                                  |
+| Generate a new proxy service          | `yarn proxy-service`                                         |
 
 **\*** These commands will execute for all workspaces that have a path/name that match the filter
