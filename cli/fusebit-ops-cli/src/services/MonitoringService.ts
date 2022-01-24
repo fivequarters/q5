@@ -285,7 +285,7 @@ export class MonitoringService {
           ImageId: amiId,
           TagSpecifications: [
             {
-              ResourceType: 'ec2',
+              ResourceType: 'instance',
               Tags: [
                 {
                   Key: 'accountId',
