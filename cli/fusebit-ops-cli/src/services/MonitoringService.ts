@@ -210,7 +210,18 @@ export class MonitoringService {
     return this.toBase64(grafanaConfig.toIniFile(configTemplate));
   }
 
-  private async cleanupStack(monDeployment: IMonitoringDeployment, stack: IMonitoringStack) {
+  private async cleanupStack(monDeployment: IMonitoringDeployment, stack: IMonitoringStack, force: boolean) {
+    let stacks = await this.listStacks();
+    stacks = stacks.filter((stack) => stack.active);
+    stacks = stacks.filter((stackInfo) => parseInt(stackInfo.stackId) === stack.stackId);
+    stacks = stacks.filter((stack) => stack.deploymentName === monDeployment.monitoringDeploymentName);
+    if (!force && stacks.length === 1) {
+      await this.executeService.error(
+        'Deletion Error:',
+        'Cannot delete the last active stack in the deployment, please re-run with --force.'
+      );
+      return;
+    }
     const dynamoSdk = await this.getAwsSdk(AWS.DynamoDB, { region: this.config.region });
     const asgSdk = await this.getAwsSdk(AWS.AutoScaling, { region: monDeployment.region });
     await asgSdk
@@ -1124,9 +1135,13 @@ ${awsUserData.runDockerCompose()}
     await this.setupBootstrapBucket(monDeploymentName, cloudMap.network.region);
   }
 
-  private async deleteMonitoringStack(monDeploymentName: string, stackId: string, region?: string) {
+  private async deleteMonitoringStack(monDeploymentName: string, stackId: string, force: boolean, region?: string) {
     const monDep = await this.getMonitoringDeploymentByName(monDeploymentName, region);
-    await this.cleanupStack(monDep, { stackId: parseInt(stackId), tempoImage: '', lokiImage: '', grafanaImage: '' });
+    await this.cleanupStack(
+      monDep,
+      { stackId: parseInt(stackId), tempoImage: '', lokiImage: '', grafanaImage: '' },
+      force
+    );
   }
 
   private async createNewMonitoringStack(
@@ -1188,7 +1203,7 @@ ${awsUserData.runDockerCompose()}
     }
   }
 
-  public async listStacks(monDeploymentName?: string) {
+  public async listStacks() {
     const dynamoSdk = await this.getAwsSdk(AWS.DynamoDB, { region: this.config.region });
     const items = await dynamoSdk.scan({ TableName: OPS_MON_STACK_TABLE }).promise();
     let itemsJson = [];
@@ -1205,44 +1220,7 @@ ${awsUserData.runDockerCompose()}
         active: item.active?.BOOL,
       });
     }
-    if (monDeploymentName) {
-      itemsJson = itemsJson.filter((item) => item.deploymentName === monDeploymentName);
-    }
-
-    if (this.input.options.output === 'json') {
-      await this.input.io.writeRaw(JSON.stringify(itemsJson));
-      return;
-    }
-
-    for (const stack of itemsJson) {
-      const details = [
-        Text.dim('Region: '),
-        stack.region,
-        Text.eol(),
-        Text.dim('Id: '),
-        stack.stackId,
-        Text.eol(),
-        Text.dim('Deployment Name: '),
-        stack.deploymentName,
-        Text.eol(),
-        Text.dim('AmiId: '),
-        stack.amiId,
-        Text.eol(),
-        Text.dim('Grafana Version: '),
-        stack.grafanaVersion,
-        Text.eol(),
-        Text.dim('Loki Version: '),
-        stack.lokiVersion,
-        Text.eol(),
-        Text.dim('Tempo Version: '),
-        stack.tempoVersion,
-        Text.eol(),
-        Text.dim('Status: '),
-        stack.active ? 'Active' : 'Inactive',
-        Text.eol(),
-      ];
-      await this.executeService.message(Text.bold(stack.stackId), Text.create(details));
-    }
+    return itemsJson;
   }
 
   public async monitoringGet(monDeploymentName: string, region?: string) {
@@ -1328,26 +1306,64 @@ ${awsUserData.runDockerCompose()}
     );
   }
 
-  public async stackRemove(monDeploymentName: string, stackId: string, region?: string) {
+  public async stackRemove(monDeploymentName: string, stackId: string, force: boolean, region?: string) {
     await this.executeService.execute(
       {
         header: `Remove Stack ${stackId}`,
         message: `Removing Stack ${stackId} from the Fusebit platform`,
         errorMessage: `Removing Stack ${stackId} failed`,
       },
-      () => this.deleteMonitoringStack(monDeploymentName, stackId, region)
+      () => this.deleteMonitoringStack(monDeploymentName, stackId, force, region)
     );
   }
 
   public async stackList(monDeploymentName?: string) {
-    await this.executeService.execute(
+    let itemsJson: any[] = (await this.executeService.execute(
       {
         header: 'List Stacks',
         message: 'Listing Monitoring Stacks',
         errorHeader: 'Listing Stacks Failed',
       },
-      () => this.listStacks(monDeploymentName)
-    );
+      () => this.listStacks()
+    )) as any[];
+    if (monDeploymentName) {
+      itemsJson = itemsJson.filter((item) => item.deploymentName === monDeploymentName);
+    }
+
+    if (this.input.options.outpuat === 'json') {
+      await this.input.io.writeRaw(JSON.stringify(itemsJson));
+      return;
+    }
+
+    for (const stack of itemsJson) {
+      const details = [
+        Text.dim('Region: '),
+        stack.region,
+        Text.eol(),
+        Text.dim('Id: '),
+        stack.stackId,
+        Text.eol(),
+        Text.dim('Deployment Name: '),
+        stack.deploymentName,
+        Text.eol(),
+        Text.dim('AmiId: '),
+        stack.amiId,
+        Text.eol(),
+        Text.dim('Grafana Version: '),
+        stack.grafanaVersion,
+        Text.eol(),
+        Text.dim('Loki Version: '),
+        stack.lokiVersion,
+        Text.eol(),
+        Text.dim('Tempo Version: '),
+        stack.tempoVersion,
+        Text.eol(),
+        Text.dim('Status: '),
+        stack.active ? 'Active' : 'Inactive',
+        Text.eol(),
+      ];
+      await this.executeService.message(Text.bold(stack.stackId), Text.create(details));
+    }
   }
 
   /**
