@@ -38,6 +38,8 @@ const defaultGovCloud = false;
 const defaultBackupRoleName = 'fusebit-backup-role';
 const defaultAuroraDatabaseName = 'fusebit';
 const defaultAuroraMasterUsername = 'fusebit';
+const defaultDiscoveryDomainName = 'fusebit.internal';
+const defaultMasterServicePrefix = 'leader-';
 // ----------------
 // Exported Classes
 // ----------------
@@ -278,5 +280,13 @@ export class OpsDataAwsConfig implements IConfig {
 
   public value(settingName: string) {
     return this.config.value(settingName);
+  }
+
+  public getDiscoveryDomainName() {
+    return defaultDiscoveryDomainName;
+  }
+
+  public getGrafanaLeaderPrefix() {
+    return defaultMasterServicePrefix;
   }
 }

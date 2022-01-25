@@ -19,15 +19,15 @@ const command: ICommand = {
     },
     {
       name: 'grafanaTag',
-      description: 'The version of the Grafana docker image.',
+      description: 'The version of the Grafana docker image, defaults to grafana/grafana:latest.',
     },
     {
       name: 'lokiTag',
-      description: 'The version of the Loki docker image.',
+      description: 'The version of the Loki docker image, defaults to grafana/loki:latest.',
     },
     {
       name: 'tempoTag',
-      description: 'The version of the Tempo docker image.',
+      description: 'The version of the Tempo docker image, defaults to grafana/tempo:2.3.0.',
     },
   ],
 };

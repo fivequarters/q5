@@ -5,8 +5,7 @@ import { IOpsNetwork, IOpsNewNetwork, IListOpsNetworkOptions, IListOpsNetworkRes
 import { OpsService } from './OpsService';
 import { ExecuteService } from './ExecuteService';
 import { AwsCreds, IAwsCredentials } from '@5qtrs/aws-cred';
-
-const DISCOVERY_DOMAIN_NAME = 'fusebit.internal';
+import { OpsDataAwsConfig } from '@5qtrs/ops-data-aws';
 
 // ----------------
 // Exported Classes
@@ -17,17 +16,20 @@ export class NetworkService {
   private opsService: OpsService;
   private executeService: ExecuteService;
   private creds: IAwsCredentials;
+  private opsAwsConfig: OpsDataAwsConfig;
 
   private constructor(
     input: IExecuteInput,
     opsService: OpsService,
     executeService: ExecuteService,
-    creds: IAwsCredentials
+    creds: IAwsCredentials,
+    opsAwsConfig: OpsDataAwsConfig
   ) {
     this.input = input;
     this.opsService = opsService;
     this.executeService = executeService;
     this.creds = creds;
+    this.opsAwsConfig = opsAwsConfig;
   }
 
   public static async create(input: IExecuteInput) {
@@ -36,7 +38,8 @@ export class NetworkService {
     const opsDataContext = await opsService.getOpsDataContextImpl();
     const config = await opsDataContext.provider.getAwsConfigForMain();
     const credentials = await (config.creds as AwsCreds).getCredentials();
-    return new NetworkService(input, opsService, executeService, credentials);
+    const opsAwsConfig = await OpsDataAwsConfig.create((await opsService.getOpsDataContextImpl()).config);
+    return new NetworkService(input, opsService, executeService, credentials, opsAwsConfig);
   }
 
   public async checkNetworkExists(network: IOpsNewNetwork): Promise<void> {
@@ -271,7 +274,7 @@ export class NetworkService {
     await mapSdk
       .createPrivateDnsNamespace({
         Description: networkName,
-        Name: DISCOVERY_DOMAIN_NAME,
+        Name: this.opsAwsConfig.getDiscoveryDomainName(),
         Vpc: vpcId,
       })
       .promise();

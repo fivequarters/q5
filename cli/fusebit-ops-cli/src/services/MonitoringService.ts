@@ -12,8 +12,6 @@ import { AwsAmi } from '@5qtrs/aws-ami';
 import { OpsDataAwsConfig } from '@5qtrs/ops-data-aws';
 import { Text } from '@5qtrs/text';
 
-const DISCOVERY_DOMAIN_NAME = 'fusebit.internal';
-const MASTER_SERVICE_PREFIX = 'leader-';
 const DISCOVERY_SERVICE_PREFIX = 'discovery-';
 const MONITORING_SEC_GROUP_PREFIX = `fusebit-monitoring-`;
 const POSTGRES_PORT = 5432;
@@ -26,7 +24,6 @@ const PARAM_MANAGER_PREFIX = '/fusebit/grafana/credentials/';
 const DATABASE_PREFIX = 'fusebit-db-';
 const LT_PREFIX = 'lt-grafana-';
 const ASG_PREFIX = 'asg-grafana-';
-const API_SG_PREFIX = 'SG-';
 const DB_PREFIX = 'mondb';
 const DB_ENGINE = 'postgres';
 const LOGGING_SERVICE_TYPE = 'monitoring';
@@ -49,6 +46,8 @@ const INSTANCE_SIZE = 't3a.medium';
 
 // 20.04 is the latest Ubuntu LTS.
 const UBUNTU_VERSION = '20.04';
+
+const LOKI_DEFAULT_VERSION = '2.3.0';
 
 const STACK_ID_MIN_MAX = {
   min: 100,
@@ -87,7 +86,8 @@ export class MonitoringService {
     const opsDataContext = await opsSvc.getOpsDataContextImpl();
     const config = await opsDataContext.provider.getAwsConfigForMain();
     const credentials = await (config.creds as AwsCreds).getCredentials();
-    return new MonitoringService(opsSvc, execSvc, config, credentials, input);
+    const opsAwsConfig = await OpsDataAwsConfig.create((await opsSvc.getOpsDataContextImpl()).config);
+    return new MonitoringService(opsSvc, execSvc, config, credentials, input, opsAwsConfig);
   }
 
   constructor(
@@ -95,7 +95,8 @@ export class MonitoringService {
     private executeService: ExecuteService,
     private config: IAwsConfig,
     private creds: IAwsCredentials,
-    private input: IExecuteInput
+    private input: IExecuteInput,
+    private opsAwsConfig: OpsDataAwsConfig
   ) {}
 
   private async getAmiId(region: string, overrideId?: string) {
@@ -253,10 +254,10 @@ export class MonitoringService {
     const ec2Sdk = await this.getAwsSdk(AWS.EC2, { region: monDeployment.region });
     const amiId = await this.getAmiId(monDeployment.region, stack.amiId);
     const discoveryService = await this.ensureDiscoveryService(monDeployment);
-    const sgId = await this.getSecGroup(
+    const sg = (await this.getSecGroup(
       MONITORING_SEC_GROUP_PREFIX + monDeployment.monitoringDeploymentName,
       monDeployment.region
-    );
+    )) as AWS.EC2.SecurityGroup;
     const userData = await this.getUserData(
       monDeployment.monitoringDeploymentName,
       monDeployment.region,
@@ -265,77 +266,8 @@ export class MonitoringService {
     );
     await this.addBootstrapScriptToBucket(monDeployment, stack, userData);
     const bootstrapUserData = await this.getBootStrapUserData(monDeployment, stack);
-    const awsConfig = await OpsDataAwsConfig.create((await this.opsService.getOpsDataContextImpl()).config);
     const lt = await ec2Sdk
-      .createLaunchTemplate({
-        LaunchTemplateName: LT_PREFIX + monDeployment.monitoringDeploymentName + stack.stackId,
-        LaunchTemplateData: {
-          BlockDeviceMappings: [
-            {
-              DeviceName: '/dev/sda1',
-              Ebs: {
-                DeleteOnTermination: true,
-                Encrypted: true,
-                VolumeType: 'gp3',
-                VolumeSize: 30,
-              },
-            },
-          ],
-          MetadataOptions: {
-            HttpPutResponseHopLimit: 2,
-          },
-          SecurityGroupIds: [sgId?.GroupId as string],
-          UserData: this.toBase64(bootstrapUserData),
-          IamInstanceProfile: {
-            Arn: `${awsConfig.arnPrefix}:iam::${this.config.account}:instance-profile/fusebit-grafana-instance`,
-          },
-          EbsOptimized: true,
-          InstanceType: INSTANCE_SIZE,
-          ImageId: amiId,
-          TagSpecifications: [
-            {
-              ResourceType: 'instance',
-              Tags: [
-                {
-                  Key: 'accountId',
-                  Value: this.config.account,
-                },
-                {
-                  Key: 'monitoringDeploymentName',
-                  Value: monDeployment.monitoringDeploymentName,
-                },
-                {
-                  Key: 'region',
-                  Value: monDeployment.region,
-                },
-                {
-                  Key: 'Name',
-                  Value: EC2_INSTANCE_PREFIX + monDeployment.monitoringDeploymentName + '-' + stack.stackId,
-                },
-              ],
-            },
-          ],
-        },
-        TagSpecifications: [
-          {
-            ResourceType: 'launch-template',
-            Tags: [
-              {
-                Key: 'accountId',
-                Value: this.config.account,
-              },
-              {
-                Key: 'monitoringDeploymentName',
-                Value: monDeployment.monitoringDeploymentName,
-              },
-              {
-                Key: 'region',
-                Value: monDeployment.region,
-              },
-            ],
-          },
-        ],
-      })
+      .createLaunchTemplate(this.getLaunchTemplateConfig(sg, bootstrapUserData, amiId, monDeployment, stack))
       .promise();
     await this.createAutoScalingGroupFromLaunchTemplate(
       lt.LaunchTemplate?.LaunchTemplateName as string,
@@ -469,7 +401,11 @@ ${awsUserData.runDockerCompose()}
     }`;
     template.storage_config.aws.region = monDeployment.region;
     template.memberlist.join_members = [
-      'dns+' + DISCOVERY_SERVICE_PREFIX + monDeployment.monitoringDeploymentName + '.' + DISCOVERY_DOMAIN_NAME,
+      'dns+' +
+        DISCOVERY_SERVICE_PREFIX +
+        monDeployment.monitoringDeploymentName +
+        '.' +
+        this.opsAwsConfig.getDiscoveryDomainName(),
     ];
     return this.toBase64(grafanaConfig.toYamlFile(template));
   }
@@ -479,7 +415,11 @@ ${awsUserData.runDockerCompose()}
     template.storage.trace.s3.bucket = TEMPO_BUCKET_PREFIX + monDeployment.monitoringDeploymentName;
     template.storage.trace.s3.endpoint = `s3.${monDeployment.region}.amazonaws.com`;
     template.memberlist.join_members = [
-      'dns+' + DISCOVERY_DOMAIN_NAME + monDeployment.monitoringDeploymentName + '.' + DISCOVERY_DOMAIN_NAME,
+      'dns+' +
+        DISCOVERY_SERVICE_PREFIX +
+        monDeployment.monitoringDeploymentName +
+        '.' +
+        this.opsAwsConfig.getDiscoveryDomainName(),
     ];
     return this.toBase64(grafanaConfig.toYamlFile(template));
   }
@@ -642,7 +582,7 @@ ${awsUserData.runDockerCompose()}
             RoutingPolicy: 'WEIGHTED',
           },
           NamespaceId: cloudMap.namespace.Id,
-          Name: `${MASTER_SERVICE_PREFIX}${monDeploymentName}`,
+          Name: `${this.opsAwsConfig.getGrafanaLeaderPrefix()}${monDeploymentName}`,
           Tags: [
             {
               Key: 'accountId',
@@ -664,26 +604,24 @@ ${awsUserData.runDockerCompose()}
 
   private async ensureS3Bucket(monDeploymentName: string, region: string) {
     const s3Sdk = await this.getAwsSdk(AWS.S3, { region });
-    const existingBucket = await s3Sdk.listBuckets().promise();
-    const lokiBuckets = existingBucket.Buckets?.filter(
-      (bucket) => bucket.Name === `${LOKI_BUCKET_PREFIX}${monDeploymentName}`
-    );
-    if (lokiBuckets?.length === 0) {
+    try {
       await s3Sdk
         .createBucket({
           Bucket: `${LOKI_BUCKET_PREFIX}${monDeploymentName}`,
         })
         .promise();
-      const tempoBuckets = existingBucket.Buckets?.filter(
-        (bucket) => bucket.Name === `${LOKI_BUCKET_PREFIX}${monDeploymentName}`
-      );
-      if (tempoBuckets?.length === 0) {
-        await s3Sdk
-          .createBucket({
-            Bucket: `${TEMPO_BUCKET_PREFIX}${monDeploymentName}`,
-          })
-          .promise();
-      }
+    } catch (e) {
+      console.log(e);
+    }
+
+    try {
+      await s3Sdk
+        .createBucket({
+          Bucket: `${TEMPO_BUCKET_PREFIX}${monDeploymentName}`,
+        })
+        .promise();
+    } catch (e) {
+      console.log(e);
     }
   }
 
@@ -1128,7 +1066,10 @@ ${awsUserData.runDockerCompose()}
     const monDep = await this.getMonitoringDeploymentByName(monDeploymentName, region);
     const cloudMap = await this.getCloudMap(monDep.networkName, region);
     const cloudMapSdk = await this.getAwsSdk(AWS.ServiceDiscovery, { region });
-    const svcSummary = await this.getService(MASTER_SERVICE_PREFIX + monDep.monitoringDeploymentName, region);
+    const svcSummary = await this.getService(
+      this.opsAwsConfig.getGrafanaLeaderPrefix() + monDep.monitoringDeploymentName,
+      region
+    );
     if (!svcSummary) {
       throw Error('Load balancer leader service is not found.');
     }
@@ -1455,6 +1396,84 @@ ${awsUserData.runDockerCompose()}
       return `grafana/loki:${imageTag}`;
     }
     // Loki latest does not work, running 2.3.0 by default.
-    return `grafana/loki:2.3.0`;
+    return `grafana/loki:${LOKI_DEFAULT_VERSION}`;
+  }
+
+  private getLaunchTemplateConfig(
+    sg: AWS.EC2.SecurityGroup,
+    bootstrapUserData: string,
+    amiId: string,
+    monDeployment: IMonitoringDeployment,
+    stack: IMonitoringStack
+  ) {
+    return {
+      LaunchTemplateName: LT_PREFIX + monDeployment.monitoringDeploymentName + stack.stackId,
+      LaunchTemplateData: {
+        BlockDeviceMappings: [
+          {
+            DeviceName: '/dev/sda1',
+            Ebs: {
+              DeleteOnTermination: true,
+              Encrypted: true,
+              VolumeType: 'gp3',
+              VolumeSize: 30,
+            },
+          },
+        ],
+        MetadataOptions: {
+          HttpPutResponseHopLimit: 2,
+        },
+        SecurityGroupIds: [sg.GroupId as string],
+        UserData: this.toBase64(bootstrapUserData),
+        IamInstanceProfile: {
+          Arn: `${this.opsAwsConfig.arnPrefix}:iam::${this.config.account}:instance-profile/fusebit-grafana-instance`,
+        },
+        EbsOptimized: true,
+        InstanceType: INSTANCE_SIZE,
+        ImageId: amiId,
+        TagSpecifications: [
+          {
+            ResourceType: 'instance',
+            Tags: [
+              {
+                Key: 'accountId',
+                Value: this.config.account,
+              },
+              {
+                Key: 'monitoringDeploymentName',
+                Value: monDeployment.monitoringDeploymentName,
+              },
+              {
+                Key: 'region',
+                Value: monDeployment.region,
+              },
+              {
+                Key: 'Name',
+                Value: EC2_INSTANCE_PREFIX + monDeployment.monitoringDeploymentName + '-' + stack.stackId,
+              },
+            ],
+          },
+        ],
+      },
+      TagSpecifications: [
+        {
+          ResourceType: 'launch-template',
+          Tags: [
+            {
+              Key: 'accountId',
+              Value: this.config.account,
+            },
+            {
+              Key: 'monitoringDeploymentName',
+              Value: monDeployment.monitoringDeploymentName,
+            },
+            {
+              Key: 'region',
+              Value: monDeployment.region,
+            },
+          ],
+        },
+      ],
+    };
   }
 }

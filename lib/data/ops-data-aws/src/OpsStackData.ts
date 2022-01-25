@@ -19,9 +19,6 @@ import { OpsAccountData } from './OpsAccountData';
 import { parseElasticSearchUrl } from './OpsElasticSearch';
 import { debug } from './OpsDebug';
 
-const GRAFANA_LEADER_PREFIX = 'leader-';
-const FUSEBIT_INTERNAL_DISCOVERY_DOMAIN_POSTFIX = '.fusebit.internal';
-
 // ------------------
 // Internal Functions
 // ------------------
@@ -83,7 +80,6 @@ export class OpsStackData extends DataSource implements IOpsStackData {
   public async deploy(newStack: IOpsNewStack): Promise<IOpsStack> {
     const { deploymentName, tag, region } = newStack;
     const deployment = await this.deploymentData.get(deploymentName, region);
-    console.log(deployment);
     const network = await this.networkData.get(deployment.networkName, deployment.region);
     const awsConfig = await this.provider.getAwsConfigForDeployment(deploymentName, deployment.region);
 
@@ -339,9 +335,8 @@ SEGMENT_KEY=${segmentKey}
     }
 
     if (grafanaKey) {
-      // Grafana enabled is separately defined variable because when grafana is enabled but no endpoint is specified will automatically forward grafana traffic to localhost
       r += `
-GRAFANA_ENDPOINT=${GRAFANA_LEADER_PREFIX}${grafanaKey}${FUSEBIT_INTERNAL_DISCOVERY_DOMAIN_POSTFIX}
+GRAFANA_ENDPOINT=${this.config.getGrafanaLeaderPrefix()}${grafanaKey}${this.config.getDiscoveryDomainName()}
       `;
     }
 

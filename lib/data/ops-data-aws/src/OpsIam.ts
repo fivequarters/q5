@@ -258,12 +258,23 @@ export class OpsIam implements IDataSource {
     await createInstanceProfile(
       awsConfig,
       this.config.monoGrafanaProfileName,
-      [
-        `${this.config.arnPrefix}:iam::aws:policy/AmazonS3FullAccess`,
-        `${this.config.arnPrefix}:iam::aws:policy/AmazonDynamoDBFullAccess`,
-        `${this.config.arnPrefix}:iam::aws:policy/AWSCloudMapRegisterInstanceAccess`,
-      ],
-      undefined,
+      [`${this.config.arnPrefix}:iam::aws:policy/AWSCloudMapRegisterInstanceAccess`],
+      {
+        Version: '2012-10-17',
+        Statement: [
+          {
+            Sid: 'SomeSID',
+            Effect: 'Allow',
+            Action: ['s3:ListBucket', 's3:PutObject', 's3:GetObject', 's3:DeleteObject'],
+            Resource: [
+              `${this.config.arnPrefix}:s3:::tempo-bucket-fusebit-*`,
+              `${this.config.arnPrefix}:s3:::tempo-bucket-fusebit-*/*`,
+              `${this.config.arnPrefix}:s3:::loki-bucket-fusebit-*`,
+              `${this.config.arnPrefix}:s3:::loki-bucket-fusebit-*/*`,
+            ],
+          },
+        ],
+      },
       this.config.iamPermissionsBoundary
     );
 

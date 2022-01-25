@@ -30,6 +30,7 @@ services:
       - /var/log/:/var/log/
     ports:
       - '3000:3000'
+
   health:
     image: public.ecr.aws/fusebit/grafana-health:latest
     ports:
