@@ -252,31 +252,4 @@ export class NetworkService {
 
     await this.executeService.message(Text.bold(network.networkName), Text.create(details));
   }
-
-  private async getCloudMapSdk(config: any) {
-    return new AWS.ServiceDiscovery({
-      ...config,
-      accessKeyId: this.creds.accessKeyId as string,
-      secretAccessKey: this.creds.secretAccessKey as string,
-      sessionToken: this.creds.sessionToken as string,
-    });
-  }
-
-  public async ensureCloudMap(region: string, vpcId: string, networkName: string) {
-    const mapSdk = await this.getCloudMapSdk({ region });
-    const zones = await mapSdk.listNamespaces().promise();
-    for (const zone of zones.Namespaces as AWS.ServiceDiscovery.NamespaceSummariesList) {
-      if (zone.Description === networkName) {
-        return;
-      }
-    }
-
-    await mapSdk
-      .createPrivateDnsNamespace({
-        Description: networkName,
-        Name: this.opsAwsConfig.getDiscoveryDomainName(),
-        Vpc: vpcId,
-      })
-      .promise();
-  }
 }

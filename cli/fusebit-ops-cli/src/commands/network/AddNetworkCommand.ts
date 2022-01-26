@@ -79,13 +79,7 @@ export class AddNetworkCommand extends Command {
       existingPrivateSubnetIds,
       existingPublicSubnetIds,
     };
-    try {
-      await networkService.checkNetworkExists(network);
-    } catch (e) {
-      const networkInfo = await networkService.getNetwork(network.networkName, network.region);
-      await networkService.ensureCloudMap(networkInfo.region, networkInfo.vpcId, networkInfo.networkName);
-      throw e;
-    }
+    await networkService.checkNetworkExists(network);
 
     if (confirm) {
       await networkService.confirmAddNetwork(network);

@@ -75,10 +75,12 @@ export class OpsNetworkData extends DataSource implements IOpsNetworkData {
   }
 
   private async attachNetworkDetails(network: IOpsNewNetwork, createIfNotExists: boolean): Promise<IOpsNetwork> {
+    console.log('helo');
     const awsNetwork = await this.provider.getAwsNetworkFromAccount(network.accountName, network.region);
     const networkDetails = await awsNetwork.ensureNetwork(
       network.networkName,
       createIfNotExists,
+      this.config.getDiscoveryDomainName(),
       network.existingVpcId,
       network.existingPublicSubnetIds,
       network.existingPrivateSubnetIds
