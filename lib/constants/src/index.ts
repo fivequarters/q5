@@ -37,6 +37,10 @@ const TEMPO_ENDPOINT = process.env.GRAFANA_ENDPOINT
   ? `http://${process.env.GRAFANA_ENDPOINT}:3200`
   : `http://localhost:3200`;
 
+const GRAFANA_HEALTH_ENDPOINT = process.env.GRAFANA_ENDPOINT
+  ? `http://${process.env.GRAFANA_ENDPOINT}:9999`
+  : `http://localhost:9999`;
+
 const LOKI_GRPC_INGEST = process.env.GRAFANA_ENDPOINT ? `grpc://${process.env.GRAFANA_ENDPOINT}` : '';
 
 const TEMPO_GRPC_INGEST = process.env.GRAFANA_ENDPOINT ? `grpc://${process.env.GRAFANA_ENDPOINT}:4317` : '';
@@ -355,6 +359,7 @@ export {
   TEMPO_GRPC_INGEST,
   LOKI_GRPC_INGEST,
   TEMPO_ENDPOINT,
+  GRAFANA_HEALTH_ENDPOINT,
   API_PUBLIC_HOST,
   MAX_CACHE_REFRESH_RATE,
   FUSEBIT_QUERY_AUTHZ,

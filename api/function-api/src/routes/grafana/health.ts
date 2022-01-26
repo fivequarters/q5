@@ -7,8 +7,8 @@ export const checkGrafanaHealth = async () => {
   }
 
   // Grafana implements a /api/health endpoint
-  const endpoint = Constants.GRAFANA_ENDPOINT;
-  const result = await superagent.get(new URL('/api/health', endpoint).toString());
+  const endpoint = Constants.GRAFANA_HEALTH_ENDPOINT;
+  const result = await superagent.get(new URL('/healthz', endpoint).toString());
   if (!result.ok) {
     throw Error('Health check failed for Grafana');
   }
