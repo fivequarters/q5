@@ -9,7 +9,6 @@ services:
       - /var/log/:/var/log/
     ports:
       - '3200:3200/tcp' # http
-      - '4317:4317/udp' # grpc ingest
       - '4317:4317/tcp' # grpc ingest
 
   loki:
