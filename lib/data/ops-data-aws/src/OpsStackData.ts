@@ -80,6 +80,7 @@ export class OpsStackData extends DataSource implements IOpsStackData {
   public async deploy(newStack: IOpsNewStack): Promise<IOpsStack> {
     const { deploymentName, tag, region } = newStack;
     const deployment = await this.deploymentData.get(deploymentName, region);
+
     const network = await this.networkData.get(deployment.networkName, deployment.region);
     const awsConfig = await this.provider.getAwsConfigForDeployment(deploymentName, deployment.region);
 
