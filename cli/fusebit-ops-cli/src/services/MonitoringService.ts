@@ -118,7 +118,10 @@ export class MonitoringService {
     try {
       const bucket = await s3Sdk.createBucket({ Bucket: this.getBootstrapBucket(monDeploymentName) }).promise();
     } catch (e) {
-      console.log(e);
+      // Ignores if bucket exists already
+      if (e.code !== 'BucketAlreadyOwnedByYou') {
+        throw e;
+      }
     }
   }
 
@@ -622,7 +625,10 @@ ${awsUserData.runDockerCompose()}
         })
         .promise();
     } catch (e) {
-      console.log(e);
+      // Ignores if bucket exists already
+      if (e.code !== 'BucketAlreadyOwnedByYou') {
+        throw e;
+      }
     }
 
     try {
@@ -632,7 +638,10 @@ ${awsUserData.runDockerCompose()}
         })
         .promise();
     } catch (e) {
-      console.log(e);
+      // Ignores if bucket exists already
+      if (e.code !== 'BucketAlreadyOwnedByYou') {
+        throw e;
+      }
     }
   }
 
@@ -1092,7 +1101,16 @@ ${awsUserData.runDockerCompose()}
       )
     );
 
-    await Promise.all(promises);
+    let tries = 10;
+
+    do {
+      const instances = await cloudMapSdk.listInstances({ ServiceId: svcSummary.Id as string }).promise();
+      if (instances.Instances?.length === 0) {
+        break;
+      }
+      tries--;
+      await new Promise((res) => setTimeout(res, 3000));
+    } while (tries > 0);
 
     // Because this can contain many resources to be deregistered, it is easier to have a hard wait.
     await new Promise((res) => setTimeout(res, 5000));

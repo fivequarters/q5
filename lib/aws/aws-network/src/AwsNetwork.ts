@@ -838,7 +838,6 @@ export class AwsNetwork extends AwsBase<typeof EC2> {
   }
 
   private async getCloudMapSdk() {
-    console.log(this.awsRegion);
     const creds = await this.awsCreds?.getCredentials();
     return new ServiceDiscovery({
       ...creds,

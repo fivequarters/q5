@@ -75,17 +75,28 @@ export class OpsNetworkData extends DataSource implements IOpsNetworkData {
   }
 
   private async attachNetworkDetails(network: IOpsNewNetwork, createIfNotExists: boolean): Promise<IOpsNetwork> {
-    console.log('helo');
     const awsNetwork = await this.provider.getAwsNetworkFromAccount(network.accountName, network.region);
-    const networkDetails = await awsNetwork.ensureNetwork(
-      network.networkName,
-      createIfNotExists,
-      this.config.getDiscoveryDomainName(),
-      network.existingVpcId,
-      network.existingPublicSubnetIds,
-      network.existingPrivateSubnetIds
-    );
-
+    let networkDetails;
+    try {
+      networkDetails = await awsNetwork.ensureNetwork(
+        network.networkName,
+        createIfNotExists,
+        this.config.getDiscoveryDomainName(),
+        network.existingVpcId,
+        network.existingPublicSubnetIds,
+        network.existingPrivateSubnetIds
+      );
+    } catch (e) {
+      // This is a shady catch to be able to ensure cloudMap is in place even if the network exists.
+      networkDetails = await this.get(network.networkName, network.region);
+      await awsNetwork.ensureCloudMap(
+        networkDetails.vpcId,
+        networkDetails.networkName,
+        this.config.getDiscoveryDomainName()
+      );
+      // Rethrow the same error to be properly handled
+      throw e;
+    }
     return {
       networkName: network.networkName,
       accountName: network.accountName,
