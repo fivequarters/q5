@@ -43,6 +43,7 @@ const defaultMasterServicePrefix = 'leader-';
 const defaultTempoBucketPrefix = 'tempo-bucket-fusebit-';
 const defaultLokiBucketPrefix = 'loki-bucket-fusebit-';
 const defaultGrafanaBootstrapBucket = 'grafana-bootstrap-';
+
 // ----------------
 // Exported Classes
 // ----------------

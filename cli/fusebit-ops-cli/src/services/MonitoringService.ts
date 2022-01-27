@@ -60,10 +60,12 @@ interface IDatabaseCredentials {
   password: string;
   schemaName: string;
   endpoint: string;
-  // This is for grafana
-  admin_username: string;
-  admin_password: string;
-  secret_key: string;
+  grafana: {
+    // This is for grafana
+    admin_username: string;
+    admin_password: string;
+    secret_key: string;
+  };
 }
 
 interface IMonitoringStack {
@@ -208,10 +210,10 @@ export class MonitoringService {
     );
     configTemplate.database = {};
     configTemplate.server = {};
-    configTemplate.security.admin_user = credentials.admin_username;
-    configTemplate.security.admin_password = credentials.admin_password;
-    configTemplate.security.secret_key = credentials.secret_key;
-    configTemplate.users.hidden_users = credentials.admin_username;
+    configTemplate.security.admin_user = credentials.grafana.admin_username;
+    configTemplate.security.admin_password = credentials.grafana.admin_password;
+    configTemplate.security.secret_key = credentials.grafana.secret_key;
+    configTemplate.users.hidden_users = credentials.grafana.admin_username;
     configTemplate.database.type = DB_ENGINE;
     configTemplate.database.user = credentials.username;
     configTemplate.database.name = DB_PREFIX + credentials.username;
@@ -559,11 +561,13 @@ ${awsUserData.runDockerCompose()}
         username: monDeploymentName,
         password: grafanaPassword,
         schemaName: monDeploymentName,
-        admin_username: Math.random()
-          .toString(36)
-          .replace(/[^a-z]+/g, ''),
-        admin_password: uuidv4(),
-        secret_key: uuidv4(),
+        grafana: {
+          admin_username: Math.random()
+            .toString(36)
+            .replace(/[^a-z]+/g, ''),
+          admin_password: uuidv4(),
+          secret_key: uuidv4(),
+        },
       },
       region
     );
