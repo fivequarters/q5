@@ -19,6 +19,13 @@ All public releases of the Fusebit HTTP API are documented here, including notab
 
 ## Version 1.33.7
 
+_Released 1/26/22_
+
+- **BugFix.** Safely handle requests with missing analytics data.
+- **BugFix.** Retry lambda requests when failed due to AWS limitations.
+
+## Version 1.33.7
+
 _Released 1/11/22_
 
 - **Enhancement.** Fusebit Code Editor configuration options added to functions and integrations.
