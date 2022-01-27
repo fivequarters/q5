@@ -134,7 +134,7 @@ export class MonitoringService {
     const s3Sdk = await this.getAwsSdk(AWS.S3, { region: monDeployment.region });
     const file = await s3Sdk
       .putObject({
-        Bucket: BOOTSTRAP_BUCKET + monDeployment.monitoringDeploymentName,
+        Bucket: this.getBootstrapBucket(monDeployment.monitoringDeploymentName),
         Key: stack.stackId + '.sh',
         ContentType: 'text/plain',
         Body: Buffer.from(script, 'utf-8'),
@@ -370,7 +370,9 @@ export class MonitoringService {
     return `#!/bin/bash
 ${awsUserData.updateSystem()}
 ${awsUserData.installAwsCli()}
-aws s3 cp s3://${BOOTSTRAP_BUCKET + monDeployment.monitoringDeploymentName}/${stack.stackId.toString()}.sh bootstrap.sh
+aws s3 cp s3://${this.getBootstrapBucket(
+      monDeployment.monitoringDeploymentName
+    )}/${stack.stackId.toString()}.sh bootstrap.sh
 chmod +x bootstrap.sh
 ./bootstrap.sh
     `;
