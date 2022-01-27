@@ -43,6 +43,9 @@ export class OpsNetworkData extends DataSource implements IOpsNetworkData {
       await this.attachNetworkDetails(network, false);
       return true;
     } catch (error) {
+      if (error.code === OpsDataExceptionCode.noNetwork) {
+        return false;
+      }
       throw error;
     }
   }
