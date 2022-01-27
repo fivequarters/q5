@@ -46,9 +46,9 @@ const INSTANCE_SIZE = 't3a.medium';
 // 20.04 is the latest Ubuntu LTS.
 const UBUNTU_VERSION = '20.04';
 
-const LOKI_DEFAULT_VERSION = 'grafana/loki:2.3.0';
-const GRAFANA_DEFAULT_VERSION = 'grafana/grafana:latest';
-const TEMPO_DEFAULT_VERSION = 'grafana/tempo:latest';
+export const LOKI_DEFAULT_VERSION = 'grafana/loki:2.3.0';
+export const GRAFANA_DEFAULT_VERSION = 'grafana/grafana:latest';
+export const TEMPO_DEFAULT_VERSION = 'grafana/tempo:latest';
 
 const STACK_ID_MIN_MAX = {
   min: 100,
@@ -773,22 +773,14 @@ ${awsUserData.runDockerCompose()}
       .promise();
   }
 
-  private async updateStackActiveness(active: boolean, deploymentName: string, stackId: string, region: string) {
+  private async updateStackActiveness(active: boolean, monDeploymentName: string, stackId: string, region: string) {
     const dynamoSdk = await this.getAwsSdk(AWS.DynamoDB, { region: this.config.region });
-    const item = await dynamoSdk
-      .getItem({
-        TableName: OPS_MON_STACK_TABLE,
-        Key: { monDeploymentName: { S: deploymentName }, regionStackId: { S: [region, stackId].join('::') } },
-      })
-      .promise();
-
-    const updatedItem = item.Item as AWS.DynamoDB.AttributeMap;
     await dynamoSdk
       .updateItem({
         TableName: OPS_MON_STACK_TABLE,
         Key: {
-          monDeploymentName: { S: updatedItem.monDeploymentName.S as string },
-          regionStackId: { S: updatedItem.regionStackId.S as string },
+          monDeploymentName: { S: monDeploymentName },
+          regionStackId: { S: [region, stackId].join('::') },
         },
         UpdateExpression: 'SET active = :active',
         ExpressionAttributeValues: {

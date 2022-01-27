@@ -1,9 +1,10 @@
 import { Command, ICommand, IExecuteInput } from '@5qtrs/cli';
-import { MonitoringService } from '../../../services/MonitoringService';
-
-const GRAFANA_DEFAULT_VERSION = 'grafana/grafana:latest';
-const LOKI_DEFAULT_VERSION = 'grafana/loki:2.3.0';
-const TEMPO_DEFAULT_VERSION = 'grafana/tempo:latest';
+import {
+  MonitoringService,
+  GRAFANA_DEFAULT_VERSION,
+  LOKI_DEFAULT_VERSION,
+  TEMPO_DEFAULT_VERSION,
+} from '../../../services/MonitoringService';
 
 const command: ICommand = {
   name: 'Add Monitoring Stack',
