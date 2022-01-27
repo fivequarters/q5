@@ -605,7 +605,7 @@ ${awsUserData.runDockerCompose()}
               Value: this.config.account,
             },
             {
-              Key: 'deploymentName',
+              Key: 'monitoringDeploymentName',
               Value: monDeploymentName,
             },
             {
@@ -1096,7 +1096,13 @@ ${awsUserData.runDockerCompose()}
       tries--;
       await new Promise((res) => setTimeout(res, 3000));
     } while (tries > 0);
-
+    if (tries === 0) {
+      await this.executeService.error(
+        'Deregistration failure',
+        'Failed to deregister instances from the NLB, is AWS down?'
+      );
+      throw Error('Deregistration failure.');
+    }
     // Because this can contain many resources to be deregistered, it is easier to have a hard wait.
     await new Promise((res) => setTimeout(res, 5000));
 
