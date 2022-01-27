@@ -1,8 +1,8 @@
 import { v4 as uuidv4 } from 'uuid';
-import AWS, { ELBv2, Endpoint } from 'aws-sdk';
+import AWS from 'aws-sdk';
 import { IAwsConfig } from '@5qtrs/aws-config';
 import { AwsCreds, IAwsCredentials } from '@5qtrs/aws-cred';
-import { IExecuteInput, Confirm, IConfirmDetail } from '@5qtrs/cli';
+import { IExecuteInput } from '@5qtrs/cli';
 import * as grafanaConfig from '@5qtrs/grafana-config';
 import awsUserData from '@5qtrs/user-data';
 import { IOpsNetwork } from '@5qtrs/ops-data';
@@ -37,9 +37,6 @@ const GRAFANA_PORTS = [
 ];
 const NLB_PREFIX = 'nlb-grafana-';
 
-// Bootstrap bucket
-const BOOTSTRAP_BUCKET = 'grafana-bootstrap-';
-
 // Running on AMD(a) is 20% cheaper for the same performance.
 const INSTANCE_SIZE = 't3a.medium';
 
@@ -63,6 +60,10 @@ interface IDatabaseCredentials {
   password: string;
   schemaName: string;
   endpoint: string;
+  // This is for grafana
+  admin_username: string;
+  admin_password: string;
+  secret_key: string;
 }
 
 interface IMonitoringStack {
@@ -111,7 +112,7 @@ export class MonitoringService {
   }
 
   private getBootstrapBucket(monDeploymentName: string) {
-    return BOOTSTRAP_BUCKET + monDeploymentName;
+    return this.opsAwsConfig.getGrafanaBootstrapBucket() + monDeploymentName;
   }
 
   private async setupBootstrapBucket(monDeploymentName: string, region: string) {
@@ -183,6 +184,9 @@ export class MonitoringService {
 
   private getGrafanaDatabaseMigrationStatement(monDeploymentName: string, password: string) {
     const statements = [];
+    statements.push(`ALTER DATABASE ${DB_PREFIX}${monDeploymentName} OWNER TO fusebit;`);
+    statements.push(`DROP DATABASE IF EXISTS ${DB_PREFIX}${monDeploymentName};`);
+    statements.push(`DROP USER ${monDeploymentName};`);
     statements.push(`CREATE USER ${monDeploymentName} WITH PASSWORD '${password}';`);
     statements.push(`CREATE DATABASE ${DB_PREFIX}${monDeploymentName};`);
     statements.push(`ALTER DATABASE ${DB_PREFIX}${monDeploymentName} OWNER TO ${monDeploymentName};`);
@@ -202,7 +206,12 @@ export class MonitoringService {
       fusebitDeployment.region,
       fusebitDeployment.domainName
     );
-
+    configTemplate.database = {};
+    configTemplate.server = {};
+    configTemplate.security.admin_user = credentials.admin_username;
+    configTemplate.security.admin_password = credentials.admin_password;
+    configTemplate.security.secret_key = credentials.secret_key;
+    configTemplate.users.hidden_users = credentials.admin_username;
     configTemplate.database.type = DB_ENGINE;
     configTemplate.database.user = credentials.username;
     configTemplate.database.name = DB_PREFIX + credentials.username;
@@ -550,6 +559,11 @@ ${awsUserData.runDockerCompose()}
         username: monDeploymentName,
         password: grafanaPassword,
         schemaName: monDeploymentName,
+        admin_username: Math.random()
+          .toString(36)
+          .replace(/[^a-z]+/g, ''),
+        admin_password: uuidv4(),
+        secret_key: uuidv4(),
       },
       region
     );
@@ -1023,7 +1037,7 @@ ${awsUserData.runDockerCompose()}
       })
       .promise();
 
-    const results = (await Promise.all(promises)) as ELBv2.CreateTargetGroupOutput[];
+    const results = (await Promise.all(promises)) as AWS.ELBv2.CreateTargetGroupOutput[];
     const promises2: Promise<any>[] = [];
     for (const result of results) {
       promises2.push(
@@ -1035,7 +1049,7 @@ ${awsUserData.runDockerCompose()}
             DefaultActions: [
               {
                 Type: 'forward',
-                TargetGroupArn: (result.TargetGroups as ELBv2.TargetGroups)[0].TargetGroupArn,
+                TargetGroupArn: (result.TargetGroups as AWS.ELBv2.TargetGroups)[0].TargetGroupArn,
               },
             ],
             Tags: [
@@ -1156,7 +1170,6 @@ ${awsUserData.runDockerCompose()}
   ) {
     const monDeployment = await this.getMonitoringDeploymentByName(monDeploymentName, region);
     const stackId = this.generateStackId();
-    console.log(tempoTag, lokiTag, grafanaTag);
     const stack = {
       stackId,
       grafanaImage: grafanaTag,

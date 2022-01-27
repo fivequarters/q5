@@ -42,6 +42,7 @@ const defaultDiscoveryDomainName = 'fusebit.internal';
 const defaultMasterServicePrefix = 'leader-';
 const defaultTempoBucketPrefix = 'tempo-bucket-fusebit-';
 const defaultLokiBucketPrefix = 'loki-bucket-fusebit-';
+const defaultGrafanaBootstrapBucket = 'grafana-bootstrap-';
 // ----------------
 // Exported Classes
 // ----------------
@@ -298,5 +299,9 @@ export class OpsDataAwsConfig implements IConfig {
 
   public getLokiBucketPrefix() {
     return defaultLokiBucketPrefix;
+  }
+
+  public getGrafanaBootstrapBucket() {
+    return defaultGrafanaBootstrapBucket;
   }
 }

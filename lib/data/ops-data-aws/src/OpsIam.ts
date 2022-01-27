@@ -271,6 +271,8 @@ export class OpsIam implements IDataSource {
               `${this.config.arnPrefix}:s3:::${this.config.getLokiBucketPrefix()}*/*`,
               `${this.config.arnPrefix}:s3:::${this.config.getTempoBucketPrefix()}*`,
               `${this.config.arnPrefix}:s3:::${this.config.getTempoBucketPrefix()}*/*`,
+              `${this.config.arnPrefix}:s3:::${this.config.getGrafanaBootstrapBucket()}*`,
+              `${this.config.arnPrefix}:s3:::${this.config.getGrafanaBootstrapBucket()}*/*`,
             ],
           },
         ],
