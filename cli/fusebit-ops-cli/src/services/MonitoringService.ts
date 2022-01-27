@@ -17,8 +17,6 @@ const MONITORING_SEC_GROUP_PREFIX = `fusebit-monitoring-`;
 const POSTGRES_PORT = 5432;
 const OPS_MONITORING_TABLE = 'ops.monitoring';
 const OPS_MON_STACK_TABLE = 'ops.monitoring.stack';
-const LOKI_BUCKET_PREFIX = 'loki-bucket-fusebit-';
-const TEMPO_BUCKET_PREFIX = 'tempo-bucket-fusebit-';
 const RDS_SEC_GROUP_PREFIX = 'fusebit-db-security-group-';
 const PARAM_MANAGER_PREFIX = '/fusebit/grafana/credentials/';
 const DATABASE_PREFIX = 'fusebit-db-';
@@ -35,6 +33,7 @@ const GRAFANA_PORTS = [
   /** Grafana Port */ '3000/tcp',
   /** Tempo memberlist */ '7946/tcp',
   /** Loki memberlist */ '7947/tcp',
+  /** Grafana aggregated health */ '9999/tcp',
 ];
 const NLB_PREFIX = 'nlb-grafana-';
 
@@ -47,7 +46,9 @@ const INSTANCE_SIZE = 't3a.medium';
 // 20.04 is the latest Ubuntu LTS.
 const UBUNTU_VERSION = '20.04';
 
-const LOKI_DEFAULT_VERSION = '2.3.0';
+const LOKI_DEFAULT_VERSION = 'grafana/loki:2.3.0';
+const GRAFANA_DEFAULT_VERSION = 'grafana/grafana:latest';
+const TEMPO_DEFAULT_VERSION = 'grafana/tempo:latest';
 
 const STACK_ID_MIN_MAX = {
   min: 100,
@@ -253,7 +254,7 @@ export class MonitoringService {
         .deregisterInstance({ ServiceId: service?.Id as string, InstanceId: instance.Id as string })
         .promise();
     }
-    dynamoSdk
+    await dynamoSdk
       .deleteItem({
         TableName: OPS_MON_STACK_TABLE,
         Key: {
@@ -411,7 +412,7 @@ ${awsUserData.runDockerCompose()}
   private async getLokiYamlFile(monDeployment: IMonitoringDeployment) {
     const template = grafanaConfig.getLokiConfigTemplate() as any;
     template.storage_config.aws.s3 = `s3://${monDeployment.region}/${
-      LOKI_BUCKET_PREFIX + monDeployment.monitoringDeploymentName
+      this.opsAwsConfig.getLokiBucketPrefix() + monDeployment.monitoringDeploymentName
     }`;
     template.storage_config.aws.region = monDeployment.region;
     template.memberlist.join_members = [
@@ -426,7 +427,8 @@ ${awsUserData.runDockerCompose()}
 
   private async getTempoYamlFile(monDeployment: IMonitoringDeployment) {
     const template = grafanaConfig.getTempoConfigTemplate() as any;
-    template.storage.trace.s3.bucket = TEMPO_BUCKET_PREFIX + monDeployment.monitoringDeploymentName;
+    template.storage.trace.s3.bucket =
+      this.opsAwsConfig.getTempoBucketPrefix() + monDeployment.monitoringDeploymentName;
     template.storage.trace.s3.endpoint = `s3.${monDeployment.region}.amazonaws.com`;
     template.memberlist.join_members = [
       'dns+' +
@@ -621,7 +623,7 @@ ${awsUserData.runDockerCompose()}
     try {
       await s3Sdk
         .createBucket({
-          Bucket: `${LOKI_BUCKET_PREFIX}${monDeploymentName}`,
+          Bucket: `${this.opsAwsConfig.getLokiBucketPrefix()}${monDeploymentName}`,
         })
         .promise();
     } catch (e) {
@@ -634,7 +636,7 @@ ${awsUserData.runDockerCompose()}
     try {
       await s3Sdk
         .createBucket({
-          Bucket: `${TEMPO_BUCKET_PREFIX}${monDeploymentName}`,
+          Bucket: `${this.opsAwsConfig.getTempoBucketPrefix()}${monDeploymentName}`,
         })
         .promise();
     } catch (e) {
@@ -931,23 +933,6 @@ ${awsUserData.runDockerCompose()}
         })
         .promise();
     }
-    await ec2Sdk
-      .authorizeSecurityGroupIngress({
-        GroupId: secGroup.GroupId as string,
-        IpPermissions: [
-          {
-            FromPort: 9999,
-            IpProtocol: 'TCP',
-            ToPort: 9999,
-            IpRanges: [
-              {
-                CidrIp: '0.0.0.0/0',
-              },
-            ],
-          },
-        ],
-      })
-      .promise();
   }
 
   private async ensureNlb(monDeploymentName: string, region: string): Promise<AWS.ELBv2.LoadBalancer> {
@@ -1164,18 +1149,19 @@ ${awsUserData.runDockerCompose()}
 
   private async createNewMonitoringStack(
     monDeploymentName: string,
-    grafanaTag?: string,
-    tempoTag?: string,
-    lokiTag?: string,
+    grafanaTag: string,
+    tempoTag: string,
+    lokiTag: string,
     region?: string
   ) {
     const monDeployment = await this.getMonitoringDeploymentByName(monDeploymentName, region);
     const stackId = this.generateStackId();
+    console.log(tempoTag, lokiTag, grafanaTag);
     const stack = {
       stackId,
-      grafanaImage: await this.getGrafanaImage(grafanaTag),
-      lokiImage: await this.getLokiImage(lokiTag),
-      tempoImage: await this.getTempoImage(tempoTag),
+      grafanaImage: grafanaTag,
+      lokiImage: lokiTag,
+      tempoImage: tempoTag,
     };
     await this.ensureMonitoringDeploymentStackItem(monDeploymentName, stack, monDeployment.region);
     const lt = await this.createLaunchTemplate(monDeployment, stack);
@@ -1287,9 +1273,9 @@ ${awsUserData.runDockerCompose()}
 
   public async stackAdd(
     monDeploymentName: string,
-    grafanaTag?: string,
-    tempoTag?: string,
-    lokiTag?: string,
+    grafanaTag: string,
+    tempoTag: string,
+    lokiTag: string,
     region?: string
   ) {
     const createResult = await this.executeService.execute(
@@ -1406,7 +1392,7 @@ ${awsUserData.runDockerCompose()}
     if (grafanaImageTag) {
       return `grafana/grafana:${grafanaImageTag}`;
     }
-    return 'grafana/grafana:latest';
+    return GRAFANA_DEFAULT_VERSION;
   }
 
   public async getTempoImage(imageTag?: string): Promise<string> {
@@ -1418,7 +1404,7 @@ ${awsUserData.runDockerCompose()}
       return `grafana/tempo:${imageTag}`;
     }
 
-    return 'grafana/tempo:latest';
+    return TEMPO_DEFAULT_VERSION;
   }
 
   public async getLokiImage(imageTag?: string): Promise<string> {
@@ -1430,7 +1416,7 @@ ${awsUserData.runDockerCompose()}
       return `grafana/loki:${imageTag}`;
     }
     // Loki latest does not work, running 2.3.0 by default.
-    return `grafana/loki:${LOKI_DEFAULT_VERSION}`;
+    return LOKI_DEFAULT_VERSION;
   }
 
   private getLaunchTemplateConfig(

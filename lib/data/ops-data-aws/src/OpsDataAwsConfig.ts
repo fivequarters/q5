@@ -40,6 +40,8 @@ const defaultAuroraDatabaseName = 'fusebit';
 const defaultAuroraMasterUsername = 'fusebit';
 const defaultDiscoveryDomainName = 'fusebit.internal';
 const defaultMasterServicePrefix = 'leader-';
+const defaultTempoBucketPrefix = 'tempo-bucket-fusebit-';
+const defaultLokiBucketPrefix = 'loki-bucket-fusebit-';
 // ----------------
 // Exported Classes
 // ----------------
@@ -288,5 +290,13 @@ export class OpsDataAwsConfig implements IConfig {
 
   public getGrafanaLeaderPrefix() {
     return defaultMasterServicePrefix;
+  }
+
+  public getTempoBucketPrefix() {
+    return defaultTempoBucketPrefix;
+  }
+
+  public getLokiBucketPrefix() {
+    return defaultLokiBucketPrefix;
   }
 }

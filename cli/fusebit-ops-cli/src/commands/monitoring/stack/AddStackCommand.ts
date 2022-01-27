@@ -43,11 +43,11 @@ export class AddStackCommand extends Command {
 
   protected async onExecute(input: IExecuteInput): Promise<number> {
     const [monitoringName] = input.arguments as string[];
-    let region = input.options.region as string | undefined;
-    let grafanaTag = input.options.grafanaTag as string | undefined;
-    let lokiTag = input.options.lokiTag as string | undefined;
-    let tempoTag = input.options.tempoTag as string | undefined;
     const svc = await MonitoringService.create(input);
+    let region = input.options.region as string | undefined;
+    let grafanaTag = await svc.getGrafanaImage(input.options.grafanaTag as string | undefined);
+    let lokiTag = await svc.getLokiImage(input.options.lokiTag as string | undefined);
+    let tempoTag = await svc.getTempoImage(input.options.tempoTag as string | undefined);
     await svc.stackAdd(monitoringName, grafanaTag, tempoTag, lokiTag, region);
     return 0;
   }

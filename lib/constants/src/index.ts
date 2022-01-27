@@ -41,9 +41,9 @@ const GRAFANA_HEALTH_ENDPOINT = process.env.GRAFANA_ENDPOINT
   ? `http://${process.env.GRAFANA_ENDPOINT}:9999`
   : `http://localhost:9999`;
 
-const LOKI_GRPC_INGEST = process.env.GRAFANA_ENDPOINT ? `grpc://${process.env.GRAFANA_ENDPOINT}` : '';
-
-const TEMPO_GRPC_INGEST = process.env.GRAFANA_ENDPOINT ? `grpc://${process.env.GRAFANA_ENDPOINT}:4317` : '';
+const TEMPO_GRPC_INGEST = process.env.GRAFANA_ENDPOINT
+  ? `grpc://${process.env.GRAFANA_ENDPOINT}:4317`
+  : 'grpc://localhost:4317';
 
 const API_PUBLIC_HOST = new URL(API_PUBLIC_ENDPOINT || 'http://localhost').host;
 
@@ -357,7 +357,6 @@ export {
   GRAFANA_ENDPOINT,
   LOKI_ENDPOINT,
   TEMPO_GRPC_INGEST,
-  LOKI_GRPC_INGEST,
   TEMPO_ENDPOINT,
   GRAFANA_HEALTH_ENDPOINT,
   API_PUBLIC_HOST,
