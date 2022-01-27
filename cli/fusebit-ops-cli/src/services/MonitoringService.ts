@@ -11,6 +11,7 @@ import { OpsService } from './OpsService';
 import { AwsAmi } from '@5qtrs/aws-ami';
 import { OpsDataAwsConfig } from '@5qtrs/ops-data-aws';
 import { Text } from '@5qtrs/text';
+import * as Constants from '@5qtrs/constants';
 
 const DISCOVERY_SERVICE_PREFIX = 'discovery-';
 const MONITORING_SEC_GROUP_PREFIX = `fusebit-monitoring-`;
@@ -210,6 +211,7 @@ export class MonitoringService {
     );
     configTemplate.database = {};
     configTemplate.server = {};
+    configTemplate['auth.proxy'].header_name = Constants.GRAFANA_AUTH_HEADER;
     configTemplate.security.admin_user = credentials.grafana.admin_username;
     configTemplate.security.admin_password = credentials.grafana.admin_password;
     configTemplate.security.secret_key = credentials.grafana.secret_key;

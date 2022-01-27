@@ -58,11 +58,12 @@ router.get(
 
   async (req: express.Request, res: express.Response, next: express.NextFunction) => {
     const accountId = req.query[FUSEBIT_QUERY_ACCOUNT] as string;
+    const creds = await grafana.getAdminCreds();
     try {
       // Get the orgId for this account
       let response = await superagent
         .get(`${grafana.location}/api/orgs/name/${accountId}`)
-        .set(grafana.authHeader, grafana.adminUsername);
+        .set(grafana.authHeader, creds.grafana.admin_username);
 
       const orgId = response.body.id;
       if (!orgId) {
