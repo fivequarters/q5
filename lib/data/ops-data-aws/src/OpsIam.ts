@@ -263,7 +263,7 @@ export class OpsIam implements IDataSource {
         Version: '2012-10-17',
         Statement: [
           {
-            Sid: 'SomeSID',
+            Sid: 'MonitoringS3',
             Effect: 'Allow',
             Action: ['s3:ListBucket', 's3:PutObject', 's3:GetObject', 's3:DeleteObject'],
             Resource: [

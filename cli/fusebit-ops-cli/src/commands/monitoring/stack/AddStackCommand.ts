@@ -1,6 +1,10 @@
 import { Command, ICommand, IExecuteInput } from '@5qtrs/cli';
 import { MonitoringService } from '../../../services/MonitoringService';
 
+const GRAFANA_DEFAULT_VERSION = 'grafana/grafana:latest';
+const LOKI_DEFAULT_VERSION = 'grafana/loki:2.3.0';
+const TEMPO_DEFAULT_VERSION = 'grafana/tempo:latest';
+
 const command: ICommand = {
   name: 'Add Monitoring Stack',
   cmd: 'add',
@@ -19,15 +23,15 @@ const command: ICommand = {
     },
     {
       name: 'grafanaTag',
-      description: 'The version of the Grafana docker image, defaults to grafana/grafana:latest.',
+      description: `The version of the Grafana docker image, defaults to ${GRAFANA_DEFAULT_VERSION}`,
     },
     {
       name: 'lokiTag',
-      description: 'The version of the Loki docker image, defaults to grafana/loki:latest.',
+      description: `The version of the Loki docker image, defaults to ${LOKI_DEFAULT_VERSION}`,
     },
     {
       name: 'tempoTag',
-      description: 'The version of the Tempo docker image, defaults to grafana/tempo:2.3.0.',
+      description: `The version of the Tempo docker image, defaults to ${TEMPO_DEFAULT_VERSION}`,
     },
   ],
 };
