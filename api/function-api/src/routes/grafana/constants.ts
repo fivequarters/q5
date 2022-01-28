@@ -28,7 +28,8 @@ export const getAdminCreds = async () => {
   const monDeploymentName = new URL(Constants.GRAFANA_ENDPOINT).hostname.split('.')[0];
   const value = await SSMSdk.getParameter({
     Name: '/fusebit/grafana/credentials/' + monDeploymentName,
+    WithDecryption: true,
   }).promise();
-
+  console.log(value.Parameter?.Value);
   return JSON.parse(value.Parameter?.Value as string) as IDatabaseCredentials;
 };
