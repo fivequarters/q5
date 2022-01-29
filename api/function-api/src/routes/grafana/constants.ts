@@ -6,7 +6,7 @@ export const port = 3000;
 
 export const mountPoint = '/v2/grafana';
 
-interface IDatabaseCredentials {
+export interface IDatabaseCredentials {
   username: string;
   password: string;
   schemaName: string;
@@ -27,7 +27,7 @@ export const getAdminCreds = async () => {
   const SSMSdk = new AWS.SSM({ region: process.env.AWS_REGION });
   const monDeploymentName = new URL(Constants.GRAFANA_ENDPOINT).hostname.split('.')[0];
   const value = await SSMSdk.getParameter({
-    Name: '/fusebit/grafana/credentials/' + monDeploymentName,
+    Name: Constants.GRAFANA_CREDENTIALS_SSM_PATH + monDeploymentName,
     WithDecryption: true,
   }).promise();
   console.log(value.Parameter?.Value);

@@ -6,6 +6,11 @@ import initialize from './initialize';
 
 const router = express.Router({ mergeParams: true });
 
-router.use(bootstrap, proxy);
+const featureNotSupported = (req: express.Request, res: express.Response, next: express.NextFunction) => {
+  return res.status(406).send('Feature not supported.');
+};
+
+// Grafana is protected behind a feature flag
+process.env.GRAFANA_ENDPOINT ? router.use(bootstrap, initialize) : router.use(featureNotSupported);
 
 export { router as proxy, initialize };

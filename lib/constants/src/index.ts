@@ -53,6 +53,8 @@ const GRAFANA_ORG_HEADER = 'X-Grafana-Org-Id';
 const FUSEBIT_QUERY_AUTHZ = 'fusebitAuthorization';
 const FUSEBIT_QUERY_ACCOUNT = 'fusebitAccountId';
 
+const GRAFANA_CREDENTIALS_SSM_PATH = '/fusebit/grafana/credentials/';
+
 let builderVersion: string = 'unknown';
 try {
   builderVersion = require(Path.join(__dirname, '..', '..', '..', 'package.json')).version;
@@ -360,6 +362,7 @@ export {
   GRAFANA_ENDPOINT,
   GRAFANA_AUTH_HEADER,
   GRAFANA_ORG_HEADER,
+  GRAFANA_CREDENTIALS_SSM_PATH,
   LOKI_ENDPOINT,
   TEMPO_GRPC_INGEST,
   TEMPO_ENDPOINT,

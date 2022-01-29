@@ -3,6 +3,7 @@ import { OpsDataAwsProvider } from './OpsDataAwsProvider';
 import { OpsDataAwsConfig } from './OpsDataAwsConfig';
 import { createRole, createInstanceProfile, detachRolePolicy } from './OpsRole';
 import { createPolicy } from './OpsIamPolicy';
+import * as Constants from '@5qtrs/constants';
 
 export class OpsIam implements IDataSource {
   public static async create(config: OpsDataAwsConfig, provider: OpsDataAwsProvider) {
@@ -249,6 +250,13 @@ export class OpsIam implements IDataSource {
             Effect: 'Allow',
             Action: ['ecr:GetAuthorizationToken'],
             Resource: '*',
+          },
+          {
+            Effect: 'Allow',
+            Action: ['ssm:GetParameter*'],
+            Resource: [
+              `${this.config.arnPrefix}:ssm:${awsConfig.region}:${this.config.mainAccountId}:parameter/${Constants.GRAFANA_CREDENTIALS_SSM_PATH}*`,
+            ],
           },
         ],
       },

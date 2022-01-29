@@ -19,7 +19,6 @@ const POSTGRES_PORT = 5432;
 const OPS_MONITORING_TABLE = 'ops.monitoring';
 const OPS_MON_STACK_TABLE = 'ops.monitoring.stack';
 const RDS_SEC_GROUP_PREFIX = 'fusebit-db-security-group-';
-const PARAM_MANAGER_PREFIX = '/fusebit/grafana/credentials/';
 const DATABASE_PREFIX = 'fusebit-db-';
 const LT_PREFIX = 'lt-grafana-';
 const ASG_PREFIX = 'asg-grafana-';
@@ -468,11 +467,14 @@ ${awsUserData.runDockerCompose()}
     return uuidv4();
   }
 
+  private getSSMKey(monDeploymentName: string) {
+    return Constants.GRAFANA_CREDENTIALS_SSM_PATH + monDeploymentName;
+  }
+
   private async storeGrafanaCredentials(credentials: IDatabaseCredentials, region: string) {
     const SSMSdk = await this.getAwsSdk(AWS.SSM, { region });
-    const key = PARAM_MANAGER_PREFIX + credentials.schemaName;
     await SSMSdk.putParameter({
-      Name: key,
+      Name: this.getSSMKey(credentials.schemaName),
       Value: JSON.stringify(credentials),
       Type: 'SecureString',
     }).promise();
@@ -480,7 +482,7 @@ ${awsUserData.runDockerCompose()}
 
   private async getGrafanaCredentials(monDeploymentName: string, region: string) {
     const SSMSdk = await this.getAwsSdk(AWS.SSM, { region });
-    const key = PARAM_MANAGER_PREFIX + monDeploymentName;
+    const key = this.getSSMKey(monDeploymentName);
     try {
       const value = await SSMSdk.getParameter({
         Name: key,
@@ -1184,7 +1186,16 @@ ${awsUserData.runDockerCompose()}
     };
     await this.ensureMonitoringDeploymentStackItem(monDeploymentName, stack, monDeployment.region);
     const lt = await this.createLaunchTemplate(monDeployment, stack);
-    await this.input.io.writeLine(`Stack created: ${stack.stackId}`);
+    if (this.input.options.output === 'json') {
+      await this.input.io.writeRaw(
+        JSON.stringify({
+          success: true,
+          id: stack.stackId,
+        })
+      );
+      return;
+    }
+    await this.executeService.info('Stack Created', `Fusebit monitoring stack created with stackId ${stack.stackId}`);
   }
 
   public async listDeployments() {
