@@ -15,7 +15,7 @@ const router = express.Router({ mergeParams: true });
 const addAccountId = (accountId: string, obj: any) =>
   JSON.parse(JSON.stringify(obj).replace(new RegExp('{{accountId}}', 'g'), accountId));
 
-let creds: grafana.IDatabaseCredentials;
+let creds: grafana.IDatabaseCredentials | undefined;
 
 router.post(
   '/',
@@ -26,6 +26,10 @@ router.post(
     if (!creds) {
       // Pull grafana credentials if it does not exist yet
       creds = await grafana.getAdminCreds();
+      if (!creds) {
+        // On load failure, pretend this isn't an available feature
+        return res.status(406).send('Feature not supported.');
+      }
     }
 
     let action: string = 'unknown';
@@ -34,7 +38,7 @@ router.post(
       // Create the organization
       let response = await superagent
         .post(`${grafana.location}/api/orgs`)
-        .set(grafana.authHeader, creds.grafana.admin_username)
+        .set(grafana.authHeader, creds?.grafana.admin_username as string)
         .send({ name: accountId })
         .ok((r) => r.status < 399 || r.status === 409);
 
@@ -44,7 +48,7 @@ router.post(
         // Organization already exists, query directly
         response = await superagent
           .get(`${grafana.location}/api/orgs/name/${accountId}`)
-          .set(grafana.authHeader, creds.grafana.admin_username);
+          .set(grafana.authHeader, creds?.grafana.admin_username as string);
         orgId = response.body.id;
       } else {
         orgId = response.body.orgId;
@@ -55,7 +59,7 @@ router.post(
       // Create the user
       response = await superagent
         .post(`${grafana.location}/api/admin/users`)
-        .set(grafana.authHeader, creds.grafana.admin_username)
+        .set(grafana.authHeader, creds?.grafana.admin_username as string)
         .send({
           name: accountId,
           email: accountId,
@@ -68,7 +72,7 @@ router.post(
         action = 'Get User ID';
         response = await superagent
           .get(`${grafana.location}/api/users/search?query=${accountId}`)
-          .set(grafana.authHeader, creds.grafana.admin_username)
+          .set(grafana.authHeader, creds?.grafana.admin_username as string)
           .set(grafana.orgHeader, `${orgId}`);
         userId = response.body.users[0].id;
       } else {
@@ -90,7 +94,7 @@ router.post(
         dataSources.map(async (dataSource: any) => {
           const addResponse = await superagent
             .post(`${grafana.location}/api/datasources`)
-            .set(grafana.authHeader, creds.grafana.admin_username)
+            .set(grafana.authHeader, creds?.grafana.admin_username as string)
             .set(grafana.orgHeader, `${orgId}`)
             .send(dataSource)
             .ok((r) => r.status < 399 || r.status === 409);
@@ -102,14 +106,14 @@ router.post(
           // Update an existing datasource.
           const getDataSource = await superagent
             .get(`${grafana.location}/api/datasources/uid/${dataSource.uid}`)
-            .set(grafana.authHeader, creds.grafana.admin_username)
+            .set(grafana.authHeader, creds?.grafana.admin_username as string)
             .set(grafana.orgHeader, `${orgId}`);
 
           const dataSourceId = getDataSource.body.id;
 
           return superagent
             .put(`${grafana.location}/api/datasources/${dataSourceId}`)
-            .set(grafana.authHeader, creds.grafana.admin_username)
+            .set(grafana.authHeader, creds?.grafana.admin_username as string)
             .set(grafana.orgHeader, `${orgId}`)
             .send(dataSource);
         })
@@ -125,7 +129,7 @@ router.post(
         dashboards.map((dashboard: any) =>
           superagent
             .post(`${grafana.location}/api/dashboards/db`)
-            .set(grafana.authHeader, creds.grafana.admin_username)
+            .set(grafana.authHeader, creds?.grafana.admin_username as string)
             .set(grafana.orgHeader, `${orgId}`)
             .send({
               dashboard,

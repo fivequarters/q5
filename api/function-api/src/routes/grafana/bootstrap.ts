@@ -23,7 +23,7 @@ const getResource = (req: express.Request): string => {
   return `/account/${req.headers['fusebit-authorization-account-id']}/log`;
 };
 
-let creds: grafana.IDatabaseCredentials;
+let creds: grafana.IDatabaseCredentials | undefined;
 
 // Set a cookie for the grafana proxy endpoint to use as the authorization token.
 router.get(
@@ -64,6 +64,10 @@ router.get(
       if (!creds) {
         // Pull grafana if it doesn't exist yet
         creds = await grafana.getAdminCreds();
+        if (!creds) {
+          // On load failure, pretend this isn't an available feature
+          return res.status(406).send('Feature not supported.');
+        }
       }
 
       // Get the orgId for this account

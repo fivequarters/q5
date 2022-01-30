@@ -23,13 +23,17 @@ export interface IDatabaseCredentials {
 export const authHeader = Constants.GRAFANA_AUTH_HEADER;
 export const orgHeader = Constants.GRAFANA_ORG_HEADER;
 
-export const getAdminCreds = async () => {
+export const getAdminCreds = async (): Promise<IDatabaseCredentials | undefined> => {
   const SSMSdk = new AWS.SSM({ region: process.env.AWS_REGION });
   const monDeploymentName = new URL(Constants.GRAFANA_ENDPOINT).hostname.split('.')[0];
-  const value = await SSMSdk.getParameter({
-    Name: Constants.GRAFANA_CREDENTIALS_SSM_PATH + monDeploymentName,
-    WithDecryption: true,
-  }).promise();
-  console.log(value.Parameter?.Value);
-  return JSON.parse(value.Parameter?.Value as string) as IDatabaseCredentials;
+  try {
+    const value = await SSMSdk.getParameter({
+      Name: Constants.GRAFANA_CREDENTIALS_SSM_PATH + monDeploymentName,
+      WithDecryption: true,
+    }).promise();
+    return JSON.parse(value.Parameter?.Value as string) as IDatabaseCredentials;
+  } catch (e) {
+    console.log(`ERROR: GRAFANA CREDENTIAL LOAD FAILURE: ${e.code}`);
+    return undefined;
+  }
 };
