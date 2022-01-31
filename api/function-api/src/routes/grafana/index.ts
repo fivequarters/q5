@@ -1,6 +1,5 @@
 import express from 'express';
 
-import proxy from './proxy';
 import bootstrap from './bootstrap';
 import initialize from './initialize';
 

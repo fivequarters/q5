@@ -25,8 +25,11 @@ export const orgHeader = Constants.GRAFANA_ORG_HEADER;
 
 export const getAdminCreds = async (): Promise<IDatabaseCredentials | undefined> => {
   const SSMSdk = new AWS.SSM({ region: process.env.AWS_REGION });
-  const monDeploymentName = new URL(Constants.GRAFANA_ENDPOINT).hostname.split('.')[0];
+  const monDeploymentName = new URL(Constants.GRAFANA_ENDPOINT).hostname
+    .split('.')[0]
+    .split(Constants.GRAFANA_LEADER_PREFIX)[1];
   try {
+    console.log(Constants.GRAFANA_CREDENTIALS_SSM_PATH + monDeploymentName);
     const value = await SSMSdk.getParameter({
       Name: Constants.GRAFANA_CREDENTIALS_SSM_PATH + monDeploymentName,
       WithDecryption: true,

@@ -18,6 +18,7 @@ import { OpsDataAwsConfig } from './OpsDataAwsConfig';
 import { OpsAccountData } from './OpsAccountData';
 import { parseElasticSearchUrl } from './OpsElasticSearch';
 import { debug } from './OpsDebug';
+import * as Constants from '@5qtrs/constants';
 
 // ------------------
 // Internal Functions
@@ -337,7 +338,7 @@ SEGMENT_KEY=${segmentKey}
 
     if (grafanaKey) {
       r += `
-GRAFANA_ENDPOINT=${this.config.getGrafanaLeaderPrefix()}${grafanaKey}${this.config.getDiscoveryDomainName()}
+GRAFANA_ENDPOINT=${Constants.GRAFANA_LEADER_PREFIX}${grafanaKey}.${this.config.getDiscoveryDomainName()}
       `;
     }
 

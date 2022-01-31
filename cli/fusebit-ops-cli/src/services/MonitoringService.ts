@@ -210,7 +210,7 @@ export class MonitoringService {
     );
     configTemplate.database = {};
     configTemplate.server = {};
-    configTemplate['auth.proxy'].header_name = Constants.GRAFANA_AUTH_HEADER;
+    configTemplate.auth.proxy.header_name = Constants.GRAFANA_AUTH_HEADER;
     configTemplate.security.admin_user = credentials.grafana.admin_username;
     configTemplate.security.admin_password = credentials.grafana.admin_password;
     configTemplate.security.secret_key = credentials.grafana.secret_key;
@@ -622,7 +622,7 @@ ${awsUserData.runDockerCompose()}
             RoutingPolicy: 'WEIGHTED',
           },
           NamespaceId: cloudMap.namespace.Id,
-          Name: `${this.opsAwsConfig.getGrafanaLeaderPrefix()}${monDeploymentName}`,
+          Name: `${Constants.GRAFANA_LEADER_PREFIX}${monDeploymentName}`,
           Tags: [
             {
               Key: 'accountId',
@@ -1087,10 +1087,7 @@ ${awsUserData.runDockerCompose()}
     const monDep = await this.getMonitoringDeploymentByName(monDeploymentName, region);
     const cloudMap = await this.getCloudMap(monDep.networkName, region);
     const cloudMapSdk = await this.getAwsSdk(AWS.ServiceDiscovery, { region });
-    const svcSummary = await this.getService(
-      this.opsAwsConfig.getGrafanaLeaderPrefix() + monDep.monitoringDeploymentName,
-      region
-    );
+    const svcSummary = await this.getService(Constants.GRAFANA_LEADER_PREFIX + monDep.monitoringDeploymentName, region);
     if (!svcSummary) {
       throw Error('Load balancer leader service is not found.');
     }
