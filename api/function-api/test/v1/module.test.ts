@@ -156,4 +156,46 @@ describe('Module', () => {
       });
     }
   }, 15000);
+
+  test.only('PUT completes for multiple functions with identical dependency', async () => {
+    const uniqueDep = {
+      nodejs: {
+        files: {
+          'index.js': 'module.exports = (ctx, cb) => cb(null, { });',
+          'package.json': {
+            dependencies: {
+              googleapis: '40.0.0',
+            },
+          },
+        },
+      },
+    };
+
+    const responses = [
+      await putFunction(account, boundaryId, function1Id, uniqueDep),
+      await putFunction(account, boundaryId, function2Id, uniqueDep),
+      await putFunction(account, boundaryId, function3Id, uniqueDep),
+      await putFunction(account, boundaryId, function4Id, uniqueDep),
+    ];
+
+    await Promise.all(
+      responses.map(async (response) => {
+        expect(response).toBeHttp({ statusCode: [200, 201] });
+        if (response.status === 201) {
+          response = await waitForBuild(account, response.data, 15, 1000);
+          expect(response).toBeHttp({ statusCode: 200 });
+        }
+        expect(response.data).toMatchObject({
+          status: 'success',
+          subscriptionId: account.subscriptionId,
+          boundaryId,
+          functionId: function1Id,
+          transitions: {
+            success: expect.any(String),
+          },
+          location: expect.stringMatching(/^http:|https:/),
+        });
+      })
+    );
+  }, 180000);
 });
