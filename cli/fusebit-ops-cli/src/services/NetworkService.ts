@@ -3,6 +3,8 @@ import { Text } from '@5qtrs/text';
 import { IOpsNetwork, IOpsNewNetwork, IListOpsNetworkOptions, IListOpsNetworkResult } from '@5qtrs/ops-data';
 import { OpsService } from './OpsService';
 import { ExecuteService } from './ExecuteService';
+import { AwsCreds, IAwsCredentials } from '@5qtrs/aws-cred';
+import { OpsDataAwsConfig } from '@5qtrs/ops-data-aws';
 
 // ----------------
 // Exported Classes
@@ -12,17 +14,31 @@ export class NetworkService {
   private input: IExecuteInput;
   private opsService: OpsService;
   private executeService: ExecuteService;
+  private creds: IAwsCredentials;
+  private opsAwsConfig: OpsDataAwsConfig;
 
-  private constructor(input: IExecuteInput, opsService: OpsService, executeService: ExecuteService) {
+  private constructor(
+    input: IExecuteInput,
+    opsService: OpsService,
+    executeService: ExecuteService,
+    creds: IAwsCredentials,
+    opsAwsConfig: OpsDataAwsConfig
+  ) {
     this.input = input;
     this.opsService = opsService;
     this.executeService = executeService;
+    this.creds = creds;
+    this.opsAwsConfig = opsAwsConfig;
   }
 
   public static async create(input: IExecuteInput) {
     const opsService = await OpsService.create(input);
     const executeService = await ExecuteService.create(input);
-    return new NetworkService(input, opsService, executeService);
+    const opsDataContext = await opsService.getOpsDataContextImpl();
+    const config = await opsDataContext.provider.getAwsConfigForMain();
+    const credentials = await (config.creds as AwsCreds).getCredentials();
+    const opsAwsConfig = await OpsDataAwsConfig.create((await opsService.getOpsDataContextImpl()).config);
+    return new NetworkService(input, opsService, executeService, credentials, opsAwsConfig);
   }
 
   public async checkNetworkExists(network: IOpsNewNetwork): Promise<void> {

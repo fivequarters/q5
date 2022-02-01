@@ -18,6 +18,7 @@ import { OpsDataAwsConfig } from './OpsDataAwsConfig';
 import { OpsAccountData } from './OpsAccountData';
 import { parseElasticSearchUrl } from './OpsElasticSearch';
 import { debug } from './OpsDebug';
+import * as Constants from '@5qtrs/constants';
 
 // ------------------
 // Internal Functions
@@ -122,6 +123,7 @@ export class OpsStackData extends DataSource implements IOpsStackData {
         amiId,
         segmentKey,
         elasticSearch,
+        deployment.grafana,
         newStack.env
       ),
       this.cloudWatchAgentForUserData(deploymentName),
@@ -303,6 +305,7 @@ systemctl start docker.fusebit`;
     amiId: string,
     segmentKey: string,
     elasticSearch: string,
+    grafanaKey?: string,
     env?: string
   ) {
     let r = `
@@ -331,6 +334,12 @@ API_STACK_AMI=${amiId}
       r += `
 SEGMENT_KEY=${segmentKey}
 `;
+    }
+
+    if (grafanaKey) {
+      r += `
+GRAFANA_ENDPOINT=${Constants.GRAFANA_LEADER_PREFIX}${grafanaKey}.${this.config.getDiscoveryDomainName()}
+      `;
     }
 
     let esCreds = parseElasticSearchUrl(elasticSearch);

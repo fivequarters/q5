@@ -42,6 +42,13 @@ function toItem(deployment: IOpsDeployment) {
     item.segmentKey = { S: deployment.segmentKey };
   }
 
+  // Support clearing the Grafana key parameter using an empty string.
+  if (!deployment.grafana) {
+    delete item.grafana;
+  } else {
+    item.grafana = { S: deployment.grafana };
+  }
+
   // Support clearing the Elastic Search parameter using an empty string.
   if (deployment.elasticSearch.length === 0) {
     delete item.elasticSearch;
@@ -66,6 +73,7 @@ function fromItem(item: any): IOpsDeployment {
     fuseopsVersion: item.fuseopsVersion === undefined ? '' : item.fuseopsVersion.S,
     dataWarehouseEnabled: item.dataWarehouseEnabled.BOOL,
     featureUseDnsS3Bucket: item.featureUseDnsS3Bucket && item.featureUseDnsS3Bucket.BOOL,
+    grafana: item.grafana && item.grafana.S,
   };
 }
 
@@ -99,6 +107,7 @@ export interface IOpsDeployment {
   fuseopsVersion: string;
   dataWarehouseEnabled: boolean;
   featureUseDnsS3Bucket: boolean;
+  grafana?: string;
 }
 
 export interface IListOpsDeploymentOptions {

@@ -79,10 +79,12 @@ export class OpsNetworkData extends DataSource implements IOpsNetworkData {
     const networkDetails = await awsNetwork.ensureNetwork(
       network.networkName,
       createIfNotExists,
+      this.config.getDiscoveryDomainName(),
       network.existingVpcId,
       network.existingPublicSubnetIds,
       network.existingPrivateSubnetIds
     );
+    await awsNetwork.ensureCloudMap(networkDetails.vpcId, network.networkName, this.config.getDiscoveryDomainName());
     return {
       networkName: network.networkName,
       accountName: network.accountName,
