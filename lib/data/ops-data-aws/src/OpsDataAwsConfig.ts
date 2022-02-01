@@ -39,7 +39,6 @@ const defaultBackupRoleName = 'fusebit-backup-role';
 const defaultAuroraDatabaseName = 'fusebit';
 const defaultAuroraMasterUsername = 'fusebit';
 const defaultDiscoveryDomainName = 'fusebit.internal';
-const defaultMasterServicePrefix = 'leader-';
 const defaultTempoBucketPrefix = 'tempo-bucket-fusebit-';
 const defaultLokiBucketPrefix = 'loki-bucket-fusebit-';
 const defaultGrafanaBootstrapBucket = 'grafana-bootstrap-';
@@ -288,10 +287,6 @@ export class OpsDataAwsConfig implements IConfig {
 
   public getDiscoveryDomainName() {
     return defaultDiscoveryDomainName;
-  }
-
-  public getGrafanaLeaderPrefix() {
-    return defaultMasterServicePrefix;
   }
 
   public getTempoBucketPrefix() {

@@ -23,8 +23,6 @@ const getResource = (req: express.Request): string => {
   return `/account/${req.headers['fusebit-authorization-account-id']}/log`;
 };
 
-let creds: grafana.IDatabaseCredentials | undefined;
-
 // Set a cookie for the grafana proxy endpoint to use as the authorization token.
 router.get(
   '/bootstrap/:subPath(*)',
@@ -61,14 +59,7 @@ router.get(
   async (req: express.Request, res: express.Response, next: express.NextFunction) => {
     const accountId = req.query[FUSEBIT_QUERY_ACCOUNT] as string;
     try {
-      if (!creds) {
-        // Pull grafana if it doesn't exist yet
-        creds = await grafana.getAdminCreds();
-        if (!creds) {
-          // On load failure, pretend this isn't an available feature
-          return res.status(406).send('Feature not supported.');
-        }
-      }
+      const creds = await grafana.getAdminCreds();
 
       // Get the orgId for this account
       let response = await superagent
