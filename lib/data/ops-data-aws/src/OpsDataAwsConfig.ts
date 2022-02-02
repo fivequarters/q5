@@ -18,6 +18,7 @@ const defaultMonoInstanceType = 't3.medium';
 const defaultMonoApiPort = 80;
 const defaultUbuntuServerVersion = '20.04';
 const defaultMonoInstanceProfileName = 'fusebit-EC2-instance';
+const defaultGrafanaInstanceProfileName = 'fusebit-grafana-instance';
 const defaultMonoHealthCheckGracePeriod = 300;
 const defaultCronFilter = 'ctx => true;';
 const defaultCronMaxExecutionsPerWindow = 120;
@@ -37,6 +38,11 @@ const defaultGovCloud = false;
 const defaultBackupRoleName = 'fusebit-backup-role';
 const defaultAuroraDatabaseName = 'fusebit';
 const defaultAuroraMasterUsername = 'fusebit';
+const defaultDiscoveryDomainName = 'fusebit.internal';
+const defaultTempoBucketPrefix = 'tempo-bucket-fusebit-';
+const defaultLokiBucketPrefix = 'loki-bucket-fusebit-';
+const defaultGrafanaBootstrapBucket = 'grafana-bootstrap-';
+
 // ----------------
 // Exported Classes
 // ----------------
@@ -177,6 +183,10 @@ export class OpsDataAwsConfig implements IConfig {
     return (this.config.value('monoInstanceProfileName') as string) || defaultMonoInstanceProfileName;
   }
 
+  public get monoGrafanaProfileName(): string {
+    return (this.config.value('monoGrafanaProfileName') as string) || defaultGrafanaInstanceProfileName;
+  }
+
   public get monoInstanceProfile(): string {
     return (
       (this.config.value('monoInstanceProfile') as string) ||
@@ -273,5 +283,21 @@ export class OpsDataAwsConfig implements IConfig {
 
   public value(settingName: string) {
     return this.config.value(settingName);
+  }
+
+  public getDiscoveryDomainName() {
+    return defaultDiscoveryDomainName;
+  }
+
+  public getTempoBucketPrefix() {
+    return defaultTempoBucketPrefix;
+  }
+
+  public getLokiBucketPrefix() {
+    return defaultLokiBucketPrefix;
+  }
+
+  public getGrafanaBootstrapBucket() {
+    return defaultGrafanaBootstrapBucket;
   }
 }

@@ -1,5 +1,5 @@
 import superagent from 'superagent';
-
+import * as Constants from '@5qtrs/constants';
 const fromEventTime = (timeStr: string) => new Date(timeStr).getTime() * 1000000;
 
 interface IParams {
@@ -50,7 +50,7 @@ const publishLogs = async (params: IParams, logEntries: IEntry[]) => {
 
   try {
     await superagent
-      .post('http://loki:3100/loki/api/v1/push')
+      .post(`${Constants.LOKI_ENDPOINT}/loki/api/v1/push`)
       .set('Content-Type', 'application/json')
       .set('X-Scope-OrgID', params.accountId)
       .send(payload);

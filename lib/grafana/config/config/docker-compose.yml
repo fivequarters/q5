@@ -1,0 +1,36 @@
+version: '3'
+services:
+  tempo:
+    image: grafana/tempo:latest
+    command: ['-config.file=/etc/tempo.yaml']
+    volumes:
+      - /root/tempo.yml:/etc/tempo.yaml
+      - /root/tempo-data:/tmp/tempo
+      - /var/log/:/var/log/
+    ports:
+      - '3200:3200/tcp' # http
+      - '4317:4317/tcp' # grpc ingest
+
+  loki:
+    image: grafana/loki:2.3.0
+    command: ['-config.file=/etc/loki/loki.yaml']
+    volumes:
+      - /root/loki.yml:/etc/loki/loki.yaml
+      - /var/log/:/var/log/
+      - /root/loki:/loki/
+    ports:
+      - '3100:3100'
+
+  grafana:
+    image: grafana/grafana:latest
+    command: ['--config=/etc/grafana/grafana.ini']
+    volumes:
+      - /root/grafana.ini:/etc/grafana/grafana.ini
+      - /var/log/:/var/log/
+    ports:
+      - '3000:3000'
+
+  health:
+    image: public.ecr.aws/fusebit/grafana-health:latest
+    ports:
+      - '9999:9999'

@@ -23,6 +23,7 @@ export interface IOpsDeployment {
   fuseopsVersion: string;
   dataWarehouseEnabled: boolean;
   featureUseDnsS3Bucket: boolean;
+  grafana?: string;
 }
 
 export interface IOpsDeploymentParameters {
