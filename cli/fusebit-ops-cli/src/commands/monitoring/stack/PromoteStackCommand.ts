@@ -9,11 +9,12 @@ const command: ICommand = {
   arguments: [
     {
       name: 'deploymentName',
-      description: 'The monitoring deployment you want to promote stacks in.',
+      description: 'The monitoring deployment you want to promote stacks in, or deployment:stackId.',
     },
     {
       name: 'stackId',
-      description: 'The id of the stack you want to promote.',
+      description: 'The id of the stack you want to promote, if not present on the deploymentName',
+      required: false,
     },
   ],
   options: [
@@ -34,10 +35,13 @@ export class PromoteStackCommand extends Command {
   }
 
   protected async onExecute(input: IExecuteInput): Promise<number> {
-    const [deploymentName, stackId] = input.arguments as string[];
-    let region = input.options.region as string | undefined;
+    let [deploymentName, stackId] = input.arguments as string[];
+    if (deploymentName.indexOf(':') > 0 && !stackId) {
+      [deploymentName, stackId] = deploymentName.split(':');
+    }
+    const region = input.options.region as string | undefined;
     const svc = await MonitoringService.create(input);
-    await svc.stackPromote(deploymentName, parseInt(stackId), region);
+    await svc.stackPromote(deploymentName, parseInt(stackId, 10), region);
     return 0;
   }
 }

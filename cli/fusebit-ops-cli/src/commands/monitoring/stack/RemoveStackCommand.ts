@@ -9,11 +9,12 @@ const command: ICommand = {
   arguments: [
     {
       name: 'monitoringDeploymentName',
-      description: 'The monitoring deployment you want to remove stacks from.',
+      description: 'The monitoring deployment you want to remove stacks from, or deploymentName:stackId.',
     },
     {
       name: 'stackid',
       description: 'The id of the stack you want to remove.',
+      required: false,
     },
   ],
   options: [
@@ -39,7 +40,10 @@ export class RemoveStackCommand extends Command {
   }
 
   protected async onExecute(input: IExecuteInput): Promise<number> {
-    const [deploymentName, stackId] = input.arguments as string[];
+    let [deploymentName, stackId] = input.arguments as string[];
+    if (deploymentName.indexOf(':') > 0 && !stackId) {
+      [deploymentName, stackId] = deploymentName.split(':');
+    }
     const region = input.options.region as string | undefined;
     const svc = await MonitoringService.create(input);
     const force = input.options.force;

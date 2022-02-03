@@ -186,9 +186,20 @@ export class MonitoringService {
 
   private getGrafanaDatabaseMigrationStatement(monDeploymentName: string, password: string) {
     const statements = [];
-    statements.push(`ALTER DATABASE ${DB_PREFIX}${monDeploymentName} OWNER TO fusebit;`);
+
+    // Set the owner to fusebit if the database exists so that it can be dropped by the current user.
+    statements.push(`
+      DO $$
+        BEGIN
+          IF NOT EXISTS (
+            SELECT FROM pg_catalog.pg_database WHERE datname = '${DB_PREFIX}${monDeploymentName}'
+          ) THEN
+            ALTER DATABASE ${DB_PREFIX}${monDeploymentName} OWNER TO fusebit
+          END IF;
+        END
+      $$`);
     statements.push(`DROP DATABASE IF EXISTS ${DB_PREFIX}${monDeploymentName};`);
-    statements.push(`DROP USER ${monDeploymentName};`);
+    statements.push(`DROP USER IF EXISTS ${monDeploymentName};`);
     statements.push(`CREATE USER ${monDeploymentName} WITH PASSWORD '${password}';`);
     statements.push(`CREATE DATABASE ${DB_PREFIX}${monDeploymentName};`);
     statements.push(`ALTER DATABASE ${DB_PREFIX}${monDeploymentName} OWNER TO ${monDeploymentName};`);
@@ -214,6 +225,7 @@ export class MonitoringService {
     configTemplate.security.admin_user = credentials.grafana.admin_username;
     configTemplate.security.admin_password = credentials.grafana.admin_password;
     configTemplate.security.secret_key = credentials.grafana.secret_key;
+    configTemplate.security.allow_embedding = true;
     configTemplate.users.hidden_users = credentials.grafana.admin_username;
     configTemplate.database.type = DB_ENGINE;
     configTemplate.database.user = credentials.username;
@@ -221,13 +233,13 @@ export class MonitoringService {
     configTemplate.database.password = credentials.password;
     configTemplate.database.host = `${credentials.endpoint}:${POSTGRES_PORT}`;
     configTemplate.server.domain = baseUrl;
-    configTemplate.server.rootUrl = ` ${baseUrl}/v2/grafana/`;
+    configTemplate.server.root_url = `${baseUrl}/v2/grafana/`;
 
     return this.toBase64(grafanaConfig.toIniFile(configTemplate));
   }
 
   private async cleanupStack(monDeployment: IMonitoringDeployment, stack: IMonitoringStack, force: boolean) {
-    let stacks = await this.listStacks();
+    let stacks = await this.getStackList();
     stacks = stacks.filter((stack) => stack.active);
     stacks = stacks.filter((stackInfo) => parseInt(stackInfo.stackId) === stack.stackId);
     stacks = stacks.filter((stack) => stack.deploymentName === monDeployment.monitoringDeploymentName);
@@ -1234,7 +1246,7 @@ ${awsUserData.runDockerCompose()}
     }
   }
 
-  public async listStacks() {
+  public async getStackList() {
     const dynamoSdk = await this.getAwsSdk(AWS.DynamoDB, { region: this.config.region });
     const items = await dynamoSdk.scan({ TableName: OPS_MON_STACK_TABLE }).promise();
     let itemsJson = [];
@@ -1355,7 +1367,7 @@ ${awsUserData.runDockerCompose()}
         message: 'Listing Monitoring Stacks',
         errorHeader: 'Listing Stacks Failed',
       },
-      () => this.listStacks()
+      () => this.getStackList()
     )) as any[];
     if (monDeploymentName) {
       itemsJson = itemsJson.filter((item) => item.deploymentName === monDeploymentName);
@@ -1371,15 +1383,6 @@ ${awsUserData.runDockerCompose()}
         Text.dim('Region: '),
         stack.region,
         Text.eol(),
-        Text.dim('Id: '),
-        stack.stackId,
-        Text.eol(),
-        Text.dim('Deployment Name: '),
-        stack.deploymentName,
-        Text.eol(),
-        Text.dim('AmiId: '),
-        stack.amiId,
-        Text.eol(),
         Text.dim('Grafana Version: '),
         stack.grafanaVersion,
         Text.eol(),
@@ -1390,10 +1393,9 @@ ${awsUserData.runDockerCompose()}
         stack.tempoVersion,
         Text.eol(),
         Text.dim('Status: '),
-        stack.active ? 'Active' : 'Inactive',
-        Text.eol(),
+        stack.active ? 'ACTIVE' : 'NOT ACTIVE',
       ];
-      await this.executeService.message(Text.bold(stack.stackId), Text.create(details));
+      await this.executeService.message(Text.bold(`${stack.deploymentName}:${stack.stackId}`), Text.create(details));
     }
   }
 

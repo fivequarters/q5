@@ -1,5 +1,6 @@
 import express from 'express';
 
+import proxy from './proxy';
 import bootstrap from './bootstrap';
 import initialize from './initialize';
 
@@ -10,6 +11,6 @@ const featureNotSupported = (req: express.Request, res: express.Response, next: 
 };
 
 // Grafana is protected behind a feature flag
-process.env.GRAFANA_ENDPOINT ? router.use(bootstrap, initialize) : router.use(featureNotSupported);
+process.env.GRAFANA_ENDPOINT ? router.use(bootstrap, proxy) : router.use(featureNotSupported);
 
 export { router as proxy, initialize };
