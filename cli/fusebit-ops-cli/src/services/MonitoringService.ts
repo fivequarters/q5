@@ -225,7 +225,6 @@ export class MonitoringService {
     configTemplate.security.admin_user = credentials.grafana.admin_username;
     configTemplate.security.admin_password = credentials.grafana.admin_password;
     configTemplate.security.secret_key = credentials.grafana.secret_key;
-    configTemplate.security.allow_embedding = true;
     configTemplate.users.hidden_users = credentials.grafana.admin_username;
     configTemplate.database.type = DB_ENGINE;
     configTemplate.database.user = credentials.username;
