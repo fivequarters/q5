@@ -1199,6 +1199,9 @@ ${awsUserData.runDockerCompose()}
     const dynamoSdk = await this.getAwsSdk(AWS.DynamoDB, { region: this.config.region });
     const deployments = await dynamoSdk.scan({ TableName: OPS_MONITORING_TABLE }).promise();
     const deploymentsJson = [];
+
+    await this.executeService.message(Text.cyan('Deployment'), Text.cyan('Details'));
+
     for (const deployment of deployments.Items as AWS.DynamoDB.ItemList) {
       deploymentsJson.push({
         deploymentName: deployment.deploymentName.S as string,
@@ -1220,17 +1223,14 @@ ${awsUserData.runDockerCompose()}
         Text.dim('Region: '),
         deployment.region,
         Text.eol(),
-        Text.dim('Name: '),
-        deployment.monitoringDeploymentName,
+        Text.dim('Network Name: '),
+        deployment.networkName,
         Text.eol(),
         Text.dim('Deployment Name: '),
         deployment.deploymentName,
         Text.eol(),
-        Text.dim('Network Name: '),
-        deployment.networkName,
-        Text.eol(),
       ];
-      await this.executeService.message(Text.bold('Deployments'), Text.create(details));
+      await this.executeService.message(Text.bold(deployment.monitoringDeploymentName), Text.create(details));
     }
   }
 

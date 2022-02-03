@@ -1015,6 +1015,10 @@ components:
       properties:
         id:
           $ref: '#/components/schemas/SessionId'
+        targetUrl:
+          type: string
+          description: The URL that the browser should be redirected to for the user to start configuring the session.
+          example: https://api.us-west-1.on.fusebit.io/v2/account/acc-123/subscription/sub-123/integration/my-integ-123/session/ses-123/start
 
     SessionResult:
       type: object
