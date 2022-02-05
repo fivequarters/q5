@@ -65,10 +65,7 @@
     "yarn": "^1.12.3"
   },
   "workspaces": {
-    "nohoist": [
-      "**/lambda-*",
-      "**/lambda-*/**"
-    ],
+    "nohoist": ["**/lambda-*", "**/lambda-*/**"],
     "packages": [
       "tool/tool-config",
       "tool/workspace",
@@ -83,7 +80,6 @@
       "lib/shared/batch",
       "lib/shared/event",
       "lib/client/passive",
-      "lib/client/fusebit-editor",
       "lib/client/fusebit-hook",
       "lib/client/font",
       "lib/node/file",

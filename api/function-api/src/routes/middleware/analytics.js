@@ -57,6 +57,7 @@ exports.enterHandler = (modality) => {
     req.spanId = makeTraceSpanId();
 
     req.headers[traceIdHeader] = `${req.traceId}.${req.spanId}`;
+    res.setHeader(traceIdHeader, req.headers[traceIdHeader]);
 
     res.metrics = {};
 
