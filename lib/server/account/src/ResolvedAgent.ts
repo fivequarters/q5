@@ -39,7 +39,7 @@ function checkAltAudience(jwt: string): boolean {
   if (typeof aud === 'string') {
     return aud === process.env.JWT_ALT_AUDIENCE;
   }
-  if (typeof aud === 'object') {
+  if (Array.isArray(aud)) {
     return aud.includes(process.env.JWT_ALT_AUDIENCE);
   }
   return false;
