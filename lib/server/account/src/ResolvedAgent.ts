@@ -34,6 +34,17 @@ const internalIssuerCache = new InternalIssuerCache({});
 // Internal Functions
 // ------------------
 
+function checkAltAudience(jwt: string): boolean {
+  const aud = decodeJwt(jwt).aud;
+  if (typeof aud === 'string') {
+    return aud === process.env.JWT_ALT_AUDIENCE;
+  }
+  if (Array.isArray(aud)) {
+    return aud.includes(process.env.JWT_ALT_AUDIENCE);
+  }
+  return false;
+}
+
 async function validateJwt(
   dataContext: IAccountDataContext,
   accountId: string,
@@ -67,7 +78,7 @@ async function validateJwt(
   }
 
   try {
-    if (process.env.JWT_ALT_AUDIENCE && decodeJwt(jwt).aud === process.env.JWT_ALT_AUDIENCE) {
+    if (process.env.JWT_ALT_AUDIENCE && checkAltAudience(jwt)) {
       // Debugging only - allow a specified alternative audience for JWT validation.
       audience = process.env.JWT_ALT_AUDIENCE;
     }
