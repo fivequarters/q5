@@ -117,10 +117,14 @@ export class MonitoringService {
     return this.opsAwsConfig.getGrafanaBootstrapBucket() + monDeploymentName;
   }
 
+  private getAutoScalingGroupName(name: string, stackId: number) {
+    return `${ASG_PREFIX}${name}${stackId}`;
+  }
+
   private async setupBootstrapBucket(monDeploymentName: string, region: string) {
     const s3Sdk = await this.getAwsSdk(AWS.S3, { region });
     try {
-      const bucket = await s3Sdk.createBucket({ Bucket: this.getBootstrapBucket(monDeploymentName) }).promise();
+      await s3Sdk.createBucket({ Bucket: this.getBootstrapBucket(monDeploymentName) }).promise();
     } catch (e) {
       // Ignores if bucket exists already
       if (e.code !== 'BucketAlreadyOwnedByYou') {
@@ -253,7 +257,7 @@ export class MonitoringService {
     const asgSdk = await this.getAwsSdk(AWS.AutoScaling, { region: monDeployment.region });
     await asgSdk
       .deleteAutoScalingGroup({
-        AutoScalingGroupName: ASG_PREFIX + monDeployment.monitoringDeploymentName + stack.stackId,
+        AutoScalingGroupName: this.getAutoScalingGroupName(monDeployment.monitoringDeploymentName, stack.stackId),
         ForceDelete: true,
       })
       .promise();
@@ -323,7 +327,7 @@ export class MonitoringService {
     const autoScalingSdk = await this.getAwsSdk(AWS.AutoScaling, { region: deployment.region });
     await autoScalingSdk
       .createAutoScalingGroup({
-        AutoScalingGroupName: ASG_PREFIX + deployment.monitoringDeploymentName + stack.stackId,
+        AutoScalingGroupName: this.getAutoScalingGroupName(deployment.monitoringDeploymentName, stack.stackId),
         LaunchTemplate: {
           LaunchTemplateName: ltName,
         },
@@ -358,7 +362,7 @@ export class MonitoringService {
     await asSdk
       .attachLoadBalancerTargetGroups({
         TargetGroupARNs: tgs?.map((tg) => tg.TargetGroupArn as string) as string[],
-        AutoScalingGroupName: ASG_PREFIX + monDeploymentName + stackId,
+        AutoScalingGroupName: this.getAutoScalingGroupName(monDeploymentName, stackId),
       })
       .promise();
     await this.updateStackActiveness(true, monDeploymentName, stackId.toString(), monDeployment.region);
@@ -371,7 +375,7 @@ export class MonitoringService {
     await asSdk
       .detachLoadBalancerTargetGroups({
         TargetGroupARNs: tgs?.map((tg) => tg.TargetGroupArn as string) as string[],
-        AutoScalingGroupName: ASG_PREFIX + monDeploymentName + stackId,
+        AutoScalingGroupName: this.getAutoScalingGroupName(monDeploymentName, stackId),
       })
       .promise();
 

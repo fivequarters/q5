@@ -81,7 +81,9 @@ router.get(
     { check: async () => subscriptionCache.healthCheck(), name: 'Subscription cache' },
     { check: async () => RDS.ensureConnection(), name: 'RDS connection' },
     { check: async () => RDS.ensureRDSLiveliness(), name: 'RDS execution' },
-    { check: async () => grafanaHealth.checkGrafanaHealth(), name: 'Grafana' },
+    ...(process.env.GRAFANA_ENDPOINT
+      ? [{ check: async () => grafanaHealth.checkGrafanaHealth(), name: 'Grafana' }]
+      : []),
   ])
 );
 

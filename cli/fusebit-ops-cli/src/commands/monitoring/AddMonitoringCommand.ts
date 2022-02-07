@@ -4,8 +4,8 @@ import { MonitoringService } from '../../services';
 const command: ICommand = {
   name: 'Add Monitoring Deployment',
   cmd: 'add',
-  summary: 'Add an Fusebit Monitoring Deployment',
-  description: 'Add an Fusebit Monitoring Deployment',
+  summary: 'Add a Fusebit Monitoring Deployment',
+  description: 'Add a Fusebit Monitoring Deployment',
   arguments: [
     {
       name: 'networkName',
