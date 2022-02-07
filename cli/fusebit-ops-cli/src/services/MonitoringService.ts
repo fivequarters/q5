@@ -505,7 +505,11 @@ ${awsUserData.runDockerCompose()}
       }).promise();
       return JSON.parse(value.Parameter?.Value as string) as IDatabaseCredentials;
     } catch (e) {
-      return undefined;
+      // Only return undefined when parameter not found. otherwise rethrow error
+      if (e.code === 'ParameterNotFound') {
+        return undefined;
+      }
+      throw e;
     }
   }
 
