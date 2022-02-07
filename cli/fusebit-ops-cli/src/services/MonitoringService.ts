@@ -195,10 +195,10 @@ export class MonitoringService {
     statements.push(`
       DO $$
         BEGIN
-          IF NOT EXISTS (
+          IF EXISTS (
             SELECT FROM pg_catalog.pg_database WHERE datname = '${DB_PREFIX}${monDeploymentName}'
           ) THEN
-            ALTER DATABASE ${DB_PREFIX}${monDeploymentName} OWNER TO fusebit
+            ALTER DATABASE ${DB_PREFIX}${monDeploymentName} OWNER TO fusebit;
           END IF;
         END
       $$`);
