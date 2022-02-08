@@ -23,6 +23,8 @@ All public releases of the Fusebit Operations CLI are documented here, including
 _Released 2/17/22_
 
 - **Enhancement** Support Fusebit v2 monitoring/logging/tracing.
+  - `fuse-ops setup` to add nessersary IAM roles and permissions.
+  - `fuse-ops network add` to upgrade the existing network for support of service discovery.
   - `fuse-ops monitoring deployment add` to add a monitoring deployment resource.
   - `fuse-ops monitoring stack add` to create a monitoring stack.
   - `fuse-ops monitoring stack promote` to promote the monitoring stack.
