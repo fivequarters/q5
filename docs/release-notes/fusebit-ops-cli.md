@@ -18,6 +18,17 @@ All public releases of the Fusebit Operations CLI are documented here, including
 {:toc}
 -->
 
+## Version 1.37.0
+
+_Released 2/17/22_
+
+- **Enhancement** Support Fusebit v2 monitoring/logging/tracing.
+  - `fuse-ops monitoring deployment add` to add a monitoring deployment resource.
+  - `fuse-ops monitoring stack add` to create a monitoring stack.
+  - `fuse-ops monitoring stack promote` to promote the monitoring stack.
+  - `fuse-ops deployment add --grafana` to enable v2 analytics and forward traffic to the specified monitoring deployment.
+  - `fuse-ops stack add` to spin up new function-API stack with v2 analytics support.
+
 ## Version 1.36.1
 
 _Released 11/23/21_
