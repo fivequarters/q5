@@ -50,7 +50,7 @@ app.use(
       req.traceId && req.spanId
         ? `\x1b[90m${req.traceId}:${req.spanId || '_'.repeat(16)}\x1b[0m`
         : `${' '.repeat(32)} ${' '.repeat(16)}`,
-      tokens.method(req, res).padStart(6, ' '),
+      tokens.method(req, res).padStart(7, ' '),
       tokens.url(req, res),
       tokens.prettyStatus(req, res),
       tokens.res(req, res, 'content-length'),
