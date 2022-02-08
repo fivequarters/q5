@@ -28,7 +28,6 @@ _Released 2/7/22_
 _Released 1/11/22_
 
 - **Enhancement.** Fusebit Code Editor configuration options added to functions and integrations.
--
 
 ## Version 1.20.0
 
