@@ -17,6 +17,12 @@ All public releases of the Fusebit HTTP API are documented here, including notab
 <!-- 1. TOC
 {:toc} -->
 
+## Version 1.34.0
+
+_Released 2/7/22_
+
+- **Enhancement.** Support Fusebit v2 monitoring/logging/tracing.
+
 ## Version 1.33.7
 
 _Released 1/11/22_
