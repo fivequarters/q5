@@ -47,7 +47,7 @@ logger.token('prettyStatus', (req, res) => {
 app.use(
   logger((tokens, req, res) =>
     [
-      req.traceId && req.spanId
+      req.traceId
         ? `\x1b[90m${req.traceId}:${req.spanId || '_'.repeat(16)}\x1b[0m`
         : `${' '.repeat(32)} ${' '.repeat(16)}`,
       tokens.method(req, res).padStart(7, ' '),

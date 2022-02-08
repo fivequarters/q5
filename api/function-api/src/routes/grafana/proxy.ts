@@ -25,7 +25,7 @@ const allowedHeaders = [
  * authenticate the user.
  */
 router.use('*', async (req: express.Request, res: express.Response, next: express.NextFunction) => {
-  const headers: any = {};
+  const headers: Record<string, any> = {};
 
   // Attach any query parameters
   const grafanaUrl = new URL(`${grafana.location}${req.params[0]}`);
