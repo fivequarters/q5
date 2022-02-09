@@ -157,7 +157,7 @@ describe('Module', () => {
     }
   }, 15000);
 
-  test.only('PUT completes for multiple functions with identical dependency', async () => {
+  test.skip('PUT completes for multiple functions with identical dependency', async () => {
     const uniqueDep = {
       nodejs: {
         files: {
