@@ -1,4 +1,4 @@
-import Crypto from 'crypto';
+import crypto from 'crypto';
 import Path from 'path';
 
 import {
@@ -25,7 +25,37 @@ const API_PUBLIC_ENDPOINT = process.env.LOGS_HOST
   ? `https://${process.env.LOGS_HOST}`
   : (process.env.API_SERVER as string);
 
+const GRAFANA_ENDPOINT = process.env.GRAFANA_ENDPOINT
+  ? `http://${process.env.GRAFANA_ENDPOINT}:3000`
+  : 'http://localhost:3000';
+
+const LOKI_ENDPOINT = process.env.GRAFANA_ENDPOINT
+  ? `http://${process.env.GRAFANA_ENDPOINT}:3100`
+  : `http://localhost:3100`;
+
+const TEMPO_ENDPOINT = process.env.GRAFANA_ENDPOINT
+  ? `http://${process.env.GRAFANA_ENDPOINT}:3200`
+  : `http://localhost:3200`;
+
+const GRAFANA_HEALTH_ENDPOINT = process.env.GRAFANA_ENDPOINT
+  ? `http://${process.env.GRAFANA_ENDPOINT}:9999`
+  : `http://localhost:9999`;
+
+const TEMPO_GRPC_INGEST = process.env.GRAFANA_ENDPOINT
+  ? `grpc://${process.env.GRAFANA_ENDPOINT}:4317`
+  : 'grpc://localhost:4317';
+
+const GRAFANA_LEADER_PREFIX = 'leader-';
+
 const API_PUBLIC_HOST = new URL(API_PUBLIC_ENDPOINT || 'http://localhost').host;
+
+const GRAFANA_AUTH_HEADER = 'X-WEBAUTH-USER';
+const GRAFANA_ORG_HEADER = 'X-Grafana-Org-Id';
+
+const FUSEBIT_QUERY_AUTHZ = 'fusebitAuthorization';
+const FUSEBIT_QUERY_ACCOUNT = 'fusebitAccountId';
+
+const GRAFANA_CREDENTIALS_SSM_PATH = '/fusebit/grafana/credentials/';
 
 let builderVersion: string = 'unknown';
 try {
@@ -36,7 +66,10 @@ const valid_boundary_name = /^[A-Za-z0-9\-]{1,63}$/;
 
 const valid_function_name = /^[A-Za-z0-9\-]{1,64}$/;
 
-const traceIdHeader = 'x-fx-trace-id';
+const traceIdHeader = 'fusebit-trace-id';
+
+const makeTraceId = () => crypto.randomBytes(16).toString('hex');
+const makeTraceSpanId = () => crypto.randomBytes(8).toString('hex');
 
 // Stores status of a function build (async operation)
 // This prefix has 1 day TTL in S3
@@ -83,6 +116,7 @@ const RUNAS_SYSTEM_ISSUER_SUFFIX = 'system.fusebit.io';
 
 const JWT_PERMISSION_CLAIM = 'https://fusebit.io/permissions';
 const JWT_PROFILE_CLAIM = 'https://fusebit.io/profile';
+const JWT_ATTRIBUTES_CLAIM = 'https://fusebit.io/attributes';
 
 const RUNAS_KID_LEN = 8;
 
@@ -150,11 +184,12 @@ function get_function_builder_description(options: any) {
 // Create a predictable fixed-length version of the lambda name, to avoid accidentally exceeding any name
 // limits.
 function get_function_builder_name(options: any) {
-  return Crypto.createHash('sha1').update(get_function_builder_description(options)).digest('hex');
+  return crypto.createHash('sha1').update(get_function_builder_description(options)).digest('hex');
 }
 
 function get_module_builder_name(ctx: any, name: string) {
-  return Crypto.createHash('sha1')
+  return crypto
+    .createHash('sha1')
     .update(get_module_builder_description(ctx, name, ctx.options.internal.resolved_dependencies[name]))
     .digest('hex');
 }
@@ -181,7 +216,7 @@ function get_user_function_description(options: any) {
 
 function get_user_function_name(options: any, version?: string) {
   return (
-    Crypto.createHash('sha1').update(get_user_function_description(options)).digest('hex') +
+    crypto.createHash('sha1').update(get_user_function_description(options)).digest('hex') +
     (version !== undefined ? `:${version}` : '')
   );
 }
@@ -322,11 +357,23 @@ export {
   RUNAS_KID_LEN,
   JWT_PERMISSION_CLAIM,
   JWT_PROFILE_CLAIM,
+  JWT_ATTRIBUTES_CLAIM,
   REGISTRY_RESERVED_SCOPE_PREFIX,
   RUNAS_SYSTEM_ISSUER_SUFFIX,
   API_PUBLIC_ENDPOINT,
+  GRAFANA_ENDPOINT,
+  GRAFANA_AUTH_HEADER,
+  GRAFANA_LEADER_PREFIX,
+  GRAFANA_ORG_HEADER,
+  GRAFANA_CREDENTIALS_SSM_PATH,
+  LOKI_ENDPOINT,
+  TEMPO_GRPC_INGEST,
+  TEMPO_ENDPOINT,
+  GRAFANA_HEALTH_ENDPOINT,
   API_PUBLIC_HOST,
   MAX_CACHE_REFRESH_RATE,
+  FUSEBIT_QUERY_AUTHZ,
+  FUSEBIT_QUERY_ACCOUNT,
   dynamoScanTable,
   expBackoff,
   asyncPool,
@@ -339,4 +386,6 @@ export {
   mergeDeep,
   createUniqueIdentifier,
   traceIdHeader,
+  makeTraceId,
+  makeTraceSpanId,
 };

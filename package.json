@@ -1,5 +1,5 @@
 {
-  "version": "1.33.12",
+  "version": "1.34.0",
   "private": true,
   "org": "5qtrs",
   "engines": {
@@ -68,7 +68,10 @@
     "yarn": "^1.12.3"
   },
   "workspaces": {
-    "nohoist": ["**/lambda-*", "**/lambda-*/**"],
+    "nohoist": [
+      "**/lambda-*",
+      "**/lambda-*/**"
+    ],
     "packages": [
       "tool/tool-config",
       "tool/workspace",
@@ -83,7 +86,6 @@
       "lib/shared/batch",
       "lib/shared/event",
       "lib/client/passive",
-      "lib/client/fusebit-editor",
       "lib/client/fusebit-hook",
       "lib/client/font",
       "lib/node/file",
@@ -129,10 +131,8 @@
       "comp/fusebit-code",
       "comp/fusebit-blog",
       "comp/fusebit-link-card",
-      "demo/sales-anchor/sales-anchor-api",
       "api/function-api",
       "site/corp",
-      "demo/sales-anchor/sales-anchor-app",
       "demo/functions/functions-app",
       "comp/corp-favicon",
       "comp/fusebit-favicon",
@@ -206,7 +206,9 @@
       "tool/cicd/jenkins",
       "tool/cicd/slack-notification",
       "lib/aws/aws-waf",
-      "tool/lambda-nuke"
+      "tool/lambda-nuke",
+      "lib/grafana/config",
+      "lib/aws/user-data"
     ]
   }
 }

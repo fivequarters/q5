@@ -11,7 +11,7 @@ import {
   IFusebitAccount,
   IInitAdmin,
 } from '@5qtrs/ops-data';
-import { IListAccountsOptions, IListSubscriptionsOptions } from '@5qtrs/account-data';
+import { IAccount, IListAccountsOptions, IListSubscriptionsOptions } from '@5qtrs/account-data';
 import { AccountDataAwsContextFactory } from '@5qtrs/account-data-aws';
 import { StorageDataAwsContextFactory } from '@5qtrs/storage-data-aws';
 import { IAwsConfig } from '@5qtrs/aws-config';
@@ -262,22 +262,22 @@ export class OpsDeploymentData extends DataSource implements IOpsDeploymentData 
     const accountDataFactory = await AccountDataAwsContextFactory.create(awsConfig);
     const accountData = await accountDataFactory.create(this.config);
 
-    let accounts: IFusebitAccount[] = [];
-    let listAccountOptions: IListAccountsOptions = {};
+    const accounts: IFusebitAccount[] = [];
+    const listAccountOptions: IListAccountsOptions = {};
     do {
-      let partialAccountResult = await accountData.accountData.list(listAccountOptions);
-      for (let i of partialAccountResult.items) {
-        let newAccount = {
+      const partialAccountResult = await accountData.accountData.list(listAccountOptions);
+      for (const i of partialAccountResult.items) {
+        const newAccount = {
           id: i.id as string,
           displayName: i.displayName,
           primaryEmail: i.primaryEmail,
           subscriptions: [],
         };
         accounts.push(newAccount);
-        let listSubscriptionOptions: IListSubscriptionsOptions = {};
+        const listSubscriptionOptions: IListSubscriptionsOptions = {};
         do {
           debug(`Listing subcriptions for account ${newAccount.id}...`);
-          let partialSubscriptionResult = await accountData.subscriptionData.list(
+          const partialSubscriptionResult = await accountData.subscriptionData.list(
             newAccount.id,
             listSubscriptionOptions
           );
@@ -285,13 +285,31 @@ export class OpsDeploymentData extends DataSource implements IOpsDeploymentData 
           newAccount.subscriptions.push.apply(newAccount.subscriptions, partialSubscriptionResult.items as never[]);
           listSubscriptionOptions.next = partialSubscriptionResult.next;
         } while (listSubscriptionOptions.next);
-        //@ts-ignore
+
         newAccount.subscriptions.sort((a, b) => (a <= b ? -1 : 1));
       }
       listAccountOptions.next = partialAccountResult.next;
     } while (listAccountOptions.next);
-    //@ts-ignore
+
     accounts.sort((a, b) => (a <= b ? -1 : 1));
+
+    return accounts;
+  }
+
+  public async listAllAccounts(deployment: IOpsDeployment): Promise<IAccount[]> {
+    debug('LIST ACCOUNTS', deployment);
+    const awsConfig = await this.provider.getAwsConfigForDeployment(deployment.deploymentName, deployment.region);
+
+    const accountDataFactory = await AccountDataAwsContextFactory.create(awsConfig);
+    const accountData = await accountDataFactory.create(this.config);
+
+    const accounts: IAccount[] = [];
+    const listAccountOptions: IListAccountsOptions = {};
+    do {
+      const partialAccountResult = await accountData.accountData.list(listAccountOptions);
+      accounts.push(...partialAccountResult.items);
+      listAccountOptions.next = partialAccountResult.next;
+    } while (listAccountOptions.next);
 
     return accounts;
   }
@@ -312,7 +330,7 @@ export class OpsDeploymentData extends DataSource implements IOpsDeploymentData 
 
     // Create user with admin permissions
 
-    let admin = await accountData.userData.add(init.account, {
+    const admin = await accountData.userData.add(init.account, {
       id: `usr-${random({ lengthInBytes: 8 })}`,
       firstName: init.first,
       lastName: init.last,
@@ -333,15 +351,15 @@ export class OpsDeploymentData extends DataSource implements IOpsDeploymentData 
       const jwtSecret = random({ lengthInBytes: 32 }) as string;
       await accountData.agentData.init(init.account, admin.id as string, jwtSecret);
 
-      let fullBaseDomain = `${deployment.deploymentName}.${deployment.region}.${deployment.domainName}`;
-      let baseUrl = `https://${fullBaseDomain}`;
+      const fullBaseDomain = `${deployment.deploymentName}.${deployment.region}.${deployment.domainName}`;
+      const baseUrl = `https://${fullBaseDomain}`;
       const payload = {
         accountId: init.account,
         agentId: admin.id as string,
         subscriptionId: init.subscription || undefined,
         boundaryId: undefined,
         functionId: undefined,
-        baseUrl: baseUrl,
+        baseUrl,
         issuerId: `${random({ lengthInBytes: 4 })}.${admin.id}.${fullBaseDomain}`,
         subject: `cli-${random({ lengthInBytes: 4 })}`,
         iss: baseUrl,

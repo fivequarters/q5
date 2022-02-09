@@ -1,5 +1,5 @@
 import { AwsBase, IAwsConfig } from '@5qtrs/aws-base';
-import { EC2 } from 'aws-sdk';
+import { EC2, ServiceDiscovery } from 'aws-sdk';
 
 // ------------------
 // Internal Constants
@@ -58,6 +58,7 @@ export class AwsNetwork extends AwsBase<typeof EC2> {
   public async ensureNetwork(
     name: string,
     createIfNotExists: boolean,
+    discoveryDomain: string,
     existingVpcId?: string,
     existingPublicSubnetIds?: string[],
     existingPrivateSubnetIds?: string[]
@@ -65,6 +66,7 @@ export class AwsNetwork extends AwsBase<typeof EC2> {
     const vpcId = await this.ensureVpc(name, createIfNotExists, existingVpcId);
     const securityGroupId = await this.ensureSecurityGroup(name, vpcId, createIfNotExists);
     const lambdaSecurityGroupId = await this.ensureLambdaSecurityGroup(name, vpcId, createIfNotExists);
+    await this.ensureCloudMap(vpcId, name, discoveryDomain);
 
     let publicSubnets: IAwsSubnetDetail[] = [];
     if (existingPublicSubnetIds) {
@@ -833,5 +835,31 @@ export class AwsNetwork extends AwsBase<typeof EC2> {
   private getResourceName(name: string, type: string) {
     const fullName = this.getFullName(name);
     return `${fullName}-${type}`;
+  }
+
+  private async getCloudMapSdk() {
+    const creds = await this.awsCreds?.getCredentials();
+    return new ServiceDiscovery({
+      ...creds,
+      region: this.awsRegion,
+    });
+  }
+
+  public async ensureCloudMap(vpcId: string, networkName: string, discoveryDomain: string) {
+    const mapSdk = await this.getCloudMapSdk();
+    const zones = await mapSdk.listNamespaces().promise();
+    for (const zone of zones.Namespaces as AWS.ServiceDiscovery.NamespaceSummariesList) {
+      if (zone.Description === networkName) {
+        return;
+      }
+    }
+
+    await mapSdk
+      .createPrivateDnsNamespace({
+        Description: networkName,
+        Name: discoveryDomain,
+        Vpc: vpcId,
+      })
+      .promise();
   }
 }

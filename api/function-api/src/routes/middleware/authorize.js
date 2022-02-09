@@ -54,11 +54,14 @@ module.exports = function authorize_factory(options) {
 
       req.resolvedAgent = resolvedAgent;
       if (options && options.operation) {
-        const pathMatch = (req.baseUrl + req.path).match('^/v[0-9]+(.*)');
-        if (!pathMatch) {
+        const resource = options.getResource
+          ? options.getResource(req, token)
+          : (req.baseUrl + req.path).match('^/v[0-9]+(.*)')?.[1];
+
+        if (!resource) {
           throw create_error(400, 'Invalid request');
         }
-        const resource = pathMatch[1];
+
         const action = options.operation;
         const { issuerId, subject } = resolvedAgent.identities[0];
 

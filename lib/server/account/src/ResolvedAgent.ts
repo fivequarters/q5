@@ -131,12 +131,20 @@ export class ResolvedAgent implements IAgent {
   private accountId: string;
   private agent: IAgent;
   private identity: IIdentity;
+  public decodedJwt: any;
 
-  private constructor(dataContext: IAccountDataContext, accountId: string, agent: IAgent, identity: IIdentity) {
+  private constructor(
+    dataContext: IAccountDataContext,
+    accountId: string,
+    agent: IAgent,
+    identity: IIdentity,
+    decodedJwt: any
+  ) {
     this.dataContext = dataContext;
     this.accountId = accountId;
     this.agent = agent;
     this.identity = identity;
+    this.decodedJwt = decodedJwt;
   }
 
   public static async create(
@@ -148,7 +156,7 @@ export class ResolvedAgent implements IAgent {
   ) {
     if (isRootAgent) {
       accountId = accountId || 'root';
-      return new ResolvedAgent(dataContext, accountId, rootAgent, rootAgent.identities[0]);
+      return new ResolvedAgent(dataContext, accountId, rootAgent, rootAgent.identities[0], {});
     }
     const decodedJwtPayload = ResolvedAgent.prevalidateAccessToken(jwt);
     const issuerId = decodedJwtPayload.iss;
@@ -164,7 +172,7 @@ export class ResolvedAgent implements IAgent {
 
     try {
       const agent = await cancelOnError(validatePromise, agentPromise);
-      const resolvedAgent = new ResolvedAgent(dataContext, accountId, agent, identity);
+      const resolvedAgent = new ResolvedAgent(dataContext, accountId, agent, identity, decodedJwtPayload);
 
       // Non-system issuers presenting claims must only present claims that are a subset of the resolved
       // agent's permissions.  If the presented claims exceed the agent's permissions, an error will be

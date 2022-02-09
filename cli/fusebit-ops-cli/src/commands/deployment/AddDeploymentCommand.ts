@@ -67,6 +67,11 @@ const command = {
       // No default, to preserve the existing value when updating a deployment.
     },
     {
+      name: 'grafana',
+      description: 'If set, the deployment will connect to a backing monitoring deployment.',
+      type: ArgType.string,
+    },
+    {
       name: 'confirm',
       aliases: ['c'],
       description: 'If set to true, prompts for confirmation before adding the deployment to the Fusebit platform',
@@ -99,6 +104,7 @@ export class AddDeploymentCommand extends Command {
     const generateElasticSearchConfig = input.options.generateElasticSearchConfig as string | undefined;
     const confirm = input.options.confirm as boolean;
     const dataWarehouseEnabled = input.options.dataWarehouse as boolean | undefined;
+    const grafana = input.options.grafana as string | undefined;
 
     const deploymentService = await DeploymentService.create(input);
     const networkService = await NetworkService.create(input);
@@ -115,6 +121,7 @@ export class AddDeploymentCommand extends Command {
       dataWarehouseEnabled,
       region: network.region,
       featureUseDnsS3Bucket: true,
+      grafana,
     };
 
     if (generateElasticSearchConfig) {

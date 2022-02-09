@@ -17,12 +17,18 @@ All public releases of the Fusebit CLI are documented here, including notable ch
 <!-- 1. TOC
 {:toc} -->
 
+## Version 1.21.0
+
+_Released 2/7/22_
+
+- **Enhancement.** Support monitoring, logging, and tracing using Grafana
+
 ## Version 1.20.1
 
 _Released 1/11/22_
 
 - **Enhancement.** Fusebit Code Editor configuration options added to functions and integrations.
-- 
+
 ## Version 1.20.0
 
 _Released 12/13/21_

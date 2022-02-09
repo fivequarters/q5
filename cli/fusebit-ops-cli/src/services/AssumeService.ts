@@ -113,6 +113,17 @@ export class AssumeService {
     };
   }
 
+  // Create a token that's good for everything; should not be printed, logged, or otherwise exposed outside of
+  // HTTP auth requests.
+  public makeMasterToken() {
+    return {
+      sub: `uri:assume:master`,
+      [Constants.JWT_PERMISSION_CLAIM]: {
+        allow: [{ action: '*', resource: `/` }],
+      },
+    };
+  }
+
   public async createAuthBundle(
     deployment: IOpsDeployment,
     accountId: string,
@@ -130,6 +141,16 @@ export class AssumeService {
     keyStore.shutdown();
 
     return { jwt, accountId, subscriptionId, userId };
+  }
+
+  public async createMasterAuthBundle(deployment: IOpsDeployment): Promise<{ jwt: string }> {
+    const keyStore = await this.createKeyStore(deployment);
+    await keyStore.rekey();
+
+    const jwt = await keyStore.signJwt(this.makeMasterToken());
+    keyStore.shutdown();
+
+    return { jwt };
   }
 
   public makeUrl(options: IManageOpenOptions, authBundle: IAuthBundle) {
