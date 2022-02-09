@@ -21,7 +21,7 @@ All public releases of the Fusebit CLI are documented here, including notable ch
 
 _Released 2/7/22_
 
-- **Enhancement** Support Fusebit v2 monitoring/logging/tracing.
+- **Enhancement.** Support monitoring, logging, and tracing using Grafana
 
 ## Version 1.20.1
 

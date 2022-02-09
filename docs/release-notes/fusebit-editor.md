@@ -17,6 +17,12 @@ All public releases of the Fusebit editor are documented here, including notable
 <!-- 1. TOC
 {:toc} -->
 
+## Version 2.4.0
+
+_Released 02/08/22_
+
+- **Enhancement.** Support monitoring, logging, and tracing using Grafana
+
 ## Version 2.3.0
 
 _Released 12/13/21_
