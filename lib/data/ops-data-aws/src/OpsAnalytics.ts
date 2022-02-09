@@ -9,6 +9,8 @@ import { OpsNetworkData } from './OpsNetworkData';
 import { OpsDataAwsProvider } from './OpsDataAwsProvider';
 import { parseElasticSearchUrl } from './OpsElasticSearch';
 
+import { waitForFunction } from './Utilities';
+
 const Async = require('async');
 
 type AsyncCb = (e?: Error | null) => void;
@@ -157,6 +159,7 @@ function createOrUpdateLambda(lambda: any, config: any, cb: AsyncCb) {
         return Async.series(
           [
             (cb: AsyncCb) => lambda.updateFunctionCode(updateCodeParams, cb),
+            (cb: AsyncCb) => waitForFunction(lambda, config.FunctionName).then(cb),
             (cb: AsyncCb) => lambda.updateFunctionConfiguration(config, cb),
           ],
           (e: any, results: any[]) => {

@@ -18,14 +18,20 @@ All public releases of the Fusebit Operations CLI are documented here, including
 {:toc}
 -->
 
+## Version 1.37.1
+
+_Released 2/9/22_
+
+- **Bugfix.** Resolve several Lambda creation state machine errors.
+
 ## Version 1.37.0
 
-_Released 2/17/22_
+_Released 2/8/22_
 
 - **Enhancement.** Support monitoring, logging, and tracing using Grafana
   - `fuse-ops setup` to add nessersary IAM roles and permissions.
   - `fuse-ops network add` to upgrade the existing network for support of service discovery.
-  - `fuse-ops monitoring deployment add` to add a monitoring deployment resource.
+  - `fuse-ops monitoring add` to add a monitoring deployment resource.
   - `fuse-ops monitoring stack add` to create a monitoring stack.
   - `fuse-ops monitoring stack promote` to promote the monitoring stack.
   - `fuse-ops deployment add --grafana` to enable v2 analytics and forward traffic to the specified monitoring deployment.
