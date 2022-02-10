@@ -22,15 +22,15 @@ export const toIniFile = (input: any) => {
 };
 
 export const getRegistrationScript = () => {
-  return fs.readFileSync(path.join(__dirname, 'ensureService.js'), 'utf-8');
+  return fs.readFileSync(path.join(__dirname, 'config', 'ensureService.js'), 'utf-8');
 };
 
 export const getTempoConfigTemplate = () => {
-  const file = fs.readFileSync(path.join(__dirname, 'tempo.yml'), 'utf-8');
+  const file = fs.readFileSync(path.join(__dirname, 'config', 'tempo.yml'), 'utf-8');
   return yaml.load(file);
 };
 
 export const getLokiConfigTemplate = () => {
-  const file = fs.readFileSync(path.join(__dirname, 'loki.yml'), 'utf-8');
+  const file = fs.readFileSync(path.join(__dirname, 'config', 'loki.yml'), 'utf-8');
   return yaml.load(file);
 };
