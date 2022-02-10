@@ -83,7 +83,7 @@ describe('Execution Async', () => {
           }),
       ],
     });
-  });
+  }, 180000);
 
   test('function can set response status code', async () => {
     let response = await putFunction(account, boundaryId, function1Id, {
