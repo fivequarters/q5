@@ -17,6 +17,12 @@ All public releases of the Fusebit HTTP API are documented here, including notab
 <!-- 1. TOC
 {:toc} -->
 
+## Version 1.34.2
+
+_Released 2/10/22_
+
+- **Bugfix.** Clone request objects that contain non-JSON parsable elements in function tracing code.
+
 ## Version 1.34.1
 
 _Released 2/7/22_
@@ -33,7 +39,7 @@ _Released 1/11/22_
 
 _Released 1/4/22_
 
-- **BugFix.** Properly handle OAuth flow cancellation when using proxy credentials
+- **Bugfix.** Properly handle OAuth flow cancellation when using proxy credentials
 
 ## Version 1.33.5
 
@@ -76,19 +82,19 @@ _Released 11/23/21_
 
 _Released 11/23/21_
 
-- **BugFix.** Add support for the new "Pending" AWS Lambda lifecycle state.
+- **Bugfix.** Add support for the new "Pending" AWS Lambda lifecycle state.
 
 ## Version 1.32.2
 
 _Released 11/23/21_
 
-- **BugFix.** Hotfix to workaround the AWS Lambda States changes.
+- **Bugfix.** Hotfix to workaround the AWS Lambda States changes.
 
 ## Version 1.32.1
 
 _Released 11/23/21_
 
-- **BugFix.** Expire orphaned Leaf sessions.
+- **Bugfix.** Expire orphaned Leaf sessions.
 
 ## Version 1.32.0
 
@@ -106,7 +112,7 @@ _Released 11/18/21_
 
 _Released 11/17/21_
 
-- **BugFix.** Allow integrations with no associated connectors.
+- **Bugfix.** Allow integrations with no associated connectors.
 
 ## Version 1.30.0
 
@@ -118,7 +124,7 @@ _Released 11/17/21_
 
 _Released 11/15/21_
 
-- **BugFix.** Internal npm package registry search returns the first 20 entries, and propagates `next` correctly.
+- **Bugfix.** Internal npm package registry search returns the first 20 entries, and propagates `next` correctly.
 
 ## Version 1.29.0
 
@@ -130,7 +136,7 @@ _Released 11/14/21_
 
 _Released 11/13/21_
 
-- **BugFix.** Fusebit function deletion now internally retry to prevent orphaned lambda resources.
+- **Bugfix.** Fusebit function deletion now internally retry to prevent orphaned lambda resources.
 
 ## Version 1.28.2
 
