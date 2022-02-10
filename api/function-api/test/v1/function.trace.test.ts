@@ -32,4 +32,45 @@ describe('Function Trace', () => {
     response = await request(response.data.location);
     expect(response).toBeHttp({ statusCode: 200 });
   }, 120000);
+
+  test('http.get works', async () => {
+    const testRequest = {
+      nodejs: {
+        files: {
+          'index.js': [
+            'const http = require("http");',
+            'module.exports = (ctx, cb) => {',
+            '  http.get("http://www.google.com", () => cb(null, { body: "ok"})).end();',
+            '}',
+          ].join('\n'),
+        },
+      },
+    };
+
+    let response = await putFunction(account, boundaryId, function1Id, testRequest);
+    expect(response).toBeHttp({ statusCode: 200 });
+    response = await request(response.data.location);
+    expect(response).toBeHttp({ statusCode: 200 });
+  }, 120000);
+
+  test('Superagent.get works', async () => {
+    const testRequest = {
+      nodejs: {
+        files: {
+          'index.js': [
+            'const superagent = require("superagent");',
+            'module.exports = (ctx, cb) => {',
+            '  superagent.get("http://www.google.com").then(() => cb(null, { body: "ok"}));',
+            '}',
+          ].join('\n'),
+          'package.json': { dependencies: { superagent: '*' } },
+        },
+      },
+    };
+
+    let response = await putFunction(account, boundaryId, function1Id, testRequest);
+    expect(response).toBeHttp({ statusCode: 200 });
+    response = await request(response.data.location);
+    expect(response).toBeHttp({ statusCode: 200 });
+  }, 120000);
 });
