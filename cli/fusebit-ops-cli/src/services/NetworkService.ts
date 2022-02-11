@@ -254,10 +254,10 @@ export class NetworkService {
       Text.dim('Region: '),
       network.region,
       Text.eol(),
-      Text.dim('Service Discovery: '),
-      network.serviceDiscovery ? 'Enabled' : 'Disabled',
     ];
-
+    if (!network.serviceDiscovery) {
+      details.push(Text.dim('Service Discovery: '), 'Missing', Text.eol());
+    }
     await this.executeService.message(Text.bold(network.networkName), Text.create(details));
   }
 }
