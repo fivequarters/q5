@@ -66,7 +66,7 @@ export class AwsNetwork extends AwsBase<typeof EC2> {
     const vpcId = await this.ensureVpc(name, createIfNotExists, existingVpcId);
     const securityGroupId = await this.ensureSecurityGroup(name, vpcId, createIfNotExists);
     const lambdaSecurityGroupId = await this.ensureLambdaSecurityGroup(name, vpcId, createIfNotExists);
-    await this.ensureCloudMap(vpcId, name, discoveryDomain);
+    await this.ensureCloudMap(vpcId, name, discoveryDomain, createIfNotExists);
 
     let publicSubnets: IAwsSubnetDetail[] = [];
     if (existingPublicSubnetIds) {
@@ -845,7 +845,7 @@ export class AwsNetwork extends AwsBase<typeof EC2> {
     });
   }
 
-  public async ensureCloudMap(vpcId: string, networkName: string, discoveryDomain: string) {
+  public async ensureCloudMap(vpcId: string, networkName: string, discoveryDomain: string, createIfNotExists: boolean) {
     const mapSdk = await this.getCloudMapSdk();
     const zones = await mapSdk.listNamespaces().promise();
     for (const zone of zones.Namespaces as AWS.ServiceDiscovery.NamespaceSummariesList) {
@@ -853,7 +853,9 @@ export class AwsNetwork extends AwsBase<typeof EC2> {
         return;
       }
     }
-
+    if (!createIfNotExists) {
+      throw Error(`The cloud map of network ${networkName} does not exist.`);
+    }
     await mapSdk
       .createPrivateDnsNamespace({
         Description: networkName,
