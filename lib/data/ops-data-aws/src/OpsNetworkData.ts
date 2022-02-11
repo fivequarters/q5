@@ -84,7 +84,12 @@ export class OpsNetworkData extends DataSource implements IOpsNetworkData {
       network.existingPublicSubnetIds,
       network.existingPrivateSubnetIds
     );
-    await awsNetwork.ensureCloudMap(networkDetails.vpcId, network.networkName, this.config.getDiscoveryDomainName());
+    const cloudMapEnabled = await awsNetwork.ensureCloudMap(
+      networkDetails.vpcId,
+      network.networkName,
+      this.config.getDiscoveryDomainName(),
+      createIfNotExists
+    );
     return {
       networkName: network.networkName,
       accountName: network.accountName,
@@ -94,6 +99,7 @@ export class OpsNetworkData extends DataSource implements IOpsNetworkData {
       lambdaSecurityGroupId: networkDetails.lambdaSecurityGroupId,
       publicSubnets: networkDetails.publicSubnets,
       privateSubnets: networkDetails.privateSubnets,
+      serviceDiscovery: cloudMapEnabled,
     };
   }
 }

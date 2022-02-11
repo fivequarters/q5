@@ -18,11 +18,17 @@ All public releases of the Fusebit Operations CLI are documented here, including
 {:toc}
 -->
 
+## Version 1.37.3
+
+_Released 2/10/22_
+
+- **Bugfix.** Fixed an issue where `fuse-ops network ls` accidentally creates cloud map namespaces.
+
 ## Version 1.37.2
 
 _Released 2/10/22_
 
-- **BugFix.** Fixed an issue where `fuse-ops monitoring stack add` can not find the config templates for Grafana.
+- **Bugfix.** Fixed an issue where `fuse-ops monitoring stack add` can not find the config templates for Grafana.
 
 ## Version 1.37.1
 

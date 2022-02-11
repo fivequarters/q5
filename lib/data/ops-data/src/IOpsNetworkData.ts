@@ -19,6 +19,7 @@ export interface IOpsNetwork extends IOpsNewNetwork {
   lambdaSecurityGroupId: string;
   publicSubnets: IOpsSubnetDetail[];
   privateSubnets: IOpsSubnetDetail[];
+  serviceDiscovery: boolean;
 }
 
 export interface IOpsSubnetDetail {
