@@ -22,7 +22,7 @@ All public releases of the Fusebit Operations CLI are documented here, including
 
 _Released 2/10/22_
 
-- **Bugfix.** Fixed an issue where `fuse-ops network ls` accidentally create cloud map namespaces.
+- **Bugfix.** Fixed an issue where `fuse-ops network ls` accidentally creates cloud map namespaces.
 
 ## Version 1.37.2
 

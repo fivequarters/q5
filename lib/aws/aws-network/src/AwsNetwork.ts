@@ -850,11 +850,11 @@ export class AwsNetwork extends AwsBase<typeof EC2> {
     const zones = await mapSdk.listNamespaces().promise();
     for (const zone of zones.Namespaces as AWS.ServiceDiscovery.NamespaceSummariesList) {
       if (zone.Description === networkName) {
-        return;
+        return true;
       }
     }
     if (!createIfNotExists) {
-      throw Error(`The cloud map of network ${networkName} does not exist.`);
+      return false;
     }
     await mapSdk
       .createPrivateDnsNamespace({
@@ -863,5 +863,6 @@ export class AwsNetwork extends AwsBase<typeof EC2> {
         Vpc: vpcId,
       })
       .promise();
+    return true;
   }
 }

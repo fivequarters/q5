@@ -247,7 +247,17 @@ export class NetworkService {
   }
 
   private async writeNetworks(network: IOpsNetwork) {
-    const details = [Text.dim('Account: '), network.accountName, Text.eol(), Text.dim('Region: '), network.region];
+    const details = [
+      Text.dim('Account: '),
+      network.accountName,
+      Text.eol(),
+      Text.dim('Region: '),
+      network.region,
+      Text.eol(),
+      Text.dim('Service Discovery: '),
+      network.serviceDiscovery ? 'Enabled' : 'Disabled',
+      Text.eol(),
+    ];
 
     await this.executeService.message(Text.bold(network.networkName), Text.create(details));
   }
