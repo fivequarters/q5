@@ -51,7 +51,8 @@
     "superagent": "^6.1.0",
     "swagger-ui-express": "^4.0.2",
     "uuid": "^7.0.3",
-    "yamljs": "^0.3.0"
+    "yamljs": "^0.3.0",
+    "@5qtrs/runtime-common": "^0.0.1"
   },
   "devDependencies": {
     "@5qtrs/fusebit-profile-sdk": "^0.0.1",

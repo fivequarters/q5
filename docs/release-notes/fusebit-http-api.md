@@ -17,11 +17,17 @@ All public releases of the Fusebit HTTP API are documented here, including notab
 <!-- 1. TOC
 {:toc} -->
 
+## Version 1.34.4
+
+_Released 2/11/22_
+
+- **Enhancement.** Support Grafana for v2 invocations.
+
 ## Version 1.34.3
 
 _Released 2/10/22_
 
-- **BugFix.** Remove unnecessary configuration work when static IP is not set.
+- **Bugfix.** Remove unnecessary configuration work when static IP is not set.
 
 ## Version 1.34.2
 
