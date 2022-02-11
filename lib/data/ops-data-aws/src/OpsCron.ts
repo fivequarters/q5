@@ -4,6 +4,8 @@ import { IAwsConfig, AwsCreds } from '@5qtrs/aws-config';
 import { IOpsDeployment } from '@5qtrs/ops-data';
 import { debug } from './OpsDebug';
 import { LambdaCronZip } from '@5qtrs/ops-lambda-set';
+import { waitForFunction } from './Utilities';
+
 const Async = require('async');
 
 export async function createCron(config: OpsDataAwsConfig, awsConfig: IAwsConfig, deployment: IOpsDeployment) {
@@ -181,6 +183,7 @@ export async function createCron(config: OpsDataAwsConfig, awsConfig: IAwsConfig
           return Async.series(
             [
               (cb: any) => lambda.updateFunctionCode(updateCodeParams, cb),
+              (cb: any) => waitForFunction(lambda, params.FunctionName).then(cb),
               (cb: any) => lambda.updateFunctionConfiguration(updateConfigurationParams, cb),
             ],
             (e: any, results: any[]) => {
@@ -241,6 +244,7 @@ export async function createCron(config: OpsDataAwsConfig, awsConfig: IAwsConfig
           return Async.series(
             [
               (cb: any) => lambda.updateFunctionCode(updateCodeParams, cb),
+              (cb: any) => waitForFunction(lambda, params.FunctionName).then(cb),
               (cb: any) => lambda.updateFunctionConfiguration(updateConfigurationParams, cb),
             ],
             (e: any, results: any[]) => {

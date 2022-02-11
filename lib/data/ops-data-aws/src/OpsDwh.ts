@@ -4,6 +4,7 @@ import { IAwsConfig, AwsCreds } from '@5qtrs/aws-config';
 import { IOpsDeployment } from '@5qtrs/ops-data';
 import { debug } from './OpsDebug';
 import { LambdaDwhZip } from '@5qtrs/ops-lambda-set';
+import { waitForFunction } from './Utilities';
 
 const Async = require('async');
 
@@ -168,6 +169,7 @@ export async function createDwhExport(config: OpsDataAwsConfig, awsConfig: IAwsC
           return Async.series(
             [
               (cb: any) => lambda.updateFunctionCode(updateCodeParams, cb),
+              (cb: any) => waitForFunction(lambda, params.FunctionName).then(cb),
               (cb: any) => lambda.updateFunctionConfiguration(updateConfigurationParams, cb),
             ],
             (e: any, results: any[]) => {
