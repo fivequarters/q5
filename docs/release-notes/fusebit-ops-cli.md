@@ -18,6 +18,12 @@ All public releases of the Fusebit Operations CLI are documented here, including
 {:toc}
 -->
 
+## Version 1.37.4
+
+_Released 2/11/22_
+
+- **Bugfix.** Fix an issue where function-API was not able to fetch credentials from SSM.
+
 ## Version 1.37.3
 
 _Released 2/10/22_
