@@ -5,7 +5,7 @@ import { loadFunctionSummary, mintJwtForPermissions } from '@5qtrs/runas';
 import { AwsRegistry } from '@5qtrs/registry';
 import { IAgent } from '@5qtrs/account-data';
 import * as Constants from '@5qtrs/constants';
-import { createLoggingCtx } from '@5qtrs/runtime-common';
+import { createLoggingCtx, ISpanEvent, ILogEvent } from '@5qtrs/runtime-common';
 
 import { keyStore, subscriptionCache } from './globals';
 import * as provider_handlers from './handlers/provider_handlers';
@@ -89,6 +89,8 @@ interface IExecuteFunction {
   code: number;
   error?: any;
   headers?: any;
+  functionLogs: ILogEvent[];
+  functionSpans: ISpanEvent[];
 }
 
 interface IWaitForFunction {
@@ -292,7 +294,16 @@ const executeFunction = async (
     };
 
     const res = await asyncDispatch(req, provider_handlers.lambda.execute_function);
-    return { body: res.body, bodyEncoding: res.bodyEncoding, code: res.code, error: res.error, headers: res.headers };
+
+    return {
+      body: res.body,
+      bodyEncoding: res.bodyEncoding,
+      code: res.code,
+      error: res.error,
+      headers: res.headers,
+      functionLogs: res.functionLogs,
+      functionSpans: res.functionSpans,
+    };
   } finally {
     releaseRate();
   }

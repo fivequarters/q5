@@ -28,9 +28,14 @@ interface IEvent {
   parentSpanId: string;
 }
 
-type ILogEvents = { time: string; msg: string }[];
+export interface ILogEvent {
+  time: string;
+  msg: string;
+  level: number;
+  method: string;
+}
 
-export const publishEvent = async (event: IEvent, functionLogs: ILogEvents) => {
+export const publishEvent = async (event: IEvent, functionLogs: ILogEvent[]) => {
   const name = event.request.url
     .replace(new RegExp('/v1/(?!$)'), '')
     .replace(new RegExp('/v2/(?!$)'), '')

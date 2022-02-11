@@ -5,7 +5,7 @@ const { dispatch_event } = require('./analytics.js');
 const { pollOnce, is_logging_enabled, addLogging, createLoggingCtx } = require('./logging.js');
 const Common = require('./common.js');
 
-import { publishLogs } from './grafana';
+import { publishLogs, ISpanEvent, ILogEvent } from './grafana';
 
 export {
   pollOnce,
@@ -16,4 +16,6 @@ export {
   addLogging,
   createLoggingCtx,
   publishLogs,
+  ISpanEvent,
+  ILogEvent,
 };

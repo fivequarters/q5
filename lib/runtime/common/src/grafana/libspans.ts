@@ -1,13 +1,19 @@
 import { Trace, publishTraces } from './libtempo';
 import { makeTraceSpanId } from '@5qtrs/constants';
 
-interface ISpan {
+export interface ISpanEvent {
   method: string;
   url: string;
   statusCode: number;
-  error: any;
   startTime: number;
   endTime: number;
+  error?: {
+    code: number;
+    status: number;
+    statusCode: number;
+    message: string;
+    properties: { errorMessage: string; errorType: string; stackTrace: string[] };
+  };
 }
 
 interface IParams {
@@ -18,7 +24,7 @@ interface IParams {
   spanId: string;
 }
 
-export const publishSpans = async (params: IParams, spans?: ISpan[]) => {
+export const publishSpans = async (params: IParams, spans?: ISpanEvent[]) => {
   if (!spans) {
     return;
   }
