@@ -4,12 +4,12 @@ import ini from 'ini';
 import yaml from 'js-yaml';
 
 export const getGrafanaConfigTemplate = () => {
-  const file = fs.readFileSync(path.join(__dirname, 'grafana.ini'), 'utf-8');
+  const file = fs.readFileSync(path.join(__dirname, 'config', 'grafana.ini'), 'utf-8');
   return ini.decode(file);
 };
 
 export const getDockerComposeTemplate = () => {
-  const file = fs.readFileSync(path.join(__dirname, 'docker-compose.yml'), 'utf-8');
+  const file = fs.readFileSync(path.join(__dirname, 'config', 'docker-compose.yml'), 'utf-8');
   return yaml.load(file);
 };
 
@@ -22,15 +22,15 @@ export const toIniFile = (input: any) => {
 };
 
 export const getRegistrationScript = () => {
-  return fs.readFileSync(path.join(__dirname, 'ensureService.js'), 'utf-8');
+  return fs.readFileSync(path.join(__dirname, 'config', 'ensureService.js'), 'utf-8');
 };
 
 export const getTempoConfigTemplate = () => {
-  const file = fs.readFileSync(path.join(__dirname, 'tempo.yml'), 'utf-8');
+  const file = fs.readFileSync(path.join(__dirname, 'config', 'tempo.yml'), 'utf-8');
   return yaml.load(file);
 };
 
 export const getLokiConfigTemplate = () => {
-  const file = fs.readFileSync(path.join(__dirname, 'loki.yml'), 'utf-8');
+  const file = fs.readFileSync(path.join(__dirname, 'config', 'loki.yml'), 'utf-8');
   return yaml.load(file);
 };

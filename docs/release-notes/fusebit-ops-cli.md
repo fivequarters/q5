@@ -18,6 +18,12 @@ All public releases of the Fusebit Operations CLI are documented here, including
 {:toc}
 -->
 
+## Version 1.37.2
+
+_Released 2/10/22_
+
+- **BugFix.** Fixed an issue where `fuse-ops monitoring stack add` can not find the config templates for Grafana.
+
 ## Version 1.37.1
 
 _Released 2/9/22_
