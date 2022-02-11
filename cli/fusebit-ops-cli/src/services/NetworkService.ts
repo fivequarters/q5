@@ -256,7 +256,7 @@ export class NetworkService {
       Text.eol(),
     ];
     if (!network.serviceDiscovery) {
-      details.push(Text.dim('Service Discovery: '), 'Missing', Text.eol());
+      details.push(Text.dim('Service Discovery: '), 'missing', Text.eol());
     }
     await this.executeService.message(Text.bold(network.networkName), Text.create(details));
   }
