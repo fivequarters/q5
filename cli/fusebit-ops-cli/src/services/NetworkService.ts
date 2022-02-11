@@ -256,7 +256,6 @@ export class NetworkService {
       Text.eol(),
       Text.dim('Service Discovery: '),
       network.serviceDiscovery ? 'Enabled' : 'Disabled',
-      Text.eol(),
     ];
 
     await this.executeService.message(Text.bold(network.networkName), Text.create(details));
