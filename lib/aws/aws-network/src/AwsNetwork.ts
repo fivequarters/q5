@@ -257,6 +257,7 @@ export class AwsNetwork extends AwsBase<typeof EC2> {
       }
     }
     await this.waitForVpc(vpcId);
+    await this.ensureVpcAttributes(vpcId);
     await this.tagResource(vpcId, name, vpcType);
     return vpcId;
   }
@@ -380,6 +381,22 @@ export class AwsNetwork extends AwsBase<typeof EC2> {
         resolve(id);
       });
     });
+  }
+
+  private async ensureVpcAttributes(id: string) {
+    const ec2 = await this.getAws();
+    await ec2
+      .modifyVpcAttribute({
+        EnableDnsSupport: { Value: true },
+        VpcId: id,
+      })
+      .promise();
+    await ec2
+      .modifyVpcAttribute({
+        EnableDnsHostnames: { Value: true },
+        VpcId: id,
+      })
+      .promise();
   }
 
   private async allocateElasticIp(): Promise<string> {
