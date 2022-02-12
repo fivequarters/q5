@@ -18,11 +18,19 @@ All public releases of the Fusebit Operations CLI are documented here, including
 {:toc}
 -->
 
+## Version 1.37.5
+
+_Released 2/11/22_
+
+- **Bugfix** Fix on issue where service discovery DNS won't resolve.
+  - `fuse-ops network add` to enable VPC attributes on the network.
+
 ## Version 1.37.4
 
 _Released 2/11/22_
 
 - **Bugfix.** Fix an issue where function-API was not able to fetch credentials from SSM.
+  - `fuse-ops setup` to update SSM credentials with the new IAM policy.
 
 ## Version 1.37.3
 
