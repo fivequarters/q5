@@ -13,6 +13,14 @@ const command: ICommand = {
   cmd: 'monitoring',
   summary: 'Manage Fusebit Monitoring Systems',
   description: 'Manage monitoring systems on the Fusebit platform.',
+  options: [
+    {
+      name: 'output',
+      aliases: ['o'],
+      description: "The format to display the output: 'pretty', 'json'",
+      default: 'pretty',
+    },
+  ],
 };
 
 // ----------------

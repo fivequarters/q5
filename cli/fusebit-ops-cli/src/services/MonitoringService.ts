@@ -1380,7 +1380,7 @@ ${awsUserData.runDockerCompose()}
       itemsJson = itemsJson.filter((item) => item.deploymentName === monDeploymentName);
     }
 
-    if (this.input.options.outpuat === 'json') {
+    if (this.input.options.output === 'json') {
       await this.input.io.writeRaw(JSON.stringify(itemsJson));
       return;
     }
