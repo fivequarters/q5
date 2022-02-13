@@ -24,7 +24,7 @@ export class ListStackCommand extends Command {
   }
 
   protected async onExecute(input: IExecuteInput): Promise<number> {
-    const deploymentName = input.options.deploymentName as string | undefined;
+    const deploymentName = input.options.monitoringDeploymentName as string | undefined;
     const svc = await MonitoringService.create(input);
     await svc.stackList(deploymentName);
     return 0;

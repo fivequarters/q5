@@ -18,11 +18,17 @@ All public releases of the Fusebit Operations CLI are documented here, including
 {:toc}
 -->
 
+## Version 1.37.6
+
+_Released 2/12/21_
+
+- **Bugfix.** Fix an issue where `fuse-ops monitoring stack ls` can not output in JSON format.
+
 ## Version 1.37.5
 
 _Released 2/11/22_
 
-- **Bugfix** Fix on issue where service discovery DNS won't resolve.
+- **Bugfix** Fix an issue where service discovery DNS won't resolve.
   - `fuse-ops network add` to enable VPC attributes on the network.
 
 ## Version 1.37.4
