@@ -30,7 +30,7 @@ const audit = require('./handlers/audit');
 const statistics = require('./handlers/statistics');
 const npm = require('@5qtrs/npm');
 
-const { clear_built_module } = require('@5qtrs/function-lambda');
+const { clear_built_module, custom_layers_health } = require('@5qtrs/function-lambda');
 const { AwsRegistry } = require('@5qtrs/registry');
 const Constants = require('@5qtrs/constants');
 const RDS = require('@5qtrs/db').default;
@@ -81,6 +81,7 @@ router.get(
     { check: async () => subscriptionCache.healthCheck(), name: 'Subscription cache' },
     { check: async () => RDS.ensureConnection(), name: 'RDS connection' },
     { check: async () => RDS.ensureRDSLiveliness(), name: 'RDS execution' },
+    { check: async () => custom_layers_health(), name: 'Custom Layers' },
     ...(process.env.GRAFANA_ENDPOINT
       ? [{ check: async () => grafanaHealth.checkGrafanaHealth(), name: 'Grafana' }]
       : []),
