@@ -27,7 +27,6 @@ const DB_ENGINE = 'postgres';
 const LOGGING_SERVICE_TYPE = 'monitoring';
 const MIN_MAX = 1;
 const GRAFANA_PORTS = [
-  /** Tempo GRPC Ingress TCP */ '4317/tcp',
   /** Tempo Port */ '3200/tcp',
   /** Loki Port */ '3100/tcp',
   /** Grafana Port */ '3000/tcp',
@@ -35,7 +34,12 @@ const GRAFANA_PORTS = [
   /** Loki memberlist */ '7947/tcp',
   /** Grafana aggregated health */ '9999/tcp',
 ];
-const NLB_PREFIX = 'nlb-grafana-';
+
+const TEMPO_GRPC_ENDPOINT = '4317/tcp';
+
+const ALB_SEC_GROUP_PREFIX = 'alb-grafana-sg-';
+
+const ALB_PREFIX = 'alb-grafana-';
 
 // Running on AMD(a) is 20% cheaper for the same performance.
 const INSTANCE_SIZE = 't3a.medium';
@@ -365,6 +369,7 @@ export class MonitoringService {
         AutoScalingGroupName: this.getAutoScalingGroupName(monDeploymentName, stackId),
       })
       .promise();
+    await this.addStackToStackListSSM(monDeploymentName, stackId.toString(), monDeployment.region);
     await this.updateStackActiveness(true, monDeploymentName, stackId.toString(), monDeployment.region);
   }
 
@@ -378,14 +383,64 @@ export class MonitoringService {
         AutoScalingGroupName: this.getAutoScalingGroupName(monDeploymentName, stackId),
       })
       .promise();
-
+    await this.removeStackToStackListSSM(monDeploymentName, stackId.toString(), monDeployment.region);
     await this.updateStackActiveness(false, monDeploymentName, stackId.toString(), monDeployment.region);
+  }
+
+  private async addStackToStackListSSM(monitoringDeploymentName: string, stackId: string, region: string) {
+    const SSMSdk = await this.getAwsSdk(AWS.SSM, { region });
+    let currentSetting: { stack: string[] };
+    try {
+      const currentSettingRaw = await SSMSdk.getParameter({
+        Name: Constants.GRAFANA_PROMOTED_STACK_SSM_KEY + monitoringDeploymentName,
+        WithDecryption: true,
+      }).promise();
+      currentSetting = JSON.parse(currentSettingRaw.Parameter?.Value as string);
+    } catch (e) {
+      if (!(e.code === 'ParameterNotFound')) {
+        throw e;
+      }
+      currentSetting = { stack: [] };
+    }
+
+    currentSetting.stack.push(stackId);
+
+    await SSMSdk.putParameter({
+      Name: Constants.GRAFANA_PROMOTED_STACK_SSM_KEY + monitoringDeploymentName,
+      Value: JSON.stringify(currentSetting),
+      DataType: 'SecureString',
+    }).promise();
+  }
+
+  private async removeStackToStackListSSM(monitoringDeploymentName: string, stackId: string, region: string) {
+    const SSMSdk = await this.getAwsSdk(AWS.SSM, { region });
+    let currentSetting: { stack: string[] };
+    try {
+      const currentSettingRaw = await SSMSdk.getParameter({
+        Name: Constants.GRAFANA_PROMOTED_STACK_SSM_KEY + monitoringDeploymentName,
+        WithDecryption: true,
+      }).promise();
+      currentSetting = JSON.parse(currentSettingRaw.Parameter?.Value as string);
+    } catch (e) {
+      if (!(e.code === 'ParameterNotFound')) {
+        throw e;
+      }
+      return;
+    }
+
+    currentSetting.stack = currentSetting.stack.filter((ele) => ele !== stackId);
+
+    await SSMSdk.putParameter({
+      Name: Constants.GRAFANA_PROMOTED_STACK_SSM_KEY + monitoringDeploymentName,
+      Value: JSON.stringify(currentSetting),
+      DataType: 'SecureString',
+    }).promise();
   }
 
   private async getTgs(monDeployment: IMonitoringDeployment) {
     const elbSdk = await this.getAwsSdk(AWS.ELBv2, { region: monDeployment.region });
-    const nlb = await this.ensureNlb(monDeployment.monitoringDeploymentName, monDeployment.region);
-    const tgs = await elbSdk.describeTargetGroups({ LoadBalancerArn: nlb.LoadBalancerArn }).promise();
+    const alb = await this.ensureAlb(monDeployment.monitoringDeploymentName, monDeployment.region);
+    const tgs = await elbSdk.describeTargetGroups({ LoadBalancerArn: alb.LoadBalancerArn }).promise();
     return tgs.TargetGroups?.filter((tg) => tg.TargetGroupName?.includes('lead'));
   }
 
@@ -970,22 +1025,22 @@ ${awsUserData.runDockerCompose()}
     }
   }
 
-  private async ensureNlb(monDeploymentName: string, region: string): Promise<AWS.ELBv2.LoadBalancer> {
+  private async ensureAlb(monDeploymentName: string, region: string): Promise<AWS.ELBv2.LoadBalancer> {
     const monDeployment = await this.getMonitoringDeploymentByName(monDeploymentName, region);
     const cloudMap = await this.getCloudMap(monDeployment.networkName, region);
     const elbSdk = await this.getAwsSdk(AWS.ELBv2, { region });
-    const Nlbs = await elbSdk.describeLoadBalancers().promise();
-    const correctNlb = Nlbs.LoadBalancers?.filter((lb) => lb.LoadBalancerName === NLB_PREFIX + monDeploymentName);
-    if (correctNlb && correctNlb.length === 1) {
-      return correctNlb[0];
+    const Albs = await elbSdk.describeLoadBalancers().promise();
+    const correctAlb = Albs.LoadBalancers?.filter((lb) => lb.LoadBalancerName === ALB_PREFIX + monDeploymentName);
+    if (correctAlb && correctAlb.length === 1) {
+      return correctAlb[0];
     }
 
-    const nlb = await elbSdk
+    const alb = await elbSdk
       .createLoadBalancer({
-        Name: NLB_PREFIX + monDeploymentName,
+        Name: ALB_PREFIX + monDeploymentName,
         IpAddressType: 'ipv4',
         Subnets: cloudMap.network.privateSubnets.map((sub) => sub.id),
-        Type: 'network',
+        Type: 'application',
         Scheme: 'internal',
         Tags: [
           {
@@ -1009,7 +1064,7 @@ ${awsUserData.runDockerCompose()}
     do {
       const status = await elbSdk
         .describeLoadBalancers({
-          Names: [(nlb.LoadBalancers as AWS.ELBv2.LoadBalancers)[0].LoadBalancerName as string],
+          Names: [(alb.LoadBalancers as AWS.ELBv2.LoadBalancers)[0].LoadBalancerName as string],
         })
         .promise();
       success = (status.LoadBalancers as AWS.ELBv2.LoadBalancers)[0].State?.Code === 'active';
@@ -1017,7 +1072,7 @@ ${awsUserData.runDockerCompose()}
       tries--;
     } while (!success && tries > 0);
     if (!success) {
-      throw Error('NLB did not get ready within 5 minutes, is AWS down?');
+      throw Error('ALB did not get ready within 5 minutes, is AWS down?');
     }
     const promises: Promise<any>[] = [];
     for (const portProto of GRAFANA_PORTS) {
@@ -1031,7 +1086,7 @@ ${awsUserData.runDockerCompose()}
             HealthCheckProtocol: 'HTTP',
             HealthCheckPath: '/healthz',
             HealthCheckPort: '9999',
-            Protocol: 'TCP_UDP',
+            Protocol: 'HTTP',
             VpcId: cloudMap.network.vpcId,
             TargetType: 'instance',
             Tags: [
@@ -1054,7 +1109,7 @@ ${awsUserData.runDockerCompose()}
     }
     await elbSdk
       .modifyLoadBalancerAttributes({
-        LoadBalancerArn: (nlb.LoadBalancers as AWS.ELBv2.LoadBalancers)[0].LoadBalancerArn as string,
+        LoadBalancerArn: (alb.LoadBalancers as AWS.ELBv2.LoadBalancers)[0].LoadBalancerArn as string,
         Attributes: [
           {
             Key: 'load_balancing.cross_zone.enabled',
@@ -1072,7 +1127,7 @@ ${awsUserData.runDockerCompose()}
           .createListener({
             Port: (result.TargetGroups as AWS.ELBv2.TargetGroups)[0].Port as number,
             Protocol: (result.TargetGroups as AWS.ELBv2.TargetGroups)[0].Protocol as string,
-            LoadBalancerArn: (nlb.LoadBalancers as AWS.ELBv2.LoadBalancers)[0].LoadBalancerArn as string,
+            LoadBalancerArn: (alb.LoadBalancers as AWS.ELBv2.LoadBalancers)[0].LoadBalancerArn as string,
             DefaultActions: [
               {
                 Type: 'forward',
@@ -1099,7 +1154,7 @@ ${awsUserData.runDockerCompose()}
     }
 
     await Promise.all(promises2);
-    return (nlb.LoadBalancers as AWS.ELBv2.LoadBalancers)[0];
+    return (alb.LoadBalancers as AWS.ELBv2.LoadBalancers)[0];
   }
 
   private async ensureLeaderMapping(monDeploymentName: string, cnameEndpoint: string, region: string) {
@@ -1131,7 +1186,7 @@ ${awsUserData.runDockerCompose()}
     if (tries === 0) {
       await this.executeService.error(
         'Deregistration failure',
-        'Failed to deregister instances from the NLB, is AWS down?'
+        'Failed to deregister instances from the ALB, is AWS down?'
       );
       throw Error('Deregistration failure.');
     }
@@ -1141,7 +1196,7 @@ ${awsUserData.runDockerCompose()}
     await cloudMapSdk
       .registerInstance({
         ServiceId: svcSummary.Id as string,
-        InstanceId: 'NLB',
+        InstanceId: 'ALB',
         Attributes: { AWS_INSTANCE_CNAME: cnameEndpoint },
       })
       .promise();
@@ -1167,8 +1222,8 @@ ${awsUserData.runDockerCompose()}
     await this.createMainService(networkName, monDeploymentName, region);
     await this.ensureS3Bucket(monDeploymentName, cloudMap.network.region);
     await this.updateRdsSecurityGroup(deploymentName, monDeploymentName, cloudMap.network.region);
-    const nlb = await this.ensureNlb(monDeploymentName, cloudMap.network.region);
-    await this.ensureLeaderMapping(monDeploymentName, nlb.DNSName as string, cloudMap.network.region);
+    const alb = await this.ensureAlb(monDeploymentName, cloudMap.network.region);
+    await this.ensureLeaderMapping(monDeploymentName, alb.DNSName as string, cloudMap.network.region);
     const creds = await this.getGrafanaCredentials(monDeploymentName, cloudMap.network.region);
     if (!creds) {
       await this.executeInitialGrafanaDbSetup(monDeploymentName, cloudMap.network.region);

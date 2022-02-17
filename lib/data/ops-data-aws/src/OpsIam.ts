@@ -256,6 +256,7 @@ export class OpsIam implements IDataSource {
             Action: ['ssm:GetParameter*'],
             Resource: [
               `${this.config.arnPrefix}:ssm:*:${this.config.mainAccountId}:parameter${Constants.GRAFANA_CREDENTIALS_SSM_PATH}*`,
+              `${this.config.arnPrefix}:ssm:*:${this.config.mainAccountId}:parameter${Constants.GRAFANA_PROMOTED_STACK_SSM_KEY}*`,
             ],
           },
         ],

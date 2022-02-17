@@ -1,5 +1,5 @@
 import * as Constants from '@5qtrs/constants';
-import AWS from 'aws-sdk';
+import AWS, { Service } from 'aws-sdk';
 
 export const location = Constants.GRAFANA_ENDPOINT;
 export const host = Constants.API_PUBLIC_HOST;
@@ -20,6 +20,10 @@ export interface IDatabaseCredentials {
     admin_password: string;
     secret_key: string;
   };
+}
+
+interface GrafanaPromotedStacks {
+  stack: string[];
 }
 
 // Make sure this gets changed to something non-standard to further challenge attackers.
@@ -43,5 +47,32 @@ export const getAdminCreds = async (): Promise<IDatabaseCredentials> => {
   } catch (e) {
     console.log(`ERROR: GRAFANA CREDENTIAL LOAD FAILURE: ${e.code}`);
     throw e;
+  }
+};
+
+export const getGRPCEndpoint = async (): Promise<string> => {
+  const SSMSdk = new AWS.SSM({ region: process.env.AWS_REGION });
+  const ServiceDiscoverySdk = new AWS.ServiceDiscovery({ region: process.env.AWS_REGION });
+  const rawPromotedStacks = await SSMSdk.getParameter({
+    Name: Constants.GRAFANA_PROMOTED_STACK_SSM_KEY + monitoringDeploymentName,
+    WithDecryption: true,
+  }).promise();
+  try {
+    const promotedStacks = JSON.parse(rawPromotedStacks.Parameter?.Value as string) as GrafanaPromotedStacks;
+    // In theory we can have > 1 stack, just choose the first IP for now
+    const IPs = await ServiceDiscoverySdk.discoverInstances({
+      HealthStatus: 'ALL',
+      NamespaceName: Constants.FUSEBIT_DISCOVERY_NS_POSTFIX,
+      ServiceName: Constants.GRAFANA_DISCOVERY_PREFIX + monitoringDeploymentName,
+      QueryParameters: {
+        STACK: promotedStacks.stack[0],
+      },
+    }).promise();
+    return `grpc://${
+      (IPs.Instances as AWS.ServiceDiscovery.HttpInstanceSummaryList)[0].Attributes?.AWS_INSTANCE_IPV4
+    }:4317`;
+  } catch (e) {
+    console.log('UNABLE TO REACH OUT TO PROMOTED STACKS ' + e.code);
+    return 'grpc://localhost:4317';
   }
 };
