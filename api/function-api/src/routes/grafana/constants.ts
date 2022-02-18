@@ -1,6 +1,8 @@
 import * as Constants from '@5qtrs/constants';
 import AWS, { Service } from 'aws-sdk';
 
+const UPDATE_GRPC_ENDPOINT_TIME = 1000;
+
 export const location = Constants.GRAFANA_ENDPOINT;
 export const host = Constants.API_PUBLIC_HOST;
 export const port = 3000;
@@ -50,7 +52,7 @@ export const getAdminCreds = async (): Promise<IDatabaseCredentials> => {
   }
 };
 
-export const getGRPCEndpoint = async (): Promise<string> => {
+const getGRPCEndpoint = async (): Promise<string> => {
   const SSMSdk = new AWS.SSM({ region: process.env.AWS_REGION });
   const ServiceDiscoverySdk = new AWS.ServiceDiscovery({ region: process.env.AWS_REGION });
   const rawPromotedStacks = await SSMSdk.getParameter({
@@ -75,4 +77,11 @@ export const getGRPCEndpoint = async (): Promise<string> => {
     console.log('UNABLE TO REACH OUT TO PROMOTED STACKS ' + e.code);
     return 'grpc://localhost:4317';
   }
+};
+
+export const updateEndpoint = async () => {
+  // Queue up the next health check
+  setTimeout(updateEndpoint, UPDATE_GRPC_ENDPOINT_TIME);
+  console.log(process.env.GRAFANA_TEMPO_GRPC_ENDPOINT);
+  process.env.GRAFANA_TEMPO_GRPC_ENDPOINT = await getGRPCEndpoint();
 };

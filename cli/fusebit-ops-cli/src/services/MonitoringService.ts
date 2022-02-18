@@ -41,6 +41,8 @@ const ALB_SEC_GROUP_PREFIX = 'alb-grafana-sg-';
 
 const ALB_PREFIX = 'alb-grafana-';
 
+const functionApiSecurityGroupPrefix = 'SG-';
+
 // Running on AMD(a) is 20% cheaper for the same performance.
 const INSTANCE_SIZE = 't3a.medium';
 
@@ -956,7 +958,7 @@ ${awsUserData.runDockerCompose()}
     if (await this.getSecGroup(monitoringSecGroupName, region)) {
       return;
     }
-    const secGroup = await ec2Sdk
+    const backendSg = await ec2Sdk
       .createSecurityGroup({
         GroupName: monitoringSecGroupName,
         VpcId: cloudMap.network.vpcId,
@@ -964,6 +966,18 @@ ${awsUserData.runDockerCompose()}
       })
       .promise();
 
+    const albSg = await ec2Sdk
+      .createSecurityGroup({
+        GroupName: ALB_SEC_GROUP_PREFIX + monDeploymentName,
+        VpcId: cloudMap.network.vpcId,
+        Description: 'ALB Security Group for ' + monDeploymentName,
+      })
+      .promise();
+
+    const apiSg = await this.getSecGroup(functionApiSecurityGroupPrefix + cloudMap.network.networkName, region);
+    if (!apiSg) {
+      throw Error('Function API security group not found, re-run fuse-ops network add.');
+    }
     await ec2Sdk
       .authorizeSecurityGroupIngress({
         GroupId: rdsSecGroup.GroupId,
@@ -975,7 +989,25 @@ ${awsUserData.runDockerCompose()}
             UserIdGroupPairs: [
               {
                 Description: 'Postgres access from grafana',
-                GroupId: secGroup.GroupId,
+                GroupId: backendSg.GroupId,
+              },
+            ],
+          },
+        ],
+      })
+      .promise();
+
+    await ec2Sdk
+      .authorizeSecurityGroupIngress({
+        GroupId: backendSg.GroupId,
+        IpPermissions: [
+          {
+            FromPort: 4317,
+            ToPort: 4317,
+            IpProtocol: 'tcp',
+            UserIdGroupPairs: [
+              {
+                GroupId: apiSg.GroupId as string,
               },
             ],
           },
@@ -987,16 +1019,15 @@ ${awsUserData.runDockerCompose()}
       const [allowPort, proto] = port.split('/');
       await ec2Sdk
         .authorizeSecurityGroupIngress({
-          GroupId: secGroup.GroupId,
+          GroupId: backendSg.GroupId,
           IpPermissions: [
             {
               FromPort: parseInt(allowPort),
               IpProtocol: proto,
               ToPort: parseInt(allowPort),
-              IpRanges: [
+              UserIdGroupPairs: [
                 {
-                  CidrIp: '0.0.0.0/0',
-                  Description: 'Allow traffic from anywhere within the VPC.',
+                  GroupId: albSg.GroupId as string,
                 },
               ],
             },
@@ -1006,7 +1037,7 @@ ${awsUserData.runDockerCompose()}
 
       await ec2Sdk
         .authorizeSecurityGroupIngress({
-          GroupId: secGroup.GroupId,
+          GroupId: backendSg.GroupId,
           IpPermissions: [
             {
               FromPort: parseInt(allowPort),
@@ -1015,7 +1046,25 @@ ${awsUserData.runDockerCompose()}
               UserIdGroupPairs: [
                 {
                   Description: 'Gossip Access ' + parseInt(allowPort),
-                  GroupId: secGroup.GroupId,
+                  GroupId: backendSg.GroupId,
+                },
+              ],
+            },
+          ],
+        })
+        .promise();
+
+      await ec2Sdk
+        .authorizeSecurityGroupIngress({
+          GroupId: albSg.GroupId,
+          IpPermissions: [
+            {
+              FromPort: parseInt(allowPort),
+              ToPort: parseInt(allowPort),
+              IpProtocol: proto,
+              UserIdGroupPairs: [
+                {
+                  GroupId: apiSg.GroupId,
                 },
               ],
             },
@@ -1035,6 +1084,8 @@ ${awsUserData.runDockerCompose()}
       return correctAlb[0];
     }
 
+    const albSg = await this.getSecGroup(ALB_SEC_GROUP_PREFIX + monDeploymentName, region);
+
     const alb = await elbSdk
       .createLoadBalancer({
         Name: ALB_PREFIX + monDeploymentName,
@@ -1042,6 +1093,7 @@ ${awsUserData.runDockerCompose()}
         Subnets: cloudMap.network.privateSubnets.map((sub) => sub.id),
         Type: 'application',
         Scheme: 'internal',
+        SecurityGroups: [albSg?.GroupId as string],
         Tags: [
           {
             Key: 'accountId',
