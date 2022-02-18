@@ -1,5 +1,5 @@
 import * as Constants from '@5qtrs/constants';
-import AWS, { Service } from 'aws-sdk';
+import AWS from 'aws-sdk';
 
 const UPDATE_GRPC_ENDPOINT_TIME = 1000;
 
