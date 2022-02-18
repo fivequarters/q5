@@ -26,7 +26,7 @@ beforeEach(() => {
 const reflectVersion = (node: string, dependencies?: object) => ({
   nodejs: {
     files: {
-      'package.json': { engines: { node, dependencies } },
+      'package.json': { engines: { node }, ...{ dependencies } },
       'index.js': 'module.exports = async (ctx) => ({ body: process.version });',
     },
   },

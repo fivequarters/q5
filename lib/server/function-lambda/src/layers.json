@@ -510,7 +510,7 @@
     "17.3.0": "arn:aws:lambda:us-west-1:072686360478:layer:node-17_3_0:1",
     "17.3.1": "arn:aws:lambda:us-west-1:072686360478:layer:node-17_3_1:1",
     "17.4.0": "arn:aws:lambda:us-west-1:072686360478:layer:node-17_4_0:4",
-    "17.5.0": "arn:aws:lambda:us-west-1:072686360478:layer:node-17_5_0:6"
+    "17.5.0": "arn:aws:lambda:us-west-1:072686360478:layer:node-17_5_0:7"
   },
   "us-west-2": {
     "11.0.0": "arn:aws:lambda:us-west-2:072686360478:layer:node-11_0_0:1",
@@ -681,7 +681,7 @@
     "17.3.0": "arn:aws:lambda:us-west-2:072686360478:layer:node-17_3_0:1",
     "17.3.1": "arn:aws:lambda:us-west-2:072686360478:layer:node-17_3_1:1",
     "17.4.0": "arn:aws:lambda:us-west-2:072686360478:layer:node-17_4_0:14",
-    "17.5.0": "arn:aws:lambda:us-west-2:072686360478:layer:node-17_5_0:9"
+    "17.5.0": "arn:aws:lambda:us-west-2:072686360478:layer:node-17_5_0:11"
   },
   "af-south-1": {
     "11.0.0": "arn:aws:lambda:af-south-1:072686360478:layer:node-11_0_0:1",
