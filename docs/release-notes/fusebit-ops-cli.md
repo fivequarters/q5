@@ -18,6 +18,12 @@ All public releases of the Fusebit Operations CLI are documented here, including
 {:toc}
 -->
 
+## Version 1.37.7
+
+_Released 2/18/21_
+
+- **Enhancement.** Allow the use of static IP functions when v2 analytics is enabled.
+
 ## Version 1.37.6
 
 _Released 2/12/21_

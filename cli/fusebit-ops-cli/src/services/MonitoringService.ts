@@ -410,7 +410,7 @@ export class MonitoringService {
     await SSMSdk.putParameter({
       Name: Constants.GRAFANA_PROMOTED_STACK_SSM_KEY + monitoringDeploymentName,
       Value: JSON.stringify(currentSetting),
-      DataType: 'SecureString',
+      Type: 'SecureString',
     }).promise();
   }
 
@@ -1159,17 +1159,6 @@ ${awsUserData.runDockerCompose()}
           .promise()
       );
     }
-    await elbSdk
-      .modifyLoadBalancerAttributes({
-        LoadBalancerArn: (alb.LoadBalancers as AWS.ELBv2.LoadBalancers)[0].LoadBalancerArn as string,
-        Attributes: [
-          {
-            Key: 'load_balancing.cross_zone.enabled',
-            Value: 'true',
-          },
-        ],
-      })
-      .promise();
 
     const results = (await Promise.all(promises)) as AWS.ELBv2.CreateTargetGroupOutput[];
     const promises2: Promise<any>[] = [];

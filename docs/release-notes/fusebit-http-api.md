@@ -17,6 +17,12 @@ All public releases of the Fusebit HTTP API are documented here, including notab
 <!-- 1. TOC
 {:toc} -->
 
+## Version 1.34.6
+
+_Released 2/18/21_
+
+- **Enhancement.** Allow the use of static IP functions when v2 analytics is enabled.
+
 ## Version 1.34.5
 
 _Released 2/11/22_

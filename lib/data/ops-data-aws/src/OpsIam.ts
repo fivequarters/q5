@@ -237,6 +237,7 @@ export class OpsIam implements IDataSource {
         `${this.config.arnPrefix}:iam::aws:policy/CloudWatchAgentServerPolicy`,
         `${this.config.arnPrefix}:iam::aws:policy/AmazonDynamoDBFullAccess`,
         `${this.config.arnPrefix}:iam::aws:policy/AmazonRDSDataFullAccess`,
+        `${this.config.arnPrefix}:iam::aws:policy/AWSCloudMapDiscoverInstanceAccess`,
       ],
       {
         Version: '2012-10-17',

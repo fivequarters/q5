@@ -82,6 +82,5 @@ const getGRPCEndpoint = async (): Promise<string> => {
 export const updateEndpoint = async () => {
   // Queue up the next health check
   setTimeout(updateEndpoint, UPDATE_GRPC_ENDPOINT_TIME);
-  console.log(process.env.GRAFANA_TEMPO_GRPC_ENDPOINT);
   process.env.GRAFANA_TEMPO_GRPC_ENDPOINT = await getGRPCEndpoint();
 };
