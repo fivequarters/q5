@@ -16,6 +16,7 @@ import {
 import * as OAuthProxyConfig from '../service/OAuthProxy/OAuthProxyConfig';
 import { RedditProxyService } from '../service/OAuthProxy/RedditProxyService';
 import { StackOverflowProxyService } from '../service/OAuthProxy/StackOverflowProxyService';
+import { TwitterProxyService } from '../service/OAuthProxy/TwitterProxyService';
 
 // Some utility types and type assertions.
 type ProxyRequest = express.Request & {
@@ -61,6 +62,8 @@ const getTypedOAuthProxyService = (proxyType?: string) => {
   switch (type) {
     case 'reddit':
       return RedditProxyService;
+    case 'twitter':
+      return TwitterProxyService;
     case 'stackoverflow':
       return StackOverflowProxyService;
     default:
