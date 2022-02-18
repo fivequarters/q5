@@ -4,6 +4,7 @@ import proxy from './proxy';
 import bootstrap from './bootstrap';
 import initialize from './initialize';
 import * as Constants from './constants';
+import * as Discovery from './discovery';
 
 const router = express.Router({ mergeParams: true });
 
@@ -11,7 +12,7 @@ const featureNotSupported = (req: express.Request, res: express.Response, next: 
   return res.status(406).send('Feature not supported.');
 };
 
-Constants.updateEndpoint();
+Discovery.updateEndpoint();
 
 // Grafana is protected behind a feature flag
 process.env.GRAFANA_ENDPOINT ? router.use(bootstrap, proxy) : router.use(featureNotSupported);
