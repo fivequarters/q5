@@ -17,11 +17,23 @@ All public releases of the Fusebit HTTP API are documented here, including notab
 <!-- 1. TOC
 {:toc} -->
 
-## Version 1.34.6
+## Version 1.35.2
 
 _Released 2/18/21_
 
 - **Enhancement.** Allow the use of static IP functions when v2 analytics is enabled.
+
+## Version 1.35.1
+
+_Released 2/18/22_
+
+- **Bugfix.** Improved support for module and function builders for custom Node.js versions.
+
+## Version 1.35.0
+
+_Released 2/16/22_
+
+- **Enhancement.** Support for all versions of Node.js >= 11.
 
 ## Version 1.34.5
 

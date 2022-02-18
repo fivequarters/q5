@@ -9,7 +9,7 @@
     "declarationMap": true,
     "composite": true
   },
-  "include": ["src"],
+  "include": ["src", "src/layers.json"],
   "references": [
     { "path": "../bq-metering" },
     { "path": "../../shared/json-stable" },
