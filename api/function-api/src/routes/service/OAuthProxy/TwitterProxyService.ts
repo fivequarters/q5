@@ -19,31 +19,8 @@ export class TwitterProxyService extends OAuthProxyService {
   };
 
   public getAuthorizeUrl = (query: Record<string, string>) => {
-    const url = new URL(this.configuration.authorizationUrl);
-    let originalState;
-
-    Object.entries(query).forEach(([key, value]: [string, unknown]) => {
-      if (typeof value !== 'string') {
-        throw http_error(400, `Invalid parameter ${key}`);
-      }
-
-      if (key === 'state') {
-        originalState = value;
-      }
-
-      url.searchParams.append(key, value);
-    });
-
-    if (!originalState) {
-      throw http_error(400, 'Missing state');
-    }
-
-    // Overload with the internal parameters
-    url.searchParams.set('state', this.getProxyState(originalState));
-    url.searchParams.set('client_id', this.configuration.clientId);
+    const url = new URL(super.getAuthorizeUrl(query));
     url.searchParams.set('code_challenge_method', 'plain');
-    url.searchParams.set('redirect_uri', process.env.API_SERVER + this.getProxyCallbackPath());
-
     return url.toString();
   };
 
