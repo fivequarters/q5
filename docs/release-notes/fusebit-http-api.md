@@ -17,6 +17,12 @@ All public releases of the Fusebit HTTP API are documented here, including notab
 <!-- 1. TOC
 {:toc} -->
 
+## Version 1.35.2
+
+_Released 2/19/22_
+
+- **Enhancement.** Updating default AWS Lambda layers to include full Node.js release.
+
 ## Version 1.35.1
 
 _Released 2/18/22_
