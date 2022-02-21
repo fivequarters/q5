@@ -10,11 +10,11 @@ const UPDATE_GRPC_ENDPOINT_TIME = 10000;
 const getGRPCEndpoint = async (): Promise<string> => {
   const SSMSdk = new AWS.SSM({ region: process.env.AWS_REGION });
   const ServiceDiscoverySdk = new AWS.ServiceDiscovery({ region: process.env.AWS_REGION });
-  const rawPromotedStacks = await SSMSdk.getParameter({
-    Name: Constants.GRAFANA_PROMOTED_STACK_SSM_KEY + grafanaConstants.monitoringDeploymentName,
-    WithDecryption: true,
-  }).promise();
   try {
+    const rawPromotedStacks = await SSMSdk.getParameter({
+      Name: Constants.GRAFANA_PROMOTED_STACK_SSM_KEY + grafanaConstants.monitoringDeploymentName,
+      WithDecryption: true,
+    }).promise();
     const promotedStacks = JSON.parse(rawPromotedStacks.Parameter?.Value as string) as GrafanaPromotedStacks;
     // In theory we can have > 1 stack, just choose the first IP for now
     const IPs = await ServiceDiscoverySdk.discoverInstances({

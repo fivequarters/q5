@@ -400,7 +400,7 @@ export class MonitoringService {
       }).promise();
       currentSetting = JSON.parse(currentSettingRaw.Parameter?.Value as string);
     } catch (e) {
-      if (!(e.code === 'ParameterNotFound')) {
+      if (e.code !== 'ParameterNotFound') {
         throw e;
       }
       currentSetting = { stack: [] };
@@ -425,7 +425,7 @@ export class MonitoringService {
       }).promise();
       currentSetting = JSON.parse(currentSettingRaw.Parameter?.Value as string);
     } catch (e) {
-      if (!(e.code === 'ParameterNotFound')) {
+      if (e.code !== 'ParameterNotFound') {
         throw e;
       }
       return;
