@@ -5,7 +5,7 @@ import * as grafanaConstants from './constants';
 interface GrafanaPromotedStacks {
   stack: string[];
 }
-const UPDATE_GRPC_ENDPOINT_TIME = 1000;
+const UPDATE_GRPC_ENDPOINT_TIME = 10000;
 
 const getGRPCEndpoint = async (): Promise<string> => {
   const SSMSdk = new AWS.SSM({ region: process.env.AWS_REGION });
@@ -29,7 +29,7 @@ const getGRPCEndpoint = async (): Promise<string> => {
       (IPs.Instances as AWS.ServiceDiscovery.HttpInstanceSummaryList)[0].Attributes?.AWS_INSTANCE_IPV4
     }:4317`;
   } catch (e) {
-    console.log('UNABLE TO REACH OUT TO PROMOTED STACKS ' + e.code);
+    console.log('GRPC ERROR: SSM/SD FAILURE: ' + e.code);
     return 'grpc://localhost:4317';
   }
 };

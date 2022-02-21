@@ -11,8 +11,9 @@ const router = express.Router({ mergeParams: true });
 const featureNotSupported = (req: express.Request, res: express.Response, next: express.NextFunction) => {
   return res.status(406).send('Feature not supported.');
 };
-
-Discovery.updateEndpoint();
+if (process.env.GRAFANA_ENDPOINT) {
+  Discovery.updateEndpoint();
+}
 
 // Grafana is protected behind a feature flag
 process.env.GRAFANA_ENDPOINT ? router.use(bootstrap, proxy) : router.use(featureNotSupported);
