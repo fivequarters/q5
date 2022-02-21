@@ -35,7 +35,8 @@ const GRAFANA_PORTS = [
   /** Grafana aggregated health */ '9999/tcp',
 ];
 
-const TEMPO_GRPC_ENDPOINT = '4317/tcp';
+const TEMPO_GRPC_PORT = 4317;
+const TEMPO_GRPC_PROTO = 'tcp';
 
 const ALB_SEC_GROUP_PREFIX = 'alb-grafana-sg-';
 
@@ -1002,9 +1003,9 @@ ${awsUserData.runDockerCompose()}
         GroupId: backendSg.GroupId,
         IpPermissions: [
           {
-            FromPort: 4317,
-            ToPort: 4317,
-            IpProtocol: 'tcp',
+            FromPort: TEMPO_GRPC_PORT,
+            ToPort: TEMPO_GRPC_PORT,
+            IpProtocol: TEMPO_GRPC_PROTO,
             UserIdGroupPairs: [
               {
                 GroupId: apiSg.GroupId as string,
