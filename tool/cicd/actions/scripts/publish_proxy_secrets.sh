@@ -62,6 +62,7 @@ QUICKBOOKS_SECRET_PAYLOAD="{\"data\":{\"clientId\":\"${PROXY_QUICKBOOKS_CLIENT_I
 
 LINKEDIN_SECRET_PAYLOAD="{\"data\":{\"clientId\":\"${PROXY_LINKEDIN_CLIENT_ID}\",\"clientSecret\":\"${PROXY_LINKEDIN_CLIENT_SECRET}\",\"authorizationUrl\":\"https://www.linkedin.com/oauth/v2/authorization\",\"tokenUrl\":\"https://www.linkedin.com/oauth/v2/accessToken\",\"revokeUrl\":\"https://www.linkedin.com/oauth/v2/revoke\"}}"
 
+TWITTER_SECRET_PAYLOAD="{\"data\":{\"clientId\":\"${PROXY_TWITTER_CLIENT_ID}\",\"clientSecret\":\"${PROXY_TWITTER_CLIENT_SECRET}\",\"authorizationUrl\":\"https://twitter.com/i/oauth2/authorize\",\"tokenUrl\":\"https://api.twitter.com/2/oauth2/token\",\"revokeUrl\":\"https://twitter.com/i/oauth2/invalidate_token\",\"codeChallenge\":\"example_code_challenge\"}}"
 
 # Publish to the designated accounts
 for PROFILE in ${PROXY_SECRET_PUBLISH_PROFILE_LIST}; do
@@ -84,4 +85,5 @@ for PROFILE in ${PROXY_SECRET_PUBLISH_PROFILE_LIST}; do
   echo ${GOOGLE_SECRET_PAYLOAD} | fuse storage put - --storageId proxy/google/configuration
   echo ${QUICKBOOKS_SECRET_PAYLOAD} | fuse storage put - --storageId proxy/quickbooks/configuration
   echo ${LINKEDIN_SECRET_PAYLOAD} | fuse storage put - --storageId proxy/linkedin/configuration
+  echo ${TWITTER_SECRET_PAYLOAD} | fuse storage put - --storageId proxy/twitter/configuration
 done
