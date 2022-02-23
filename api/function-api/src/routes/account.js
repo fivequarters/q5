@@ -57,7 +57,7 @@ function getBaseUrl(req) {
 function errorHandler(res) {
   return (error) => {
     let status = 500;
-    let message = 'An unknown error occured on the server';
+    let message = 'An unknown error occurred on the server';
     let log = true;
 
     if (unauthorizedErrorCodes.indexOf(error.code) !== -1) {

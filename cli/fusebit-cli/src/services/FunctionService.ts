@@ -500,7 +500,7 @@ export class FunctionService {
           throw new Error(message);
         }
         if (response.status >= 500) {
-          const message = 'An unknown error occured on the server';
+          const message = 'An unknown error occurred on the server';
           throw new Error(message);
         }
         if (response.status >= 400) {
