@@ -23,6 +23,17 @@ All public releases of the Fusebit Operations CLI are documented here, including
 _Released 2/18/21_
 
 - **Enhancement.** Allow the use of static IP functions when v2 analytics is enabled.
+  Update procedure:
+  - `fuse-ops deployment add` update Fusebit deployment to not include grafana as an supported feature.
+  - `fuse-ops stack add` to deploy new function-API stack.
+  - `fuse-ops monitoring stack rm` to delete all monitoring stacks.
+  - MANUAL - Delete network load balancer named `nlb-grafana-<monitoring deployment name>`
+  - MANUAL - Delete all ingress rules in `fusebit-db-security-group-<monitoring deployment name>`
+  - MANUAL - Delete security group named `fusebit-monitoring-<monitoring deployment name>`
+  - MANUAL - Delete all target groups named `tg-grafana-<monitoring deployment name>-lead-****`
+  - `fuse-ops monitoring add` to recreate the deployment artifacts for the monitoring deployment.
+  - `fuse-ops deployment add --grafana` to re-enable grafana as a supported feature.
+  - Continue to deploy Fusebit as normal.
 
 ## Version 1.37.6
 
