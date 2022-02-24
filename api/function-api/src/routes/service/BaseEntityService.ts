@@ -131,7 +131,7 @@ export default abstract class BaseEntityService<E extends Model.IEntity, F exten
       security: this.getFunctionSecuritySpecification(entity),
     };
 
-    if (entity.data.schedule) {
+    if (entity.data.schedule && entity.data.schedule.length > 0) {
       spec.schedule = entity.data.schedule[0];
     }
 
