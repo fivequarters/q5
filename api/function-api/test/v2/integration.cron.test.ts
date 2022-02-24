@@ -23,6 +23,11 @@ describe('Scheduled integrations', () => {
     await validateIntegrationSpec(boundaryId, schedule);
   }, 180000);
 
+  test('Creating an scheduled integration with an empty schedule', async () => {
+    const schedule = [];
+    await putScheduledIntegration(boundaryId, schedule);
+  });
+
   test('Creating an hourly scheduled integration', async () => {
     const schedule = [{ cron: '0 * * * *', endpoint: '/api/scheduled' }];
     await putScheduledIntegration(boundaryId, schedule);
