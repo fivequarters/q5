@@ -24,9 +24,8 @@ describe('Scheduled integrations', () => {
   }, 180000);
 
   test('Creating an scheduled integration with an empty schedule', async () => {
-    const schedule = [];
-    await putScheduledIntegration(boundaryId, schedule);
-  });
+    await putScheduledIntegration(boundaryId, []);
+  }, 180000);
 
   test('Creating an hourly scheduled integration', async () => {
     const schedule = [{ cron: '0 * * * *', endpoint: '/api/scheduled' }];
