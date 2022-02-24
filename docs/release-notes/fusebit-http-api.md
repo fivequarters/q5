@@ -25,6 +25,8 @@ _Released 2/23/22_
 
 ## Version 1.35.4
 
+_Released 2/23/22_
+
 - **Enhancement.** Correct spelling mistakes.
 
 ## Version 1.35.3
