@@ -17,11 +17,15 @@ All public releases of the Fusebit HTTP API are documented here, including notab
 <!-- 1. TOC
 {:toc} -->
 
-## Version 1.35.4
+## Version 1.35.5
 
 _Released 2/23/22_
 
 - **Bugfix** Fix an issue where if no schedule is defined, it won't error out during function build.
+
+## Version 1.35.4
+
+- **Enhancement.** Correct spelling mistakes.
 
 ## Version 1.35.3
 
