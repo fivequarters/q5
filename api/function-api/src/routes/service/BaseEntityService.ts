@@ -132,11 +132,7 @@ export default abstract class BaseEntityService<E extends Model.IEntity, F exten
     };
 
     if (entity.data.schedule) {
-      const { cron, timezone } = entity.data.schedule[0];
-      spec.schedule = {
-        cron,
-        timezone,
-      };
+      spec.schedule = entity.data.schedule[0];
     }
 
     return spec;
