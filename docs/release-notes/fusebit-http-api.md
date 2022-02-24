@@ -17,6 +17,12 @@ All public releases of the Fusebit HTTP API are documented here, including notab
 <!-- 1. TOC
 {:toc} -->
 
+## Version 1.35.5
+
+_Released 2/23/22_
+
+- **Bugfix** Allow an empty schedule to be used in an entity specification.
+
 ## Version 1.35.4
 
 _Released 2/23/22_
