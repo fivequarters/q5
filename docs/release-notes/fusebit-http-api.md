@@ -21,7 +21,7 @@ All public releases of the Fusebit HTTP API are documented here, including notab
 
 _Released 2/23/22_
 
-- **Bugfix** Fix an issue where if no schedule is defined, it won't error out during function build.
+- **Bugfix** Allow an empty schedule to be used in an entity specification.
 
 ## Version 1.35.4
 
