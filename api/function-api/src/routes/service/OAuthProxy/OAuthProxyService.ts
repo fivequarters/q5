@@ -88,7 +88,7 @@ export class OAuthProxyService implements IOAuthProxyService {
     state: string
   ): { accountId: string; subscriptionId: string; connectorId: string; state: string } =>
     JSON.parse(Buffer.from(state, 'base64').toString('utf8'));
-  public getAuthorizeUrl = (query: Record<string, string>) => {
+  public getAuthorizeUrl(query: Record<string, string>) {
     const url = new URL(this.configuration.authorizationUrl);
     let originalState;
 
@@ -114,7 +114,7 @@ export class OAuthProxyService implements IOAuthProxyService {
     url.searchParams.set('redirect_uri', process.env.API_SERVER + this.getProxyCallbackPath());
 
     return url.toString();
-  };
+  }
 
   public createPeerCallbackUrl = (query: Record<string, string>): string => {
     const url = new URL(process.env.API_SERVER + this.getPeerCallbackPath());
