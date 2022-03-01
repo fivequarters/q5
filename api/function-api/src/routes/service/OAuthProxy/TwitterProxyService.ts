@@ -18,11 +18,11 @@ export class TwitterProxyService extends OAuthProxyService {
     };
   };
 
-  public getAuthorizeUrl = (query: Record<string, string>) => {
+  public getAuthorizeUrl(query: Record<string, string>) {
     const url = new URL(super.getAuthorizeUrl(query));
     url.searchParams.set('code_challenge_method', 'plain');
     return url.toString();
-  };
+  }
 
   // Called on /token, converts the client_id and secret to the correct credentials and masks the
   // refresh_token so that it's unique per authentication pass.

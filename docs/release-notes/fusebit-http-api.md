@@ -17,6 +17,12 @@ All public releases of the Fusebit HTTP API are documented here, including notab
 <!-- 1. TOC
 {:toc} -->
 
+## Version 1.35.6
+
+_Released 2/28/22_
+
+- **Bugfix** Corrected an error preventing usage of the Twitter proxy client.
+
 ## Version 1.35.5
 
 _Released 2/23/22_
