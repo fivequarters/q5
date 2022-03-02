@@ -1,7 +1,6 @@
 import * as AWS from 'aws-sdk';
 import Cron from 'cron-parser';
 import { v4 as uuidv4 } from 'uuid';
-import Superagent from 'superagent';
 
 import * as Constants from '@5qtrs/constants';
 import * as Common from '@5qtrs/runtime-common';
@@ -103,7 +102,9 @@ async function executeFunction(ctx: any) {
   const { startTime, deviation } = calculateCronDeviation(ctx.cron, ctx.timezone);
 
   // Generate a pseudo-request object to drive the invocation.
-  const requestId = uuidv4();
+  let traceId = Constants.makeTraceId();
+  let spanId = Constants.makeTraceSpanId();
+  let requestId = uuidv4();
   const request = {
     method: 'CRON',
     url: `${Constants.get_function_path(ctx.subscriptionId, ctx.boundaryId, ctx.functionId)}`,
@@ -111,11 +112,13 @@ async function executeFunction(ctx: any) {
     originalUrl: `/v1${Constants.get_function_path(ctx.subscriptionId, ctx.boundaryId, ctx.functionId)}`,
     protocol: 'cron',
     headers: {
-      [Constants.traceIdHeader]: requestId,
+      [Constants.traceIdHeader]: traceId,
     },
     query: {},
     params: ctx,
+    traceId,
     requestId,
+    spanId,
     startTime,
     functionSummary,
   };
@@ -198,7 +201,7 @@ function dispatchCronEvent(details: any) {
   };
   const event = {
     requestId: details.request.requestId,
-    traceId: details.request.requestId,
+    traceId: details.request.traceId,
     startTime: details.request.startTime,
     endTime: Date.now(),
     request: details.request,
