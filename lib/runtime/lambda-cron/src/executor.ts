@@ -1,6 +1,7 @@
 import * as AWS from 'aws-sdk';
 import Cron from 'cron-parser';
 import { v4 as uuidv4 } from 'uuid';
+import Superagent from 'superagent';
 
 import * as Constants from '@5qtrs/constants';
 import * as Common from '@5qtrs/runtime-common';

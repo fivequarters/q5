@@ -1,6 +1,7 @@
 const { OTLPTraceExporter } = require('@opentelemetry/exporter-trace-otlp-grpc');
 const grpc = require('@grpc/grpc-js');
 import * as Constants from '@5qtrs/constants';
+import dns from 'dns';
 
 type IHRTime = [number, number];
 
