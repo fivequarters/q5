@@ -359,14 +359,33 @@ ${env || ''}
 EOF`
     );
   }
+
+  private waitForAptAvailable() {
+    return `
+while fuser /var/lib/dpkg/lock-frontend >/dev/null 2>&1 ; do
+    echo "Waiting for other apt-get instances to exit"
+    # Sleep to avoid pegging a CPU core while polling this lock
+    sleep 1
+done`;
+  }
+
   private dockerImageForUserData(tag: string) {
     return `
 # Install docker
 
 curl -fsSL https://download.docker.com/linux/ubuntu/gpg | apt-key add -
 add-apt-repository "deb [arch=amd64] https://download.docker.com/linux/ubuntu $(lsb_release -cs) stable"
+
+${this.waitForAptAvailable()}
+
 apt-get update
+
+${this.waitForAptAvailable()}
+
 apt-get install -y docker-ce
+
+${this.waitForAptAvailable()}
+
 apt-get install -y awscli
 
 # Get docker image of Fusebit
@@ -379,8 +398,11 @@ docker pull ${this.getDockerImagePath(tag)}`;
   private cloudWatchAgentForUserData(deploymentName: string) {
     return `
 # Install and configure AWS Unified Cloud Watch Agent
-  
+
 wget https://s3.amazonaws.com/amazoncloudwatch-agent/ubuntu/amd64/latest/amazon-cloudwatch-agent.deb
+
+${this.waitForAptAvailable()}
+
 dpkg -i -E ./amazon-cloudwatch-agent.deb
 
 cat > /opt/aws/amazon-cloudwatch-agent/bin/config.json << EOF

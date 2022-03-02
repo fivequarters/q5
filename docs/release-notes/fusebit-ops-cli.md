@@ -23,6 +23,7 @@ All public releases of the Fusebit Operations CLI are documented here, including
 _Released 3/1/22_
 
 - **Enhancement** Support logging to v2 analytics from CRON triggered integrations.
+- **Bugfix** Fix an issue where stack creation randomly fails during the installation of cloudwatch agent.
 
 ## Version 1.37.6
 

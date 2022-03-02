@@ -12,6 +12,8 @@ interface ISecretsManagerInput {
   resourceId: string;
 }
 
+const DB_SECURITY_GROUP_PREFIX = `fusebit-db-security-group-`;
+
 export class RestoreService {
   private opsService: OpsService;
   private executeService: ExecuteService;
@@ -231,7 +233,18 @@ export class RestoreService {
     region: string,
     config: IAwsConfig
   ): Promise<ISecretsManagerInput> {
-    const dbName = `${this.auroraDbPrefix}${deploymentName}`;
+    const EC2 = new AWS.EC2({
+      ...credentials,
+      region,
+    });
+    let nextToken;
+    const securityGroups: AWS.EC2.SecurityGroup[] = [];
+    do {
+      const sgs = await EC2.describeSecurityGroups().promise();
+      securityGroups.push(...(sgs.SecurityGroups as AWS.EC2.SecurityGroupList));
+      nextToken = sgs.NextToken;
+    } while (nextToken);
+    const sg = securityGroups.filter((sg) => sg.GroupName === DB_SECURITY_GROUP_PREFIX + deploymentName);
     const Aurora = new AWS.RDS({
       accessKeyId: credentials.accessKeyId as string,
       secretAccessKey: credentials.secretAccessKey as string,
@@ -255,6 +268,7 @@ export class RestoreService {
           Value: config.account,
         },
       ],
+      VpcSecurityGroupIds: [...sg.map((sg) => sg.GroupId as string)],
     }).promise();
     const clusterHostname = results.DBCluster?.Endpoint as string;
     const clusterResourceId = results.DBCluster?.DbClusterResourceId as string;
