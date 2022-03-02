@@ -18,9 +18,15 @@ All public releases of the Fusebit Operations CLI are documented here, including
 {:toc}
 -->
 
+## Version 1.37.7
+
+_Released 3/1/22_
+
+- **Enhancement** Support logging to v2 analytics from CRON triggered integrations.
+
 ## Version 1.37.6
 
-_Released 2/12/21_
+_Released 2/12/22_
 
 - **Bugfix.** Fix an issue where `fuse-ops monitoring stack ls` can not output in JSON format.
 

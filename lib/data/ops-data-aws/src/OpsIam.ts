@@ -122,6 +122,7 @@ export class OpsIam implements IDataSource {
         `${this.config.arnPrefix}:iam::aws:policy/AmazonS3ReadOnlyAccess`,
         `${this.config.arnPrefix}:iam::aws:policy/AmazonRDSDataFullAccess`,
         `${this.config.arnPrefix}:iam::aws:policy/service-role/AWSLambdaSQSQueueExecutionRole`,
+        `${this.config.arnPrefix}:iam::aws:policy/service-role/AWSLambdaVPCAccessExecutionRole`,
       ],
       undefined,
       undefined,

@@ -2,15 +2,27 @@ import * as AWS from 'aws-sdk';
 import { OpsDataAwsConfig } from './OpsDataAwsConfig';
 import { IAwsConfig, AwsCreds } from '@5qtrs/aws-config';
 import { IOpsDeployment } from '@5qtrs/ops-data';
+import * as Constants from '@5qtrs/constants';
 import { debug } from './OpsDebug';
 import { LambdaCronZip } from '@5qtrs/ops-lambda-set';
 import { waitForFunction } from './Utilities';
+import { OpsNetworkData } from './OpsNetworkData';
+import { OpsDataAwsProvider } from './OpsDataAwsProvider';
+import { OpsDataTables } from './OpsDataTables';
 
 const Async = require('async');
 
-export async function createCron(config: OpsDataAwsConfig, awsConfig: IAwsConfig, deployment: IOpsDeployment) {
+export async function createCron(
+  config: OpsDataAwsConfig,
+  awsConfig: IAwsConfig,
+  provider: OpsDataAwsProvider,
+  tables: OpsDataTables,
+  deployment: IOpsDeployment
+) {
   const Config = createCronConfig(config, awsConfig);
   const DeploymentPackage = LambdaCronZip();
+  const networkData = await OpsNetworkData.create(config, provider, tables);
+  const network = await networkData.get(deployment.networkName, deployment.region);
 
   debug('IN CRON SETUP');
 
@@ -145,6 +157,12 @@ export async function createCron(config: OpsDataAwsConfig, awsConfig: IAwsConfig
 
   function createExecutor(cb: any) {
     debug('Creating cron executor Lambda function...');
+    const optionalEnvVars: any = {};
+    if (deployment.grafana) {
+      optionalEnvVars.GRAFANA_ENDPOINT = `${Constants.GRAFANA_LEADER_PREFIX}${
+        deployment.grafana
+      }.${config.getDiscoveryDomainName()}`;
+    }
     let params = {
       FunctionName: Config.executor.name,
       Description: 'CRON executor',
@@ -156,6 +174,10 @@ export async function createCron(config: OpsDataAwsConfig, awsConfig: IAwsConfig
       Code: {
         ZipFile: DeploymentPackage,
       },
+      VpcConfig: {
+        SecurityGroupIds: [network.securityGroupId],
+        SubnetIds: network.privateSubnets.map((sn) => sn.id),
+      },
       Environment: {
         Variables: {
           AWS_S3_BUCKET: config.getS3Bucket(deployment),
@@ -165,6 +187,7 @@ export async function createCron(config: OpsDataAwsConfig, awsConfig: IAwsConfig
           // LOGS_WS_URL: process.env.LOGS_WS_URL,
           // LOGS_WS_TOKEN_SIGNATURE_KEY: process.env.LOGS_WS_TOKEN_SIGNATURE_KEY,
           // LOGS_WS_TOKEN_EXPIRY: process.env.LOGS_WS_TOKEN_EXPIRY,
+          ...optionalEnvVars,
         },
       },
     };
