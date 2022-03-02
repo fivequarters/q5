@@ -196,7 +196,6 @@ function dispatchCronEvent(details: any) {
     mode: 'cron',
     modality: 'execution',
   };
-
   const event = {
     requestId: details.request.requestId,
     traceId: details.request.requestId,
@@ -208,6 +207,8 @@ function dispatchCronEvent(details: any) {
     ...(details.persistLogs && details.meta.log ? { logs: details.meta.log } : {}),
     fusebit,
     error: details.meta.error || details.error, // The meta error always has more information.
+    functionLogs: details.response.logs,
+    functionSpans: details.response.spans,
   };
 
   // Make sure the response.statusCode is populated so that it shows up in analytics reports
