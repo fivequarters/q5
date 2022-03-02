@@ -24,6 +24,7 @@ _Released 3/1/22_
 
 - **Enhancement** Support logging to v2 analytics from CRON triggered integrations.
 - **Bugfix** Fix an issue where stack creation randomly fails during the installation of cloudwatch agent.
+- **Bugfix** Fix an issue where after a backup restoration, RDS is placed in the wrong security group.
 
 ## Version 1.37.6
 
