@@ -376,17 +376,13 @@ done`;
 curl -fsSL https://download.docker.com/linux/ubuntu/gpg | apt-key add -
 add-apt-repository "deb [arch=amd64] https://download.docker.com/linux/ubuntu $(lsb_release -cs) stable"
 
-${this.waitForAptAvailable()}
+systemctl stop unattended-upgrades
 
 apt-get update
 
 ${this.waitForAptAvailable()}
 
-apt-get install -y docker-ce
-
-${this.waitForAptAvailable()}
-
-apt-get install -y awscli
+apt-get install -y docker-ce awscli
 
 # Get docker image of Fusebit
 
@@ -481,6 +477,9 @@ EOF
   -a fetch-config \\
   -m ec2 \\
   -c file:/opt/aws/amazon-cloudwatch-agent/bin/config.json -s
-systemctl start amazon-cloudwatch-agent.service`;
+systemctl start amazon-cloudwatch-agent.service
+
+systemctl start unattended-upgrades
+`;
   }
 }
