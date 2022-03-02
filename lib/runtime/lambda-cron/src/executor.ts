@@ -112,7 +112,7 @@ async function executeFunction(ctx: any) {
     originalUrl: `/v1${Constants.get_function_path(ctx.subscriptionId, ctx.boundaryId, ctx.functionId)}`,
     protocol: 'cron',
     headers: {
-      [Constants.traceIdHeader]: traceId,
+      [Constants.traceIdHeader]: `${traceId}.${spanId}`,
     },
     query: {},
     params: ctx,
