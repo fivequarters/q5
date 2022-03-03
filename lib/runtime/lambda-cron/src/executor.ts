@@ -198,6 +198,7 @@ function dispatchCronEvent(details: any) {
     mode: 'cron',
     modality: 'execution',
   };
+
   const event = {
     requestId: details.request.requestId,
     traceId: details.request.traceId,
