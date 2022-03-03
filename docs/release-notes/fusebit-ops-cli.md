@@ -18,6 +18,12 @@ All public releases of the Fusebit Operations CLI are documented here, including
 {:toc}
 -->
 
+## Version 1.37.8
+
+_Released 3/2/22_
+
+- **Enhancement** Require Grafana to connect to RDS over TLS.
+
 ## Version 1.37.7
 
 _Released 3/1/22_

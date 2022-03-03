@@ -43,6 +43,8 @@ const INSTANCE_SIZE = 't3a.medium';
 // 20.04 is the latest Ubuntu LTS.
 const UBUNTU_VERSION = '20.04';
 
+const GRAFANA_SSL_MODE = 'require';
+
 export const LOKI_DEFAULT_VERSION = 'grafana/loki:2.3.0';
 export const GRAFANA_DEFAULT_VERSION = 'grafana/grafana:latest';
 export const TEMPO_DEFAULT_VERSION = 'grafana/tempo:latest';
@@ -234,6 +236,7 @@ export class MonitoringService {
     configTemplate.database.user = credentials.username;
     configTemplate.database.name = DB_PREFIX + credentials.username;
     configTemplate.database.password = credentials.password;
+    configTemplate.database.ssl_mode = GRAFANA_SSL_MODE;
     configTemplate.database.host = `${credentials.endpoint}:${POSTGRES_PORT}`;
     configTemplate.server.domain = baseUrl;
     configTemplate.server.root_url = `${baseUrl}/v2/grafana/`;
