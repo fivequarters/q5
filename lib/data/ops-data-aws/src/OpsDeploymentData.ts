@@ -412,7 +412,7 @@ export class OpsDeploymentData extends DataSource implements IOpsDeploymentData 
 
     await createAnalyticsPipeline(this.config, awsConfig, this.provider, this.tables, deployment);
 
-    await createCron(this.config, awsConfig, deployment);
+    await createCron(this.config, awsConfig, this.provider, this.tables, deployment);
     if (deployment.dataWarehouseEnabled) {
       await createDwhExport(this.config, awsConfig, deployment);
     }

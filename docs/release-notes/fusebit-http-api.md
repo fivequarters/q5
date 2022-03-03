@@ -17,6 +17,12 @@ All public releases of the Fusebit HTTP API are documented here, including notab
 <!-- 1. TOC
 {:toc} -->
 
+## Version 1.35.7
+
+_Released 3/2/22_
+
+- **Enhancement** Support v2 analytics with CRON triggered function executions.
+
 ## Version 1.35.6
 
 _Released 2/28/22_

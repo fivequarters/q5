@@ -102,7 +102,8 @@ async function executeFunction(ctx: any) {
   const { startTime, deviation } = calculateCronDeviation(ctx.cron, ctx.timezone);
 
   // Generate a pseudo-request object to drive the invocation.
-  const requestId = uuidv4();
+  let traceId = Constants.makeTraceId();
+  let spanId = Constants.makeTraceSpanId();
   const request = {
     method: 'CRON',
     url: `${Constants.get_function_path(ctx.subscriptionId, ctx.boundaryId, ctx.functionId)}`,
@@ -110,11 +111,13 @@ async function executeFunction(ctx: any) {
     originalUrl: `/v1${Constants.get_function_path(ctx.subscriptionId, ctx.boundaryId, ctx.functionId)}`,
     protocol: 'cron',
     headers: {
-      [Constants.traceIdHeader]: requestId,
+      [Constants.traceIdHeader]: `${traceId}.${spanId}`,
     },
     query: {},
     params: ctx,
-    requestId,
+    traceId,
+    requestId: `${traceId}.${spanId}`,
+    spanId,
     startTime,
     functionSummary,
   };
@@ -198,7 +201,7 @@ function dispatchCronEvent(details: any) {
 
   const event = {
     requestId: details.request.requestId,
-    traceId: details.request.requestId,
+    traceId: details.request.traceId,
     startTime: details.request.startTime,
     endTime: Date.now(),
     request: details.request,
@@ -207,6 +210,8 @@ function dispatchCronEvent(details: any) {
     ...(details.persistLogs && details.meta.log ? { logs: details.meta.log } : {}),
     fusebit,
     error: details.meta.error || details.error, // The meta error always has more information.
+    functionLogs: details.response.logs,
+    functionSpans: details.response.spans,
   };
 
   // Make sure the response.statusCode is populated so that it shows up in analytics reports
