@@ -104,7 +104,6 @@ async function executeFunction(ctx: any) {
   // Generate a pseudo-request object to drive the invocation.
   let traceId = Constants.makeTraceId();
   let spanId = Constants.makeTraceSpanId();
-  let requestId = uuidv4();
   const request = {
     method: 'CRON',
     url: `${Constants.get_function_path(ctx.subscriptionId, ctx.boundaryId, ctx.functionId)}`,
@@ -117,7 +116,7 @@ async function executeFunction(ctx: any) {
     query: {},
     params: ctx,
     traceId,
-    requestId,
+    requestId: `${traceId}.${spanId}`,
     spanId,
     startTime,
     functionSummary,
