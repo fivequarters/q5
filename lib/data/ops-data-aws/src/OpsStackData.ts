@@ -396,7 +396,6 @@ docker pull ${this.getDockerImagePath(tag)}`;
 # Install and configure AWS Unified Cloud Watch Agent
 wget https://s3.amazonaws.com/amazoncloudwatch-agent/ubuntu/amd64/latest/amazon-cloudwatch-agent.deb
 dpkg -i -E ./amazon-cloudwatch-agent.deb
-
 cat > /opt/aws/amazon-cloudwatch-agent/bin/config.json << EOF
 {
   "logs": {
