@@ -104,6 +104,7 @@ const DEFAULTS_SUBSCRIPTION = 'subscription-defaults';
 const REGISTRY_RESERVED_SCOPE_PREFIX = '@fuse';
 
 const MODULE_PUBLIC_REGISTRY = 'public';
+const MODULE_PUBLIC_INTERNAL_REGISTRY = '@fusebit-int';
 
 const RUNAS_ISSUER = 'runas-system-issuer';
 
@@ -148,7 +149,11 @@ function get_module_prefix(
 ) {
   const version = typeof moduleSpec === 'string' ? moduleSpec : moduleSpec.version;
 
-  if (typeof moduleSpec === 'string' || moduleSpec.registry === MODULE_PUBLIC_REGISTRY) {
+  if (
+    typeof moduleSpec === 'string' ||
+    moduleSpec.registry === MODULE_PUBLIC_REGISTRY ||
+    name.indexOf(MODULE_PUBLIC_INTERNAL_REGISTRY) === 0
+  ) {
     // Old style module, assume it's global.
     return (useVer ? [prefix, runtime, name, version] : [prefix, runtime, name]).join(sep);
   }
