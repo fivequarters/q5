@@ -27,7 +27,7 @@
     "react-scripts": "3.2.0",
     "recharts": "^1.8.5",
     "superagent": "^6.1.0",
-    "url-parse": "^1.5.6"
+    "url-parse": "^1.5.9"
   },
   "scripts": {
     "start": "SKIP_PREFLIGHT_CHECK=true REACT_EDITOR=none REACT_APP_FUSEBIT_PORTAL_DOMAIN=localhost REACT_APP_FUSEBIT_PORTAL_CONFIG=/config.json REACT_APP_FUSEBIT_PORTAL_VERSION=$(node -p 'require(\"./package.json\").version') react-scripts start",
