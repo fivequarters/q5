@@ -17,6 +17,12 @@ All public releases of the Fusebit HTTP API are documented here, including notab
 <!-- 1. TOC
 {:toc} -->
 
+## Version 1.35.9
+
+_Released 3/4/22_
+
+- **Bugfix** Support implied GET requests in NodeJS tracing.
+
 ## Version 1.35.8
 
 _Released 3/4/22_
