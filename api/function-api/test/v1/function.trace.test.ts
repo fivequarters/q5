@@ -33,6 +33,46 @@ describe('Function Trace', () => {
     expect(response).toBeHttp({ statusCode: 200 });
   }, 120000);
 
+  test('http.request works', async () => {
+    const testRequest = {
+      nodejs: {
+        files: {
+          'index.js': [
+            'const http = require("http");',
+            'module.exports = (ctx, cb) => {',
+            '  http.request("http://www.google.com", { method: "GET" }, () => cb(null, { body: "ok"})).end();',
+            '}',
+          ].join('\n'),
+        },
+      },
+    };
+
+    let response = await putFunction(account, boundaryId, function1Id, testRequest);
+    expect(response).toBeHttp({ statusCode: 200 });
+    response = await request(response.data.location);
+    expect(response).toBeHttp({ statusCode: 200 });
+  }, 120000);
+
+  test('http.request without method in the options works', async () => {
+    const testRequest = {
+      nodejs: {
+        files: {
+          'index.js': [
+            'const http = require("http");',
+            'module.exports = (ctx, cb) => {',
+            '  http.request("http://www.google.com", { }, () => cb(null, { body: "ok"})).end();',
+            '}',
+          ].join('\n'),
+        },
+      },
+    };
+
+    let response = await putFunction(account, boundaryId, function1Id, testRequest);
+    expect(response).toBeHttp({ statusCode: 200 });
+    response = await request(response.data.location);
+    expect(response).toBeHttp({ statusCode: 200 });
+  }, 120000);
+
   test('http.get works', async () => {
     const testRequest = {
       nodejs: {
