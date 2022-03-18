@@ -17,6 +17,12 @@ All public releases of the Fusebit HTTP API are documented here, including notab
 <!-- 1. TOC
 {:toc} -->
 
+## Version 1.35.10
+
+_Released 3/17/22_
+
+- **Bugfix** Allow the `%` character within tag key and values for sessions.
+
 ## Version 1.35.9
 
 _Released 3/4/22_
