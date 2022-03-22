@@ -86,6 +86,7 @@ export const decomposeSubordinateId = (id: string): Schema.ISubordinateId => {
 export const entityToSdk = (entity: Schema.IEntity): Schema.ISdkEntity => {
   return {
     id: entity.id && entity.id.indexOf('/') >= 0 ? decomposeSubordinateId(entity.id).entityId : entity.id,
+    parentId: entity.parentId,
     data: entity.data,
     tags: entity.tags,
     expires: entity.expires,
@@ -107,6 +108,7 @@ export interface DefaultQueryOptions {
   filterExpired?: boolean;
   listLimit?: number;
   next?: string;
+  validateParent?: boolean;
 }
 export interface MergedQueryOptions extends DefaultQueryOptions {
   upsert: boolean;

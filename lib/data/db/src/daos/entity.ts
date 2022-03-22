@@ -75,6 +75,7 @@ export abstract class Entity<ET extends IEntity> implements IEntityDao<ET> {
   protected readonly fieldCapitalizationMap: { [key: string]: string } = {
     accountid: 'accountId',
     entityid: 'id',
+    parententityid: 'parentId',
     entitytype: 'entityType',
     subscriptionid: 'subscriptionId',
     operationstate: 'operationState',
@@ -214,29 +215,64 @@ export abstract class Entity<ET extends IEntity> implements IEntityDao<ET> {
   ): Promise<IListResponse<ET>> {
     const { params, queryOptions, statementOptions } = this.applyDefaultsTo(inputParams, inputQueryOptions);
 
+    let parentEntityType;
+    if (queryOptions.validateParent) {
+      if (this.entityType === EntityType.install) {
+        parentEntityType = EntityType.integration;
+      }
+      if (this.entityType === EntityType.identity) {
+        parentEntityType = EntityType.connector;
+      }
+    }
+
+    const sqlQuery =
+      `SELECT entityQuery.*, to_json(entityQuery.expires)#>>'{}' as expires` +
+      (parentEntityType ? ', parentQuery.entityId as parentEntityId' : '');
+
     // Note the doubled '?' to escape the '?' in the '?&' operator.
-    const sqlBody = `
-      WHERE entityType = :entityType::entity_type
+    const sqlFrom =
+      `
+      FROM entity AS entityQuery` +
+      (parentEntityType
+        ? `, (
+      SELECT *
+        FROM entity
+      WHERE entityType = :parentEntityType::entity_type
       AND accountId = :accountId
       AND subscriptionId = :subscriptionId
-      AND (NOT :prefixMatchId::boolean OR entityId LIKE FORMAT('%s%%',:entityIdPrefix::text))
-      AND (:tagValues::text IS NULL OR tags @> :tagValues::jsonb)
-      AND (:tagKeys::text IS NULL OR tags ??& :tagKeys::text[])
-      AND (:stateParam::entity_state IS NULL OR state = :stateParam::entity_state)
-      AND (NOT :filterExpired::boolean OR expires IS NULL OR expires > NOW())`;
+      AND (NOT :filterExpired::boolean OR expires IS NULL OR expires > NOW())
+    ) AS parentQuery`
+        : '');
+
+    const sqlBody =
+      `
+      WHERE entityQuery.entityType = :entityType::entity_type
+      AND entityQuery.accountId = :accountId
+      AND entityQuery.subscriptionId = :subscriptionId
+      AND (NOT :prefixMatchId::boolean OR entityQuery.entityId LIKE FORMAT('%s%%',:entityIdPrefix::text))
+      AND (:tagValues::text IS NULL OR entityQuery.tags @> :tagValues::jsonb)
+      AND (:tagKeys::text IS NULL OR entityQuery.tags ??& :tagKeys::text[])
+      AND (:stateParam::entity_state IS NULL OR entityQuery.state = :stateParam::entity_state)
+      AND (NOT :filterExpired::boolean OR entityQuery.expires IS NULL OR entityQuery.expires > NOW())` +
+      (parentEntityType
+        ? `
+         AND parentQuery.id = substring(entityQuery.entityId FROM '/${parentEntityType}/([0-9]+)/')::integer`
+        : '');
 
     const sqlTail = `
-      ORDER BY entityId
+      ORDER BY entityQuery.entityId
       OFFSET :offset
       LIMIT :limit + 1;`;
 
-    const sql = `SELECT *, to_json(expires)#>>'{}' as expires FROM entity` + sqlBody + sqlTail;
+    const sql = sqlQuery + sqlFrom + sqlBody + sqlTail;
 
-    const sqlCount = `SELECT COUNT(*) FROM entity` + sqlBody;
+    const sqlCount = `SELECT COUNT(entityQuery.*)` + sqlFrom + sqlBody;
 
     const offset = queryOptions.next ? parseInt(queryOptions.next, 16) : 0;
+
     const parameters = {
       entityType: this.entityType,
+      parentEntityType,
       accountId: params.accountId,
       subscriptionId: params.subscriptionId,
       tagValues: params.tags ? JSON.stringify(params.tags) : '{}',

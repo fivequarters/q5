@@ -159,7 +159,7 @@ paths:
       tags:
         - Connector
       summary: Search for and retrieve entities of the specified type
-      operationId: searchConnectors
+      operationId: listConnectors
       parameters:
         - $ref: '#/components/parameters/SearchIdPrefix'
         - $ref: '#/components/parameters/SearchCount'
@@ -264,6 +264,35 @@ paths:
 
   #############################################################################
   # Identity
+  /v2/account/{accountId}/subscription/{subscriptionId}/identity/:
+    parameters:
+      - $ref: '#/components/parameters/Account'
+      - $ref: '#/components/parameters/Subscription'
+    get:
+      tags:
+        - Identity
+      summary: Search for and retrieve entities of the specified type across all Connectors
+      operationId: searchIdentities
+      parameters:
+        - $ref: '#/components/parameters/SearchCount'
+        - $ref: '#/components/parameters/SearchNext'
+        - $ref: '#/components/parameters/SearchTag'
+      responses:
+        200:
+          description: A list of the entities found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/IdentityList'
+        400:
+          $ref: '#/components/responses/400'
+        403:
+          $ref: '#/components/responses/403'
+        404:
+          $ref: '#/components/responses/404'
+      security:
+        - AccessToken: ['identity:get']
+
   /v2/account/{accountId}/subscription/{subscriptionId}/connector/{connectorId}/identity/:
     parameters:
       - $ref: '#/components/parameters/Account'
@@ -277,7 +306,7 @@ paths:
       tags:
         - Identity
       summary: Search for and retrieve entities of the specified type
-      operationId: searchIdentities
+      operationId: listIdentities
       parameters:
         - $ref: '#/components/parameters/SearchCount'
         - $ref: '#/components/parameters/SearchNext'
@@ -381,7 +410,7 @@ paths:
       tags:
         - Integration
       summary: Search for and retrieve entities of the specified type
-      operationId: searchIntegrations
+      operationId: listIntegrations
       parameters:
         - $ref: '#/components/parameters/SearchIdPrefix'
         - $ref: '#/components/parameters/SearchCount'
@@ -486,6 +515,35 @@ paths:
 
   #############################################################################
   # Install
+  /v2/account/{accountId}/subscription/{subscriptionId}/install/:
+    parameters:
+      - $ref: '#/components/parameters/Account'
+      - $ref: '#/components/parameters/Subscription'
+    get:
+      tags:
+        - Install
+      summary: Search for and retrieve entities of the specified type across all Integrations
+      operationId: searchInstalls
+      parameters:
+        - $ref: '#/components/parameters/SearchCount'
+        - $ref: '#/components/parameters/SearchNext'
+        - $ref: '#/components/parameters/SearchTag'
+      responses:
+        200:
+          description: A list of the entities found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/InstallList'
+        400:
+          $ref: '#/components/responses/400'
+        403:
+          $ref: '#/components/responses/403'
+        404:
+          $ref: '#/components/responses/404'
+      security:
+        - AccessToken: ['instance:get']
+
   /v2/account/{accountId}/subscription/{subscriptionId}/integration/{integrationId}/install/:
     parameters:
       - $ref: '#/components/parameters/Account'
@@ -499,7 +557,7 @@ paths:
       tags:
         - Install
       summary: Search for and retrieve entities of the specified type
-      operationId: searchInstalls
+      operationId: listInstalls
       parameters:
         - $ref: '#/components/parameters/SearchCount'
         - $ref: '#/components/parameters/SearchNext'
@@ -1360,6 +1418,11 @@ components:
       description: Identity id
       example: 'ins-01234567890123456789012345678912'
 
+    ParentId:
+      type: string
+      description: |
+        The name of the parent entity, matches: `/^[A-Za-z0-9\-]{1,64}$/)`
+
     EntityType:
       type: string
       enum: [connector, integration, identity, install]
@@ -1683,6 +1746,8 @@ components:
       properties:
         id:
           $ref: '#/components/schemas/IdentityId'
+        parentId:
+          $ref: '#/components/schemas/ParentId'
         data:
           type: object
           description: The data used by the creating connector to establish a relationship
@@ -1924,6 +1989,8 @@ components:
       properties:
         id:
           $ref: '#/components/schemas/InstallId'
+        parentId:
+          $ref: '#/components/schemas/ParentId'
         data:
           type: object
           description: A hash of configuration objects key'ed by the `name` in the
