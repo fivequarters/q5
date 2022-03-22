@@ -91,6 +91,15 @@ const router = (
             status = 202;
           }
 
+          // Make sure the `getEntity` operation includes the parentId, even though it's redundant with the
+          // calll, so that the same object is consistently returned.
+          if (
+            EntityService.entityType === Model.EntityType.install ||
+            EntityService.entityType === Model.EntityType.identity
+          ) {
+            result.parentId = req.params[paramIdNames[0]];
+          }
+
           res.status(status).json(Model.entityToSdk(result));
         } catch (e) {
           next(e);

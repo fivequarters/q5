@@ -69,6 +69,7 @@ interface IEntitySelectAbstract extends IEntityCore {
 }
 export interface IEntityId extends IEntitySelectAbstract {
   id: string;
+  parentId?: string;
 }
 export interface IEntityPrefix extends IEntitySelectAbstract {
   id?: string;
@@ -106,6 +107,7 @@ export interface IListResponse<T extends IEntity> {
 // The Entity returned by the SDK, sans various internal parameters.
 export interface ISdkEntity {
   id: string;
+  parentId?: string;
   tags?: ITags;
   data?: any;
   expires?: string;

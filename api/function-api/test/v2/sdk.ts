@@ -512,6 +512,7 @@ export const ApiRequestMap: {
       }
       return response;
     },
+
     delete: async (account: IAccount, entityId: string, subordinateId: string, options?: IRequestOptions) => {
       const response = await v2Request(account, {
         method: RequestMethod.delete,
@@ -520,6 +521,7 @@ export const ApiRequestMap: {
       });
       return response;
     },
+
     post: async (
       account: IAccount,
       entityId: string,
@@ -539,6 +541,7 @@ export const ApiRequestMap: {
       });
       return response;
     },
+
     put: async (
       account: IAccount,
       entityId: string,
@@ -559,6 +562,7 @@ export const ApiRequestMap: {
       });
       return response;
     },
+
     list: async (
       account: IAccount,
       entityId: string,
@@ -593,6 +597,38 @@ export const ApiRequestMap: {
         ...options,
       });
     },
+
+    search: async (
+      account: IAccount,
+      query?: {
+        tag?: { tagKey: string; tagValue?: string }[];
+        count?: number;
+        next?: string;
+      },
+      options?: IRequestOptions
+    ) => {
+      const tagArray = query?.tag?.length
+        ? query.tag.reduce<string[]>((acc, cur) => {
+            if (cur.tagValue !== undefined) {
+              acc.push(`${cur.tagKey}=${cur.tagValue}`);
+            } else {
+              acc.push(`${cur.tagKey}`);
+            }
+            return acc;
+          }, [])
+        : undefined;
+      const queryParams: { [key: string]: any } = { ...query, tag: tagArray };
+      Object.keys(queryParams).forEach((key) => {
+        if (queryParams[key] === undefined) {
+          delete queryParams[key];
+        }
+      });
+      return v2Request(account, {
+        method: RequestMethod.get,
+        uri: `/install/?${querystring.stringify(queryParams)}`,
+        ...options,
+      });
+    },
   },
   identity: {
     get: async (account: IAccount, entityId: string, subordinateId: string, options?: IRequestOptions) => {
@@ -606,6 +642,7 @@ export const ApiRequestMap: {
       }
       return response;
     },
+
     delete: async (account: IAccount, entityId: string, subordinateId: string, options?: IRequestOptions) => {
       const response = await v2Request(account, {
         method: RequestMethod.delete,
@@ -614,6 +651,7 @@ export const ApiRequestMap: {
       });
       return response;
     },
+
     post: async (
       account: IAccount,
       entityId: string,
@@ -633,6 +671,7 @@ export const ApiRequestMap: {
       });
       return response;
     },
+
     put: async (
       account: IAccount,
       entityId: string,
@@ -653,6 +692,7 @@ export const ApiRequestMap: {
       });
       return response;
     },
+
     list: async (
       account: IAccount,
       entityId: string,
@@ -684,6 +724,38 @@ export const ApiRequestMap: {
       return v2Request(account, {
         method: RequestMethod.get,
         uri: `/connector/${entityId}/identity/?${querystring.stringify(queryParams)}`,
+        ...options,
+      });
+    },
+
+    search: async (
+      account: IAccount,
+      query?: {
+        tag?: { tagKey: string; tagValue?: string }[];
+        count?: number;
+        next?: string;
+      },
+      options?: IRequestOptions
+    ) => {
+      const tagArray = query?.tag?.length
+        ? query.tag.reduce<string[]>((acc, cur) => {
+            if (cur.tagValue !== undefined) {
+              acc.push(`${cur.tagKey}=${cur.tagValue}`);
+            } else {
+              acc.push(`${cur.tagKey}`);
+            }
+            return acc;
+          }, [])
+        : undefined;
+      const queryParams: { [key: string]: any } = { ...query, tag: tagArray };
+      Object.keys(queryParams).forEach((key) => {
+        if (queryParams[key] === undefined) {
+          delete queryParams[key];
+        }
+      });
+      return v2Request(account, {
+        method: RequestMethod.get,
+        uri: `/identity/?${querystring.stringify(queryParams)}`,
         ...options,
       });
     },

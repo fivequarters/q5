@@ -17,6 +17,12 @@ All public releases of the Fusebit HTTP API are documented here, including notab
 <!-- 1. TOC
 {:toc} -->
 
+## Version 1.36.0
+
+_Released 3/17/22_
+
+- **Enhancement** Support /install and /identity endpoints to search across all Integrations and Connectors.
+
 ## Version 1.35.10
 
 _Released 3/17/22_
