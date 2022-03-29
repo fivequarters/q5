@@ -1,5 +1,5 @@
 {
-  "name": "@5qtrs/slack-reporter",
+  "name": "@5qtrs/cli-addon-slack-reporter",
   "version": "0.0.1",
   "description": "",
   "main": "libc/index.js",
