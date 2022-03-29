@@ -6,8 +6,6 @@ import crypto from 'crypto';
 
 export interface ISlackReporterConfiguration {
   token: string;
-  url: string;
-  configPath: string;
   baseUrl: string;
 }
 
@@ -50,7 +48,7 @@ export class SlackReporterAddon {
   private async getTenantsFromIntegration(): Promise<any[]> {
     const tenantId = await this.getTenantId();
     const result = await superagent
-      .get(`${this.slackReporterConfig.baseUrl}/install/?fusebit.tenantId=${tenantId}`)
+      .get(`${this.slackReporterConfig.baseUrl}/install/?tag=fusebit.tenantId=${tenantId}`)
       .set('Authorization', `Bearer ${this.slackReporterConfig.token}`);
     return result.body.items;
   }

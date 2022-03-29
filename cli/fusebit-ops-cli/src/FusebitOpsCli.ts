@@ -20,7 +20,10 @@ import {
   SecurityCommand,
   AssumeCommand,
   MonitoringCommand,
+  PluginCommand,
 } from './commands';
+
+import * as cliAddonSlack from '@5qtrs/cli-addon-slack-reporter';
 
 // ------------------
 // Internal Constants
@@ -46,6 +49,7 @@ const cli: ICommand = {
 // ----------------
 
 export class FusebitOpsCli extends Command {
+  private commandId: string = '';
   public static async create(io: ICommandIO) {
     if (process.env.FUSEBIT_DEBUG) {
       const AWS = require('aws-sdk');
@@ -72,6 +76,7 @@ export class FusebitOpsCli extends Command {
     subCommands.push(await SecurityCommand.create());
     subCommands.push(await AssumeCommand.create());
     subCommands.push(await MonitoringCommand.create());
+    subCommands.push(await PluginCommand.create());
     cli.subCommands = subCommands;
     return new FusebitOpsCli(cli);
   }
@@ -79,6 +84,10 @@ export class FusebitOpsCli extends Command {
   private constructor(cli: ICommand) {
     super(cli);
   }
+
+  protected async onSubCommandExecuting(command: Command, input: IExecuteInput): Promise<void> {}
+
+  protected async onSubCommandExecuted(command: Command, input: IExecuteInput, result: number): Promise<void> {}
 
   protected async onSubCommandError(command: Command, input: IExecuteInput, error: Error) {
     const verbose = (input.options.verbose as boolean) || process.env.FUSEBIT_DEBUG;
