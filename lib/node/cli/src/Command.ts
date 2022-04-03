@@ -141,6 +141,7 @@ export interface ICommand {
   options?: IOption[];
   ignoreOptions?: string[];
   arguments?: IArgument[];
+  acceptsUnknownOptions?: boolean;
   acceptsUnknownArguments?: boolean;
   modes?: string[];
   subCommands?: ICommand[];
@@ -175,6 +176,7 @@ export class Command implements ICommand {
   private optionsProp: Option[];
   private ignoreOptionsProp: string[];
   private argumentsProp: Argument[];
+  private acceptsUnknownOptionsProp?: boolean;
   private acceptsUnknownArgumentsProp?: boolean;
   private subCommandsProp: Command[];
   private delegateProp: boolean;
@@ -192,6 +194,7 @@ export class Command implements ICommand {
     this.summaryProp = ensureText(command.summary);
     this.optionsProp = ensureOptions(command.options);
     this.argumentsProp = ensureArguments(command.arguments);
+    this.acceptsUnknownOptionsProp = command.acceptsUnknownOptions;
     this.acceptsUnknownArgumentsProp = command.acceptsUnknownArguments;
     this.modesProp = ensureArray(command.modes);
     this.subCommandsProp = ensureSubCommands(command.subCommands);
@@ -554,13 +557,13 @@ export class Command implements ICommand {
       if (option && !(argsAsOptions.indexOf(option) >= 0)) {
         const matchedOption = getMatchingOption(command, option);
 
-        if (!matchedOption) {
+        if (!command.acceptsUnknownOptionsProp && !matchedOption) {
           await this.onUnknownOption(parsedArgs, command, option, io);
           return undefined;
         }
 
         const optionValues = parsedArgs.options[option];
-        if (!matchedOption.allowMany && optionValues.length > 1) {
+        if (matchedOption && !matchedOption.allowMany && optionValues.length > 1) {
           await this.onMultipleOptionValues(parsedArgs, command, matchedOption, io);
           return undefined;
         }
@@ -568,27 +571,28 @@ export class Command implements ICommand {
         const parsedValues = [];
         const values = parsedArgs.options[option];
         if (!values.length) {
-          if (matchedOption.type === ArgType.boolean) {
+          if (matchedOption && matchedOption.type === ArgType.boolean) {
             values.push('true');
-          } else if (matchedOption.type === ArgType.string) {
+          } else if (matchedOption && matchedOption.type === ArgType.string) {
             values.push('');
           }
         }
 
-        if (!values.length) {
+        if (matchedOption && !values.length) {
           await this.onNoOptionValues(parsedArgs, command, matchedOption, io);
           return undefined;
         }
 
         for (const value of values) {
-          const parsed = parseArgType(value, matchedOption.type);
-          if (parsed === undefined) {
+          const parsed = matchedOption ? parseArgType(value, matchedOption.type) : value;
+          if (matchedOption && parsed === undefined) {
             await this.onInvalidOptionType(parsedArgs, command, matchedOption, io);
             return undefined;
           }
           parsedValues.push(parsed);
         }
-        options[matchedOption.name] = matchedOption.allowMany ? parsedValues : parsedValues[0];
+        options[matchedOption?.name || option] =
+          !matchedOption || matchedOption.allowMany ? parsedValues : parsedValues[0];
       }
     }
 

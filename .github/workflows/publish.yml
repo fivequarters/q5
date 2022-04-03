@@ -80,6 +80,8 @@ jobs:
         run: ./tool/cicd/actions/scripts/publish_function_api.sh
       - name: Publish - fusebit-cli
         run: ./tool/cicd/actions/scripts/publish_fusebit_cli.sh
+      - name: Publish - everyauth-cli
+        run: ./tool/cicd/actions/scripts/publish_everyauth_cli.sh
       - name: Publish - fusebit-ops-cli
         run: ./tool/cicd/actions/scripts/publish_fusebit_ops_cli.sh
       - name: Publish - fusebit-schema

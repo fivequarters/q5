@@ -17,6 +17,12 @@ All public releases of the Fusebit CLI are documented here, including notable ch
 <!-- 1. TOC
 {:toc} -->
 
+## Version 1.21.4
+
+_Released 4/4/22_
+
+- **Enhancement.** Support the `everyauth` CLI.
+
 ## Version 1.21.3
 
 _Released 4/4/22_

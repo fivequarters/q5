@@ -38,6 +38,7 @@ const BANNER = [
 const publishAll = [
   'publish_function_api',
   'publish_fusebit_cli',
+  'publish_everyauth_cli',
   'publish_fusebit_ops_cli',
   'publish_fusebit_schema',
   'publish_api_docs',

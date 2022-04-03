@@ -639,6 +639,15 @@ export class ProfileService {
     await this.writeProfile(profile, profile.name === defaultProfileName, agentDetails);
   }
 
+  public async displayPrettyProfile(profile: IFusebitProfile) {
+    if (this.input.options.output === 'json') {
+      await this.input.io.writeLine(JSON.stringify(profile, null, 2));
+      return;
+    }
+
+    await this.executeService.message(profile.name, 'Successfully created!');
+  }
+
   public async displayTokenContext(profileName?: string): Promise<void> {
     if (!profileName) {
       profileName = await this.profile.getDefaultProfileName();
@@ -881,5 +890,24 @@ export class ProfileService {
       : Text.bold(profile.name || 'NA');
 
     await this.executeService.message(name, Text.create(details));
+  }
+
+  public async fetchProvisionToken(url: string): Promise<string> {
+    const response = await request({
+      method: 'POST',
+      url,
+      data: {},
+      headers: { 'Content-Type': 'application/json' },
+    });
+
+    if (response.status === 200 && response.data.initToken) {
+      return response.data.initToken;
+    }
+
+    if (response.status === 429) {
+      return new Promise((resolve) => setTimeout(async () => resolve(await this.fetchProvisionToken(url)), 1000));
+    }
+
+    throw new Error('Invalid service response');
   }
 }

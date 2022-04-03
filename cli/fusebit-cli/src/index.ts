@@ -1,8 +1,10 @@
 #!/usr/bin/env node
 
-export { FusebitCli } from './FusebitCli';
+// Is this an `everyauth` command or a `fuse` command? Default to everyauth for now.
+global.COMMAND_MODE = process.argv[1] === 'fuse' ? 'Fusebit' : 'EveryAuth';
+
 import { CommandIO } from '@5qtrs/cli';
-import { FusebitCli } from './FusebitCli';
+const { Cli } = require(`./${COMMAND_MODE}Cli`);
 
 async function execute() {
   //@ts-ignore
@@ -13,8 +15,8 @@ async function execute() {
   }
 
   const args = process.argv.slice(2);
-  const io = await CommandIO.create();
-  const cli = await FusebitCli.create();
+  const io = await CommandIO.create({ outputWidth: 120 });
+  const cli = await Cli.create();
   const exitCode = await cli.execute(args, io);
 
   // Force stdout to flush
