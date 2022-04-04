@@ -17,6 +17,12 @@ All public releases of the Fusebit CLI are documented here, including notable ch
 <!-- 1. TOC
 {:toc} -->
 
+## Version 1.21.2
+
+_Released 4/4/22_
+
+- **Enhancement.** Name entities created via the feed based on the `feed.id` rather than `my-integration`.
+
 ## Version 1.21.1
 
 _Released 2/23/22_
