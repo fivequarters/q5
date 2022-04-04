@@ -1,6 +1,6 @@
 {
   "name": "@5qtrs/fusebit-cli",
-  "version": "1.21.1",
+  "version": "1.21.2",
   "description": "",
   "main": "libc/index.js",
   "bin": {
@@ -9,11 +9,7 @@
   "license": "MIT",
   "author": "https://fusebit.io",
   "packageAs": "@fusebit/cli",
-  "packageAssets": [
-    "template",
-    "README.md",
-    "LICENSE"
-  ],
+  "packageAssets": ["template", "README.md", "LICENSE"],
   "scripts": {
     "build": "tsc -b",
     "test": "jest --colors",

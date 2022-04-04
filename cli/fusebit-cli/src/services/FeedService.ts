@@ -133,10 +133,8 @@ export class FeedService {
     return global;
   }
 
-  protected makeEntityId<T extends EntityType>(entity: IEntity<T>) {
-    return `${entity.entityType === EntityType.integration ? 'my-integration' : 'my-connector'}-${Math.floor(
-      Math.random() * 1000
-    )}`;
+  protected makeEntityId(feedId: string, commonRandom: number) {
+    return `${feedId}-${commonRandom}-${Math.floor(Math.random() * 1000)}`;
   }
 
   protected getCommonTags(feed: IFeed) {
@@ -159,6 +157,8 @@ export class FeedService {
 
     const entityIdCache: Record<string, { id?: string }> = {};
 
+    const commonRandom = Math.floor(Math.random() * 1000);
+
     Object.entries(feed.configuration.entities).forEach(([name, entity]) => {
       if (!entityIdCache[name]) {
         entityIdCache[name] = {};
@@ -169,7 +169,7 @@ export class FeedService {
         id: () => {
           // Only create a new random ID once for an entry
           if (!entityIdCache[name].id) {
-            entityIdCache[name].id = this.makeEntityId(entity);
+            entityIdCache[name].id = this.makeEntityId(feed.id, commonRandom);
           }
           return entityIdCache[name].id;
         },
