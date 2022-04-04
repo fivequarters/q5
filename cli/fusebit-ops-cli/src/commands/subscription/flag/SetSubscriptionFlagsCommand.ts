@@ -1,4 +1,4 @@
-import { Command, IExecuteInput, ArgType, Message, MessageKind, ICommandIO } from '@5qtrs/cli';
+import { Command, IExecuteInput, Message, MessageKind, ICommandIO } from '@5qtrs/cli';
 import { DeploymentService } from '../../../services';
 
 // ------------------
