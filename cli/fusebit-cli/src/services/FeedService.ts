@@ -133,8 +133,10 @@ export class FeedService {
     return global;
   }
 
-  protected makeEntityId(feedId: string, commonRandom: number) {
-    return `${feedId}-${commonRandom}-${Math.floor(Math.random() * 1000)}`;
+  protected makeEntityId<T extends EntityType>(entity: IEntity<T>, feedId: string, commonRandom: number) {
+    return `${entity.entityType === 'connector' ? 'c' : 'i'}-${feedId}-${commonRandom}-${Math.floor(
+      Math.random() * 1000
+    )}`;
   }
 
   protected getCommonTags(feed: IFeed) {
@@ -169,7 +171,7 @@ export class FeedService {
         id: () => {
           // Only create a new random ID once for an entry
           if (!entityIdCache[name].id) {
-            entityIdCache[name].id = this.makeEntityId(feed.id, commonRandom);
+            entityIdCache[name].id = this.makeEntityId(entity, feed.id, commonRandom);
           }
           return entityIdCache[name].id;
         },
