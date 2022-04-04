@@ -134,9 +134,7 @@ export class FeedService {
   }
 
   protected makeEntityId<T extends EntityType>(entity: IEntity<T>, feedId: string, commonRandom: number) {
-    return `${entity.entityType === 'connector' ? 'c' : 'i'}-${feedId}-${commonRandom}-${Math.floor(
-      Math.random() * 1000
-    )}`;
+    return `${feedId}-${entity.entityType}-${commonRandom}-${Math.floor(Math.random() * 1000)}`;
   }
 
   protected getCommonTags(feed: IFeed) {
