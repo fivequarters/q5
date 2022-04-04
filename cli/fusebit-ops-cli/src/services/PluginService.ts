@@ -34,12 +34,7 @@ export class PluginService {
 
   public async installSlackPlugin(config: any) {
     const configPath = this.getPluginPath();
-    const addon = new SlackCliPlugin.SlackReporterAddon({ baseUrl: config.baseUrl, token: config.token });
-    const isSetup = await addon.isSetup();
-    if (isSetup) {
-      return;
-    }
-
+    const addon = new SlackCliPlugin.SlackReporterAddon({ integrationBaseUrl: config.integrationBaseUrl });
     await addon.setup();
   }
 }

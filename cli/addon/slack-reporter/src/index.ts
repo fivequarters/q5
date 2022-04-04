@@ -3,68 +3,53 @@ import os from 'os';
 import open from 'open';
 import superagent from 'superagent';
 import crypto from 'crypto';
+import path from 'path';
 
-export interface ISlackReporterConfiguration {
-  token: string;
-  baseUrl: string;
+const dotPath = '.fusebit-ops';
+const pluginFolderName = 'plugins';
+const slackPluginFile = 'slack.json';
+
+export interface IReporterConfiguration {
+  integrationBaseUrl: string;
 }
 
-export interface IStartExecution {
-  user?: string;
-  command: string;
-}
+let commandId;
 
-export interface IStopExecution {
-  commandId: string;
-  statusCode: number;
-}
+const setup = async (slackReporterConfig: IReporterConfiguration) => {
+  const start = await superagent
+    .get(`${slackReporterConfig.integrationBaseUrl}/api/service/start`)
+    .redirects(1)
+    .ok((res) => res.statusCode < 400);
 
-export class SlackReporterAddon {
-  constructor(private slackReporterConfig: ISlackReporterConfiguration) {}
-  public async isSetup(): Promise<boolean> {
-    const tenants = await this.getTenantsFromIntegration();
-    return tenants.length > 0;
+  const sessionId = start.redirects[0].split(slackReporterConfig.integrationBaseUrl)[1].split('/')[2];
+  open(start.redirects[0]);
+  let sessionResult;
+  do {
+    const result = await superagent.get(
+      `${slackReporterConfig.integrationBaseUrl}/api/service/status/session/${sessionId}`
+    );
+    sessionResult = result.body;
+  } while (!sessionResult.output);
+  const tenantId = sessionResult.output.tags['fusebit.tenantId'];
+  if (!fs.existsSync(path.join('~/', dotPath, pluginFolderName))) {
+    fs.mkdirSync(path.join('~/', dotPath, pluginFolderName));
   }
 
-  public async setup() {
-    const tenantId = await this.getTenantId();
-    open(`${this.slackReporterConfig.baseUrl}/api/service/start?tenantId=${tenantId}`);
-    let installSuccess = false;
-    do {
-      const installs = await this.getTenantsFromIntegration();
-      installSuccess = installs.length > 0;
-    } while (!installSuccess);
-  }
+  fs.writeFileSync(
+    path.join('~/', dotPath, pluginFolderName, slackPluginFile),
+    JSON.stringify({
+      tenantId,
+      integrationBaseUrl: slackReporterConfig.integrationBaseUrl,
+    })
+  );
+};
 
-  private async getTenantId() {
-    const hostname = os.hostname();
-    const username = os.userInfo().username;
-    return crypto
-      .createHash('sha256')
-      .update(username + '@' + hostname)
-      .digest('base64');
-  }
+const getConfig = async () => {
+  return fs.readFileSync(path.join('~/', dotPath, pluginFolderName, slackPluginFile), 'utf-8');
+};
 
-  private async getTenantsFromIntegration(): Promise<any[]> {
-    const tenantId = await this.getTenantId();
-    const result = await superagent
-      .get(`${this.slackReporterConfig.baseUrl}/install/?tag=fusebit.tenantId=${tenantId}`)
-      .set('Authorization', `Bearer ${this.slackReporterConfig.token}`);
-    return result.body.items;
-  }
+const startExecution = async () => {};
 
-  public async startExecution(input: IStartExecution): Promise<string> {
-    input.user = input.user ? input.user : os.userInfo().username;
-    const tenantId = await this.getTenantId();
-    const result = await superagent
-      .post(`${this.slackReporterConfig.baseUrl}/api/tenant/${tenantId}/startCommand`)
-      .send({
-        ...input,
-      });
-    return result.body.commandId as string;
-  }
+const writeMessage = async () => {};
 
-  public async stopExecution(input: IStopExecution): Promise<void> {
-    const result = await superagent.post(`${this.slackReporterConfig.baseUrl}/api/${input.commandId}/stopCommand`);
-  }
-}
+const endExecution = async () => {};

@@ -15,10 +15,6 @@ const command: ICommand = {
       name: 'baseUrl',
       description: 'The base URL or the Fusebit integration you would like to utilize.',
     },
-    {
-      name: 'token',
-      description: 'The JWT Token that is to be used for the Fusebit integration',
-    },
   ],
   options: [
     {
@@ -46,8 +42,8 @@ export class EnableSlackPluginCommand extends Command {
   protected async onExecute(input: IExecuteInput): Promise<number> {
     const [baseUrl, token] = input.arguments as string[];
     const svc = await PluginService.create(input);
-    await svc.addPlugin('slack', { baseUrl, token });
-    await svc.installSlackPlugin({ baseUrl, token });
+    await svc.addPlugin('slack', { integrationBaseUrl: baseUrl });
+    await svc.installSlackPlugin({ integrationBaseUrl: baseUrl });
     return 0;
   }
 }
