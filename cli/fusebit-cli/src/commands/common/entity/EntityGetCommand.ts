@@ -15,8 +15,8 @@ const createCommand = (options: IEntityCommandOptions) => ({
   description: Text.create(`Get the ${options.singular} value.`),
   arguments: [
     {
-      name: `${options.parentEntityUrlSegment}Id`,
-      description: `The id of the ${options.parentEntityUrlSegment}.`,
+      name: `${options.parentName}Id`,
+      description: `The id of the ${options.parentName}.`,
       required: true,
     },
     {

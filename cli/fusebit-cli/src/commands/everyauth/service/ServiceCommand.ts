@@ -43,6 +43,13 @@ async function getSubCommands() {
         summary: 'Add a new service configuration',
         description: Text.create('Add an additional service to the list of supported services.'),
       },
+      [
+        {
+          name: 'module',
+          description: "Type of service to add, e.g. 'slack'.",
+          required: false,
+        },
+      ],
       'add'
     )
   );
@@ -56,6 +63,7 @@ async function getSubCommands() {
           'Capture diagnostic events and console.log output from a service across many invocations.'
         ),
       },
+      [],
       'log'
     )
   );
@@ -67,6 +75,7 @@ async function getSubCommands() {
         summary: 'Remove a service configuration',
         description: Text.create("Remove a service from the system, erasing it's configuration."),
       },
+      [],
       'remove'
     )
   );

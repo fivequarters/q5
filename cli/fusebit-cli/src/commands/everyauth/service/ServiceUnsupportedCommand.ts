@@ -17,6 +17,7 @@ export class ServiceUnsupportedCommand extends Command {
 
   public static async create(
     protoCommand: { name: string; cmd: string; summary: string; description: Text },
+    extraArguments: { name: string; description: string; required: false }[],
     verb: string
   ) {
     const command = {
@@ -27,6 +28,7 @@ export class ServiceUnsupportedCommand extends Command {
           description: `The name of the service to ${verb}.`,
           required: true,
         },
+        ...extraArguments,
       ],
       options: [
         {
@@ -36,7 +38,6 @@ export class ServiceUnsupportedCommand extends Command {
           default: 'pretty',
         },
       ],
-      acceptsUnknownArguments: true,
     };
 
     return new ServiceUnsupportedCommand(command);

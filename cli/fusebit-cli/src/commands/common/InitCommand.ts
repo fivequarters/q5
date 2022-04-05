@@ -62,18 +62,19 @@ const command = {
 // ----------------
 
 export interface IInitOptions {
-  autoPKI?: boolean;
   prettyPrint?: boolean;
+  command?: {
+    description: string;
+    arguments: any[];
+    options: any[];
+  };
 }
 
 export class InitCommand extends Command {
   protected initOptions: IInitOptions;
 
   private constructor(options: IInitOptions) {
-    if (options.autoPKI) {
-      command.arguments[0].default = FusebitProfile.defaultEveryAuthProfileId;
-    }
-    super(command);
+    super({ ...command, ...options?.command });
     this.initOptions = options;
   }
 

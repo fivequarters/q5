@@ -1,5 +1,7 @@
 import { Command, ICommand, IExecuteInput, ArgType, MessageKind, Message } from '@5qtrs/cli';
 import { Text } from '@5qtrs/text';
+import { FusebitProfile } from '@5qtrs/fusebit-profile-sdk';
+
 import { InitCommand, VersionCommand, ServiceCommand, IdentityCommand } from './commands/everyauth';
 
 // ------------------
@@ -9,8 +11,8 @@ import { InitCommand, VersionCommand, ServiceCommand, IdentityCommand } from './
 const cli: ICommand = {
   name: 'EveryAuth CLI',
   description: 'A command-line tool (CLI) for EveryAuth any-service authentication.',
-  cli: 'fuse',
-  docsUrl: 'https://everyauth.io/docs',
+  cli: 'everyauth',
+  docsUrl: 'https://github.com/fusebit/everyauth-express',
   options: [
     {
       name: 'verbose',
@@ -28,7 +30,28 @@ const cli: ICommand = {
 
 async function getSubCommands() {
   const subCommands: Command[] = [];
-  subCommands.push(await InitCommand.create({ autoPKI: true, prettyPrint: true }));
+  subCommands.push(
+    await InitCommand.create({
+      prettyPrint: true,
+      command: {
+        description: 'Initialize the EveryAuth environment',
+        arguments: [
+          {
+            name: 'token',
+            description: 'An optional token used for initializing a specific environment.',
+            default: FusebitProfile.defaultEveryAuthProfileId,
+          },
+        ],
+        options: [
+          {
+            name: 'profile',
+            aliases: ['p'],
+            description: 'The name of the profile to create with the initalization of the CLI',
+          },
+        ],
+      },
+    })
+  );
   subCommands.push(await VersionCommand.create());
   subCommands.push(await ServiceCommand.create());
   subCommands.push(await IdentityCommand.create());

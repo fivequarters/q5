@@ -1,5 +1,6 @@
 import { Command, ICommand } from '@5qtrs/cli';
 
+import { EntityGetCommand } from '../../common/entity/EntityGetCommand';
 import { EntityListCommand } from '../../common/entity/EntityListCommand';
 import { EntityRemoveCommand } from '../../common/entity/EntityRemoveCommand';
 
@@ -42,6 +43,7 @@ const entityOptions = {
 
 async function getSubCommands() {
   const subCommands = [];
+  subCommands.push(await EntityGetCommand.create(entityOptions));
   subCommands.push(await EntityListCommand.create(entityOptions));
   subCommands.push(await EntityRemoveCommand.create(entityOptions));
   return subCommands;

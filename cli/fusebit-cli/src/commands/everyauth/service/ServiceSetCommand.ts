@@ -56,6 +56,20 @@ export class ServiceSetCommand extends Command {
 
     const validKeys = Object.keys(connector.data.configuration).filter((key) => connectorService.filterCfg(key) >= 0);
 
+    if (Object.keys(flags).length === 0) {
+      const msg: (string | Text)[] = [`The following parameters are available: `];
+
+      validKeys.forEach((key) => msg.push(...[Text.bold(key), ', ']));
+
+      const message = await Message.create({
+        header: 'Available Parameters',
+        message: Text.create(msg),
+        kind: MessageKind.error,
+      });
+      await message.write(input.io);
+      return 0;
+    }
+
     // Check to see if the parameter is present, if not return error
     await Promise.all(
       Object.keys(flags).map(async (key) => validKeys.includes(key) || this.onUnknownConfig(key, validKeys, input.io))

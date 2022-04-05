@@ -18,11 +18,6 @@ const createCommand = (options: IEntityCommandOptions) => ({
       description: `The id of the ${options.parentName}.`,
       required: true,
     },
-    {
-      name: `${options.singular}Id`,
-      description: `The id of the ${options.singular} to display.`,
-      required: false,
-    },
   ],
   options: [
     {
@@ -80,7 +75,7 @@ export class EntityListCommand extends Command {
 
   protected async onExecute(input: IExecuteInput): Promise<number> {
     const parentEntityId = input.arguments[0] as string;
-    const entityId = input.arguments[1] as string;
+
     const output = input.options.output as string;
     const tags = (input.options.tag as string[]) || [];
     const tenant = input.options.tenant as string;
@@ -97,9 +92,7 @@ export class EntityListCommand extends Command {
 
     const entityService = await EntityService.create(input, this.entityOptions);
 
-    let result = entityId
-      ? await entityService.fetchEntity(parentEntityId, entityId)
-      : await entityService.listEntities(parentEntityId, tags, options);
+    let result = await entityService.listEntities(parentEntityId, tags, options);
 
     if (output === 'json') {
       const json = JSON.stringify(result, null, 2);
@@ -112,7 +105,7 @@ export class EntityListCommand extends Command {
     let getMore = true;
     let firstDisplay = true;
     while (getMore) {
-      await entityService.displayEntities(entityId ? [result] : result.items, firstDisplay);
+      await entityService.displayEntities(result.items, firstDisplay);
       firstDisplay = false;
       getMore = result.next ? await entityService.confirmListMore() : false;
       if (getMore) {
