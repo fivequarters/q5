@@ -42,7 +42,6 @@ export class EnableSlackPluginCommand extends Command {
   protected async onExecute(input: IExecuteInput): Promise<number> {
     const [baseUrl, token] = input.arguments as string[];
     const svc = await PluginService.create(input);
-    await svc.addPlugin('slack', { integrationBaseUrl: baseUrl });
     await svc.installSlackPlugin({ integrationBaseUrl: baseUrl });
     return 0;
   }
