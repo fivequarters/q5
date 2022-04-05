@@ -40,7 +40,7 @@ const getPluginPath = () => {
 };
 
 const getConfig = async () => {
-  return JSON.parse(fs.readFileSync(getPluginPath(), 'utf-8'));
+  return JSON.parse(fs.readFileSync(getPluginPath(), 'utf-8')).slack;
 };
 
 export const startExecution = async (command: string) => {

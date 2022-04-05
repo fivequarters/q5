@@ -1,6 +1,6 @@
 import { Message, MessageKind, IExecuteInput } from '@5qtrs/cli';
 import { IText } from '@5qtrs/text';
-
+import * as SlackCliPlugin from '@5qtrs/cli-addon-slack-reporter';
 // -------------------
 // Exported Interfaces
 // -------------------
@@ -72,6 +72,7 @@ export class ExecuteService {
     if (!this.input.options.quiet && this.isPrettyOutput()) {
       const formattedMessage = await Message.create({ header, message, kind });
       await formattedMessage.write(this.input.io);
+      await SlackCliPlugin.writeMessage(formattedMessage.toString().replace(/[\u{0080}-\u{FFFF}]/gu, ''));
     }
   }
 
