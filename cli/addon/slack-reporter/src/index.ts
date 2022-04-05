@@ -11,7 +11,7 @@ export interface IReporterConfiguration {
   integrationBaseUrl: string;
 }
 
-let commandId;
+let executionId: string;
 
 export const setup = async (slackReporterConfig: IReporterConfiguration) => {
   const start = await superagent
@@ -40,11 +40,28 @@ const getPluginPath = () => {
 };
 
 const getConfig = async () => {
-  return fs.readFileSync(getPluginPath(), 'utf-8');
+  return JSON.parse(fs.readFileSync(getPluginPath(), 'utf-8'));
 };
 
-export const startExecution = async () => {};
+export const startExecution = async (command: string) => {
+  const config = await getConfig();
+  const result = await superagent.post(`${config.integrationBaseUrl}/api/tenant/${config.tenantId}/start`).send({
+    command,
+  });
 
-export const writeMessage = async () => {};
+  executionId = result.body.executionId;
+};
 
-export const endExecution = async () => {};
+export const writeMessage = async (message: string) => {
+  const config = await getConfig();
+  await superagent.post(`${config.integrationBaseUrl}/api/execution/${executionId}/sendMessage`).send({
+    message,
+  });
+};
+
+export const endExecution = async (exitCode: string) => {
+  const config = await getConfig();
+  await superagent.post(`${config.integrationBaseUrl}/api/execution/${executionId}/end`).send({
+    exitCode,
+  });
+};
