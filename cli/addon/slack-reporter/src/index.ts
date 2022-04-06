@@ -43,6 +43,20 @@ const getConfig = async () => {
   return JSON.parse(fs.readFileSync(getPluginPath(), 'utf-8')).slack;
 };
 
+export const isSetup = async () => {
+  if (!fs.existsSync(getPluginPath())) {
+    return false;
+  }
+  try {
+    const config = JSON.parse(fs.readFileSync(getPluginPath(), 'utf-8'));
+    if (config && config.slack) {
+      return true;
+    }
+  } catch (_) {}
+
+  return false;
+};
+
 export const startExecution = async (command: string) => {
   const config = await getConfig();
   const result = await superagent.post(`${config.integrationBaseUrl}/api/tenant/${config.tenantId}/start`).send({

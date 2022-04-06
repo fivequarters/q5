@@ -36,5 +36,6 @@ export class PluginService {
     const configPath = this.getPluginPath();
     const fullConfig = await SlackCliPlugin.setup({ integrationBaseUrl: config.integrationBaseUrl });
     await this.addPlugin('slack', fullConfig);
+    await this.input.io.writeLine('Slack plugin enabled successfully.');
   }
 }

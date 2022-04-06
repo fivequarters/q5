@@ -86,11 +86,15 @@ export class FusebitOpsCli extends Command {
   }
 
   protected async onSubCommandExecuting(command: Command, input: IExecuteInput): Promise<void> {
-    await cliAddonSlack.startExecution('fuse-ops ' + input.terms.join(' '));
+    if (await cliAddonSlack.isSetup()) {
+      await cliAddonSlack.startExecution('fuse-ops ' + input.terms.join(' '));
+    }
   }
 
   protected async onSubCommandExecuted(command: Command, input: IExecuteInput, result: number): Promise<void> {
-    await cliAddonSlack.endExecution(result.toString());
+    if (await cliAddonSlack.isSetup()) {
+      await cliAddonSlack.endExecution(result.toString());
+    }
   }
 
   protected async onSubCommandError(command: Command, input: IExecuteInput, error: Error) {

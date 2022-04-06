@@ -72,9 +72,11 @@ export class ExecuteService {
     if (!this.input.options.quiet && this.isPrettyOutput()) {
       const formattedMessage = await Message.create({ header, message, kind });
       await formattedMessage.write(this.input.io);
-      await SlackCliPlugin.writeMessage(
-        message.toString().replace(/[\u001b\u009b][[()#;?]*(?:[0-9]{1,4}(?:;[0-9]{0,4})*)?[0-9A-ORZcf-nqry=><]/g, '')
-      );
+      if (await SlackCliPlugin.isSetup()) {
+        await SlackCliPlugin.writeMessage(
+          message.toString().replace(/[\u001b\u009b][[()#;?]*(?:[0-9]{1,4}(?:;[0-9]{0,4})*)?[0-9A-ORZcf-nqry=><]/g, '')
+        );
+      }
     }
   }
 
