@@ -3,6 +3,7 @@ import { Command, ICommand } from '@5qtrs/cli';
 import { Text } from '@5qtrs/text';
 
 import { ServiceSetCommand } from './ServiceSetCommand';
+import { ServiceGetCommand } from './ServiceGetCommand';
 import { ServiceLsCommand } from './ServiceLsCommand';
 import { ServiceUnsupportedCommand } from './ServiceUnsupportedCommand';
 
@@ -35,6 +36,7 @@ async function getSubCommands() {
   const subCommands = [];
   subCommands.push(await ServiceLsCommand.create());
   subCommands.push(await ServiceSetCommand.create());
+  subCommands.push(await ServiceGetCommand.create());
   subCommands.push(
     await ServiceUnsupportedCommand.create(
       {
