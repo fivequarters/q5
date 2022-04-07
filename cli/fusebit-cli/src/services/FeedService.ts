@@ -159,6 +159,11 @@ export class FeedService {
 
     const commonRandom = Math.floor(Math.random() * 1000);
 
+    const entityCount: Record<string, number> = {
+      connector: 0,
+      integration: 0,
+    };
+
     Object.entries(feed.configuration.entities).forEach(([name, entity]) => {
       if (!entityIdCache[name]) {
         entityIdCache[name] = {};
@@ -170,6 +175,11 @@ export class FeedService {
           // Only create a new random ID once for an entry
           if (!entityIdCache[name].id) {
             entityIdCache[name].id = this.makeEntityId(entity, feed.id, commonRandom);
+
+            entityCount[entity.entityType] += 1;
+            if (entityCount[entity.entityType] > 1) {
+              entityIdCache[name].id += `-${entityCount[entity.entityType]}`;
+            }
           }
           return entityIdCache[name].id;
         },
