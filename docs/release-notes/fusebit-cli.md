@@ -17,13 +17,13 @@ All public releases of the Fusebit CLI are documented here, including notable ch
 <!-- 1. TOC
 {:toc} -->
 
-## Version 1.21.3
+## Version 1.21.4
 
 _Released 4/7/22_
 
 - **Security.** Patch Axios against CVE-2021-3749.
 
-## Version 1.21.2
+## Version 1.21.3
 
 _Released 4/4/22_
 
