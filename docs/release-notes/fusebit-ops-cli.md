@@ -18,6 +18,12 @@ All public releases of the Fusebit Operations CLI are documented here, including
 {:toc}
 -->
 
+## Version 1.37.8
+
+_Released 4/7/22_
+
+- **Security.** Patch Axios against CVE-2021-3749.
+
 ## Version 1.37.7
 
 _Released 3/1/22_
