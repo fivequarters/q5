@@ -66,7 +66,7 @@ export class ConnectorService extends BaseComponentService<IConnector> {
         });
       }
 
-      const configSummary: (string | Text)[] = [];
+      const configSummary: (string | Text)[] = [Text.eol(), Text.eol(), 'Configuration:'];
       if (item.data.configuration && filterCfg) {
         Object.entries(item.data.configuration).forEach(([key, value]: [string, any]) => {
           const opt = filterCfg(key);
@@ -84,24 +84,17 @@ export class ConnectorService extends BaseComponentService<IConnector> {
           ...(fullDisplay ? [`Handler: `, Text.bold(item.data.handler || ''), Text.eol(), Text.eol()] : []),
           ...tagSummary,
           ...configSummary,
-          ...(fullDisplay
-            ? [
-                Text.eol(),
-                'Version',
-                Text.dim(': '),
-                item.version || 'unknown',
-                Text.eol(),
-                Text.eol(),
-                'Base URL is given below',
-                Text.dim(': '),
-              ]
-            : []),
+          Text.eol(),
+          Text.eol(),
+          'Version',
+          Text.dim(': '),
+          item.version || 'unknown',
         ])
       );
-      if (fullDisplay) {
-        await this.input.io.writeLineRaw(this.getUrl(profile, item.id));
-        await this.input.io.writeLine();
-      }
+
+      await this.executeService.message('', Text.create(['OAuth2 Redirect URL', Text.dim(': ')]));
+      await this.input.io.writeLineRaw(`${this.getUrl(profile, item.id)}/api/callback`);
+      await this.input.io.writeLine();
     }
   }
 
