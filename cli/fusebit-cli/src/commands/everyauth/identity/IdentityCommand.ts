@@ -2,9 +2,10 @@ import { Command, ICommand } from '@5qtrs/cli';
 
 import { EntityGetCommand } from '../../common/entity/EntityGetCommand';
 import { EntityListCommand } from '../../common/entity/EntityListCommand';
-import { EntityRemoveCommand } from '../../common/entity/EntityRemoveCommand';
 
 import { FusebitTenantTag } from '../../../services/EntityService';
+
+import { IdentityRemoveCommand } from './IdentityRemoveCommand';
 
 // ------------------
 // Internal Constants
@@ -45,7 +46,7 @@ async function getSubCommands() {
   const subCommands = [];
   subCommands.push(await EntityGetCommand.create(entityOptions));
   subCommands.push(await EntityListCommand.create(entityOptions));
-  subCommands.push(await EntityRemoveCommand.create(entityOptions));
+  subCommands.push(await IdentityRemoveCommand.create(entityOptions));
   return subCommands;
 }
 

@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 
 // Is this an `everyauth` command or a `fuse` command? Default to everyauth for now.
-global.COMMAND_MODE = process.argv[1] === 'fuse' ? 'Fusebit' : 'EveryAuth';
+global.COMMAND_MODE = process.argv[1].includes('fuse') ? 'Fusebit' : 'EveryAuth';
 
 import { CommandIO } from '@5qtrs/cli';
 const { Cli } = require(`./${COMMAND_MODE}Cli`);

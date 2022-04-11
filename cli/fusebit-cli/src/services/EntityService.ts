@@ -14,7 +14,7 @@ export interface IFusebitEntityListOptions {
 }
 
 export interface IFusebitEntityListResult {
-  items: any[];
+  items: IEntitySpec[];
   next?: string;
 }
 
