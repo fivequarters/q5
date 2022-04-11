@@ -17,6 +17,13 @@ All public releases of the Fusebit HTTP API are documented here, including notab
 <!-- 1. TOC
 {:toc} -->
 
+## Version 1.37.0
+
+_Released 4/10/22_
+
+- **Enhancement** Support `sort` parameter to list endpoints to search off of several criteria.
+- **Bugfix** Correctly sanitize the results of an integration or connector creation operation.
+
 ## Version 1.36.0
 
 _Released 3/17/22_
