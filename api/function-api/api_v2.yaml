@@ -164,6 +164,7 @@ paths:
         - $ref: '#/components/parameters/SearchIdPrefix'
         - $ref: '#/components/parameters/SearchCount'
         - $ref: '#/components/parameters/SearchNext'
+        - $ref: '#/components/parameters/SearchSort'
         - $ref: '#/components/parameters/SearchTag'
         - $ref: '#/components/parameters/SearchStatus'
       responses:
@@ -276,6 +277,7 @@ paths:
       parameters:
         - $ref: '#/components/parameters/SearchCount'
         - $ref: '#/components/parameters/SearchNext'
+        - $ref: '#/components/parameters/SearchSort'
         - $ref: '#/components/parameters/SearchTag'
       responses:
         200:
@@ -310,6 +312,7 @@ paths:
       parameters:
         - $ref: '#/components/parameters/SearchCount'
         - $ref: '#/components/parameters/SearchNext'
+        - $ref: '#/components/parameters/SearchSort'
         - $ref: '#/components/parameters/SearchTag'
       responses:
         200:
@@ -415,6 +418,7 @@ paths:
         - $ref: '#/components/parameters/SearchIdPrefix'
         - $ref: '#/components/parameters/SearchCount'
         - $ref: '#/components/parameters/SearchNext'
+        - $ref: '#/components/parameters/SearchSort'
         - $ref: '#/components/parameters/SearchTag'
         - $ref: '#/components/parameters/SearchStatus'
       responses:
@@ -527,6 +531,7 @@ paths:
       parameters:
         - $ref: '#/components/parameters/SearchCount'
         - $ref: '#/components/parameters/SearchNext'
+        - $ref: '#/components/parameters/SearchSort'
         - $ref: '#/components/parameters/SearchTag'
       responses:
         200:
@@ -561,6 +566,7 @@ paths:
       parameters:
         - $ref: '#/components/parameters/SearchCount'
         - $ref: '#/components/parameters/SearchNext'
+        - $ref: '#/components/parameters/SearchSort'
         - $ref: '#/components/parameters/SearchTag'
       responses:
         200:
@@ -1145,6 +1151,13 @@ components:
       name: next
       in: query
       description: The key to use to retrieve the next set of results
+      schema:
+        type: string
+    SearchSort:
+      name: sort
+      in: query
+      description: Sort the results by `dateModified`, `dateAdded`, or the default value of `entityId`.  If `sort` is
+        prepended with a `-` character, the order direction is reversed.
       schema:
         type: string
     SearchTag:

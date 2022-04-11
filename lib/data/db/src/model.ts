@@ -109,6 +109,7 @@ export interface DefaultQueryOptions {
   listLimit?: number;
   next?: string;
   validateParent?: boolean;
+  sortKey?: string;
 }
 export interface MergedQueryOptions extends DefaultQueryOptions {
   upsert: boolean;
@@ -118,6 +119,7 @@ export interface MergedQueryOptions extends DefaultQueryOptions {
 export interface InputQueryOptionsWithDefaults extends DefaultQueryOptions {}
 export interface InputQueryOptionsWithoutDefaults {
   next?: string;
+  sortKey?: string;
 }
 export interface InputQueryOptions extends InputQueryOptionsWithDefaults, InputQueryOptionsWithoutDefaults {}
 export interface FinalQueryOptions extends InputQueryOptionsWithoutDefaults, MergedQueryOptions {}
