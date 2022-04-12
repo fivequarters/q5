@@ -7,7 +7,7 @@ import { OpsDataAwsContextFactory, OpsDataAwsContext } from '@5qtrs/ops-data-aws
 import { ProfileService } from './ProfileService';
 import { ExecuteService } from './ExecuteService';
 import { IFusebitOpsProfile } from '@5qtrs/fusebit-ops-profile-sdk';
-
+import * as cliAddonSlack from '@5qtrs/cli-addon-slack-reporter';
 // ------------------
 // Internal Functions
 // ------------------
@@ -87,8 +87,15 @@ export class OpsService {
           mfaCodeResolver: getMfaCodeResolver(this.input.io),
           govCloud: profile.govCloud,
         };
+
     const credsCache = this.getCredsCache(profile.name);
-    return await AwsCreds.create(userCredOptions, credsCache);
+    const creds = await AwsCreds.create(userCredOptions, credsCache);
+    if (await cliAddonSlack.isSetup()) {
+      const awsIdentity = await cliAddonSlack.getAwsIdentity(await creds.getCredentials());
+      await cliAddonSlack.startExecution(process.argv.join(' '), awsIdentity);
+    }
+
+    return creds;
   }
 
   public async getOpsDataContextImpl(settings?: IConfigSettings): Promise<OpsDataAwsContext> {
