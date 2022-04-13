@@ -24,6 +24,12 @@ _Released 4/10/22_
 - **Enhancement** Support `sort` parameter to list endpoints to search off of several criteria.
 - **Bugfix** Correctly sanitize the results of an integration or connector creation operation.
 
+## Version 1.36.1
+
+_Released 4/7/22_
+
+- **Security** Patch Axios against CVE-2021-3749.
+
 ## Version 1.36.0
 
 _Released 3/17/22_

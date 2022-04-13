@@ -17,11 +17,17 @@ All public releases of the Fusebit CLI are documented here, including notable ch
 <!-- 1. TOC
 {:toc} -->
 
-## Version 1.21.4
+## Version 1.22.0
 
 _Released 4/4/22_
 
 - **Enhancement.** Support the `everyauth` CLI.
+
+## Version 1.21.4
+
+_Released 4/7/22_
+
+- **Security.** Patch Axios against CVE-2021-3749.
 
 ## Version 1.21.3
 
