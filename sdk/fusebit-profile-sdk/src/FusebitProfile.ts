@@ -127,6 +127,7 @@ export interface IFusebitExecutionProfile extends IFusebitProfileSettings {
 
 export class FusebitProfile {
   public static defaultProfileId = 'api-us';
+  public static defaultEveryAuthProfileId = 'everyauth-us';
 
   public static defaultProfiles: { [key: string]: any } = {
     'stage-api-us': {
@@ -144,6 +145,10 @@ export class FusebitProfile {
       issuer: 'https://auth.fusebit.io/oauth/device/code',
       clientId: 'NIfqE4hpPOXuIhllkxndlafSKcKesEfc',
       tokenUrl: 'https://auth.fusebit.io/oauth/token',
+    },
+    'everyauth-us': {
+      provisionUrl:
+        'https://api.us-west-1.on.fusebit.io/v1/run/sub-5da267cb8f284af4/system/fusebit-provision/account?include=init-pki&provision=default-connectors',
     },
   };
 

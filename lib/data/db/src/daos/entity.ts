@@ -33,6 +33,7 @@ const defaultEntityConstructorArgument: DefaultConstructorArguments = {
   upsert: false,
   filterExpired: true,
   listLimit: 100,
+  sortKey: 'entityId',
 };
 
 export abstract class Entity<ET extends IEntity> implements IEntityDao<ET> {
@@ -58,6 +59,7 @@ export abstract class Entity<ET extends IEntity> implements IEntityDao<ET> {
       filterExpired: entityConfig.filterExpired,
       listLimit: entityConfig.listLimit,
       upsert: entityConfig.upsert,
+      sortKey: entityConfig.sortKey,
     };
     this.defaultStatementOptions = {
       transactionId: config.transactionId,
@@ -259,8 +261,18 @@ export abstract class Entity<ET extends IEntity> implements IEntityDao<ET> {
          AND parentQuery.id = substring(entityQuery.entityId FROM '/${parentEntityType}/([0-9]+)/')::integer`
         : '');
 
+    let sortDir: string;
+
+    if (queryOptions.sortKey?.startsWith('-')) {
+      queryOptions.sortKey = queryOptions.sortKey.slice(1);
+      sortDir = 'DESC';
+    } else {
+      sortDir = 'ASC';
+    }
+
+    // sortKey is carefully restricted to a few explicit values.
     const sqlTail = `
-      ORDER BY entityQuery.entityId
+      ORDER BY entityQuery.${queryOptions.sortKey} ${sortDir}
       OFFSET :offset
       LIMIT :limit + 1;`;
 

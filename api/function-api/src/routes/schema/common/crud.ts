@@ -65,7 +65,7 @@ const router = (
               ...pathParams.accountAndSubscription(req),
               ...entityFromBody(req),
             });
-            res.status(statusCode).json(result);
+            res.status(statusCode).json(Model.entityToSdk(result));
           } catch (e) {
             next(e);
           }
@@ -85,10 +85,10 @@ const router = (
         try {
           const entity = await requestToEntity(EntityService, paramIdNames, req);
           const { result } = await EntityService.getEntity(entity);
-          let status = 200;
+          let statusCode = 200;
 
           if (result.state === Model.EntityState.creating) {
-            status = 202;
+            statusCode = 202;
           }
 
           // Make sure the `getEntity` operation includes the parentId, even though it's redundant with the
@@ -100,7 +100,7 @@ const router = (
             result.parentId = req.params[paramIdNames[0]];
           }
 
-          res.status(status).json(Model.entityToSdk(result));
+          res.status(statusCode).json(Model.entityToSdk(result));
         } catch (e) {
           next(e);
         }

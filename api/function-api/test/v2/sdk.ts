@@ -169,6 +169,7 @@ interface ISdkForEntity {
       idPrefix?: string;
       operation?: string;
       state?: Model.EntityState;
+      sort?: string;
     },
     options?: IRequestOptions
   ) => Promise<IHttpResponse>;
@@ -270,6 +271,7 @@ const createSdk = (entityType: Model.EntityType): ISdkForEntity => ({
       idPrefix?: string;
       operation?: string;
       state?: Model.EntityState;
+      sort?: string;
     },
     options?: IRequestOptions
   ) => {
@@ -702,6 +704,7 @@ export const ApiRequestMap: {
         next?: string;
         idPrefix?: string;
         operation?: string;
+        sort?: string;
       },
       options?: IRequestOptions
     ) => {
@@ -734,6 +737,7 @@ export const ApiRequestMap: {
         tag?: { tagKey: string; tagValue?: string }[];
         count?: number;
         next?: string;
+        sort?: string;
       },
       options?: IRequestOptions
     ) => {
@@ -930,3 +934,6 @@ export const createTestFile = (getTestFile: () => any, replacements: Record<stri
   });
   return stringFunc;
 };
+
+export const usFromTs = (ts: string) =>
+  (Math.trunc(new Date(ts).getTime() / 1000) * 1000 + Number(`.${ts.split('.')[1]}`) * 1000) * 1000;

@@ -56,13 +56,14 @@ export abstract class BaseComponentService<IComponentType extends IBaseComponent
     entityType: EntityType,
     profileService: ProfileService,
     executeService: ExecuteService,
-    input: IExecuteInput
+    input: IExecuteInput,
+    entityTypeName: string
   ) {
     this.input = input;
     this.profileService = profileService;
     this.executeService = executeService;
     this.entityType = entityType;
-    this.entityTypeName = (entityType as string).charAt(0).toUpperCase() + (entityType as string).slice(1);
+    this.entityTypeName = entityTypeName;
   }
 
   public abstract createEmptySpec(): IComponentType;
@@ -274,13 +275,13 @@ export abstract class BaseComponentService<IComponentType extends IBaseComponent
       if (Object.keys(files).length) {
         const confirmPrompt = await Confirm.create({
           header: 'Deploy?',
-          message: Text.create(`Deploy the ${this.entityType} in the '`, Text.bold(path), "' directory?"),
+          message: Text.create(`Deploy the ${this.entityTypeName} in the '`, Text.bold(path), "' directory?"),
         });
         const confirmed = await confirmPrompt.prompt(this.input.io);
         if (!confirmed) {
           await this.executeService.warning(
             'Deploy Canceled',
-            Text.create("Deploying the '", Text.bold(entityId), `' ${this.entityType} was canceled`)
+            Text.create("Deploying the '", Text.bold(entityId), `' ${this.entityTypeName} was canceled`)
           );
           throw new Error('Deploy Canceled');
         }
@@ -307,9 +308,9 @@ export abstract class BaseComponentService<IComponentType extends IBaseComponent
     return this.executeService.executeRequest(
       {
         header: `Getting ${this.entityTypeName}`,
-        message: Text.create(`Getting existing ${this.entityType} '`, Text.bold(`${entityId}`), "'..."),
+        message: Text.create(`Getting existing ${this.entityTypeName} '`, Text.bold(`${entityId}`), "'..."),
         errorHeader: `Get ${this.entityTypeName} Error`,
-        errorMessage: Text.create(`Unable to get ${this.entityType} '`, Text.bold(`${entityId}`), "'"),
+        errorMessage: Text.create(`Unable to get ${this.entityTypeName} '`, Text.bold(`${entityId}`), "'"),
       },
       {
         method: 'GET',
@@ -332,9 +333,9 @@ export abstract class BaseComponentService<IComponentType extends IBaseComponent
     await this.executeService.execute(
       {
         header: `Checking ${this.entityTypeName}`,
-        message: Text.create(`Checking existing ${this.entityType} '`, Text.bold(entityId), "'..."),
+        message: Text.create(`Checking existing ${this.entityTypeName} '`, Text.bold(entityId), "'..."),
         errorHeader: `Check ${this.entityTypeName} Error`,
-        errorMessage: Text.create(`Unable to check ${this.entityType} '`, Text.bold(entityId), "'"),
+        errorMessage: Text.create(`Unable to check ${this.entityTypeName} '`, Text.bold(entityId), "'"),
       },
       async () => {
         const response = await this.getEntity(profile, entityId);
@@ -352,9 +353,9 @@ export abstract class BaseComponentService<IComponentType extends IBaseComponent
     return this.executeService.executeRequest(
       {
         header: `Deploy ${this.entityTypeName}`,
-        message: Text.create(`Deploying ${this.entityType} '`, Text.bold(entityId), "'..."),
+        message: Text.create(`Deploying ${this.entityTypeName} '`, Text.bold(entityId), "'..."),
         errorHeader: 'Deploy Integration Error',
-        errorMessage: Text.create(`Unable to deploy ${this.entityType} '`, Text.bold(entityId), "'"),
+        errorMessage: Text.create(`Unable to deploy ${this.entityTypeName} '`, Text.bold(entityId), "'"),
       },
       {
         method,
@@ -381,9 +382,9 @@ export abstract class BaseComponentService<IComponentType extends IBaseComponent
     const result = await this.executeService.executeRequest(
       {
         header: 'List Entities',
-        message: Text.create(`Listing ${this.entityType}s...`),
+        message: Text.create(`Listing ${this.entityTypeName}s...`),
         errorHeader: `List ${this.entityTypeName} Error`,
-        errorMessage: Text.create(`Unable to list ${this.entityType}`),
+        errorMessage: Text.create(`Unable to list ${this.entityTypeName}`),
       },
       {
         method: 'GET',
@@ -406,13 +407,13 @@ export abstract class BaseComponentService<IComponentType extends IBaseComponent
     if (!this.input.options.quiet) {
       const confirmPrompt = await Confirm.create({
         header: 'Remove?',
-        message: Text.create("Permanently remove the '", Text.bold(entityId), `' ${this.entityType}?`),
+        message: Text.create("Permanently remove the '", Text.bold(entityId), `' ${this.entityTypeName}?`),
       });
       const confirmed = await confirmPrompt.prompt(this.input.io);
       if (!confirmed) {
         await this.executeService.warning(
           'Remove Canceled',
-          Text.create("Removing the '", Text.bold(entityId), `' ${this.entityType} was canceled`)
+          Text.create("Removing the '", Text.bold(entityId), `' ${this.entityTypeName} was canceled`)
         );
         throw new Error('Remove Canceled');
       }
@@ -425,9 +426,9 @@ export abstract class BaseComponentService<IComponentType extends IBaseComponent
     return this.executeService.executeSimpleRequest(
       {
         header: `Remove ${this.entityTypeName}`,
-        message: Text.create(`Removing ${this.entityType} '`, Text.bold(entityId), "'..."),
+        message: Text.create(`Removing ${this.entityTypeName} '`, Text.bold(entityId), "'..."),
         errorHeader: `Remove ${this.entityTypeName} Error`,
-        errorMessage: Text.create(`Unable to remove ${this.entityType} '`, Text.bold(entityId), "'"),
+        errorMessage: Text.create(`Unable to remove ${this.entityTypeName} '`, Text.bold(entityId), "'"),
       },
       {
         method: 'DELETE',

@@ -11,7 +11,7 @@ import { EntityType, IIntegration, IIntegrationData, IConnector, IConnectorData 
 import { ExecuteService } from './ExecuteService';
 import { ProfileService } from './ProfileService';
 
-import { FeedTypes } from '../commands/feed/FeedOptions';
+import { FeedTypes } from '../commands/fuse/feed/FeedOptions';
 
 const FEED_BASE_URL = process.env.FEED_BASE_URL || 'https://manage.fusebit.io/feed/';
 

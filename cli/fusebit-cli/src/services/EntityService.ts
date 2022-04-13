@@ -3,7 +3,7 @@ import { IFusebitExecutionProfile } from '@5qtrs/fusebit-profile-sdk';
 import { IExecuteInput, Confirm, Message } from '@5qtrs/cli';
 import { ProfileService } from './ProfileService';
 import { ExecuteService } from './ExecuteService';
-import { IEntityCommandOptions } from '../commands/entity/EntityCommandOptions';
+import { IEntityCommandOptions } from '../commands/common/entity/EntityCommandOptions';
 
 export const FusebitTenantTag = 'fusebit.tenantId';
 
@@ -14,7 +14,7 @@ export interface IFusebitEntityListOptions {
 }
 
 export interface IFusebitEntityListResult {
-  items: any[];
+  items: IEntitySpec[];
   next?: string;
 }
 
@@ -66,7 +66,7 @@ export class EntityService {
         message: Text.create(
           `Getting existing ${this.entityOptions.singular} '`,
           Text.bold(entityId),
-          `' of ${this.entityOptions.parentEntityUrlSegment} '`,
+          `' of ${this.entityOptions.parentName} '`,
           Text.bold(parentEntityId),
           `'...`
         ),
@@ -102,7 +102,7 @@ export class EntityService {
       {
         header: `List ${this.entityOptions.capitalPlural}`,
         message: Text.create(
-          `Listing ${this.entityOptions.plural} of ${this.entityOptions.parentEntityUrlSegment} '`,
+          `Listing ${this.entityOptions.plural} of ${this.entityOptions.parentName} '`,
           Text.bold(parentEntityId),
           `'...`
         ),
@@ -153,24 +153,24 @@ export class EntityService {
 
     details.push(Text.eol(), Text.dim('State: '), item.state);
     if (item.tags && item.tags[FusebitTenantTag]) {
-      details.push(Text.eol(), Text.dim('Tenant: '), item.tags[FusebitTenantTag]);
+      details.push(Text.eol(), Text.dim(`${this.entityOptions.tenantName}: `), item.tags[this.entityOptions.tenantTag]);
     }
     if (item.dateModified) {
       details.push(Text.eol(), Text.dim('Last modified: '), item.dateModified);
     }
 
+    const keys = Object.keys(item.tags);
+    details.push(Text.eol(), Text.dim('Tags: '));
+    if (keys.length === 0) {
+      details.push('No tags');
+    } else {
+      details.push(Text.eol());
+      keys.forEach((key) => {
+        details.push(Text.dim('• '), key, Text.dim(': '), item.tags[key] || 'null', Text.eol());
+      });
+    }
     if (showDetails) {
       details.push(Text.eol(), Text.dim('Version: '), item.version || 'unknown');
-      const keys = Object.keys(item.tags);
-      details.push(Text.eol(), Text.dim('Tags: '));
-      if (keys.length === 0) {
-        details.push('No tags');
-      } else {
-        details.push(Text.eol());
-        keys.forEach((key) => {
-          details.push(Text.dim('• '), key, Text.dim(': '), item.tags[key] || 'null', Text.eol());
-        });
-      }
     }
 
     const message = await Message.create({

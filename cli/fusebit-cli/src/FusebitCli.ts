@@ -14,7 +14,7 @@ import {
   IntegrationCommand,
   StorageCommand,
   LogCommand,
-} from './commands';
+} from './commands/fuse';
 
 // ------------------
 // Internal Constants
@@ -42,7 +42,7 @@ const cli: ICommand = {
 
 async function getSubCommands() {
   const subCommands: Command[] = [];
-  subCommands.push(await InitCommand.create());
+  subCommands.push(await InitCommand.create({}));
   subCommands.push(await FunctionCommand.create());
   subCommands.push(await NpmCommand.create());
   subCommands.push(await ProfileCommand.create());
@@ -62,7 +62,7 @@ async function getSubCommands() {
 // Exported Classes
 // ----------------
 
-export class FusebitCli extends Command {
+class FusebitCli extends Command {
   private constructor(command: ICommand) {
     super(command);
   }
@@ -137,3 +137,5 @@ export class FusebitCli extends Command {
     return 1;
   }
 }
+
+export { FusebitCli as Cli };

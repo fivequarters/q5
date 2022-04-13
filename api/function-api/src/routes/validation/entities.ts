@@ -56,6 +56,7 @@ const EntityIdQuery = Joi.object().keys({
   tag: Common.tagQuery,
   state: stateEnum,
   defaults: Joi.boolean(),
+  sort: Joi.string().valid('-dateModified', 'dateModified', '-dateAdded', 'dateAdded', '-entityId', 'entityId'),
 });
 
 export { validateEntity, validatePostEntity, EntityId, EntityIdParams, EntityIdQuery };
