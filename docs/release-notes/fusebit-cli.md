@@ -17,6 +17,12 @@ All public releases of the Fusebit CLI are documented here, including notable ch
 <!-- 1. TOC
 {:toc} -->
 
+## Version 1.22.2
+
+_Released 4/14/22_
+
+- **Enhancement.** Upgrade semver used in the package to 7.3.7.
+
 ## Version 1.22.1
 
 _Released 4/13/22_
