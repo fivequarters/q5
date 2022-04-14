@@ -197,8 +197,13 @@ export default class Workspace {
           }
           await writeFile(`${nodeModules}/package.json`, JSON.stringify(packageJsonDependency, null, 2));
         } else {
-          const source = join(this.project.RootPath, 'node_modules', dependencyName);
           const dest = join(packagePath, 'node_modules', dependencyName);
+          let source = join(location, 'node_modules', dependencyName);
+
+          // Check to see if the package has a specific version; if not, use the project directory.
+          if (!(await isDirectory(source))) {
+            source = join(this.project.RootPath, 'node_modules', dependencyName);
+          }
           await copyDirectory(source, dest, { ensurePath: true, recursive: true });
         }
       } else if (!dependencyName.startsWith(`@types/`)) {
