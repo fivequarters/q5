@@ -82,6 +82,16 @@ export class InitCommand extends Command {
     return new InitCommand(options);
   }
 
+  public static async doProfilesExist(input: IExecuteInput): Promise<boolean> {
+    try {
+      const profileService = await ProfileService.create(input);
+      const profiles = await profileService.listProfiles();
+      return profiles.length > 0;
+    } catch (err) {
+      return false;
+    }
+  }
+
   public static async createDefaultProfileIfNoneExists(input: IExecuteInput): Promise<void> {
     const profileName = input.options.profile as string;
     const profileService = await ProfileService.create(input);

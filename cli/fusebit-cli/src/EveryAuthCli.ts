@@ -80,8 +80,24 @@ class EveryAuthCli extends Command {
       current = current.parent;
       skipInit = current.skipBuiltInProfile;
     }
-    if (!skipInit) {
-      await InitCommand.createDefaultProfileIfNoneExists(input);
+
+    if (!skipInit && !(await InitCommand.doProfilesExist(input))) {
+      const message = await Message.create({
+        kind: MessageKind.warning,
+        header: 'Run init first',
+        message: Text.create(
+          'This command requires an initialized environment. Please run:',
+          Text.eol(),
+          '  ',
+          Text.bold('everyauth init'),
+          Text.eol(),
+          Text.eol(),
+          'This will initalize the environment.'
+        ),
+      });
+      message.write(input.io);
+
+      return 1;
     }
 
     if (

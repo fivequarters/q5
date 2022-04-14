@@ -17,11 +17,12 @@ All public releases of the Fusebit CLI are documented here, including notable ch
 <!-- 1. TOC
 {:toc} -->
 
-## Version 1.23.2
+## Version 1.23.3
 
 _Released 4/14/22_
 
 - **Enhancement.** Upgrade semver used in the package to 7.3.7.
+- **Enhancement.** EveryAuth: Create a useful error message when running prior to `init`.
 
 ## Version 1.22.1
 
