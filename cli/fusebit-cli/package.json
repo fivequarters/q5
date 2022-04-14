@@ -1,6 +1,6 @@
 {
   "name": "@5qtrs/fusebit-cli",
-  "version": "1.23.0",
+  "version": "1.23.1",
   "description": "",
   "main": "libc/index.js",
   "bin": {
@@ -95,6 +95,8 @@
     "lodash.includes",
     "safe-buffer",
     "lodash.isinteger",
-    "uuid"
+    "uuid",
+    "lru-cache",
+    "yallist"
   ]
 }

@@ -17,7 +17,7 @@ All public releases of the Fusebit CLI are documented here, including notable ch
 <!-- 1. TOC
 {:toc} -->
 
-## Version 1.23.0
+## Version 1.23.1
 
 _Released 4/14/22_
 
