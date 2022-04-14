@@ -19,7 +19,7 @@ All public releases of the Fusebit CLI are documented here, including notable ch
 
 ## Version 1.22.1
 
-_Released 4/4/22_
+_Released 4/13/22_
 
 - **Enhancement.** Upgrade superagent used in the package to 7.1.1.
 
