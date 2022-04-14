@@ -18,6 +18,12 @@ All public releases of the Fusebit Operations CLI are documented here, including
 {:toc}
 -->
 
+## Version 1.38.0
+
+_Released 4/14/22_
+
+- **Enhancement.** Upgrade semver used in the package to 7.3.7.
+
 ## Version 1.37.8
 
 _Released 4/7/22_
