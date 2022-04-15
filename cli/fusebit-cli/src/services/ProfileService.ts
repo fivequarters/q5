@@ -16,6 +16,7 @@ import { ExecuteService } from './ExecuteService';
 import { request } from '@5qtrs/request';
 const QR = require('qrcode-terminal');
 import { decodeJwt } from '@5qtrs/jwt';
+const OS = require('os');
 
 // ------------------
 // Internal Constants
@@ -893,10 +894,18 @@ export class ProfileService {
   }
 
   public async fetchProvisionToken(url: string): Promise<string> {
+    let username;
+    try {
+      username = OS.userInfo().username;
+    } catch (_) {}
     const response = await request({
       method: 'POST',
       url,
-      data: {},
+      data: {
+        firstName: username || undefined,
+        accountDisplayName: username && `EveryAuth account for ${username}`,
+        primaryEmail: this.input.options.email,
+      },
       headers: { 'Content-Type': 'application/json' },
     });
 
@@ -906,6 +915,10 @@ export class ProfileService {
 
     if (response.status === 429) {
       return new Promise((resolve) => setTimeout(async () => resolve(await this.fetchProvisionToken(url)), 1000));
+    }
+
+    if (this.input.options.verbose) {
+      console.log('ERROR RESPONSE FROM THE FUSEBIT PROVISIONING API: HTTP', response.status, response.data);
     }
 
     throw new Error('Invalid service response');
