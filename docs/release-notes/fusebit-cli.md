@@ -23,7 +23,7 @@ _Released 4/14/22_
 
 - **Enhancement.** Upgrade semver used in the package to 7.3.7.
 - **Enhancement.** EveryAuth: Create a useful error message when running prior to `init`.
-- **Enhancement.** EveryAuth: Support for specifying an email on `init`.
+- **Enhancement.** EveryAuth: Support for specifying an email on `init` and capturing OS username as first name.
 
 ## Version 1.22.1
 

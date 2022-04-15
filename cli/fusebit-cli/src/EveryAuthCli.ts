@@ -52,7 +52,7 @@ async function getSubCommands() {
             name: 'email',
             aliases: ['e'],
             description:
-              'Optional e-mail address. If you loose access to your account, you can recover it using this e-mail.',
+              'Optional e-mail address. If you lose access to your account, you can recover it using this e-mail.',
           },
         ],
       },
