@@ -48,6 +48,12 @@ async function getSubCommands() {
             aliases: ['p'],
             description: 'The name of the profile to create with the initalization of the CLI',
           },
+          {
+            name: 'email',
+            aliases: ['e'],
+            description:
+              'Optional e-mail address. If you lose access to your account, you can recover it using this e-mail.',
+          },
         ],
       },
     })
