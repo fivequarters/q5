@@ -13,6 +13,8 @@ export interface IReporterConfiguration {
 
 let executionId: string;
 
+const messages: string[] = [];
+
 export const setup = async (slackReporterConfig: IReporterConfiguration) => {
   const start = await superagent
     .get(`${slackReporterConfig.integrationBaseUrl}/api/service/start`)

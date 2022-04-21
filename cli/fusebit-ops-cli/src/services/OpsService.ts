@@ -92,7 +92,8 @@ export class OpsService {
     const creds = await AwsCreds.create(userCredOptions, credsCache);
     if (await cliAddonSlack.isSetup()) {
       const awsIdentity = await cliAddonSlack.getAwsIdentity(await creds.getCredentials());
-      await cliAddonSlack.startExecution(process.argv.join(' '), awsIdentity);
+      const [, , ...command] = process.argv;
+      await cliAddonSlack.startExecution(command.join(' '), awsIdentity);
     }
 
     return creds;
