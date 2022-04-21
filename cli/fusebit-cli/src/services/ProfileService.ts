@@ -371,12 +371,13 @@ export class ProfileService {
 
   private async getExecutionProfileDemux(
     profileName?: string,
-    ignoreCache?: boolean
+    ignoreCache?: boolean,
+    expiresIn?: number
   ): Promise<IFusebitExecutionProfile> {
     const profile = await this.profile.getProfileOrDefaultOrThrow(profileName);
     const profiles = this.profile.getTypedProfile(profile);
     if (profiles.pkiProfile) {
-      return this.profile.getPKIExecutionProfile(profileName, ignoreCache);
+      return this.profile.getPKIExecutionProfile(profileName, ignoreCache, undefined, expiresIn);
     } else {
       return this.getOAuthExecutionProfile(profiles.oauthProfile as IOAuthFusebitProfile, ignoreCache);
     }
@@ -649,7 +650,7 @@ export class ProfileService {
     await this.executeService.message(profile.name, 'Successfully created!');
   }
 
-  public async displayTokenContext(profileName?: string): Promise<void> {
+  public async displayTokenContext(profileName?: string, expiresIn?: number): Promise<void> {
     if (!profileName) {
       profileName = await this.profile.getDefaultProfileName();
     }
@@ -657,7 +658,7 @@ export class ProfileService {
     const output = this.input.options.output;
 
     // Get execution profile to ensure OAuth flow was executed at least once
-    const profile = await this.execute(() => this.getExecutionProfileDemux(profileName, true));
+    const profile = await this.execute(() => this.getExecutionProfileDemux(profileName, true, expiresIn));
 
     if (output === 'json') {
       await this.input.io.writeLineRaw(JSON.stringify(profile, null, 2));

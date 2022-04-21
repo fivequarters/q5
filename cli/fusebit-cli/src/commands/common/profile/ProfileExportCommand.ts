@@ -17,7 +17,7 @@ const command = {
     {
       name: 'name',
       description: 'The name of the profile to export',
-      required: true,
+      required: COMMAND_MODE === 'EveryAuth' ? false : true,
     },
   ],
   options: [],
