@@ -26,7 +26,7 @@
     "@5qtrs/aws-network": "^0.0.1",
     "@5qtrs/aws-route53": "^0.0.1",
     "@5qtrs/ops-data": "^0.0.1",
-    "async": "^2.6.2",
+    "async": "^2.6.4",
     "aws-sdk": "^2.1001.0",
     "@5qtrs/aws-cert": "^0.0.1",
     "@5qtrs/aws-alb": "^0.0.1",
