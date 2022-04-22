@@ -95,7 +95,7 @@ app.use(function (err, req, res, next) {
       err.message,
       req.url,
       'stacktrace:',
-      process.stdout.isTTY ? err : err.stack.split('\n').join(',')
+      process.stdout.isTTY || !err?.stack ? err : err.stack.split('\n').join(',')
     );
   }
 

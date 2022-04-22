@@ -4,7 +4,7 @@ export { ClientCommand } from './client/ClientCommand';
 export { IssuerCommand } from './issuer/IssuerCommand';
 export { FunctionCommand } from './function/FunctionCommand';
 export { InitCommand } from '../common/InitCommand';
-export { TokenCommand } from './TokenCommand';
+export { TokenCommand } from '../common/TokenCommand';
 export { VersionCommand } from '../common/VersionCommand';
 export { NpmCommand } from './npm/NpmCommand';
 export { ConnectorCommand } from './connector/ConnectorCommand';

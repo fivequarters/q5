@@ -1,12 +1,5 @@
 import { Command, ICommand } from '@5qtrs/cli';
 import { Text } from '@5qtrs/text';
-import { ProfileListCommand } from './ProfileListCommand';
-import { ProfileSetCommand } from './ProfileSetCommand';
-import { ProfileGetCommand } from './ProfileGetCommand';
-import { ProfileCopyCommand } from './ProfileCopyCommand';
-import { ProfileRenameCommand } from './ProfileRenameCommand';
-import { ProfileRemoveCommand } from './ProfileRemoveCommand';
-import { ProfileUpdateCommand } from './ProfileUpdateCommand';
 import { ProfileImportCommand } from '../../common/profile/ProfileImportCommand';
 import { ProfileExportCommand } from '../../common/profile/ProfileExportCommand';
 
@@ -40,13 +33,6 @@ const command: ICommand = {
 
 async function getSubCommands() {
   const subCommands = [];
-  subCommands.push(await ProfileListCommand.create());
-  subCommands.push(await ProfileGetCommand.create());
-  subCommands.push(await ProfileSetCommand.create());
-  subCommands.push(await ProfileCopyCommand.create());
-  subCommands.push(await ProfileRenameCommand.create());
-  subCommands.push(await ProfileUpdateCommand.create());
-  subCommands.push(await ProfileRemoveCommand.create());
   subCommands.push(await ProfileImportCommand.create());
   subCommands.push(await ProfileExportCommand.create());
   return subCommands;
@@ -57,8 +43,8 @@ async function getSubCommands() {
 // ----------------
 
 export class ProfileCommand extends Command {
-  private constructor(command: ICommand) {
-    super(command);
+  private constructor(cmd: ICommand) {
+    super(cmd);
   }
 
   public static async create() {

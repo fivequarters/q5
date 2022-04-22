@@ -17,6 +17,13 @@ All public releases of the Fusebit CLI are documented here, including notable ch
 <!-- 1. TOC
 {:toc} -->
 
+## Version 1.23.6
+
+_Released 4/21/22_
+
+- **Enhancement.** EveryAuth: Support the new command `profile import` and `profile export`
+- **Enhancement.** EveryAuth: Support the new command `token` to generate a token, with an optional `--expires` parameter to control the lifetime.
+
 ## Version 1.23.5
 
 _Released 4/14/22_

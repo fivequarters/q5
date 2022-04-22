@@ -2,7 +2,14 @@ import { Command, ICommand, IExecuteInput, ArgType, MessageKind, Message } from 
 import { Text } from '@5qtrs/text';
 import { FusebitProfile } from '@5qtrs/fusebit-profile-sdk';
 
-import { InitCommand, VersionCommand, ServiceCommand, IdentityCommand } from './commands/everyauth';
+import {
+  InitCommand,
+  VersionCommand,
+  ServiceCommand,
+  IdentityCommand,
+  TokenCommand,
+  ProfileCommand,
+} from './commands/everyauth';
 
 // ------------------
 // Internal Constants
@@ -58,7 +65,9 @@ async function getSubCommands() {
       },
     })
   );
+  subCommands.push(await ProfileCommand.create());
   subCommands.push(await VersionCommand.create());
+  subCommands.push(await TokenCommand.create());
   subCommands.push(await ServiceCommand.create());
   subCommands.push(await IdentityCommand.create());
   return subCommands;

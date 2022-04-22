@@ -11,7 +11,7 @@ import * as Constants from '@5qtrs/constants';
 // Internal Constants
 // ------------------
 
-const expireInSeconds = 60 * 60 * 2;
+const expireInMilliseconds = 60 * 60 * 2 * 1000;
 const minExpireInterval = 1000 * 60 * 5;
 const kidLength = 8;
 const jwtAlgorithm = 'RS256';
@@ -426,19 +426,22 @@ export class FusebitProfile {
   public async getPKIAccessToken(
     name?: string,
     ignoreCache: boolean = false,
-    permissions?: IPermissions
+    permissions?: IPermissions,
+    expiresIn?: number
   ): Promise<string> {
     const profile = await this.getProfileOrDefaultOrThrow(name);
     if (!profile.kid || !profile.keyPair) {
       throw FusebitProfileException.notPKIProfile(name || '<default>');
     }
     const pkiProfile = profile as IPKIFusebitProfile;
-    if (ignoreCache) {
-      return this.generateAccessToken(profile, pkiProfile, permissions);
+    if (ignoreCache || expiresIn) {
+      return this.generateAccessToken(profile, pkiProfile, permissions, expiresIn);
     }
 
     const accessToken = !permissions ? await this.getCachedAccessToken(profile) : undefined;
-    return accessToken !== undefined ? accessToken : this.generateAccessToken(profile, pkiProfile, permissions);
+    return accessToken !== undefined
+      ? accessToken
+      : this.generateAccessToken(profile, pkiProfile, permissions, expiresIn);
   }
 
   public async getPKICredentials(profile: IPKIFusebitProfile): Promise<any> {
@@ -459,10 +462,11 @@ export class FusebitProfile {
   public async getPKIExecutionProfile(
     name?: string,
     ignoreCache: boolean = false,
-    permissions?: IPermissions
+    permissions?: IPermissions,
+    expiresIn?: number
   ): Promise<IFusebitExecutionProfile> {
     const profile = await this.getProfileOrDefaultOrThrow(name);
-    const accessToken = await this.getPKIAccessToken(name, ignoreCache, permissions);
+    const accessToken = await this.getPKIAccessToken(name, ignoreCache, permissions, expiresIn);
     return {
       accessToken,
       baseUrl: profile.baseUrl,
@@ -494,14 +498,16 @@ export class FusebitProfile {
   private async generateAccessToken(
     profile: IFusebitProfile,
     pkiProfile: IPKIFusebitProfile,
-    permissions?: IPermissions
+    permissions?: IPermissions,
+    expiresIn: number = expireInMilliseconds
   ): Promise<string> {
     const privateKey = await this.dotConfig.getPrivateKey(pkiProfile.keyPair, pkiProfile.kid);
 
-    const expires = new Date(Date.now() + 1000 * expireInSeconds);
+    const expires = new Date(Date.now() + expiresIn);
+
     const options = {
       algorithm: jwtAlgorithm,
-      expiresIn: expireInSeconds,
+      expiresIn: expiresIn / 1000,
       audience: process.env.FUSEBIT_AUDIENCE || pkiProfile.baseUrl, // Provide an override for local test targets.
       issuer: pkiProfile.issuer,
       subject: pkiProfile.subject,
