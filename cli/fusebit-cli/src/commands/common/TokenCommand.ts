@@ -1,6 +1,9 @@
 import { Command, IExecuteInput } from '@5qtrs/cli';
 import { Text } from '@5qtrs/text';
 import { ProfileService, ExecuteService } from '../../services';
+import { DEFAULT_TOKEN_EXPIRATION } from '../../services/ProfileService';
+
+import ms from 'ms';
 
 // ------------------
 // Internal Constants
@@ -23,7 +26,6 @@ const command = {
       aliases: ['e'],
       description: Text.create([
         'The time interval before the token expires.',
-        COMMAND_MODE === 'EveryAuth' ? '  ' : '  Only valid for PKI-based credentials.',
         Text.eol(),
         Text.eol(),
         `Uses the `,
@@ -49,15 +51,24 @@ const command = {
         Text.dim('• '),
         Text.bold('y'),
         ' for years',
+        Text.eol(),
+        Text.eol(),
+        'Examples: ',
+        Text.bold('8w'),
+        ' for two months, ',
+        Text.bold('1y'),
+        ' for one year, or ',
+        Text.bold('7d'),
+        ' for one week.',
         '',
       ]),
-      default: '2h',
+      default: DEFAULT_TOKEN_EXPIRATION,
     },
     {
       name: 'output',
       aliases: ['o'],
       description: "The format to display the output: 'pretty', 'json', 'raw'",
-      default: COMMAND_MODE === 'EveryAuth' ? 'raw' : 'pretty',
+      default: COMMAND_MODE === 'EveryAuth' ? 'json' : 'raw',
     },
   ],
 };
@@ -77,13 +88,13 @@ export class TokenCommand extends Command {
 
   protected async onExecute(input: IExecuteInput): Promise<number> {
     const profileName = input.options.profile as string | undefined;
-    const expiresIn = input.options.expires as number | undefined;
+    const expiresIn = input.options.expires as string;
 
     const profileService = await ProfileService.create(input);
     const executeService = await ExecuteService.create(input);
 
     await executeService.newLine();
-    await profileService.displayTokenContext(profileName, expiresIn);
+    await profileService.displayTokenContext(profileName, ms(expiresIn));
 
     return 0;
   }

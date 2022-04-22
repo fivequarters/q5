@@ -11,7 +11,7 @@ import * as Constants from '@5qtrs/constants';
 // Internal Constants
 // ------------------
 
-const expireInSeconds = 60 * 60 * 2;
+const expireInMilliseconds = 60 * 60 * 2 * 1000;
 const minExpireInterval = 1000 * 60 * 5;
 const kidLength = 8;
 const jwtAlgorithm = 'RS256';
@@ -499,14 +499,15 @@ export class FusebitProfile {
     profile: IFusebitProfile,
     pkiProfile: IPKIFusebitProfile,
     permissions?: IPermissions,
-    expiresIn: number = expireInSeconds
+    expiresIn: number = expireInMilliseconds
   ): Promise<string> {
     const privateKey = await this.dotConfig.getPrivateKey(pkiProfile.keyPair, pkiProfile.kid);
 
-    const expires = new Date(Date.now() + 1000 * expiresIn);
+    const expires = new Date(Date.now() + expiresIn);
+
     const options = {
       algorithm: jwtAlgorithm,
-      expiresIn,
+      expiresIn: expiresIn / 1000,
       audience: process.env.FUSEBIT_AUDIENCE || pkiProfile.baseUrl, // Provide an override for local test targets.
       issuer: pkiProfile.issuer,
       subject: pkiProfile.subject,
