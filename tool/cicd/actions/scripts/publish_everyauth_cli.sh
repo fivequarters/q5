@@ -30,6 +30,9 @@ echoerr "Changing packageAs"
 contents="$(jq '.packageAs = "@fusebit/everyauth-cli"' cli/fusebit-cli/package.json)" && echo "${contents}" > cli/fusebit-cli/package.json
 contents="$(jq '.bin = { "everyauth": "libc/index.js" }' cli/fusebit-cli/package.json)" && echo "${contents}" > cli/fusebit-cli/package.json
 
+echoerr "Copying README"
+cp cli/fusebit-cli/README-EVERYAUTH.md cli/fusebit-cli/README.md
+
 echoerr "Building package"
 yarn package fusebit-cli 1>&2
 
