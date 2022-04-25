@@ -1,6 +1,6 @@
 The EveryAuth CLI is a command-line tool for the [EveryAuth Express middleware](https://github.com/fusebit/everyauth-express/), allowing for the management of services, tokens, and more.
 
-# Install
+## Install
 
 The EveryAuth CLI is built on [node.js](https://nodejs.org), which is a pre-requisite you need to install first. Then, run the following command:
 
