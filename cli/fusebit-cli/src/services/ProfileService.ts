@@ -383,7 +383,7 @@ export class ProfileService {
     if (profiles.pkiProfile) {
       return this.profile.getPKIExecutionProfile(profileName, ignoreCache, undefined, expiresIn);
     } else {
-      if (expiresIn !== DEFAULT_TOKEN_EXPIRATION_MS) {
+      if (expiresIn && expiresIn !== DEFAULT_TOKEN_EXPIRATION_MS) {
         throw new Error('Custom token expiration unsupported for OAuth profiles');
       }
       return this.getOAuthExecutionProfile(profiles.oauthProfile as IOAuthFusebitProfile, ignoreCache);

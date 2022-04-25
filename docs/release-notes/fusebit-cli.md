@@ -17,6 +17,12 @@ All public releases of the Fusebit CLI are documented here, including notable ch
 <!-- 1. TOC
 {:toc} -->
 
+## Version 1.23.7
+
+_Released 4/25/22_
+
+- **Bugfix.** Fix issue blocking new OAuth-based profiles from being initialized.
+
 ## Version 1.23.6
 
 _Released 4/21/22_
