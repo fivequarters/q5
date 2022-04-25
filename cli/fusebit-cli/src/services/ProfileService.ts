@@ -671,6 +671,11 @@ export class ProfileService {
     const profile = await this.execute(() => this.getExecutionProfileDemux(profileName, true, expiresIn));
     profile.expiresAt = new Date(Date.now() + expiresIn).toUTCString();
 
+    if (output === 'base64') {
+      await this.input.io.writeLineRaw(Buffer.from(JSON.stringify(profile), 'utf8').toString('base64'));
+      return;
+    }
+
     if (output === 'json') {
       await this.input.io.writeLineRaw(JSON.stringify(profile, null, 2));
       return;

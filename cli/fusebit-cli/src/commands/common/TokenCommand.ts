@@ -67,8 +67,8 @@ const command = {
     {
       name: 'output',
       aliases: ['o'],
-      description: "The format to display the output: 'pretty', 'json', 'raw'",
-      default: COMMAND_MODE === 'EveryAuth' ? 'json' : 'raw',
+      description: "The format to display the output: 'pretty', 'json', 'raw', 'base64'",
+      default: COMMAND_MODE === 'EveryAuth' ? 'base64' : 'raw',
     },
   ],
 };
