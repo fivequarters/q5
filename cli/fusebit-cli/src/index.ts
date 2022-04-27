@@ -1,9 +1,9 @@
 #!/usr/bin/env node
 
+import mode from './mode';
+
 // Is this an `everyauth` command or a `fuse` command? Default to everyauth for now.
-global.COMMAND_MODE =
-  process.env.FUSEBIT_COMMAND_MODE ||
-  (process.argv[1].endsWith('fuse') || process.argv[1].endsWith('index.js') ? 'Fusebit' : 'EveryAuth');
+global.COMMAND_MODE = process.env.FUSEBIT_COMMAND_MODE || mode;
 
 import { CommandIO } from '@5qtrs/cli';
 const { Cli } = require(`./${COMMAND_MODE}Cli`);
