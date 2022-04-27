@@ -17,6 +17,12 @@ All public releases of the Fusebit CLI are documented here, including notable ch
 <!-- 1. TOC
 {:toc} -->
 
+## Version 1.23.9
+
+_Released 4/27/22_
+
+- **Bugfix.** EveryAuth: Improve support for alternative operating systems.
+
 ## Version 1.23.8
 
 _Released 4/25/22_

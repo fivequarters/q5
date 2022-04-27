@@ -33,6 +33,12 @@ contents="$(jq '.bin = { "everyauth": "libc/index.js" }' cli/fusebit-cli/package
 echoerr "Copying README"
 cp cli/fusebit-cli/README-EVERYAUTH.md cli/fusebit-cli/README.md
 
+echoerr "Copying mode"
+cp cli/fusebit-cli/src/mode_everyauth.ts cli/fusebit-cli/src/mode.ts
+
+echoerr "Rebuilding"
+yarn build
+
 echoerr "Building package"
 yarn package fusebit-cli 1>&2
 
