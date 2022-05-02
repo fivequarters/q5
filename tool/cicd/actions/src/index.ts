@@ -148,7 +148,7 @@ const specs: ISpec[] = [
     output: 'publish_segment-manual',
   },
   {
-    name: 'Publish Fusetunnel - Manual',
+    name: 'Publish Fusetunnel',
     inputs: ['checkout', 'setup_env', 'publish_ft', 'publish_slack'],
     output: 'publish_fusetunnel-manual',
   },
