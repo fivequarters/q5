@@ -10,7 +10,7 @@ let subdomain;
 const startTunnel = async () => {
   tunnel = await fusetunnel({
     port: serverPort,
-    host: 'https://tunnel.dev.fusebit.io',
+    host: 'https://tunnel.dev.fivequarters.io',
     ...(subdomain ? { subdomain: subdomain } : {}),
   });
   subdomain = tunnel.clientId;
