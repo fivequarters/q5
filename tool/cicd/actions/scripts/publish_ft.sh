@@ -5,7 +5,7 @@ set -ex
 # -- cloning fusetunnel --
 git clone https://github.com/fusebit/tunnel-server
 
-VERSION=${VERSION_FUSEBIT_CLI:=$(jq -r '.version' ./tunnel-server/package.json)}
+VERSION=$(jq -r '.version' ./tunnel-server/package.json)
 
 echo "Deploying to npm (ignoring error on republish of same version)"
 cd tunnel-server/
@@ -20,7 +20,7 @@ echo { \"version\": \"${VERSION}\" }
 # -- cloning fusetunnel --
 git clone https://github.com/fusebit/tunnel
 
-VERSION=${VERSION_FUSEBIT_CLI:=$(jq -r '.version' ./tunnel/package.json)}
+VERSION=$(jq -r '.version' ./tunnel/package.json)
 
 echo "Deploying to npm (ignoring error on republish of same version)"
 cd tunnel/
