@@ -18,6 +18,12 @@ All public releases of the Fusebit Operations CLI are documented here, including
 {:toc}
 -->
 
+## Version 1.38.1
+
+_Released 5/2/22_
+
+- **Enhancement.** Add support for Tempo search.
+
 ## Version 1.38.0
 
 _Released 4/14/22_
