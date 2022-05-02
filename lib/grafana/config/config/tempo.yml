@@ -10,6 +10,16 @@ distributor:
       protocols:
         grpc:
 
+querier:
+  max_concurrent_queries: 20
+
+query_frontend:
+  max_outstanding_per_tenant: 2000
+  search:
+    concurrent_jobs: 2000
+    hedge_requests_at: 5s
+    hedge_requests_up_to: 3
+
 ingester:
   trace_idle_period: 10s
   max_block_bytes: 1_000_000
