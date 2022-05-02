@@ -147,6 +147,11 @@ const specs: ISpec[] = [
     inputs: ['checkout', 'setup_env', 'deploy_segment', 'publish_slack'],
     output: 'publish_segment-manual',
   },
+  {
+    name: 'Publish Fusetunnel',
+    inputs: ['checkout', 'setup_env', 'publish_ft', 'publish_slack'],
+    output: 'publish_fusetunnel',
+  },
 ];
 
 function buildSpec(name: string, inputs: string[], output: string, options: ISpec['options'] = {}) {

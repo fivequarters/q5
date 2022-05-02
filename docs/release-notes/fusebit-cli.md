@@ -17,6 +17,12 @@ All public releases of the Fusebit CLI are documented here, including notable ch
 <!-- 1. TOC
 {:toc} -->
 
+## Version 1.23.10
+
+_Released 5/2/22_
+
+- **Bugfix.** Update fuse function serve with the newest fusetunnel to support private deployments of fusetunnel.
+
 ## Version 1.23.9
 
 _Released 4/27/22_

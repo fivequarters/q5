@@ -4,7 +4,7 @@ import Http from 'http';
 const startTunnel = async (serverPort: number, lastDomain?: string) => {
   const tunnel = await fusetunnel({
     port: serverPort,
-    host: 'https://tunnel.dev.fusebit.io',
+    host: process.env.FUSETUNNEL_ENDPOINT || 'https://tunnel.dev.fusebit.io',
     ...(lastDomain ? { subdomain: lastDomain } : {}),
   });
   const subdomain = tunnel.clientId;

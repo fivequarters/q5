@@ -41,6 +41,8 @@ jobs:
             ${{ runner.os }}-yarn-
       - name: Checkout
         uses: actions/checkout@v2
+        with:
+          fetch-depth: 0
       - name: Version
         id: package-versions
         run: ./tool/cicd/actions/scripts/export_versions.sh
@@ -60,9 +62,7 @@ jobs:
       - name: Qualify - npm works
         run: npm whoami
       - name: Publish - Fusetunnel
-        run: ./tool/cicd/actions/scripts/publish_fusetunnel.sh
-      - name: Publish - Fusetunnel-server
-        run: ./tool/cicd/actions/scripts/publish_fusetunnel-server.sh
+        run: ./tool/cicd/actions/scripts/publish_ft.sh
       - name: Notify slack success
         if: success()
         env:

@@ -1452,12 +1452,12 @@
   resolved "https://registry.yarnpkg.com/@exodus/schemasafe/-/schemasafe-1.0.0-rc.3.tgz#dda2fbf3dafa5ad8c63dadff7e01d3fdf4736025"
   integrity sha512-GoXw0U2Qaa33m3eUcxuHnHpNvHjNlLo0gtV091XBpaRINaB4X6FGCG5XKxSFNFiPpugUDqNruHzaqpTdDm4AOg==
 
-"@fusebit/tunnel@^3.2.5":
-  version "3.2.5"
-  resolved "https://registry.yarnpkg.com/@fusebit/tunnel/-/tunnel-3.2.5.tgz#a70945fd14d0218ef404ffd8456c6baa1e1a7217"
-  integrity sha512-7eSw2Gi25y4m3ezRHtVvGFCdSLez7XH0UhEZ4rgyjd+efI+bmNnVGukMftyL3OvZdOhBJZz+dOHQJ6Vh0PtwNw==
+"@fusebit/tunnel@^3.2.6":
+  version "3.2.6"
+  resolved "https://registry.yarnpkg.com/@fusebit/tunnel/-/tunnel-3.2.6.tgz#e0f38306e2999c8ae303313c6823c2921d1c1102"
+  integrity sha512-Cv+3UGlH6g7OcIGHqc/bOk4Q1DhE9Nr5a5ly3WedxtGJ9MGkoDWvH2dqFzOUOSvnZuEm1n9G5tr3C6OBztSFyQ==
   dependencies:
-    axios "0.21.1"
+    axios "^0.27.2"
     debug "4.3.1"
     openurl "1.1.1"
     yargs "16.2.0"
@@ -3740,19 +3740,20 @@ axios-retry@^3.0.2, axios-retry@^3.1.2:
   dependencies:
     is-retry-allowed "^1.1.0"
 
-axios@0.21.1:
-  version "0.21.1"
-  resolved "https://registry.yarnpkg.com/axios/-/axios-0.21.1.tgz#22563481962f4d6bde9a76d516ef0e5d3c09b2b8"
-  integrity sha512-dKQiRHxGD9PPRIUNIWvZhPTPpl1rf/OxTYKsqKUDjBwYylTvV7SjSHJb9ratfyzM6wCdLCOYLzs73qpg5c4iGA==
-  dependencies:
-    follow-redirects "^1.10.0"
-
 axios@^0.21.1, axios@^0.21.4:
   version "0.21.4"
   resolved "https://registry.yarnpkg.com/axios/-/axios-0.21.4.tgz#c67b90dc0568e5c1cf2b0b858c43ba28e2eda575"
   integrity sha512-ut5vewkiu8jjGBdqpM44XxjuCjq9LAKeHVmoVfHVzy8eHgxxq8SbAVQNovDA8mVi05kP0Ea/n/UzcSHcTJQfNg==
   dependencies:
     follow-redirects "^1.14.0"
+
+axios@^0.27.2:
+  version "0.27.2"
+  resolved "https://registry.yarnpkg.com/axios/-/axios-0.27.2.tgz#207658cc8621606e586c85db4b41a750e756d972"
+  integrity sha512-t+yRIyySRTp/wua5xEr+z1q60QmLq8ABsS5O9Me1AsE5dfKqgnCFzwiCZZ/cGNd1lq4/7akDWMxdhVlucjmnOQ==
+  dependencies:
+    follow-redirects "^1.14.9"
+    form-data "^4.0.0"
 
 axobject-query@^2.0.2:
   version "2.1.1"
@@ -7181,7 +7182,7 @@ flux@^3.1.3:
     fbemitter "^2.0.0"
     fbjs "^0.8.0"
 
-follow-redirects@^1.0.0, follow-redirects@^1.10.0, follow-redirects@^1.14.0, follow-redirects@^1.14.8:
+follow-redirects@^1.0.0, follow-redirects@^1.14.0, follow-redirects@^1.14.8, follow-redirects@^1.14.9:
   version "1.14.9"
   resolved "https://registry.yarnpkg.com/follow-redirects/-/follow-redirects-1.14.9.tgz#dd4ea157de7bfaf9ea9b3fbd85aa16951f78d8d7"
   integrity sha512-MQDfihBQYMcyy5dhRDJUHcw7lb2Pv/TuE6xP1vyraLukNDHKbDxDNaOE3NbCAdKQApno+GPRyo1YAp89yCjK4w==
