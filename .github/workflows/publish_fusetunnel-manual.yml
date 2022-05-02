@@ -1,7 +1,7 @@
 ###################################################################
 # Auto-created by the cicd-actions tool
 on: workflow_dispatch
-name: Publish Fusetunnel
+name: Publish Fusetunnel - Manual
 jobs:
   deploy:
     name: Deploy
@@ -41,6 +41,8 @@ jobs:
             ${{ runner.os }}-yarn-
       - name: Checkout
         uses: actions/checkout@v2
+        with:
+          fetch-depth: 0
       - name: Version
         id: package-versions
         run: ./tool/cicd/actions/scripts/export_versions.sh
@@ -60,24 +62,4 @@ jobs:
       - name: Qualify - npm works
         run: npm whoami
       - name: Publish - Fusetunnel
-        run: ./tool/cicd/actions/scripts/publish_fusetunnel.sh
-      - name: Publish - Fusetunnel-server
-        run: ./tool/cicd/actions/scripts/publish_fusetunnel-server.sh
-      - name: Notify slack success
-        if: success()
-        env:
-          SLACK_BOT_TOKEN: ${{ secrets.SLACK_NOTIFICATIONS_BOT_TOKEN }}
-        uses: voxmedia/github-action-slack-notify-build@v1
-        with:
-          channel: pr-review
-          status: SUCCESS
-          color: good
-      - name: Notify slack fail
-        if: failure()
-        env:
-          SLACK_BOT_TOKEN: ${{ secrets.SLACK_NOTIFICATIONS_BOT_TOKEN }}
-        uses: voxmedia/github-action-slack-notify-build@v1
-        with:
-          channel: pr-review
-          status: FAILED
-          color: danger
+        run: ./tool/cicd/actions/scripts/publish_ft.sh
