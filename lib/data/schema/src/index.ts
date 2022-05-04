@@ -60,6 +60,7 @@ export interface IEntityCore {
   accountId: string;
   subscriptionId: string;
   __databaseId?: string;
+  entityType?: string;
 }
 
 // Data needed for selects and deletes
@@ -107,6 +108,7 @@ export interface IListResponse<T extends IEntity> {
 // The Entity returned by the SDK, sans various internal parameters.
 export interface ISdkEntity {
   id: string;
+  entityType?: string;
   parentId?: string;
   tags?: ITags;
   data?: any;

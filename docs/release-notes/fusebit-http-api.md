@@ -17,6 +17,13 @@ All public releases of the Fusebit HTTP API are documented here, including notab
 <!-- 1. TOC
 {:toc} -->
 
+## Version 1.38.0
+
+_Released 5/4/22_
+
+- **Enhancement** Return entity dates in ISO format with a `T` instead of ` `.
+- **Enhancement** Include the `entityType` field in returned objects.
+
 ## Version 1.37.1
 
 _Released 4/22/22_

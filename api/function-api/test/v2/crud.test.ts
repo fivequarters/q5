@@ -156,7 +156,9 @@ const performTests = (testEntityType: TestableEntityTypes, sampleEntityMap: Samp
   }, 180000);
 
   test('Create Entity', async () => {
-    await createEntityTest(sampleEntity());
+    const entity = await createEntityTest(sampleEntity());
+    expect(entity.entityType).toBe(testEntityType);
+    expect(entity.__databaseId).toBeUndefined();
   }, 180000);
 
   test('Create Entity without body id', async () => {

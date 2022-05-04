@@ -4,7 +4,7 @@ import fusetunnel from '@fusebit/tunnel';
 const startTunnel = async (serverPort: number, lastDomain?: string) => {
   const tunnel = await fusetunnel({
     port: serverPort,
-    host: 'https://tunnel.dev.fusebit.io',
+    host: 'https://tunnel.dev.fivequarters.io',
     ...(lastDomain ? { subdomain: lastDomain } : {}),
   });
 
