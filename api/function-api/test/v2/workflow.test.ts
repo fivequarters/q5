@@ -33,7 +33,7 @@ describe('Workflow', () => {
 
     tunnel = await startTunnel(port);
 
-    redirectUrl = `https://${tunnel.subdomain}.tunnel.dev.fusebit.io`;
+    redirectUrl = `https://${tunnel.subdomain}.tunnel.dev.fivequarters.io`;
   });
 
   afterEach(async () => {

@@ -17,7 +17,7 @@ beforeEach(() => {
   ({ account, boundaryId, function1Id, function2Id, function3Id, function4Id, function5Id } = getEnv());
 });
 
-const REQ_SUFFIX = 'tunnel.dev.fusebit.io';
+const REQ_SUFFIX = 'tunnel.dev.fivequarters.io';
 
 const helloWorld = {
   nodejs: {
@@ -148,7 +148,7 @@ describe('Function Redirection', () => {
 
     tunnel = await startTunnel(port);
 
-    redirectUrl = `https://${tunnel.subdomain}.tunnel.dev.fusebit.io`;
+    redirectUrl = `https://${tunnel.subdomain}.tunnel.dev.fivequarters.io`;
   });
 
   afterEach(async () => {
