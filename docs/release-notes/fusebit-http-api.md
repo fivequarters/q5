@@ -17,6 +17,12 @@ All public releases of the Fusebit HTTP API are documented here, including notab
 <!-- 1. TOC
 {:toc} -->
 
+## Version 1.38.1
+
+_Released 5/5/22_
+
+- **Bugfix** Reduce restrictions on allowed redirect addresses when serving functions.
+
 ## Version 1.38.0
 
 _Released 5/4/22_

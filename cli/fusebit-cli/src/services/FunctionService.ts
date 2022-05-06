@@ -898,7 +898,7 @@ export class FunctionService {
     );
 
     await this.executeService.info('Building Tunnel', `Establishing tunnel to Fusebit (port ${port})`);
-    const tunnel = await startTunnel(port);
+    const { tunnel } = await startTunnel(port);
     try {
       await this.executeService.info('Redirecting', `Redirecting traffic for ${profile.boundary}/${functionId}`);
       const result = await this.executeService.executeRequest(
@@ -926,7 +926,7 @@ export class FunctionService {
           headers: {
             Authorization: `Bearer ${profile.accessToken}`,
           },
-          data: { redirectUrl: `https://${tunnel.subdomain}.tunnel.dev.fusebit.io` },
+          data: { redirectUrl: tunnel.url },
         }
       );
 
