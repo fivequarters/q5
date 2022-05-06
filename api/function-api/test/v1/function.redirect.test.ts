@@ -84,7 +84,10 @@ describe('Function Redirect', () => {
     await Promise.all(
       invalidRedirects.map(async (uri) => {
         response = await postFunctionRedirect(account, boundaryId, function1Id, uri);
-        expect(response).toBeHttp({ statusCode: 400 });
+        expect(response).toBeHttp({
+          statusCode: 400,
+          data: { status: 400, statusCode: 400, message: 'redirectUrl: Unsupported tunnel endpoint' },
+        });
       })
     );
   }, 120000);
