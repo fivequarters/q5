@@ -33,7 +33,7 @@ _Released 5/5/22_
 
 _Released 5/4/22_
 
-- **Enhancement** Return entity dates in ISO format with a `T` instead of ``.
+- **Enhancement** Return entity dates in ISO format with a `T` instead of ` `.
 - **Enhancement** Include the `entityType` field in returned objects.
 
 ## Version 1.37.1
