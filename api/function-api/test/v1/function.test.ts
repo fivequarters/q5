@@ -190,9 +190,11 @@ const helloWorldWithNode14JavaScript = {
 const helloWorldWithNode16Javascript = {
   nodejs: {
     files: {
-      'index.js': 'module.exports = (ctx, cb) => cb(null, { body: "hello" });',
-      engines: {
-        node: '16',
+      'index.js': 'module.exports = (ctx, cb) => cb(null, { body: process.version });',
+      'package.json': {
+        engines: {
+          node: '16',
+        },
       },
     },
   },
@@ -249,20 +251,20 @@ describe('Function', () => {
     expect(version.data).toMatch(/^v14/);
   }, 120000);
 
-  test('PUT succeeds with supported node.s version 16', async () => {
+  test('PUT succeeds with supported node.js version 16', async () => {
     const response = await putFunction(account, boundaryId, function1Id, helloWorldWithNode16Javascript);
     expect(response).toBeHttp({ statusCode: 200 });
     const version = await request(response.data.location);
     expect(version).toBeHttp({ statusCode: 200 });
     expect(version.data).toMatch(/^v16/);
-  });
+  }, 120000);
 
-  test('PUT succeeds with default node.js matching version 14', async () => {
+  test('PUT succeeds with default node.js matching version 16', async () => {
     const response = await putFunction(account, boundaryId, function1Id, helloWorldWithNodeDefaultJavaScript);
     expect(response).toBeHttp({ statusCode: 200 });
     const version = await request(response.data.location);
     expect(version).toBeHttp({ statusCode: 200 });
-    expect(version.data).toMatch(/^v14/);
+    expect(version.data).toMatch(/^v16/);
   }, 120000);
 
   test('PUT completes synchronously', async () => {
