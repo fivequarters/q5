@@ -1,6 +1,7 @@
 import { Message, MessageKind, IExecuteInput } from '@5qtrs/cli';
 import { IText } from '@5qtrs/text';
 import * as SlackCliPlugin from '@5qtrs/cli-addon-slack-reporter';
+
 // -------------------
 // Exported Interfaces
 // -------------------
