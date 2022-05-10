@@ -68,11 +68,11 @@ export const startExecution = async (command: string, identity: any) => {
   executionId = result.body.executionId;
 };
 
-export const writeMessage = async (message: string) => {
+export const writeMessage = async (header: string, message: string) => {
   if (!executionId) {
     return;
   }
-  messages.push(message + '\n');
+  messages.push(header + '\n' + message + '\n');
 };
 
 export const endExecution = async (exitCode: string) => {

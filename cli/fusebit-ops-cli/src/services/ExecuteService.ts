@@ -74,6 +74,7 @@ export class ExecuteService {
       await formattedMessage.write(this.input.io);
       if (await SlackCliPlugin.isSetup()) {
         await SlackCliPlugin.writeMessage(
+          header.toString().replace(/[\u001b\u009b][[()#;?]*(?:[0-9]{1,4}(?:;[0-9]{0,4})*)?[0-9A-ORZcf-nqry=><]/g, ''),
           message.toString().replace(/[\u001b\u009b][[()#;?]*(?:[0-9]{1,4}(?:;[0-9]{0,4})*)?[0-9A-ORZcf-nqry=><]/g, '')
         );
       }
