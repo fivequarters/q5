@@ -13,7 +13,8 @@ const command: ICommand = {
   arguments: [
     {
       name: 'baseUrl',
-      description: 'The base URL or the Fusebit integration you would like to utilize.',
+      description:
+        'The base URL or the Fusebit integration you would like to utilize. Check out https://github.com/fusebit/awesome-examples for the various plugins supported.',
     },
   ],
 };
