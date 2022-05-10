@@ -10,14 +10,6 @@ const command: ICommand = {
   cmd: 'slack',
   summary: 'Manage the Slack Plugin for Fusebit Ops Cli',
   description: 'Manage the configuration of the slack plugin for the Fusebit Ops Cli.',
-  options: [
-    {
-      name: 'output',
-      aliases: ['o'],
-      description: "The format to display the output: 'pretty', 'json'",
-      default: 'pretty',
-    },
-  ],
 };
 
 // ----------------

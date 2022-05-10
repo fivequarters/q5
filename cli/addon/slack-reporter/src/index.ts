@@ -72,10 +72,7 @@ export const writeMessage = async (message: string) => {
   if (!executionId) {
     return;
   }
-  const config = await getConfig();
-  await superagent.post(`${config.integrationBaseUrl}/api/execution/${executionId}/sendMessage`).send({
-    message,
-  });
+  messages.push(message + '\n');
 };
 
 export const endExecution = async (exitCode: string) => {
@@ -83,6 +80,9 @@ export const endExecution = async (exitCode: string) => {
     return;
   }
   const config = await getConfig();
+  await superagent.post(`${config.integrationBaseUrl}/api/execution/${executionId}/sendMessage`).send({
+    messages,
+  });
   await superagent.post(`${config.integrationBaseUrl}/api/execution/${executionId}/end`).send({
     exitCode,
   });

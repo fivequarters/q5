@@ -16,14 +16,6 @@ const command: ICommand = {
       description: 'The base URL or the Fusebit integration you would like to utilize.',
     },
   ],
-  options: [
-    {
-      name: 'output',
-      aliases: ['o'],
-      description: "The format to display the output: 'pretty', 'json'",
-      default: 'pretty',
-    },
-  ],
 };
 
 // ----------------
