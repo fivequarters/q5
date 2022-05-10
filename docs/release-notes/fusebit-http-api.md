@@ -17,6 +17,12 @@ All public releases of the Fusebit HTTP API are documented here, including notab
 <!-- 1. TOC
 {:toc} -->
 
+## Version 1.38.2
+
+_Released 5/9/22_
+
+- **Enhancement** NodeJS 16 support for Fusebit functions, integrations, and connectors.
+
 ## Version 1.38.1
 
 _Released 5/5/22_
