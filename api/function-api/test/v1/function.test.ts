@@ -187,6 +187,17 @@ const helloWorldWithNode14JavaScript = {
   },
 };
 
+const helloWorldWithNode16Javascript = {
+  nodejs: {
+    files: {
+      'index.js': 'module.exports = (ctx, cb) => cb(null, { body: "hello" });',
+      engines: {
+        node: '16',
+      },
+    },
+  },
+};
+
 const helloWorldWithMustache = {
   nodejs: {
     files: {
@@ -237,6 +248,14 @@ describe('Function', () => {
     expect(version).toBeHttp({ statusCode: 200 });
     expect(version.data).toMatch(/^v14/);
   }, 120000);
+
+  test('PUT succeeds with supported node.s version 16', async () => {
+    const response = await putFunction(account, boundaryId, function1Id, helloWorldWithNode16Javascript);
+    expect(response).toBeHttp({ statusCode: 200 });
+    const version = await request(response.data.location);
+    expect(version).toBeHttp({ statusCode: 200 });
+    expect(version.data).toMatch(/^v16/);
+  });
 
   test('PUT succeeds with default node.js matching version 14', async () => {
     const response = await putFunction(account, boundaryId, function1Id, helloWorldWithNodeDefaultJavaScript);
