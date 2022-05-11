@@ -79,6 +79,15 @@ const publishTraces = async (accountId: string, traces: Trace[]) => {
           metadata,
         });
         await new Promise((resolve) => exporter.export([trace], resolve));
+
+        // Experimental: will this fix the memory leak? Firing async to not-block.
+        (async () => {
+          try {
+            await exporter.shutdown();
+          } catch (e) {
+            console.log(`Error during Tempo Exporter shutdown: `, e);
+          }
+        })();
       })
     );
   } catch (err) {

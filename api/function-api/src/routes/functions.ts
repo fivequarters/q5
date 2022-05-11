@@ -5,7 +5,7 @@ import { loadFunctionSummary, mintJwtForPermissions } from '@5qtrs/runas';
 import { AwsRegistry } from '@5qtrs/registry';
 import { IAgent } from '@5qtrs/account-data';
 import * as Constants from '@5qtrs/constants';
-import { createLoggingCtx, ISpanEvent, ILogEvent } from '@5qtrs/runtime-common';
+import { createLoggingCtx, dispatch_event } from '@5qtrs/runtime-common';
 
 import { keyStore, subscriptionCache } from './globals';
 import * as provider_handlers from './handlers/provider_handlers';
@@ -81,6 +81,32 @@ export interface IExecuteFunctionOptions {
   body?: string | object;
   query?: object;
   originalUrl?: string;
+  traceId?: string;
+  parentSpanId?: string;
+  spanId?: string;
+}
+
+interface IExecuteRequest {
+  protocol: string;
+  headers: IncomingHttpHeaders & Record<string, string | string[] | undefined>;
+  params: IParams;
+  method: string;
+  body: string | object | undefined;
+  query: object | undefined;
+
+  url: string;
+  originalUrl: string;
+  baseUrl: string;
+
+  keyStore: typeof keyStore;
+  resolvedAgent?: IAgent;
+
+  functionSummary: any;
+
+  startTime: number;
+  traceId?: string;
+  spanId?: string;
+  parentSpanId?: string;
 }
 
 interface IExecuteFunction {
@@ -89,8 +115,6 @@ interface IExecuteFunction {
   code: number;
   error?: any;
   headers?: any;
-  functionLogs: ILogEvent[];
-  functionSpans: ISpanEvent[];
 }
 
 interface IWaitForFunction {
@@ -267,7 +291,6 @@ const executeFunction = async (
     const baseUrl = Constants.get_function_location({}, params.subscriptionId, params.boundaryId, params.functionId);
     const apiUrl = baseUrl + url;
 
-    const parsedBaseUrl = new URL(baseUrl);
     const parsedUrl = new URL(apiUrl);
 
     params = { ...params, baseUrl, version: Constants.getFunctionVersion(functionSummary) };
@@ -275,7 +298,7 @@ const executeFunction = async (
     params.functionAccessToken = await mintJwtForPermissions(keyStore, params, functionPerms);
     params.logs = await createLoggingCtx(keyStore, params, 'https', Constants.API_PUBLIC_HOST);
 
-    const req = {
+    const req: IExecuteRequest = {
       protocol: parsedUrl.protocol.replace(':', ''),
       headers: { ...(options.headers ? options.headers : {}), host: parsedUrl.host },
       params,
@@ -291,9 +314,42 @@ const executeFunction = async (
       resolvedAgent,
 
       functionSummary,
+
+      startTime: Date.now(),
     };
 
+    // Make sure there's a traceId and a spanId - if there is, create a new span, if not, create both.
+    if (req.headers[Constants.traceIdHeader]) {
+      req.traceId = (req.headers[Constants.traceIdHeader] as string).split('.')[0];
+      req.parentSpanId = (req.headers[Constants.traceIdHeader] as string).split('.')[1];
+      req.spanId = Constants.makeTraceSpanId();
+    } else {
+      req.traceId = Constants.makeTraceId();
+      req.spanId = Constants.makeTraceSpanId();
+    }
+    req.headers[Constants.traceIdHeader] = `${req.traceId}.${req.spanId}`;
+
     const res = await asyncDispatch(req, provider_handlers.lambda.execute_function);
+
+    // Record logs and traces from the dispatch.
+    dispatch_event({
+      requestId: `${req.traceId}.${req.spanId}`,
+      traceId: req.traceId,
+      parentSpanId: req.parentSpanId,
+      spanId: req.spanId,
+      startTime: req.startTime,
+      endTime: Date.now(),
+      metrics: res.metrics,
+      response: { statusCode: res.statusCode, headers: res.getHeaders() },
+      fusebit: {
+        ...params,
+        modality: 'execution',
+      },
+      error: res.error,
+      functionLogs: res.functionLogs,
+      functionSpans: res.functionSpans,
+      logs: res.logs,
+    });
 
     return {
       body: res.body,
@@ -301,8 +357,6 @@ const executeFunction = async (
       code: res.code,
       error: res.error,
       headers: res.headers,
-      functionLogs: res.functionLogs,
-      functionSpans: res.functionSpans,
     };
   } finally {
     releaseRate();
