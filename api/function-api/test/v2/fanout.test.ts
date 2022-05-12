@@ -12,7 +12,7 @@ beforeEach(() => {
   ({ account, boundaryId } = getEnv());
 });
 afterAll(async () => {
-  await cleanupEntities(account);
+  // await cleanupEntities(account);
 }, 30000);
 
 const getTestIntegrationFile = () => {
@@ -115,6 +115,16 @@ describe('Fan Out Endpoint Tests', () => {
       `/fan_out/event/webhook?tag=${sharedTag}`,
       { body: { payload } }
     );
+
+    /*
+    console.log(
+      `FANOUT:\ncurl -H"Authorization: Bearer ${account.accessToken}" -H"User-Agent: ${
+        account.userAgent
+      }" -H"Content-Type: application/json" -XPOST ${account.baseUrl}/v2/account/${account.accountId}/subscription/${
+        account.subscriptionId
+      }/connector/${connectorId}/fan_out/event/webhook?tag=${sharedTag} -d '${JSON.stringify(payload)}'`
+    );
+   */
     expect(response).toBeHttp({ statusCode: 200 });
 
     // Verify just two of the three installs ids were supplied on invocation

@@ -100,7 +100,11 @@ describe('Function Utilities', () => {
     expect(create).toMatchObject({ code: 200 });
 
     const body = { hello: 'world' };
-    const exec = await FunctionUtilities.executeFunction(params, 'POST', '', { body });
+    const exec = await FunctionUtilities.executeFunction(params, 'POST', '', {
+      body,
+      apiVersion: 'v1',
+      mode: 'request',
+    });
     const base = await callFunction('', create.location as string, 'POST', JSON.stringify(body));
 
     expect(exec.body.method).toBe('POST');

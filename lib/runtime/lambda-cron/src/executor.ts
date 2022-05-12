@@ -212,6 +212,7 @@ function dispatchCronEvent(details: any) {
     error: details.meta.error || details.error, // The meta error always has more information.
     functionLogs: details.response.logs,
     functionSpans: details.response.spans,
+    functionIds: details.response.ids,
   };
 
   // Make sure the response.statusCode is populated so that it shows up in analytics reports

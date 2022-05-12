@@ -22,6 +22,7 @@ interface IParams {
   };
   traceId: string;
   spanId: string;
+  parentSpanId: string;
 }
 
 export const publishSpans = async (params: IParams, spans?: ISpanEvent[]) => {
@@ -31,7 +32,7 @@ export const publishSpans = async (params: IParams, spans?: ISpanEvent[]) => {
 
   const traces = await Promise.all(
     spans.map(async (span) => {
-      const trace = new Trace(`${span.method} ${span.url}`, params.traceId, makeTraceSpanId(), params.spanId);
+      const trace = new Trace(`${span.method} ${span.url}`, params.traceId, params.spanId, params.parentSpanId);
       trace.resource.attributes.url = span.url;
       trace.resource.attributes.method = span.method;
       trace.resource.attributes.statusCode = `${span.statusCode}`;

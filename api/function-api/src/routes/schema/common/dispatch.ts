@@ -12,7 +12,11 @@ import pathParams from '../../handlers/pathParams';
 import { BaseEntityService } from '../../service';
 
 // Add logging and span data to the express response object
-type EnrichedResponse = express.Response & { functionLogs: ILogEvent[]; functionSpans: ISpanEvent[] };
+type EnrichedResponse = express.Response & {
+  functionLogs: ILogEvent[];
+  functionSpans: ISpanEvent[];
+  functionIds: string[];
+};
 
 const router = (
   EntityService: BaseEntityService<Model.IEntity, Model.IEntity>,
@@ -61,10 +65,16 @@ const router = (
           body: req.body,
           query: req.query,
           originalUrl: req.originalUrl,
+          mode: 'request',
+          apiVersion: 'v2',
         }
       );
     } catch (e) {
       return next(e);
+    } finally {
+      res.functionLogs.push(...(result?.functionLogs || []));
+      res.functionSpans.push(...(result?.functionSpans || []));
+      res.functionIds.push(...(result?.functionIds || []));
     }
 
     if (result.error) {
@@ -73,9 +83,6 @@ const router = (
 
     res.set(result.headers);
     res.status(result.code);
-
-    res.functionLogs.push(...result.functionLogs);
-    res.functionSpans.push(...result.functionSpans);
 
     if (!result.body) {
       res.end();

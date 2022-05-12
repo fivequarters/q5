@@ -5,7 +5,7 @@ import { loadFunctionSummary, mintJwtForPermissions } from '@5qtrs/runas';
 import { AwsRegistry } from '@5qtrs/registry';
 import { IAgent } from '@5qtrs/account-data';
 import * as Constants from '@5qtrs/constants';
-import { createLoggingCtx, dispatch_event } from '@5qtrs/runtime-common';
+import { createLoggingCtx, dispatch_event, ISpanEvent, ILogEvent } from '@5qtrs/runtime-common';
 
 import { keyStore, subscriptionCache } from './globals';
 import * as provider_handlers from './handlers/provider_handlers';
@@ -81,9 +81,15 @@ export interface IExecuteFunctionOptions {
   body?: string | object;
   query?: object;
   originalUrl?: string;
-  traceId?: string;
-  parentSpanId?: string;
-  spanId?: string;
+
+  apiVersion: 'v1' | 'v2';
+  mode: string;
+
+  analytics?: {
+    traceId?: string;
+    parentSpanId?: string;
+    spanId?: string;
+  };
 }
 
 interface IExecuteRequest {
@@ -115,6 +121,9 @@ interface IExecuteFunction {
   code: number;
   error?: any;
   headers?: any;
+  functionLogs: ILogEvent[];
+  functionSpans: ISpanEvent[];
+  functionIds: string[];
 }
 
 interface IWaitForFunction {
@@ -267,7 +276,7 @@ const executeFunction = async (
   params: IParams,
   method: string,
   url: string = '',
-  options: IExecuteFunctionOptions = {}
+  options: IExecuteFunctionOptions = { mode: 'request', apiVersion: 'v2' }
 ): Promise<IExecuteFunction> => {
   let sub;
   try {
@@ -288,27 +297,38 @@ const executeFunction = async (
     const resolvedAgent = await checkAuthorization(params.accountId, options.token, functionAuthn, functionAuthz);
 
     // execute
-    const baseUrl = Constants.get_function_location({}, params.subscriptionId, params.boundaryId, params.functionId);
-    const apiUrl = baseUrl + url;
+    const physicalBaseUrl = Constants.get_function_location(
+      {},
+      params.subscriptionId,
+      params.boundaryId,
+      params.functionId
+    );
+    const logicalBaseUrl =
+      options.apiVersion === 'v1'
+        ? physicalBaseUrl
+        : `${Constants.get_fusebit_endpoint({})}/${options.apiVersion}/account/${params.accountId}/subscription/${
+            params.subscriptionId
+          }/${params.boundaryId}/${params.functionId}`;
 
-    const parsedUrl = new URL(apiUrl);
+    const parsedPhysicalUrl = new URL(physicalBaseUrl + url);
+    const parsedLogicalUrl = new URL(logicalBaseUrl + url);
 
-    params = { ...params, baseUrl, version: Constants.getFunctionVersion(functionSummary) };
+    params = { ...params, baseUrl: physicalBaseUrl, version: Constants.getFunctionVersion(functionSummary) };
 
     params.functionAccessToken = await mintJwtForPermissions(keyStore, params, functionPerms);
     params.logs = await createLoggingCtx(keyStore, params, 'https', Constants.API_PUBLIC_HOST);
 
     const req: IExecuteRequest = {
-      protocol: parsedUrl.protocol.replace(':', ''),
-      headers: { ...(options.headers ? options.headers : {}), host: parsedUrl.host },
+      protocol: parsedPhysicalUrl.protocol.replace(':', ''),
+      headers: { ...(options.headers || {}), host: parsedPhysicalUrl.host },
       params,
       method,
       body: options.body,
       query: options.query,
 
-      url: parsedUrl.pathname.replace(/^\/v1/, ''),
-      originalUrl: parsedUrl.pathname,
-      baseUrl: '/v1',
+      url: parsedPhysicalUrl.pathname.replace(/^\/v1/, ''),
+      originalUrl: parsedPhysicalUrl.pathname,
+      baseUrl: `/${options.apiVersion}`,
 
       keyStore,
       resolvedAgent,
@@ -316,40 +336,48 @@ const executeFunction = async (
       functionSummary,
 
       startTime: Date.now(),
+
+      ...(options.analytics || {}),
     };
 
-    // Make sure there's a traceId and a spanId - if there is, create a new span, if not, create both.
-    if (req.headers[Constants.traceIdHeader]) {
-      req.traceId = (req.headers[Constants.traceIdHeader] as string).split('.')[0];
-      req.parentSpanId = (req.headers[Constants.traceIdHeader] as string).split('.')[1];
-      req.spanId = Constants.makeTraceSpanId();
-    } else {
-      req.traceId = Constants.makeTraceId();
-      req.spanId = Constants.makeTraceSpanId();
+    if (options.analytics) {
+      // Override the traceIdHeader with the supplied traceId and spanId.  Otherwise, the header contains the
+      // value from the "parent" request, which also absorbs the logs and spans that come from this execution.
+      req.headers[Constants.traceIdHeader] = `${req.traceId}.${req.spanId}`;
     }
-    req.headers[Constants.traceIdHeader] = `${req.traceId}.${req.spanId}`;
 
     const res = await asyncDispatch(req, provider_handlers.lambda.execute_function);
 
-    // Record logs and traces from the dispatch.
-    dispatch_event({
-      requestId: `${req.traceId}.${req.spanId}`,
-      traceId: req.traceId,
-      parentSpanId: req.parentSpanId,
-      spanId: req.spanId,
-      startTime: req.startTime,
-      endTime: Date.now(),
-      metrics: res.metrics,
-      response: { statusCode: res.statusCode, headers: res.getHeaders() },
-      fusebit: {
-        ...params,
-        modality: 'execution',
-      },
-      error: res.error,
-      functionLogs: res.functionLogs,
-      functionSpans: res.functionSpans,
-      logs: res.logs,
-    });
+    if (options.analytics) {
+      // Record logs and traces from the dispatch. Various touchups needed here to convert to v2 urls.
+      dispatch_event({
+        requestId: `${req.traceId}.${req.spanId}`,
+        traceId: req.traceId,
+        parentSpanId: req.parentSpanId,
+        spanId: req.spanId,
+        startTime: req.startTime,
+        endTime: Date.now(),
+        metrics: res.metrics,
+        request: {
+          method: req.method,
+          url: parsedLogicalUrl.toString(),
+          params: { ...req.params, baseUrl: logicalBaseUrl },
+          headers: req.headers,
+        },
+        response: { statusCode: res.statusCode, headers: res.headers },
+        fusebit: {
+          ...params,
+          modality: 'execution',
+          baseUrl: logicalBaseUrl,
+          mode: options.mode,
+        },
+        error: res.error,
+        functionLogs: res.functionLogs,
+        functionSpans: res.functionSpans,
+        functionIds: res.functionIds,
+        logs: res.logs,
+      });
+    }
 
     return {
       body: res.body,
@@ -357,6 +385,16 @@ const executeFunction = async (
       code: res.code,
       error: res.error,
       headers: res.headers,
+
+      // The parent absorbs the logs and spans if this execution doesn't have it's own analytics
+      // configuration.
+      ...(!options.analytics
+        ? {
+            functionLogs: res.functionLogs,
+            functionSpans: res.functionSpans,
+            functionIds: res.functionIds,
+          }
+        : { functionLogs: [], functionSpans: [], functionIds: [] }),
     };
   } finally {
     releaseRate();
