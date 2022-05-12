@@ -22,7 +22,6 @@ interface IParams {
   };
   traceId: string;
   spanId: string;
-  parentSpanId: string;
 }
 
 export const publishSpans = async (params: IParams, spans?: ISpanEvent[]) => {
@@ -32,10 +31,14 @@ export const publishSpans = async (params: IParams, spans?: ISpanEvent[]) => {
 
   const traces = await Promise.all(
     spans.map(async (span) => {
-      const trace = new Trace(`${span.method} ${span.url}`, params.traceId, params.spanId, params.parentSpanId);
+      // Spans here are non-Fusebit targeted requests, and don't have a spanId already associated with them.
+      // Create a new spanId for each request and associate it with the current request, specified in params.
+      const trace = new Trace(`${span.method} ${span.url}`, params.traceId, makeTraceSpanId(), params.spanId);
+
       trace.resource.attributes.url = span.url;
       trace.resource.attributes.method = span.method;
       trace.resource.attributes.statusCode = `${span.statusCode}`;
+
       if (span.statusCode > 399 || span.error) {
         trace.status.code = 2;
       }
