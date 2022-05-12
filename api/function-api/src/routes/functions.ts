@@ -132,7 +132,7 @@ interface IWaitForFunction {
 }
 
 interface IResult {
-  code?: number;
+  statusCode?: number;
   body?: string | object;
   bodyEncoding?: string;
   headers: any;
@@ -145,17 +145,17 @@ interface IResult {
 const asyncDispatch = async (req: any, handler: any): Promise<any> => {
   const res: IResult = await new Promise((resolve, reject) => {
     const result: IResult = {
-      code: undefined,
+      statusCode: undefined,
       body: undefined,
       bodyEncoding: undefined,
       headers: {},
       json(val: any) {
-        this.code = this.code || 200;
+        this.statusCode = this.statusCode || 200;
         this.body = val;
         resolve(result);
       },
       status(status: number) {
-        this.code = status;
+        this.statusCode = status;
       },
       set(key: string, value: string) {
         this.headers[key] = value;
@@ -198,9 +198,9 @@ const createFunction = async (
   };
   const res = await asyncDispatch(req, provider_handlers.lambda.put_function);
   if (res.body && typeof res.body === 'object') {
-    return { code: res.code, ...res.body };
+    return { code: res.statusCode, ...res.body };
   }
-  return { code: res.code };
+  return { code: res.statusCode };
 };
 
 const waitForFunctionBuild = async (
@@ -215,15 +215,15 @@ const waitForFunctionBuild = async (
 
   do {
     const res = await asyncDispatch(req, provider_handlers.lambda.get_function_build);
-    if (res.code === 200) {
-      return { code: res.code, version: res.body.version };
+    if (res.statusCode === 200) {
+      return { code: res.statusCode, version: res.body.version };
     }
-    if (res.code === 201) {
+    if (res.statusCode === 201) {
       await new Promise((resolve) => setTimeout(resolve, BUILD_POLL_DELAY));
       continue;
     }
 
-    throw create_error(res.code, res.body.message);
+    throw create_error(res.statusCode, res.body.message);
   } while (Date.now() < startTime + noLongerThan);
 
   throw create_error(408);
@@ -234,7 +234,7 @@ const deleteFunction = async (params: IParams): Promise<any> => {
   if (res.body) {
     return res.body;
   }
-  return { code: res.code };
+  return { code: res.statusCode };
 };
 
 const checkAuthorization = async (
@@ -360,7 +360,7 @@ const executeFunction = async (
         metrics: res.metrics,
         request: {
           method: req.method,
-          url: parsedLogicalUrl.toString(),
+          url: parsedLogicalUrl.pathname,
           params: { ...req.params, baseUrl: logicalBaseUrl },
           headers: req.headers,
         },
@@ -382,7 +382,7 @@ const executeFunction = async (
     return {
       body: res.body,
       bodyEncoding: res.bodyEncoding,
-      code: res.code,
+      code: res.statusCode,
       error: res.error,
       headers: res.headers,
 
