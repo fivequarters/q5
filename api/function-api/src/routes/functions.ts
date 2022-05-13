@@ -123,7 +123,6 @@ interface IExecuteFunction {
   headers?: any;
   functionLogs: ILogEvent[];
   functionSpans: ISpanEvent[];
-  functionIds: string[];
 }
 
 interface IWaitForFunction {
@@ -370,11 +369,11 @@ const executeFunction = async (
           modality: 'execution',
           baseUrl: logicalBaseUrl,
           mode: options.mode,
+          apiVersion: options.apiVersion,
         },
         error: res.error,
         functionLogs: res.functionLogs,
         functionSpans: res.functionSpans,
-        functionIds: res.functionIds,
         logs: res.logs,
       });
     }
@@ -392,9 +391,8 @@ const executeFunction = async (
         ? {
             functionLogs: res.functionLogs,
             functionSpans: res.functionSpans,
-            functionIds: res.functionIds,
           }
-        : { functionLogs: [], functionSpans: [], functionIds: [] }),
+        : { functionLogs: [], functionSpans: [] }),
     };
   } finally {
     releaseRate();

@@ -64,7 +64,6 @@ exports.enterHandler = (modality) => {
 
     res.functionLogs = [];
     res.functionSpans = [];
-    res.functionIds = [];
 
     req.headers[traceIdHeader] = `${req.traceId}.${req.spanId}`;
     res.setHeader(traceIdHeader, req.headers[traceIdHeader]);
@@ -135,7 +134,6 @@ exports.enterHandler = (modality) => {
         error: res.error,
         functionLogs: res.functionLogs,
         functionSpans: res.functionSpans,
-        functionIds: res.functionIds,
         logs,
       });
     };

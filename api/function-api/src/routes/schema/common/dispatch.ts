@@ -15,7 +15,6 @@ import { BaseEntityService } from '../../service';
 type EnrichedResponse = express.Response & {
   functionLogs: ILogEvent[];
   functionSpans: ISpanEvent[];
-  functionIds: string[];
 };
 
 const router = (
@@ -74,7 +73,6 @@ const router = (
     } finally {
       res.functionLogs.push(...(result?.functionLogs || []));
       res.functionSpans.push(...(result?.functionSpans || []));
-      res.functionIds.push(...(result?.functionIds || []));
     }
 
     if (result.error) {

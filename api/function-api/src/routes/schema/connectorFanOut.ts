@@ -109,7 +109,6 @@ const router = (
             ...(response.status === 'fulfilled' ? response.value : {}),
             functionLogs: undefined,
             functionSpans: undefined,
-            functionIds: undefined,
           },
         }))
       );

@@ -6,7 +6,7 @@
   "bin": {
     "fuse": "libc/index.js"
   },
-  "license": "LicenseRef-LICENSE",
+  "license": "MIT",
   "author": "https://fusebit.io",
   "packageAs": "@fusebit/cli",
   "packageAssets": ["template", "README.md", "LICENSE"],
