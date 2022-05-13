@@ -1,6 +1,6 @@
 import { ISpanEvent } from './grafana';
 
-const getAttributes = (fullUrl: string): Record<string, string[]> => {
+const getReferences = (fullUrl: string): Record<string, string[]> => {
   const url = new URL(fullUrl);
   const result: Record<string, string[]> = {
     connector: [],
@@ -77,11 +77,11 @@ const getAttributes = (fullUrl: string): Record<string, string[]> => {
   return result;
 };
 
-const convertUrlToAttributes = (url: string, previousAttributes: Record<string, string> = {}): Record<string, string> =>
+const convertUrlToReferences = (url: string, previousReferences: Record<string, string> = {}): Record<string, string> =>
   // Flatten the results, merging with any previous results.
-  Object.entries(getAttributes(url)).reduce<Record<string, string>>((prev, [key, values]) => {
+  Object.entries(getReferences(url)).reduce<Record<string, string>>((prev, [key, values]) => {
     prev[key] = [...new Set(prev[key] ? [...prev[key].split(','), ...values] : values)].join(',');
     return prev;
-  }, previousAttributes);
+  }, previousReferences);
 
-export { convertUrlToAttributes };
+export { convertUrlToReferences };
