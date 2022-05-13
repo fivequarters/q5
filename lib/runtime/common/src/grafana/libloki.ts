@@ -44,7 +44,7 @@ const publishLogs = async (params: IParams, attributes: any[], logEntries: IEntr
   logEntries.forEach((event) =>
     payload.streams[0].values.push([
       fromEventTime(event.time),
-      JSON.stringify({ traceID: params.traceId, spanID: params.spanId, msg: event.msg, attributes }),
+      JSON.stringify({ traceID: params.traceId, spanID: params.spanId, msg: event.msg, reference: attributes }),
     ])
   );
 
