@@ -83,7 +83,7 @@ export interface IExecuteFunctionOptions {
   originalUrl?: string;
 
   apiVersion: 'v1' | 'v2';
-  mode: string;
+  mode: 'request' | 'fanout' | 'cron';
 
   analytics?: {
     traceId?: string;
@@ -348,7 +348,6 @@ const executeFunction = async (
     const res = await asyncDispatch(req, provider_handlers.lambda.execute_function);
 
     if (options.analytics) {
-      // Record logs and traces from the dispatch. Various touchups needed here to convert to v2 urls.
       dispatch_event({
         requestId: `${req.traceId}.${req.spanId}`,
         traceId: req.traceId,

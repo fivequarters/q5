@@ -101,9 +101,10 @@ async function executeFunction(ctx: any) {
 
   const { startTime, deviation } = calculateCronDeviation(ctx.cron, ctx.timezone);
 
+  const traceId = Constants.makeTraceId();
+  const spanId = Constants.makeTraceSpanId();
+
   // Generate a pseudo-request object to drive the invocation.
-  let traceId = Constants.makeTraceId();
-  let spanId = Constants.makeTraceSpanId();
   const request = {
     method: 'CRON',
     url: `${Constants.get_function_path(ctx.subscriptionId, ctx.boundaryId, ctx.functionId)}`,
@@ -199,19 +200,41 @@ function dispatchCronEvent(details: any) {
     modality: 'execution',
   };
 
+  const apiVersion = fusebit.boundaryId === 'connector' || fusebit.boundaryId === 'integration' ? 'v2' : 'v1';
+
+  const url =
+    apiVersion === 'v1'
+      ? details.request.url
+      : `/${apiVersion}/account/${fusebit.accountId}/subscription/${fusebit.subscriptionId}/${fusebit.boundaryId}/${fusebit.functionId}/cron/event`;
+
+  const baseUrl =
+    apiVersion === 'v1'
+      ? details.request.url
+      : `/${apiVersion}/account/${fusebit.accountId}/subscription/${fusebit.subscriptionId}/${fusebit.boundaryId}/${fusebit.functionId}`;
+
   const event = {
     requestId: details.request.requestId,
     traceId: details.request.traceId,
+    spanId: details.request.spanId,
     startTime: details.request.startTime,
     endTime: Date.now(),
-    request: details.request,
+    request: {
+      method: details.request.method,
+      url,
+      params: { ...details.request.params, baseUrl },
+      headers: details.request.headers,
+    },
     metrics: details.meta.metrics,
-    response: { statusCode: 200, headers: [] },
+    response: { statusCode: details.response.status, headers: [] },
     ...(details.persistLogs && details.meta.log ? { logs: details.meta.log } : {}),
-    fusebit,
+    fusebit: {
+      ...fusebit,
+      baseUrl,
+      apiVersion,
+    },
     error: details.meta.error || details.error, // The meta error always has more information.
-    functionLogs: details.response.logs,
-    functionSpans: details.response.spans,
+    functionLogs: details.response.logs || [],
+    functionSpans: details.response.spans || [],
   };
 
   // Make sure the response.statusCode is populated so that it shows up in analytics reports
