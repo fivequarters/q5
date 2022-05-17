@@ -55,7 +55,7 @@ cat > /opt/aws/amazon-cloudwatch-agent/bin/config.json << EOF
       "files": {
         "collect_list": [
           {
-            "file_path": "/var/log/${folderName}",
+            "file_path": "${folderName}",
             "log_group_name": "/fusebit-${serviceType}/${deploymentName}",
             "log_stream_name": "{instance_id}"
           }

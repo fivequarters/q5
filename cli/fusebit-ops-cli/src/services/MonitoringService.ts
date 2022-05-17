@@ -417,7 +417,11 @@ mkdir /root/tempo-data
 mkdir /root/loki
 chmod 777 -R /var/log
 chmod 777 -R /root/loki
-${awsUserData.installCloudWatchAgent('grafana', LOGGING_SERVICE_TYPE, deployment.monitoringDeploymentName)}
+${awsUserData.installCloudWatchAgent(
+  '/var/lib/docker/containers/',
+  LOGGING_SERVICE_TYPE,
+  deployment.monitoringDeploymentName
+)}
 ${awsUserData.installDocker()}
 ${awsUserData.installDockerCompose()}
 ${awsUserData.addFile(grafanaConfigFile, '/root/grafana.ini')}
