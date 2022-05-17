@@ -1,6 +1,6 @@
 {
   "name": "@5qtrs/fusebit-ops-cli",
-  "version": "1.38.2",
+  "version": "1.38.3",
   "description": "The Fusebit Platform Operations CLI",
   "main": "libc/index.js",
   "license": "UNLICENSED",
@@ -55,7 +55,5 @@
     "@types/jszip": "^3.4.1",
     "@types/rimraf": "^3.0.0"
   },
-  "bundledDependencies": [
-    "@fusebit/schema"
-  ]
+  "bundledDependencies": ["@fusebit/schema"]
 }

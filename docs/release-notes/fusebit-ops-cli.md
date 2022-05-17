@@ -18,6 +18,12 @@ All public releases of the Fusebit Operations CLI are documented here, including
 {:toc}
 -->
 
+## Version 1.38.3
+
+_Released 5/17/22_
+
+- **Enhancement** Improve cron logging to Grafana.
+
 ## Version 1.38.2
 
 _Released 5/17/22_
