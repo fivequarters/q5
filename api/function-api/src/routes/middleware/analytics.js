@@ -45,16 +45,23 @@ exports.enterHandler = (modality) => {
     //
     // Otherwise, allocate a new spanId, track basic analytics - duration, result, etc and return that as part
     // of the payload.
-    if (req.headers[traceIdHeader]) {
-      [parentTraceId, parentSpanId] = req.headers[traceIdHeader].split('.');
-    } else {
+    try {
+      if (req.headers[traceIdHeader]) {
+        [parentTraceId, parentSpanId] = req.headers[traceIdHeader].split('.');
+      } else {
+        parentTraceId = makeTraceId();
+        parentSpanId = undefined;
+      }
+    } catch (e) {
+      // Possibly invalid traceId header; generate a new one.
       parentTraceId = makeTraceId();
-      parentSpanId = makeTraceSpanId();
+      parentSpanId = undefined;
     }
 
     req.traceId = parentTraceId;
     req.parentSpanId = parentSpanId;
     req.spanId = makeTraceSpanId();
+
     res.functionLogs = [];
     res.functionSpans = [];
 

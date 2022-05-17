@@ -23,7 +23,7 @@ interface ILokiPayload {
   }[];
 }
 
-const publishLogs = async (params: IParams, logEntries: IEntry[]) => {
+const publishLogs = async (params: IParams, attributes: any[], logEntries: IEntry[]) => {
   if (!logEntries || logEntries.length === 0) {
     return;
   }
@@ -44,7 +44,7 @@ const publishLogs = async (params: IParams, logEntries: IEntry[]) => {
   logEntries.forEach((event) =>
     payload.streams[0].values.push([
       fromEventTime(event.time),
-      JSON.stringify({ traceID: params.traceId, spanID: params.spanId, msg: event.msg }),
+      JSON.stringify({ traceID: params.traceId, spanID: params.spanId, msg: event.msg, ...attributes }),
     ])
   );
 

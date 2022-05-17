@@ -85,7 +85,6 @@ const createGrafanaSession = async (req: express.Request, res: express.Response,
     const sessionCookie = sessionSetCookies[0].token;
     res.cookie('grafana_session', sessionCookie, {
       path: grafana.mountPoint,
-      domain: API_PUBLIC_HOST,
       sameSite: 'none',
       secure: true,
       maxAge: Number(sessionSetCookies[0].maxAge),
