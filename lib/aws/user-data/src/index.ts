@@ -12,7 +12,7 @@ export default class AwsData {
 
   public static runDockerCompose() {
     return `cd /root/
-docker-compose up -d`;
+docker-compose up > /var/log/compose-log 2>&1 &`;
   }
 
   public static updateSystem() {
@@ -55,7 +55,7 @@ cat > /opt/aws/amazon-cloudwatch-agent/bin/config.json << EOF
       "files": {
         "collect_list": [
           {
-            "file_path": "/var/log/${folderName}",
+            "file_path": "${folderName}",
             "log_group_name": "/fusebit-${serviceType}/${deploymentName}",
             "log_stream_name": "{instance_id}"
           }

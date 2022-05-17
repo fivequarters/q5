@@ -10,6 +10,10 @@ services:
     ports:
       - '3200:3200/tcp' # http
       - '4317:4317/tcp' # grpc ingest
+    logging:
+      driver: 'json-file'
+      options:
+        max-size: '50m'
 
   loki:
     image: grafana/loki:2.3.0
@@ -20,6 +24,10 @@ services:
       - /root/loki:/loki/
     ports:
       - '3100:3100'
+    logging:
+      driver: 'json-file'
+      options:
+        max-size: '50m'
 
   grafana:
     image: grafana/grafana:latest
@@ -29,8 +37,16 @@ services:
       - /var/log/:/var/log/
     ports:
       - '3000:3000'
+    logging:
+      driver: 'json-file'
+      options:
+        max-size: '50m'
 
   health:
     image: public.ecr.aws/fusebit/grafana-health:latest
     ports:
       - '9999:9999'
+    logging:
+      driver: 'json-file'
+      options:
+        max-size: '50m'
