@@ -23,7 +23,7 @@ All public releases of the Fusebit Operations CLI are documented here, including
 _Released 5/17/22_
 
 - **Enhancement** Forward docker logs to CloudWatch.
-- **Enhancement** Automatically delete logs when it reaches > 10MB on disk.
+- **Enhancement** Automatically delete logs when it reaches > 50MB on disk.
 
 ## Version 1.38.1
 
