@@ -12,7 +12,7 @@ export default class AwsData {
 
   public static runDockerCompose() {
     return `cd /root/
-docker-compose up -d`;
+docker-compose up > /var/log/compose-log 2>&1 &`;
   }
 
   public static updateSystem() {
