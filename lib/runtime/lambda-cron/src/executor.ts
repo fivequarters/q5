@@ -212,6 +212,8 @@ function dispatchCronEvent(details: any) {
       ? details.request.url
       : `/${apiVersion}/account/${fusebit.accountId}/subscription/${fusebit.subscriptionId}/${fusebit.boundaryId}/${fusebit.functionId}`;
 
+  const statusCode = details.error ? details.error.statusCode || 501 : details.response?.status || 200;
+
   const event = {
     requestId: details.request.requestId,
     traceId: details.request.traceId,
@@ -225,7 +227,7 @@ function dispatchCronEvent(details: any) {
       headers: details.request.headers,
     },
     metrics: details.meta.metrics,
-    response: { statusCode: details.response.status, headers: [] },
+    response: { statusCode, headers: details.response.headers || [] },
     ...(details.persistLogs && details.meta.log ? { logs: details.meta.log } : {}),
     fusebit: {
       ...fusebit,
@@ -236,13 +238,6 @@ function dispatchCronEvent(details: any) {
     functionLogs: details.response.logs || [],
     functionSpans: details.response.spans || [],
   };
-
-  // Make sure the response.statusCode is populated so that it shows up in analytics reports
-  if (details.response && details.response.statusCode) {
-    event.response = { statusCode: details.response.statusCode, headers: details.response.headers || [] };
-  } else if (details.error) {
-    event.response = { statusCode: details.error.statusCode || 501, headers: [] };
-  }
 
   Common.dispatch_event(event);
 }
