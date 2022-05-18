@@ -655,16 +655,16 @@ paths:
       security:
         - AccessToken: ['instance:delete']
 
-#############################################################################
-# Tags
-#
-# This section is duplicated, verbatim, for each of the various endpoints the
-# tags are mounted on: integration, connector, install, identity.
-#
-# Each endpoint is grouped by type, for simplicity in updating all of them at
-# once.
-#
-# GET /tag/
+  #############################################################################
+  # Tags
+  #
+  # This section is duplicated, verbatim, for each of the various endpoints the
+  # tags are mounted on: integration, connector, install, identity.
+  #
+  # Each endpoint is grouped by type, for simplicity in updating all of them at
+  # once.
+  #
+  # GET /tag/
   /v2/account/{accountId}/subscription/{subscriptionId}/integration/{integrationId}/tag:
     parameters:
       - $ref: '#/components/parameters/Account'
@@ -779,7 +779,7 @@ paths:
       security:
         - AccessToken: ['identity:get']
 
-# GET/DELETE /tag/tagKey
+  # GET/DELETE /tag/tagKey
   /v2/account/{accountId}/subscription/{subscriptionId}/integration/{integrationId}/tag/{tagKey}:
     parameters:
       - $ref: '#/components/parameters/Account'
@@ -962,7 +962,7 @@ paths:
       security:
         - AccessToken: ['identity:put-tag']
 
-# PUT /tagKey/tagValue
+  # PUT /tagKey/tagValue
   /v2/account/{accountId}/subscription/{subscriptionId}/integration/{integrationId}/tag/{tagKey}/{tagValue}:
     parameters:
       - $ref: '#/components/parameters/Account'
@@ -1019,8 +1019,8 @@ paths:
       security:
         - AccessToken: ['connector:put-tag']
 
-  /v2/account/{accountId}/subscription/{subscriptionId}/integration/{integrationId}/install/{installId}/tag/{tagKey}/{tagValue}:
-    parameters:
+  ? /v2/account/{accountId}/subscription/{subscriptionId}/integration/{integrationId}/install/{installId}/tag/{tagKey}/{tagValue}
+  : parameters:
       - $ref: '#/components/parameters/Account'
       - $ref: '#/components/parameters/Subscription'
       - name: integrationId
@@ -1052,8 +1052,8 @@ paths:
       security:
         - AccessToken: ['install:put-tag']
 
-  /v2/account/{accountId}/subscription/{subscriptionId}/connector/{connectorId}/identity/{identityId}/tag/{tagKey}/{tagValue}:
-    parameters:
+  ? /v2/account/{accountId}/subscription/{subscriptionId}/connector/{connectorId}/identity/{identityId}/tag/{tagKey}/{tagValue}
+  : parameters:
       - $ref: '#/components/parameters/Account'
       - $ref: '#/components/parameters/Subscription'
       - name: connectorId
