@@ -18,6 +18,12 @@ All public releases of the Fusebit Operations CLI are documented here, including
 {:toc}
 -->
 
+## Version 1.38.4
+
+_Released 5/18/22_
+
+- **BugFix** Add permission to access CloudWatch for monitoring instances.
+
 ## Version 1.38.3
 
 _Released 5/17/22_

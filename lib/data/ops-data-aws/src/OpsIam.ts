@@ -267,7 +267,10 @@ export class OpsIam implements IDataSource {
     await createInstanceProfile(
       awsConfig,
       this.config.monoGrafanaProfileName,
-      [`${this.config.arnPrefix}:iam::aws:policy/AWSCloudMapRegisterInstanceAccess`],
+      [
+        `${this.config.arnPrefix}:iam::aws:policy/AWSCloudMapRegisterInstanceAccess`,
+        `${this.config.arnPrefix}:iam::aws:policy/CloudWatchAgentServerPolicy`,
+      ],
       {
         Version: '2012-10-17',
         Statement: [
