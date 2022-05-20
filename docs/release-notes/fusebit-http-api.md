@@ -17,6 +17,12 @@ All public releases of the Fusebit HTTP API are documented here, including notab
 <!-- 1. TOC
 {:toc} -->
 
+## Version 1.39.0
+
+_Released 5/23/22_
+
+- **Enhancement** Correctly error on an invalid redirectUrl in session creation.
+
 ## Version 1.38.3
 
 _Released 5/13/22_
