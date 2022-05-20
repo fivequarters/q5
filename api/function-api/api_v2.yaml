@@ -1247,7 +1247,7 @@ components:
               redirectUrl:
                 type: string
                 description: The URL in your infrastructure that the user should return to
-                  after completing the session.
+                  after completing the session. Must be a full url, including scheme and hostname.
               installId:
                 type: string
                 description: Used when reconfiguring an existing user. Specifies the

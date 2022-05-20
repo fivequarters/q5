@@ -17,6 +17,25 @@ afterAll(async () => {
 const demoRedirectUrl = 'http://monkey';
 
 describe('Sessions', () => {
+  test('POSTing an invalid redirectUrl results in an error', async () => {
+    // Create multiple connectors to ensure the early-abort code is exercised
+    const { integrationId, connectorId } = await createPair(account, boundaryId, undefined, undefined, 3);
+    let response = await ApiRequestMap.integration.session.post(account, integrationId, {
+      redirectUrl: '/foobar',
+    });
+    expect(response).toBeHttp({ statusCode: 400 });
+
+    response = await ApiRequestMap.integration.session.post(account, integrationId, {
+      redirectUrl: 'example.com/foobar',
+    });
+    expect(response).toBeHttp({ statusCode: 400 });
+
+    response = await ApiRequestMap.integration.session.post(account, integrationId, {
+      redirectUrl: 'git://example.com/foobar',
+    });
+    expect(response).toBeHttp({ statusCode: 400 });
+  }, 180000);
+
   test('POSTing an error on a connector session is reported during commit', async () => {
     // Create multiple connectors to ensure the early-abort code is exercised
     const { integrationId, connectorId } = await createPair(account, boundaryId, undefined, undefined, 3);
