@@ -138,8 +138,7 @@ exports.enterHandler = (modality) => {
           logs,
         });
       } catch (err) {
-        console.log(`ANALYTICS ERROR: ${req.url} ${req.originalUrl} ${JSON.stringify(req.params)}`);
-        throw err;
+        console.log(`ANALYTICS ERROR: ${req.url} ${req.originalUrl} ${JSON.stringify(req.params)}: `, err);
       }
     };
     next();
