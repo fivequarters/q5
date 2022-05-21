@@ -82,60 +82,64 @@ exports.enterHandler = (modality) => {
         res.error = e;
       }
 
-      // Prepare the event object with a select set of properties.
-      const reqProps = {};
-      whitelistedReqFields.forEach((p) => (reqProps[p] = req[p]));
-      if (req.originalUrl) {
-        reqProps.url = req.originalUrl;
-      }
-
-      let fusebit = {
-        accountId: reqProps.params.accountId,
-        subscriptionId: reqProps.params.subscriptionId,
-        boundaryId: reqProps.params.boundaryId,
-        functionId: reqProps.params.functionId,
-        sessionId: reqProps.params.sessionId,
-        identityId: reqProps.params.identityId,
-        installId: reqProps.params.installId,
-        deploymentKey: process.env.DEPLOYMENT_KEY,
-        mode: 'request',
-        modality: req.analyticsModality || modality,
-      };
-      if (req.entityType && reqProps.params.entityId) {
-        fusebit[`${req.entityType}Id`] = reqProps.params.entityId;
-        if (fusebit.modality === 'execution') {
-          fusebit.boundaryId = req.entityType;
-          fusebit.functionId = reqProps.params.entityId;
+      try {
+        // Prepare the event object with a select set of properties.
+        const reqProps = {};
+        whitelistedReqFields.forEach((p) => (reqProps[p] = req[p]));
+        if (req.originalUrl) {
+          reqProps.url = req.originalUrl;
         }
+
+        let fusebit = {
+          accountId: reqProps.params.accountId,
+          subscriptionId: reqProps.params.subscriptionId,
+          boundaryId: reqProps.params.boundaryId,
+          functionId: reqProps.params.functionId,
+          sessionId: reqProps.params.sessionId,
+          identityId: reqProps.params.identityId,
+          installId: reqProps.params.installId,
+          deploymentKey: process.env.DEPLOYMENT_KEY,
+          mode: 'request',
+          modality: req.analyticsModality || modality,
+        };
+        if (req.entityType && reqProps.params.entityId) {
+          fusebit[`${req.entityType}Id`] = reqProps.params.entityId;
+          if (fusebit.modality === 'execution') {
+            fusebit.boundaryId = req.entityType;
+            fusebit.functionId = reqProps.params.entityId;
+          }
+        }
+
+        // Create a copy of params to avoid accidental side effects.
+        reqProps.params = {
+          ...reqProps.params,
+        };
+
+        delete reqProps.params.accountId;
+        delete reqProps.params.subscriptionId;
+        delete reqProps.params.boundaryId;
+        delete reqProps.params.functionId;
+
+        const logs = req.functionSummary && req.functionSummary['compute.persistLogs'] ? res.log : undefined;
+        Runtime.dispatch_event({
+          requestId: req.requestId,
+          traceId: req.traceId,
+          parentSpanId: req.parentSpanId,
+          spanId: req.spanId,
+          startTime: req._startTime,
+          endTime: res.endTime,
+          request: reqProps,
+          metrics: res.metrics,
+          response: { statusCode: res.statusCode, headers: res.getHeaders() },
+          fusebit: fusebit,
+          error: res.error,
+          functionLogs: res.functionLogs,
+          functionSpans: res.functionSpans,
+          logs,
+        });
+      } catch (err) {
+        console.log(`ANALYTICS ERROR: ${req.url} ${req.originalUrl} ${JSON.stringify(req.params)}: `, err);
       }
-
-      // Create a copy of params to avoid accidental side effects.
-      reqProps.params = {
-        ...reqProps.params,
-      };
-
-      delete reqProps.params.accountId;
-      delete reqProps.params.subscriptionId;
-      delete reqProps.params.boundaryId;
-      delete reqProps.params.functionId;
-
-      const logs = req.functionSummary && req.functionSummary['compute.persistLogs'] ? res.log : undefined;
-      Runtime.dispatch_event({
-        requestId: req.requestId,
-        traceId: req.traceId,
-        parentSpanId: req.parentSpanId,
-        spanId: req.spanId,
-        startTime: req._startTime,
-        endTime: res.endTime,
-        request: reqProps,
-        metrics: res.metrics,
-        response: { statusCode: res.statusCode, headers: res.getHeaders() },
-        fusebit: fusebit,
-        error: res.error,
-        functionLogs: res.functionLogs,
-        functionSpans: res.functionSpans,
-        logs,
-      });
     };
     next();
   };
