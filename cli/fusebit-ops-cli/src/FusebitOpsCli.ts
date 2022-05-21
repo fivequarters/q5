@@ -23,7 +23,7 @@ import {
   PluginCommand,
 } from './commands';
 
-import * as cliAddonSlack from '@5qtrs/cli-addon-slack-reporter';
+import * as cliAddonSlack from './services/SlackPluginService';
 
 // ------------------
 // Internal Constants

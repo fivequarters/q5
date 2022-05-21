@@ -1,5 +1,5 @@
 import { Command, ICommand, IExecuteInput } from '@5qtrs/cli';
-import { PluginService } from '../../../services/PluginService';
+import { PluginService } from '../../../services/SlackPluginService';
 
 // ------------------
 // Internal Constants
