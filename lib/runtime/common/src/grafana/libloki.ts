@@ -31,10 +31,10 @@ const publishLogs = async (params: IParams, attributes: any[], logEntries: IEntr
     streams: [
       {
         stream: {
-          accountId: params.accountId,
-          subscriptionId: params.subscriptionId,
-          boundaryId: params.boundaryId,
-          functionId: params.functionId,
+          fusebit_accountId: params.accountId,
+          fusebit_subscriptionId: params.subscriptionId,
+          fusebit_boundaryId: params.boundaryId,
+          fusebit_functionId: params.functionId,
         },
         values: [],
       },
