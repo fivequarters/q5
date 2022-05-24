@@ -93,8 +93,10 @@ exports.enterHandler = (modality) => {
         let fusebit = {
           accountId: reqProps.params.accountId,
           subscriptionId: reqProps.params.subscriptionId,
-          boundaryId: reqProps.params.boundaryId,
-          functionId: reqProps.params.functionId,
+          boundaryId: reqProps.params.boundaryId || req.entityType,
+          functionId: reqProps.params.functionId || reqProps.params.entityId,
+          entityType: req.entityType,
+          [`${req.entityType}Id`]: reqProps.params.entityId,
           sessionId: reqProps.params.sessionId,
           identityId: reqProps.params.identityId,
           installId: reqProps.params.installId,
@@ -102,13 +104,6 @@ exports.enterHandler = (modality) => {
           mode: 'request',
           modality: req.analyticsModality || modality,
         };
-        if (req.entityType && reqProps.params.entityId) {
-          fusebit[`${req.entityType}Id`] = reqProps.params.entityId;
-          if (fusebit.modality === 'execution') {
-            fusebit.boundaryId = req.entityType;
-            fusebit.functionId = reqProps.params.entityId;
-          }
-        }
 
         // Create a copy of params to avoid accidental side effects.
         reqProps.params = {
@@ -131,7 +126,7 @@ exports.enterHandler = (modality) => {
           request: reqProps,
           metrics: res.metrics,
           response: { statusCode: res.statusCode, headers: res.getHeaders() },
-          fusebit: fusebit,
+          fusebit,
           error: res.error,
           functionLogs: res.functionLogs,
           functionSpans: res.functionSpans,

@@ -45,9 +45,6 @@ class Trace {
     this.resource = {
       attributes: {
         'service.name': serviceName,
-        'telemetry.sdk.language': 'nodejs',
-        'telemetry.sdk.name': 'fusebit',
-        'telemetry.sdk.version': '1.0.0',
       },
     };
   }

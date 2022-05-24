@@ -61,7 +61,7 @@ export const defaultDashboards = [
         targets: [
           {
             expr:
-              '{accountId="$accountId",subscriptionId="$subscriptionId",boundaryId="$boundaryId",functionId="$functionId"} | json | line_format "{{.msg}}"',
+              '{fusebit_accountId="$accountId",fusebit_subscriptionId="$subscriptionId",fusebit_boundaryId="$boundaryId",fusebit_functionId="$functionId"} | json | line_format "{{.msg}}"',
             refId: 'A',
           },
         ],
