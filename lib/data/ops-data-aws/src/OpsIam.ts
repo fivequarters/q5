@@ -153,6 +153,30 @@ export class OpsIam implements IDataSource {
 
     await createRole(
       awsConfig,
+      Constants.GRAFANA_HEALTH_FX_ROLE_NAME,
+      [
+        `${this.config.arnPrefix}:iam::aws:policy/service-role/AWSLambdaBasicExecutionRole`,
+        `${this.config.arnPrefix}:iam::aws:policy/service-role/AWSLambdaVPCAccessExecutionRole`,
+        `${this.config.arnPrefix}:iam::aws:policy/AWSCloudMapDiscoverInstanceAccess`,
+      ],
+      undefined,
+      {
+        Version: '2012-10-17',
+        Statement: [
+          {
+            Effect: 'Allow',
+            Principal: {
+              Service: 'lambda.amazonaws.com',
+            },
+            Action: 'sts:AssumeRole',
+          },
+        ],
+      },
+      this.config.iamPermissionsBoundary
+    );
+
+    await createRole(
+      awsConfig,
       this.config.cronSchedulerRoleName,
       [
         `${this.config.arnPrefix}:iam::aws:policy/AmazonSQSFullAccess`,

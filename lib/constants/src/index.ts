@@ -57,6 +57,10 @@ const FUSEBIT_QUERY_ACCOUNT = 'fusebitAccountId';
 
 const GRAFANA_CREDENTIALS_SSM_PATH = '/fusebit/grafana/credentials/';
 
+const GRAFANA_HEALTH_FUNCTION_NAME = '-grafana-hc';
+
+const GRAFANA_HEALTH_FX_ROLE_NAME = 'grafana-lambda-health-role';
+
 let builderVersion: string = 'unknown';
 try {
   builderVersion = require(Path.join(__dirname, '..', '..', '..', 'package.json')).version;
@@ -368,6 +372,8 @@ export {
   API_PUBLIC_ENDPOINT,
   GRAFANA_ENDPOINT,
   GRAFANA_AUTH_HEADER,
+  GRAFANA_HEALTH_FX_ROLE_NAME,
+  GRAFANA_HEALTH_FUNCTION_NAME,
   GRAFANA_LEADER_PREFIX,
   GRAFANA_ORG_HEADER,
   GRAFANA_CREDENTIALS_SSM_PATH,

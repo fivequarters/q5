@@ -147,7 +147,8 @@
       "@5qtrs/aws-waf": ["lib/aws/aws-waf/src"],
       "@5qtrs/lambda-nuke": ["tool/lambda-nuke/src"],
       "@5qtrs/grafana-config": ["lib/grafana/config/src"],
-      "@5qtrs/user-data": ["lib/aws/user-data/src"]
+      "@5qtrs/user-data": ["lib/aws/user-data/src"],
+      "@5qtrs/health-lambda": ["lib/grafana/health-lambda/src"]
     }
   }
 }

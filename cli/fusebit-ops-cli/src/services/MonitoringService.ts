@@ -1,4 +1,6 @@
 import { v4 as uuidv4 } from 'uuid';
+import path from 'path';
+import fs from 'fs';
 import AWS from 'aws-sdk';
 import { IAwsConfig } from '@5qtrs/aws-config';
 import { AwsCreds, IAwsCredentials } from '@5qtrs/aws-cred';
@@ -12,6 +14,7 @@ import { AwsAmi } from '@5qtrs/aws-ami';
 import { OpsDataAwsConfig } from '@5qtrs/ops-data-aws';
 import { Text } from '@5qtrs/text';
 import * as Constants from '@5qtrs/constants';
+import { getBuffer as getHealthLambdaBuffer } from '@5qtrs/health-lambda';
 
 const DISCOVERY_SERVICE_PREFIX = 'discovery-';
 const MONITORING_SEC_GROUP_PREFIX = `fusebit-monitoring-`;
@@ -26,6 +29,8 @@ const DB_PREFIX = 'mondb';
 const DB_ENGINE = 'postgres';
 const LOGGING_SERVICE_TYPE = 'monitoring';
 const MIN_MAX = 1;
+const HEALTH_MAX_TIME = 10 * 60;
+const HEALTH_RETRY_DELAY = 10;
 const GRAFANA_PORTS = [
   /** Tempo GRPC Ingress TCP */ '4317/tcp',
   /** Tempo Port */ '3200/tcp',
@@ -131,6 +136,62 @@ export class MonitoringService {
         throw e;
       }
     }
+  }
+
+  private async ensureHealthLambda(monDeploymentName: string, network: IOpsNetwork) {
+    const functionName = monDeploymentName + Constants.GRAFANA_HEALTH_FUNCTION_NAME;
+    const lambdaSdk = await this.getAwsSdk(AWS.Lambda, { region: network.region });
+    const lambdaEndpoint = `http://leader-${monDeploymentName}.fusebit.internal:9999`;
+    const fxPayload: AWS.Lambda.CreateFunctionRequest = {
+      FunctionName: functionName,
+      Role: `${this.opsAwsConfig.arnPrefix}:iam::${this.config.account}:role/${Constants.GRAFANA_HEALTH_FX_ROLE_NAME}`,
+      Code: {
+        ZipFile: getHealthLambdaBuffer(),
+      },
+      Handler: 'index.handler',
+      VpcConfig: {
+        SecurityGroupIds: [network.securityGroupId],
+        SubnetIds: network.privateSubnets.map((sub) => sub.id),
+      },
+      Environment: {
+        Variables: {
+          MON_DEPLOYMENT_NAME: monDeploymentName,
+          DISCOVERY_PREFIX: DISCOVERY_SERVICE_PREFIX,
+          DISCOVERY_SUFFIX: this.opsAwsConfig.getDiscoveryDomainName(),
+        },
+      },
+      Runtime: 'nodejs16.x',
+      Timeout: 100,
+    };
+    try {
+      await lambdaSdk.deleteFunction({ FunctionName: fxPayload.FunctionName }).promise();
+    } catch (e) {
+      if (e.code !== 'ResourceNotFoundException') {
+        throw e;
+      }
+    }
+    await lambdaSdk.createFunction(fxPayload).promise();
+  }
+
+  private async ensureHealth(monDeploymentName: string, region: string, stackId: string): Promise<boolean> {
+    const functionName = monDeploymentName + Constants.GRAFANA_HEALTH_FUNCTION_NAME;
+    const lambdaSdk = await this.getAwsSdk(AWS.Lambda, { region });
+    let tries = HEALTH_MAX_TIME / HEALTH_RETRY_DELAY;
+    do {
+      try {
+        const result = await lambdaSdk
+          .invoke({ FunctionName: functionName, Payload: JSON.stringify({ STACK_ID: stackId }) })
+          .promise();
+        if (JSON.parse(result.Payload?.toString() as string).StatusCode === 200) {
+          return true;
+        }
+      } catch (e) {
+        console.log(e);
+      }
+      await new Promise((res) => setTimeout(res, HEALTH_RETRY_DELAY * 1000));
+      tries--;
+    } while (tries > 0);
+    throw false;
   }
 
   private async addBootstrapScriptToBucket(
@@ -1174,6 +1235,7 @@ ${awsUserData.runDockerCompose()}
       await this.executeInitialGrafanaDbSetup(monDeploymentName, cloudMap.network.region);
     }
     await this.setupBootstrapBucket(monDeploymentName, cloudMap.network.region);
+    await this.ensureHealthLambda(monDeploymentName, cloudMap.network);
   }
 
   private async deleteMonitoringStack(monDeploymentName: string, stackId: string, force: boolean, region?: string) {
@@ -1202,7 +1264,12 @@ ${awsUserData.runDockerCompose()}
     };
     await this.ensureMonitoringDeploymentStackItem(monDeploymentName, stack, monDeployment.region);
     const lt = await this.createLaunchTemplate(monDeployment, stack);
-    if (this.input.options.output === 'json') {
+    const healthResult = await this.ensureHealth(
+      monDeployment.monitoringDeploymentName,
+      monDeployment.region,
+      stack.stackId.toString()
+    );
+    if (this.input.options.output === 'json' && healthResult) {
       await this.input.io.writeRaw(
         JSON.stringify({
           success: true,
@@ -1212,6 +1279,17 @@ ${awsUserData.runDockerCompose()}
       return;
     }
     await this.executeService.info('Stack Created', `Fusebit monitoring stack created with stackId ${stack.stackId}`);
+
+    if (healthResult) {
+      await this.executeService.info('Stack Healthy', `'Fusebit monitoring stack ${stack.stackId} reported healthy!`);
+      return;
+    }
+    await this.executeService.error(
+      'Stack Unhealthy',
+      `Fusebit monitoring stack ${stack.stackId} did not transition into a healthy state within ${
+        HEALTH_MAX_TIME / 60
+      } minutes.`
+    );
   }
 
   public async listDeployments() {

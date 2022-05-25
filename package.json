@@ -68,7 +68,10 @@
     "yarn": "^1.12.3"
   },
   "workspaces": {
-    "nohoist": ["**/lambda-*", "**/lambda-*/**"],
+    "nohoist": [
+      "**/lambda-*",
+      "**/lambda-*/**"
+    ],
     "packages": [
       "tool/tool-config",
       "tool/workspace",
@@ -205,7 +208,8 @@
       "lib/aws/aws-waf",
       "tool/lambda-nuke",
       "lib/grafana/config",
-      "lib/aws/user-data"
+      "lib/aws/user-data",
+      "lib/grafana/health-lambda"
     ]
   }
 }
