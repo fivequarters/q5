@@ -2,6 +2,9 @@ import AWS from 'aws-sdk';
 import http from 'http';
 export { getBuffer } from './getBuffer';
 
+const HTTP_REQUEST_TIMEOUT_MS = 5 * 1000;
+const GRAFANA_HEALTH_PORT = 9999;
+
 interface IEvent {
   STACK_ID: string;
 }
@@ -28,7 +31,7 @@ export const handler = async (event: IEvent) => {
 
   const result = await new Promise((res) => {
     const resp = http.request(
-      { timeout: 5 * 1000, protocol: 'http:', path: '/healthz', port: 9999, host: ip[0] },
+      { timeout: HTTP_REQUEST_TIMEOUT_MS, protocol: 'http:', path: '/healthz', port: GRAFANA_HEALTH_PORT, host: ip[0] },
       (response) => {
         res(response.statusCode);
       }
