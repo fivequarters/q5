@@ -46,6 +46,8 @@ const INSTANCE_SIZE = 't3a.medium';
 // 20.04 is the latest Ubuntu LTS.
 const UBUNTU_VERSION = '20.04';
 
+const GRAFANA_HEALTH_TIMEOUT = 7;
+
 export const LOKI_DEFAULT_VERSION = 'grafana/loki:2.3.0';
 export const GRAFANA_DEFAULT_VERSION = 'grafana/grafana:latest';
 export const TEMPO_DEFAULT_VERSION = 'grafana/tempo:latest';
@@ -159,7 +161,7 @@ export class MonitoringService {
         },
       },
       Runtime: 'nodejs16.x',
-      Timeout: 7,
+      Timeout: GRAFANA_HEALTH_TIMEOUT,
     };
     try {
       await lambdaSdk.deleteFunction({ FunctionName: fxPayload.FunctionName }).promise();
@@ -1284,11 +1286,7 @@ ${awsUserData.runDockerCompose()}
     }
     await this.executeService.info('Stack Created', `Fusebit monitoring stack created with stackId ${stack.stackId}`);
 
-    const healthResult = await this.ensureHealth(
-      monDeployment.monitoringDeploymentName,
-      monDeployment.region,
-      stack.stackId.toString()
-    );
+    await this.ensureHealth(monDeployment.monitoringDeploymentName, monDeployment.region, stack.stackId.toString());
   }
 
   public async listDeployments() {
