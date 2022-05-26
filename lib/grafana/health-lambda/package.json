@@ -8,7 +8,7 @@
   "author": "FiveQuarters.io",
   "scripts": {
     "build": "tsc -b && yarn build:pack",
-    "build:pack": "rm -f libc/health-lambda.zip && zip -j libc/health-lambda.zip libc/*.js && zip -qdgds 1m -r libc/health-lambda.zip node_modules",
+    "build:pack": "rm -f libc/health-lambda.zip && zip -j libc/health-lambda.zip libc/*.js",
     "test": "jest --colors",
     "coverage": "jest --colors --coverage",
     "lint": "tslint --fix -t stylish src/{,**/}*.ts{,x} test/{,**/}*.ts{,x}",
