@@ -18,6 +18,12 @@ All public releases of the Fusebit Operations CLI are documented here, including
 {:toc}
 -->
 
+## Version 1.38.5
+
+_Released 5/26/22_
+
+- **Enhancement** Implement the capability to health check a monitoring stack during `monitoring stack add`
+
 ## Version 1.38.4
 
 _Released 5/18/22_
