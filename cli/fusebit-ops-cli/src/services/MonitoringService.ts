@@ -173,7 +173,7 @@ export class MonitoringService {
     await lambdaSdk.createFunction(fxPayload).promise();
   }
 
-  private async ensureHealth(monDeploymentName: string, region: string, stackId: string): Promise<boolean> {
+  private async ensureHealth(monDeploymentName: string, region: string, stackId: string) {
     const functionName = monDeploymentName + Constants.GRAFANA_HEALTH_FUNCTION_NAME;
     const lambdaSdk = await this.getAwsSdk(AWS.Lambda, { region });
     let tries = HEALTH_MAX_TIME / HEALTH_RETRY_DELAY;
@@ -183,9 +183,10 @@ export class MonitoringService {
           .invoke({ FunctionName: functionName, Payload: JSON.stringify({ STACK_ID: stackId }) })
           .promise();
         if (JSON.parse(result.Payload?.toString() as string).StatusCode === 200) {
-          if (this.input.options.output === 'json') {
+          if (this.input.options.output !== 'json') {
             await this.executeService.info('Stack Healthy', `'Fusebit monitoring stack ${stackId} reported healthy!`);
           }
+          return;
         }
       } catch (e) {
         if (e.code === 'ResourceNotFoundException') {
