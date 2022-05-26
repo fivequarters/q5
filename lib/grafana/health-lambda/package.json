@@ -3,8 +3,6 @@
   "version": "0.0.1",
   "description": "",
   "main": "libc/index.js",
-  "browser": "libm/index.js",
-  "module": "libc/index.js",
   "sideEffects": false,
   "license": "UNLICENSED",
   "author": "FiveQuarters.io",

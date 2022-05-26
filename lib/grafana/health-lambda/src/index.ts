@@ -27,9 +27,13 @@ export const handler = async (event: IEvent) => {
   }
 
   const result = await new Promise((res) => {
-    const resp = http.request(`http://${ip[0]}:9999/healthz`, (response) => {
-      res(response.statusCode);
-    });
+    const resp = http.request(
+      { timeout: 5 * 1000, protocol: 'http:', path: '/healthz', port: 9999, host: ip[0] },
+      (response) => {
+        res(response.statusCode);
+      }
+    );
+    resp.on('timeout', () => res(500));
     resp.end();
   });
 

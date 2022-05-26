@@ -161,7 +161,7 @@ export class MonitoringService {
         },
       },
       Runtime: 'nodejs16.x',
-      Timeout: 100,
+      Timeout: 7,
     };
     try {
       await lambdaSdk.deleteFunction({ FunctionName: fxPayload.FunctionName }).promise();
@@ -182,16 +182,26 @@ export class MonitoringService {
         const result = await lambdaSdk
           .invoke({ FunctionName: functionName, Payload: JSON.stringify({ STACK_ID: stackId }) })
           .promise();
-        if (JSON.parse(result.Payload?.toString() as string).StatusCode === 200) {
-          return true;
+        if (JSON.parse(result.Payload?.toString() as string).StatusCodea === 200) {
+          if (this.input.options.output === 'json') {
+            await this.executeService.info('Stack Healthy', `'Fusebit monitoring stack ${stackId} reported healthy!`);
+          }
         }
       } catch (e) {
-        console.log(e);
+        if (e.code === 'ResourceNotFoundException') {
+          throw Error('Healthcheck function not found, re run fuse-ops monitoring add.');
+        }
       }
       await new Promise((res) => setTimeout(res, HEALTH_RETRY_DELAY * 1000));
       tries--;
     } while (tries > 0);
-    throw false;
+    await this.executeService.error(
+      'Stack Unhealthy',
+      `Fusebit monitoring stack ${stackId} did not transition into a healthy state within ${
+        HEALTH_MAX_TIME / 60
+      } minutes.`
+    );
+    throw Error('Stack was not able to transition into a healthy status within the allocated time.');
   }
 
   private async addBootstrapScriptToBucket(
@@ -1269,7 +1279,7 @@ ${awsUserData.runDockerCompose()}
       monDeployment.region,
       stack.stackId.toString()
     );
-    if (this.input.options.output === 'json' && healthResult) {
+    if (this.input.options.output === 'json') {
       await this.input.io.writeRaw(
         JSON.stringify({
           success: true,
@@ -1279,17 +1289,6 @@ ${awsUserData.runDockerCompose()}
       return;
     }
     await this.executeService.info('Stack Created', `Fusebit monitoring stack created with stackId ${stack.stackId}`);
-
-    if (healthResult) {
-      await this.executeService.info('Stack Healthy', `'Fusebit monitoring stack ${stack.stackId} reported healthy!`);
-      return;
-    }
-    await this.executeService.error(
-      'Stack Unhealthy',
-      `Fusebit monitoring stack ${stack.stackId} did not transition into a healthy state within ${
-        HEALTH_MAX_TIME / 60
-      } minutes.`
-    );
   }
 
   public async listDeployments() {
