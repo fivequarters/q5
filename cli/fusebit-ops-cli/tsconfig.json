@@ -19,6 +19,7 @@
     { "path": "../../lib/data/db" },
     { "path": "../../lib/server/runas" },
     { "path": "../../lib/grafana/config" },
-    { "path": "../../lib/aws/user-data" }
+    { "path": "../../lib/aws/user-data" },
+    { "path": "../../lib/grafana/health-lambda" }
   ]
 }

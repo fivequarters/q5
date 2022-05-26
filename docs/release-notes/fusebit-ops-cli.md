@@ -18,6 +18,14 @@ All public releases of the Fusebit Operations CLI are documented here, including
 {:toc}
 -->
 
+## Version 1.38.5
+
+_Released 5/26/22_
+
+- **Enhancement** Implement the capability to health check a monitoring stack during `monitoring stack add`
+  - `fuse-ops setup` to create the role required for grafana-health lambda function.
+  - `fuse-ops monitoring add` to create the lambda function.
+
 ## Version 1.38.4
 
 _Released 5/18/22_
