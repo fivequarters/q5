@@ -2048,4 +2048,3 @@ components:
         total:
           type: number
           description: The total number of entities of this type.
-
