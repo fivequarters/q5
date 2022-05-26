@@ -24,6 +24,7 @@ _Released 5/26/22_
 
 - **Enhancement** Implement the capability to health check a monitoring stack during `monitoring stack add`
   - `fuse-ops setup` to create the role required for grafana-health lambda function.
+  - `fuse-ops monitoring add` to create the lambda function.
 
 ## Version 1.38.4
 
