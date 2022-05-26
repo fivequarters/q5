@@ -182,7 +182,7 @@ export class MonitoringService {
         const result = await lambdaSdk
           .invoke({ FunctionName: functionName, Payload: JSON.stringify({ STACK_ID: stackId }) })
           .promise();
-        if (JSON.parse(result.Payload?.toString() as string).StatusCodea === 200) {
+        if (JSON.parse(result.Payload?.toString() as string).StatusCode === 200) {
           if (this.input.options.output === 'json') {
             await this.executeService.info('Stack Healthy', `'Fusebit monitoring stack ${stackId} reported healthy!`);
           }
@@ -1274,11 +1274,6 @@ ${awsUserData.runDockerCompose()}
     };
     await this.ensureMonitoringDeploymentStackItem(monDeploymentName, stack, monDeployment.region);
     const lt = await this.createLaunchTemplate(monDeployment, stack);
-    const healthResult = await this.ensureHealth(
-      monDeployment.monitoringDeploymentName,
-      monDeployment.region,
-      stack.stackId.toString()
-    );
     if (this.input.options.output === 'json') {
       await this.input.io.writeRaw(
         JSON.stringify({
@@ -1289,6 +1284,12 @@ ${awsUserData.runDockerCompose()}
       return;
     }
     await this.executeService.info('Stack Created', `Fusebit monitoring stack created with stackId ${stack.stackId}`);
+
+    const healthResult = await this.ensureHealth(
+      monDeployment.monitoringDeploymentName,
+      monDeployment.region,
+      stack.stackId.toString()
+    );
   }
 
   public async listDeployments() {
