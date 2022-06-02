@@ -18,6 +18,12 @@ All public releases of the Fusebit Operations CLI are documented here, including
 {:toc}
 -->
 
+## Version 1.38.7
+
+_Released 6/1/22_
+
+- **Bugfix** Add a missing permission to `assume on` JWTs.
+
 ## Version 1.38.6
 
 _Released 5/26/22_
@@ -30,7 +36,7 @@ _Released 5/26/22_
 
 _Released 5/18/22_
 
-- **BugFix** Add permission to access CloudWatch for monitoring instances.
+- **Bugfix** Add permission to access CloudWatch for monitoring instances.
 
 ## Version 1.38.3
 
