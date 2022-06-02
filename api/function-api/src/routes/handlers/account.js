@@ -1,6 +1,8 @@
 const { getAccountContext, errorHandler } = require('../account');
 const { AwsRegistry } = require('@5qtrs/registry');
-const { REGISTRY_DEFAULT } = require('@5qtrs/constants');
+const { REGISTRY_DEFAULT, isGrafanaEnabled } = require('@5qtrs/constants');
+
+const { initializeGrafana } = require('../grafana/initialize');
 
 function accountPatch() {
   return async (req, res) => {
@@ -31,12 +33,25 @@ function accountPost() {
     const newAccount = req.body;
 
     try {
+      // Create the account in Fusebit
       const account = await accountContext.account.add(resolvedAgent, newAccount);
       const awsRegistry = AwsRegistry.create({
         accountId: account.id,
         registryId: REGISTRY_DEFAULT,
       });
       await awsRegistry.refreshGlobal();
+
+      if (isGrafanaEnabled()) {
+        // Initialize Grafana
+        const lastAction = { action: 'unknown' };
+        try {
+          await initializeGrafana(account.id, lastAction);
+        } catch (err) {
+          console.log(`GRAFANA ERROR: ${lastAction.action} failed: `, err.response?.error, err);
+          // Silently eat an error here so that account creation doesn't fail due to Grafana.
+        }
+      }
+
       res.json(account);
     } catch (err) {
       const handleError = errorHandler(res);
