@@ -49,7 +49,7 @@ const GRAFANA_LEADER_PREFIX = 'leader-';
 
 const API_PUBLIC_HOST = new URL(API_PUBLIC_ENDPOINT || 'http://localhost').host;
 
-const isGrafanaEnabled = () => (process.env.GRAFANA_ENDPOINT ? true : false);
+const isGrafanaEnabled = () => !!process.env.GRAFANA_ENDPOINT;
 
 const GRAFANA_AUTH_HEADER = 'X-WEBAUTH-USER';
 const GRAFANA_ORG_HEADER = 'X-Grafana-Org-Id';
