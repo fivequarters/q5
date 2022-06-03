@@ -62,7 +62,7 @@ jobs:
       - name: Qualify - npm works
         run: npm whoami
       - name: Install ZX
-        run: npm install -g zx
+        run: npm install -g zx@4.3.0
       - name: Deploy Segment Files
         run: ./tool/cicd/actions/scripts/update_segment.mjs
       - name: Notify slack success
