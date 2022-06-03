@@ -17,6 +17,12 @@ All public releases of the Fusebit CLI are documented here, including notable ch
 <!-- 1. TOC
 {:toc} -->
 
+## Version 1.23.12
+
+_Released 6/3/22_
+
+- **Bugfix.** Allow for profiles without explicit subscriptions.
+
 ## Version 1.23.10
 
 _Released 5/2/22_
