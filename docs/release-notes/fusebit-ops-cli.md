@@ -18,6 +18,12 @@ All public releases of the Fusebit Operations CLI are documented here, including
 {:toc}
 -->
 
+## Version 1.38.8
+
+_Released 6/3/22_
+
+- **Bugfix** Increase permission scope for `assume on` JWTs.
+
 ## Version 1.38.7
 
 _Released 6/1/22_
