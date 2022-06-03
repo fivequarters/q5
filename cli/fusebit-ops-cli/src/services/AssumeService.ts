@@ -100,7 +100,7 @@ export class AssumeService {
     return {
       sub: `uri:assume:${accountId}:${subscriptionId}`,
       [Constants.JWT_PERMISSION_CLAIM]: {
-        allow: [{ action: '*', resource: `/account/${accountId}` }],
+        allow: [{ action: '*', resource: `/account/${accountId}/` }],
       },
       [Constants.JWT_PROFILE_CLAIM]: {
         accountId,
