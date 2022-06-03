@@ -775,7 +775,7 @@ export class ProfileService {
   // Removes any half-complete profile created during the initial OAuth flow
   public async removeUncompletedProfiles(): Promise<void> {
     const profiles = await this.execute(() => this.profile.listProfiles());
-    const uncompletedProfiles = profiles.filter((profile) => !profile.account || !profile.subscription);
+    const uncompletedProfiles = profiles.filter((profile) => !profile.account);
     for (const profile of uncompletedProfiles) {
       await this.profile.removeProfile(profile.name);
     }
