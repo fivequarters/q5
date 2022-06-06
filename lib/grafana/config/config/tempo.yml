@@ -27,7 +27,7 @@ compactor:
   compaction:
     compaction_window: 1h
     max_block_bytes: 100_000_000
-    block_retention: 1h
+    block_retention: 1440h
     compacted_block_retention: 10m
 
 memberlist:
