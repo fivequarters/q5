@@ -53,7 +53,7 @@ limits_config:
   retention_period: 1440h
 
 chunk_store_config:
-  max_look_back_period: 0s
+  max_look_back_period: 1440h
 
 table_manager:
   retention_deletes_enabled: true
