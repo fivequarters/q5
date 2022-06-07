@@ -14,6 +14,7 @@ ingester:
       replication_factor: 1
     final_sleep: 0s
   # The max time a chunk can stay in ram before flushed to S3.
+  # This should match ingester.max_block_retention in the tempo configuration.
   chunk_idle_period: 5m
   max_chunk_age: 1h
   chunk_target_size: 262144

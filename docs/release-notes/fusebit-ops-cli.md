@@ -22,7 +22,7 @@ All public releases of the Fusebit Operations CLI are documented here, including
 
 _Released 6/6/22_
 
-- **Enhancement** Configure log and trace retention to 60 days.
+- **Enhancement** Configure log and trace retention to 60 days and block compaction to 5 minutes.
 
 ## Version 1.38.8
 
