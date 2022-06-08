@@ -4,8 +4,10 @@ server:
   http_listen_port: 3100
   log_level: info
 
-ingester:
+querier:
   query_ingesters_within: 1440h
+
+ingester:
   lifecycler:
     address: 127.0.0.1
     ring:
