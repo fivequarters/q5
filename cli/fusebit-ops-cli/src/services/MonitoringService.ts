@@ -364,11 +364,9 @@ export class MonitoringService {
       .promise();
   }
 
-  private async createLaunchTemplate(monDeployment: IMonitoringDeployment, stack: IMonitoringStack, amiId?: string) {
+  private async createLaunchTemplate(monDeployment: IMonitoringDeployment, stack: IMonitoringStack) {
     const ec2Sdk = await this.getAwsSdk(AWS.EC2, { region: monDeployment.region });
-    if (!amiId) {
-      amiId = await this.getAmiId(monDeployment.region, stack.amiId);
-    }
+    const amiId = await this.getAmiId(monDeployment.region, stack.amiId);
     const discoveryService = await this.ensureDiscoveryService(monDeployment);
     const sg = (await this.getSecGroup(
       MONITORING_SEC_GROUP_PREFIX + monDeployment.monitoringDeploymentName,
@@ -1275,9 +1273,10 @@ ${awsUserData.runDockerCompose()}
       grafanaImage: grafanaTag,
       lokiImage: lokiTag,
       tempoImage: tempoTag,
+      amiId: ami,
     };
     await this.ensureMonitoringDeploymentStackItem(monDeploymentName, stack, monDeployment.region);
-    const lt = await this.createLaunchTemplate(monDeployment, stack, ami);
+    const lt = await this.createLaunchTemplate(monDeployment, stack);
     if (this.input.options.output === 'json') {
       await this.input.io.writeRaw(
         JSON.stringify({
@@ -1477,6 +1476,9 @@ ${awsUserData.runDockerCompose()}
         Text.eol(),
         Text.dim('Tempo Version: '),
         stack.tempoVersion,
+        Text.eol(),
+        Text.dim('AMI Id: '),
+        stack.amiId,
         Text.eol(),
         Text.dim('Status: '),
         stack.active ? 'ACTIVE' : 'NOT ACTIVE',
