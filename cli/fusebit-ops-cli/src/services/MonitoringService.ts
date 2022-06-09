@@ -364,9 +364,11 @@ export class MonitoringService {
       .promise();
   }
 
-  private async createLaunchTemplate(monDeployment: IMonitoringDeployment, stack: IMonitoringStack) {
+  private async createLaunchTemplate(monDeployment: IMonitoringDeployment, stack: IMonitoringStack, amiId?: string) {
     const ec2Sdk = await this.getAwsSdk(AWS.EC2, { region: monDeployment.region });
-    const amiId = await this.getAmiId(monDeployment.region, stack.amiId);
+    if (!amiId) {
+      amiId = await this.getAmiId(monDeployment.region, stack.amiId);
+    }
     const discoveryService = await this.ensureDiscoveryService(monDeployment);
     const sg = (await this.getSecGroup(
       MONITORING_SEC_GROUP_PREFIX + monDeployment.monitoringDeploymentName,
@@ -1263,7 +1265,8 @@ ${awsUserData.runDockerCompose()}
     grafanaTag: string,
     tempoTag: string,
     lokiTag: string,
-    region?: string
+    region?: string,
+    ami?: string
   ) {
     const monDeployment = await this.getMonitoringDeploymentByName(monDeploymentName, region);
     const stackId = this.generateStackId();
@@ -1274,7 +1277,7 @@ ${awsUserData.runDockerCompose()}
       tempoImage: tempoTag,
     };
     await this.ensureMonitoringDeploymentStackItem(monDeploymentName, stack, monDeployment.region);
-    const lt = await this.createLaunchTemplate(monDeployment, stack);
+    const lt = await this.createLaunchTemplate(monDeployment, stack, ami);
     if (this.input.options.output === 'json') {
       await this.input.io.writeRaw(
         JSON.stringify({
@@ -1397,7 +1400,8 @@ ${awsUserData.runDockerCompose()}
     grafanaTag: string,
     tempoTag: string,
     lokiTag: string,
-    region?: string
+    region?: string,
+    ami?: string
   ) {
     const createResult = await this.executeService.execute(
       {
@@ -1405,7 +1409,7 @@ ${awsUserData.runDockerCompose()}
         message: 'Adding monitoring stack for the Fusebit platform.',
         errorHeader: 'Stack Adding Error',
       },
-      () => this.createNewMonitoringStack(monDeploymentName, grafanaTag, tempoTag, lokiTag, region)
+      () => this.createNewMonitoringStack(monDeploymentName, grafanaTag, tempoTag, lokiTag, region, ami)
     );
   }
 
