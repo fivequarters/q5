@@ -1464,6 +1464,7 @@ ${awsUserData.runDockerCompose()}
     }
 
     for (const stack of itemsJson) {
+      const ami = stack.amiId.includes('default') ? [] : [Text.dim('AMI: '), stack.amiId, Text.eol()];
       const details = [
         Text.dim('Region: '),
         stack.region,
@@ -1477,9 +1478,7 @@ ${awsUserData.runDockerCompose()}
         Text.dim('Tempo Version: '),
         stack.tempoVersion,
         Text.eol(),
-        Text.dim('AMI Id: '),
-        stack.amiId,
-        Text.eol(),
+        ...ami,
         Text.dim('Status: '),
         stack.active ? 'ACTIVE' : 'NOT ACTIVE',
       ];
