@@ -27,6 +27,9 @@ fuse-ops deployment defaults set api subscription \{\"proxy\":\{\"accountId\":\"
 # Create the proxy payloads
 # -- Hygen -- proxy-payload
 
+OUTREACH_SECRET_PAYLOAD="{\"data\":{\"clientId\":\"${PROXY_OUTREACH_CLIENT_ID}\",\"clientSecret\":\"${PROXY_OUTREACH_CLIENT_SECRET}\",\"authorizationUrl\":\"https://api.outreach.io/oauth/authorize\",\"tokenUrl\":\"https://api.outreach.io/oauth/token\",\"revokeUrl\":\"https://api.outreach.io/oauth/revoke\"}}"
+
+
 MAILCHIMP_SECRET_PAYLOAD="{\"data\":{\"clientId\":\"${PROXY_MAILCHIMP_CLIENT_ID}\",\"clientSecret\":\"${PROXY_MAILCHIMP_CLIENT_SECRET}\",\"authorizationUrl\":\"https://login.mailchimp.com/oauth2/authorize\",\"tokenUrl\":\"https://login.mailchimp.com/oauth2/token\",\"revokeUrl\":\"https://login.mailchimp.com/oauth2/token/not_supported\"}}"
 
 
@@ -71,6 +74,7 @@ TWITTER_SECRET_PAYLOAD="{\"data\":{\"clientId\":\"${PROXY_TWITTER_CLIENT_ID}\",\
 for PROFILE in ${PROXY_SECRET_PUBLISH_PROFILE_LIST}; do
   ./tool/cicd/actions/scripts/set_fuse_profile.sh ${PROFILE}
   # -- Hygen -- proxy-list
+  echo ${OUTREACH_SECRET_PAYLOAD} | fuse storage put - --storageId proxy/outreach/configuration
   echo ${MAILCHIMP_SECRET_PAYLOAD} | fuse storage put - --storageId proxy/mailchimp/configuration
   echo ${GITLAB_SECRET_PAYLOAD} | fuse storage put - --storageId proxy/gitlab/configuration
   echo ${SLACK_SECRET_PAYLOAD} | fuse storage put - --storageId proxy/slack/configuration
