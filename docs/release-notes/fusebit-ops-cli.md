@@ -18,6 +18,12 @@ All public releases of the Fusebit Operations CLI are documented here, including
 {:toc}
 -->
 
+## Version 1.38.10
+
+_Released 6/9/22_
+
+- **Enhancement** Support `--ami` flag on `fuse-ops monitoring stack add` to support manually specifying the AMI to use instead of the official ubuntu AMI.
+
 ## Version 1.38.9
 
 _Released 6/6/22_

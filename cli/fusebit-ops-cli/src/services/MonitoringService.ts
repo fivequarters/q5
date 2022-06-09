@@ -1263,7 +1263,8 @@ ${awsUserData.runDockerCompose()}
     grafanaTag: string,
     tempoTag: string,
     lokiTag: string,
-    region?: string
+    region?: string,
+    ami?: string
   ) {
     const monDeployment = await this.getMonitoringDeploymentByName(monDeploymentName, region);
     const stackId = this.generateStackId();
@@ -1272,6 +1273,7 @@ ${awsUserData.runDockerCompose()}
       grafanaImage: grafanaTag,
       lokiImage: lokiTag,
       tempoImage: tempoTag,
+      amiId: ami,
     };
     await this.ensureMonitoringDeploymentStackItem(monDeploymentName, stack, monDeployment.region);
     const lt = await this.createLaunchTemplate(monDeployment, stack);
@@ -1397,7 +1399,8 @@ ${awsUserData.runDockerCompose()}
     grafanaTag: string,
     tempoTag: string,
     lokiTag: string,
-    region?: string
+    region?: string,
+    ami?: string
   ) {
     const createResult = await this.executeService.execute(
       {
@@ -1405,7 +1408,7 @@ ${awsUserData.runDockerCompose()}
         message: 'Adding monitoring stack for the Fusebit platform.',
         errorHeader: 'Stack Adding Error',
       },
-      () => this.createNewMonitoringStack(monDeploymentName, grafanaTag, tempoTag, lokiTag, region)
+      () => this.createNewMonitoringStack(monDeploymentName, grafanaTag, tempoTag, lokiTag, region, ami)
     );
   }
 
@@ -1461,6 +1464,7 @@ ${awsUserData.runDockerCompose()}
     }
 
     for (const stack of itemsJson) {
+      const ami = stack.amiId.includes('default') ? [] : [Text.dim('AMI: '), stack.amiId, Text.eol()];
       const details = [
         Text.dim('Region: '),
         stack.region,
@@ -1474,6 +1478,7 @@ ${awsUserData.runDockerCompose()}
         Text.dim('Tempo Version: '),
         stack.tempoVersion,
         Text.eol(),
+        ...ami,
         Text.dim('Status: '),
         stack.active ? 'ACTIVE' : 'NOT ACTIVE',
       ];
