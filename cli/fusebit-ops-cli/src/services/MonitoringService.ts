@@ -48,7 +48,7 @@ const UBUNTU_VERSION = '20.04';
 
 const GRAFANA_HEALTH_TIMEOUT = 7;
 
-export const LOKI_DEFAULT_VERSION = 'grafana/loki:2.3.0';
+export const LOKI_DEFAULT_VERSION = 'grafana/loki:2.5.0';
 export const GRAFANA_DEFAULT_VERSION = 'grafana/grafana:latest';
 export const TEMPO_DEFAULT_VERSION = 'grafana/tempo:latest';
 
@@ -521,7 +521,8 @@ ${awsUserData.runDockerCompose()}
         DISCOVERY_SERVICE_PREFIX +
         monDeployment.monitoringDeploymentName +
         '.' +
-        this.opsAwsConfig.getDiscoveryDomainName(),
+        this.opsAwsConfig.getDiscoveryDomainName() +
+        ':7946',
     ];
     return this.toBase64(grafanaConfig.toYamlFile(template));
   }
@@ -536,7 +537,8 @@ ${awsUserData.runDockerCompose()}
         DISCOVERY_SERVICE_PREFIX +
         monDeployment.monitoringDeploymentName +
         '.' +
-        this.opsAwsConfig.getDiscoveryDomainName(),
+        this.opsAwsConfig.getDiscoveryDomainName() +
+        ':7947',
     ];
     return this.toBase64(grafanaConfig.toYamlFile(template));
   }

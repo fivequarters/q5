@@ -10,6 +10,7 @@ services:
     ports:
       - '3200:3200/tcp' # http
       - '4317:4317/tcp' # grpc ingest
+      - '7947:7947'
     logging:
       driver: 'json-file'
       options:
@@ -17,13 +18,16 @@ services:
 
   loki:
     image: grafana/loki:2.3.0
-    command: ['-config.file=/etc/loki/loki.yaml']
+    command: ['-config.file=/etc/loki/loki.yaml', '-memberlist.advertise-addr=${EXTERNAL_IP}']
     volumes:
       - /root/loki.yml:/etc/loki/loki.yaml
       - /var/log/:/var/log/
       - /root/loki:/loki/
     ports:
       - '3100:3100'
+      - '7946:7946'
+    environment:
+      - EXTERNAL_IP=${EXTERNAL_IP}
     logging:
       driver: 'json-file'
       options:

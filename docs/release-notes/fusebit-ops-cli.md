@@ -18,6 +18,13 @@ All public releases of the Fusebit Operations CLI are documented here, including
 {:toc}
 -->
 
+## Version 1.38.11
+
+_Released 6/15/22_
+
+- **Enhancement** Upgrade Loki to 2.5.0.
+- **BugFix** Loki instances now can properly syncronize.
+
 ## Version 1.38.10
 
 _Released 6/9/22_
