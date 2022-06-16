@@ -21,7 +21,7 @@ All public releases of the Fusebit HTTP API are documented here, including notab
 
 _Released 6/15/22_
 
-- **Bugfix** Loki now no longer drop events.
+- **Bugfix** Upgrade Loki to 2.5.0 to eliminate out-of-order event drops.
 
 ## Version 1.39.4
 
