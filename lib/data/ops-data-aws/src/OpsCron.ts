@@ -184,9 +184,6 @@ export async function createCron(
           CRON_CONCURRENT_EXECUTION_LIMIT: Config.executor.concurrentExecutionLimit.toString(),
           DEPLOYMENT_KEY: awsConfig.prefix || 'global',
           API_SERVER: `https://${deployment.deploymentName}.${deployment.region}.${deployment.domainName}`,
-          // LOGS_WS_URL: process.env.LOGS_WS_URL,
-          // LOGS_WS_TOKEN_SIGNATURE_KEY: process.env.LOGS_WS_TOKEN_SIGNATURE_KEY,
-          // LOGS_WS_TOKEN_EXPIRY: process.env.LOGS_WS_TOKEN_EXPIRY,
           ...optionalEnvVars,
         },
       },
@@ -383,7 +380,7 @@ function createCronConfig(config: OpsDataAwsConfig, awsConfig: IAwsConfig) {
     // Lambda function that is triggered by SQS messages and executes user Lambda functions
     executor: {
       name: `${CronPrefix}cron-executor`,
-      timeout: 120,
+      timeout: 900,
       memory: 1024,
       runtime: 'nodejs14.x',
       role: `${config.arnPrefix}:iam::${awsConfig.account}:role/${config.cronExecutorRoleName}`,

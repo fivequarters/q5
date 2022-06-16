@@ -1893,13 +1893,16 @@ paths:
         name: include
         required: false
         description: |
-          Optional switch to include all serialized properties of the function.
+          Optional switch to control what information about the function is returned.
 
-          If this switch is not provided only the non-serialized 'compute', 'schedule' and 'configuration' properties are returned in the response.
+          If `all` is specified, the result will contain the serialized form of the 'compute', 'schedule' and 'configuration' properties in addition to the parsed form.
+
+          If `task` is specified, the result will only contain the specification of the task scheduling routes along with the basic statistics for each route.
         schema:
           type: string
           enum:
             - all
+            - task
     get:
       tags:
         - Functions
@@ -3714,6 +3717,117 @@ components:
         - $ref: '#/components/schemas/NewFunction'
         - $ref: '#/components/schemas/FunctionLocation'
 
+    FunctionSecurity:
+      type: object
+      description: Properties that impact the runtime security of the function.
+      properties:
+        authorization:
+          type: array
+          description: |
+            Use this property in conjunction with the `authentication` property. This property should not be used
+            when `authentication` is `none` or undefined, because in those cases all callers will be allowed.
+
+            If the caller is authenticated, you can use this property to only allow callers with specific
+            permissions to invoke this function. You can also leave it undefined, which will allow all authenticated
+            callers to invoke the function, without checking what permissions they have.
+
+            The following example will only allow callers who have `function:execute` permission to the given subscription:
+            `[{ action: "function:execute", resource: "/account/acc-5555555555555555/subscription/sub-5555555555555555/" }]`
+
+            When the caller has been authorized, the `ctx.caller.permissions` property is set to the validated
+            permissions of the caller. Otherwise, the property will be undefined.
+          items:
+            $ref: '#/components/schemas/AccessStatement'
+        authentication:
+          description: |
+            Controls the authentication of the caller of the function, based on the bearer token supplied in the
+            `Authorization` header of the HTTP request.
+
+            If the value is `none` or the property is undefined, then the `Authorization` header is not
+            evaluated and the function is executed.
+
+            If the value is `required`, the caller must supply a valid JWT trusted by Fusebit. If the token is
+            present and valid, a check will be performed as described in the `authorization` property. If the
+            check succeeds, the function will execute, the `ctx.fusebit.callerAccessToken` property
+            will contain the supplied JWT, and the `ctx.caller.permission` property will contain the set of
+            authorized permissions associated with the caller. If the check fails, a 403 Forbidden error response
+            will be returned.
+
+            If the value is `optional`, then the caller may supply a valid JWT trusted by Fusebit. If the token is
+            present and valid, an authorization check will be performed as described in the `required` property
+            description. If a token is not present, not valid, or fails the authorization check, the function executes
+            as an unauthenticated user. This authentication option allows you to use Fusebit authorization for certain
+            paths in your function, while implementing your own authorization for other paths.
+          type: string
+          enum:
+            - none
+            - optional
+            - required
+          default: 'none'
+        functionPermissions:
+          type: object
+          description: |
+            In case a function needs to call Fusebit management APIs, the system can provide the necessary
+            JWT via the `ctx.fusebit.functionAccessToken` property. The permissions of that token can be set using this
+            property. For example, the following object will result in a token that has full control of all storage
+            objects under the given subscription:
+            `{ "allow": [{ "action": "storage:*", resource: "/account/acc-5555555555555555/subscription/sub-5555555555555555/" }] }`
+
+            The function creator (the caller of this API) must have the same or broader permissions as what's being
+            assigned here, as well as `function:put` for this function, otherwise the function creation will be rejected.
+          properties:
+            allow:
+              type: array
+              items:
+                $ref: '#/components/schemas/AccessStatement'
+
+    FunctionRoutes:
+      type: array
+      description: Properties that control route-specific behaviors of the function
+      items:
+        type: object
+        description: |
+          Overrides security settings and controls task scheduling settings
+          on per-route basis. Given a request, the first route, if any, prefix-matching
+          the path of the request URL is used.
+        required:
+          - path
+        properties:
+          path:
+            type: string
+            description: A prefix of the request path
+            example: '/task/sendEmail'
+          security:
+            $ref: '#/components/schemas/FunctionSecurity'
+          task:
+            type: object
+            description: |
+              If present, HTTP POST requests prefix-matching this route are scheduled
+              for asynchronous execution as tasks, and an immediate HTTP 202 response is sent
+              with the `location` HTTP response header containing the URL at which the 
+              status of the task execution can be queried. 
+
+              If the number of requests pending execution exceeds `maxPending`, 
+              an HTTP 429 response is sent and the request is not scheduled for execution.
+
+              Unless an explicit `security` element is specified for this route, the HTTP POST
+              requests that schedule task execution must be authorized with an access token that 
+              grants the `function:schedule` action for the function resource.
+            properties:
+              maxPending:
+                type: number
+                description: |
+                  The maximum number of tasks that can be scheduled for execution before
+                  subsequent requests are rejected with an HTTP 429 response. Specify 0
+                  to allow any number of pending requests.
+                default: 1024
+              maxRunning:
+                type: number
+                description: |
+                  The maximum number of tasks that can be running concurrently. Specify 0
+                  to not limit the maximum number of running tasks.
+                default: 10
+
     NewFunction:
       type: object
       properties:
@@ -3830,68 +3944,9 @@ components:
                     type: object
                     description: The payload of the default api request
         security:
-          type: object
-          description: Properties that impact the runtime security of the function.
-          properties:
-            authorization:
-              type: array
-              description: |
-                Use this property in conjunction with the `authentication` property. This property should not be used
-                when `authentication` is `none` or undefined, because in those cases all callers will be allowed.
-
-                If the caller is authenticated, you can use this property to only allow callers with specific
-                permissions to invoke this function. You can also leave it undefined, which will allow all authenticated
-                callers to invoke the function, without checking what permissions they have.
-
-                The following example will only allow callers who have `function:execute` permission to the given subscription:
-                `[{ action: "function:execute", resource: "/account/acc-5555555555555555/subscription/sub-5555555555555555/" }]`
-
-                When the caller has been authorized, the `ctx.caller.permissions` property is set to the validated
-                permissions of the caller. Otherwise, the property will be undefined.
-              items:
-                $ref: '#/components/schemas/AccessStatement'
-            authentication:
-              description: |
-                Controls the authentication of the caller of the function, based on the bearer token supplied in the
-                `Authorization` header of the HTTP request.
-
-                If the value is `none` or the property is undefined, then the `Authorization` header is not
-                evaluated and the function is executed.
-
-                If the value is `required`, the caller must supply a valid JWT trusted by Fusebit. If the token is
-                present and valid, a check will be performed as described in the `authorization` property. If the
-                check succeeds, the function will execute, the `ctx.fusebit.callerAccessToken` property
-                will contain the supplied JWT, and the `ctx.caller.permission` property will contain the set of
-                authorized permissions associated with the caller. If the check fails, a 403 Forbidden error response
-                will be returned.
-
-                If the value is `optional`, then the caller may supply a valid JWT trusted by Fusebit. If the token is
-                present and valid, an authorization check will be performed as described in the `required` property
-                description. If a token is not present, not valid, or fails the authorization check, the function executes
-                as an unauthenticated user. This authentication option allows you to use Fusebit authorization for certain
-                paths in your function, while implementing your own authorization for other paths.
-              type: string
-              enum:
-                - none
-                - optional
-                - required
-              default: 'none'
-            functionPermissions:
-              type: object
-              description: |
-                In case a function needs to call Fusebit management APIs, the system can provide the necessary
-                JWT via the `ctx.fusebit.functionAccessToken` property. The permissions of that token can be set using this
-                property. For example, the following object will result in a token that has full control of all storage
-                objects under the given subscription:
-                `{ "allow": [{ "action": "storage:*", resource: "/account/acc-5555555555555555/subscription/sub-5555555555555555/" }] }`
-
-                The function creator (the caller of this API) must have the same or broader permissions as what's being
-                assigned here, as well as `function:put` for this function, otherwise the function creation will be rejected.
-              properties:
-                allow:
-                  type: array
-                  items:
-                    $ref: '#/components/schemas/AccessStatement'
+          $ref: '#/components/schemas/FunctionSecurity'
+        routes:
+          $ref: '#/components/schemas/FunctionRoutes'
 
     FunctionList:
       type: object

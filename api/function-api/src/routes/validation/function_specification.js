@@ -1,6 +1,7 @@
 const Joi = require('joi');
 
 const Common = require('./common');
+const Security = require('./security');
 
 module.exports = Joi.object().keys({
   accountId: Common.accountId,
@@ -41,32 +42,16 @@ module.exports = Joi.object().keys({
   scheduleSerialized: Joi.string().allow('').optional(),
   metadata: Joi.object(),
   runtime: Joi.object(),
-  security: Joi.object()
-    .keys({
-      authentication: Joi.string().valid('none', 'optional', 'required').default('none'),
-      authorization: Joi.when('authentication', {
-        is: 'none',
-        then: Joi.any().forbidden(),
-        otherwise: Joi.array()
-          .items(
-            Joi.object()
-              .keys({
-                action: Joi.string(),
-                resource: Joi.string(),
-              })
-              .optional()
-          )
-          .min(1),
-      }),
-      functionPermissions: Joi.object().keys({
-        allow: Joi.array().items(
-          Joi.object().keys({
-            action: Joi.string(),
-            resource: Joi.string(),
-          })
-        ),
+  security: Security.default({ authentication: 'none' }),
+  routes: Joi.array().items(
+    Joi.object().keys({
+      path: Joi.string().required(),
+      security: Security,
+      task: Joi.object().keys({
+        maxPending: Joi.number().integer().min(0).optional(),
+        maxRunning: Joi.number().integer().min(0).optional(),
       }),
     })
-    .default({ authentication: 'none' }),
+  ),
   fusebitEditor: Common.fusebitEditor,
 });

@@ -1,9 +1,9 @@
 import create_error from 'http-errors';
 
 import { get_function_tags, Constants as Tags } from '@5qtrs/function-tags';
-import { IFunctionApiRequest } from './Request';
+import { IFunctionApiRequest, IFunctionSummary } from './Request';
 
-import { get_security_tag_key, getFunctionVersion } from '@5qtrs/constants';
+import { get_security_tag_key, getFunctionVersion, get_routes_tag_key } from '@5qtrs/constants';
 
 import { Response } from 'express';
 
@@ -19,7 +19,7 @@ const loadSummary = () => {
   };
 };
 
-const loadFunctionSummary = async (params: any): Promise<any> => {
+const loadFunctionSummary = async (params: any): Promise<IFunctionSummary> => {
   if (!params.accountId) {
     throw create_error(403, 'Unable to acquire "accountId"');
   }
@@ -48,6 +48,10 @@ const loadFunctionSummary = async (params: any): Promise<any> => {
           functionSummary[get_security_tag_key('authorization')] = JSON.parse(
             functionSummary[get_security_tag_key('authorization')] as string
           );
+        }
+
+        if (functionSummary[get_routes_tag_key()]) {
+          functionSummary[get_routes_tag_key()] = JSON.parse(functionSummary[get_routes_tag_key()] as string);
         }
 
         return resolve(functionSummary);

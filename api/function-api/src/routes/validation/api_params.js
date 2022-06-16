@@ -21,7 +21,9 @@ module.exports = Joi.object().keys({
   statisticsKey: Joi.string().valid(Object.keys(statisticsQueries)),
   registryId: Joi.string().valid('default'),
   baseUrl: Joi.string(),
+  functionPath: Joi.string(),
   buildId: Joi.string(),
   name: Joi.string(),
   queryId: Joi.string(),
+  taskId: Common.taskId,
 });

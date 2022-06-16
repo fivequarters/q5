@@ -17,6 +17,12 @@ All public releases of the Fusebit CLI are documented here, including notable ch
 <!-- 1. TOC
 {:toc} -->
 
+## Version 1.24.0
+
+_Released 6/10/22_
+
+- **Enhancement.** Add support for the routes element in fusebit.json
+
 ## Version 1.23.12
 
 _Released 6/3/22_

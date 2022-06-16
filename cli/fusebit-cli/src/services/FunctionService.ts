@@ -240,6 +240,8 @@ export class FunctionService {
     functionSpec.security = fusebitJson.security;
     functionSpec.fusebitEditor = fusebitJson.fusebitEditor;
 
+    functionSpec.routes = fusebitJson.routes;
+
     // schedule and scheduleSerialized
     const cronDisabled = cronOffRegex.test(cron || '');
     if (cronDisabled) {
@@ -340,6 +342,7 @@ export class FunctionService {
     fusebitJson.scheduleSerialized = functionSpec.scheduleSerialized;
     fusebitJson.security = functionSpec.security;
     fusebitJson.fusebitEditor = functionSpec.fusebitEditor;
+    fusebitJson.routes = functionSpec.routes;
 
     try {
       await writeFile(join(path, 'fusebit.json'), JSON.stringify(fusebitJson, null, 2));
@@ -1236,6 +1239,8 @@ export class FunctionService {
       configuration: functionSpec.configuration,
       location: functionSpec.location,
       runtime: functionSpec.runtime,
+      security: functionSpec.security,
+      routes: functionSpec.routes,
     };
 
     if (this.input.options.output === 'json') {
@@ -1279,8 +1284,15 @@ export class FunctionService {
       details.push(Text.dim('Files'));
       details.push(Text.create(functionData.files.map((file) => Text.create(Text.eol(), Text.dim('• '), file))));
 
-      details.push(Text.dim('Encoded Files'));
-      details.push(Text.create(functionData.encodedFiles.map((file) => Text.create(Text.eol(), Text.dim('• '), file))));
+      if (functionData.encodedFiles.length > 0) {
+        details.push(Text.eol());
+        details.push(Text.eol());
+
+        details.push(Text.dim('Encoded Files'));
+        details.push(
+          Text.create(functionData.encodedFiles.map((file) => Text.create(Text.eol(), Text.dim('• '), file)))
+        );
+      }
 
       if (functionData.configuration) {
         const keys = Object.keys(functionData.configuration);
