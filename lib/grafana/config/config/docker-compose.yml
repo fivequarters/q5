@@ -1,16 +1,13 @@
 version: '3'
 services:
   tempo:
+    network_mode: 'host'
     image: grafana/tempo:latest
     command: ['-config.file=/etc/tempo.yaml']
     volumes:
       - /root/tempo.yml:/etc/tempo.yaml
       - /root/tempo-data:/tmp/tempo
       - /var/log/:/var/log/
-    ports:
-      - '3200:3200/tcp' # http
-      - '4317:4317/tcp' # grpc ingest
-      - '7947:7947'
     logging:
       driver: 'json-file'
       options:
@@ -23,9 +20,7 @@ services:
       - /root/loki.yml:/etc/loki/loki.yaml
       - /var/log/:/var/log/
       - /root/loki:/loki/
-    ports:
-      - '3100:3100'
-      - '7946:7946'
+    network_mode: 'host'
     environment:
       - EXTERNAL_IP=${EXTERNAL_IP}
     logging:
@@ -39,8 +34,7 @@ services:
     volumes:
       - /root/grafana.ini:/etc/grafana/grafana.ini
       - /var/log/:/var/log/
-    ports:
-      - '3000:3000'
+    network_mode: 'host'
     logging:
       driver: 'json-file'
       options:
@@ -48,8 +42,11 @@ services:
 
   health:
     image: public.ecr.aws/fusebit/grafana-health:latest
-    ports:
-      - '9999:9999'
+    network_mode: 'host'
+    environment:
+      - GRAFANA_ENDPOINT=http://localhost:3000
+      - LOKI_ENDPOINT=http://localhost:3100
+      - TEMPO_ENDPOINT=http://localhost:3200
     logging:
       driver: 'json-file'
       options:
