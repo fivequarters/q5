@@ -37,6 +37,7 @@ const GRAFANA_PORTS = [
   /** Tempo memberlist */ '7946/tcp',
   /** Loki memberlist */ '7947/tcp',
   /** Grafana aggregated health */ '9999/tcp',
+  /** Loki querier */ '9095/tcp',
 ];
 const NLB_PREFIX = 'nlb-grafana-';
 
@@ -48,7 +49,7 @@ const UBUNTU_VERSION = '20.04';
 
 const GRAFANA_HEALTH_TIMEOUT = 7;
 
-export const LOKI_DEFAULT_VERSION = 'grafana/loki:2.3.0';
+export const LOKI_DEFAULT_VERSION = 'grafana/loki:2.5.0';
 export const GRAFANA_DEFAULT_VERSION = 'grafana/grafana:latest';
 export const TEMPO_DEFAULT_VERSION = 'grafana/tempo:latest';
 
@@ -521,7 +522,8 @@ ${awsUserData.runDockerCompose()}
         DISCOVERY_SERVICE_PREFIX +
         monDeployment.monitoringDeploymentName +
         '.' +
-        this.opsAwsConfig.getDiscoveryDomainName(),
+        this.opsAwsConfig.getDiscoveryDomainName() +
+        ':7946',
     ];
     return this.toBase64(grafanaConfig.toYamlFile(template));
   }
@@ -536,7 +538,8 @@ ${awsUserData.runDockerCompose()}
         DISCOVERY_SERVICE_PREFIX +
         monDeployment.monitoringDeploymentName +
         '.' +
-        this.opsAwsConfig.getDiscoveryDomainName(),
+        this.opsAwsConfig.getDiscoveryDomainName() +
+        ':7947',
     ];
     return this.toBase64(grafanaConfig.toYamlFile(template));
   }
@@ -970,68 +973,28 @@ ${awsUserData.runDockerCompose()}
     const rdsSecGroup = (await this.getSecGroup(rdsSecGroupName, region)) as AWS.EC2.SecurityGroup;
     const monitoringDeployment = await this.getMonitoringDeploymentByName(monDeploymentName, region);
     const cloudMap = await this.getCloudMap(monitoringDeployment.networkName);
-    if (await this.getSecGroup(monitoringSecGroupName, region)) {
-      return;
-    }
-    const secGroup = await ec2Sdk
-      .createSecurityGroup({
-        GroupName: monitoringSecGroupName,
-        VpcId: cloudMap.network.vpcId,
-        Description: 'Network ingress for monitoring deployment' + monDeploymentName,
-      })
-      .promise();
-
-    await ec2Sdk
-      .authorizeSecurityGroupIngress({
-        GroupId: rdsSecGroup.GroupId,
-        IpPermissions: [
-          {
-            FromPort: POSTGRES_PORT,
-            IpProtocol: 'tcp',
-            ToPort: POSTGRES_PORT,
-            UserIdGroupPairs: [
-              {
-                Description: 'Postgres access from grafana',
-                GroupId: secGroup.GroupId,
-              },
-            ],
-          },
-        ],
-      })
-      .promise();
-
-    for (const port of GRAFANA_PORTS) {
-      const [allowPort, proto] = port.split('/');
-      await ec2Sdk
-        .authorizeSecurityGroupIngress({
-          GroupId: secGroup.GroupId,
-          IpPermissions: [
-            {
-              FromPort: parseInt(allowPort),
-              IpProtocol: proto,
-              ToPort: parseInt(allowPort),
-              IpRanges: [
-                {
-                  CidrIp: '0.0.0.0/0',
-                  Description: 'Allow traffic from anywhere within the VPC.',
-                },
-              ],
-            },
-          ],
+    let secGroup = await this.getSecGroup(monitoringSecGroupName, region);
+    if (!secGroup) {
+      secGroup = await ec2Sdk
+        .createSecurityGroup({
+          GroupName: monitoringSecGroupName,
+          VpcId: cloudMap.network.vpcId,
+          Description: 'Network ingress for monitoring deployment' + monDeploymentName,
         })
         .promise();
-
+    }
+    try {
       await ec2Sdk
         .authorizeSecurityGroupIngress({
-          GroupId: secGroup.GroupId,
+          GroupId: rdsSecGroup.GroupId,
           IpPermissions: [
             {
-              FromPort: parseInt(allowPort),
-              ToPort: parseInt(allowPort),
-              IpProtocol: proto,
+              FromPort: POSTGRES_PORT,
+              IpProtocol: 'tcp',
+              ToPort: POSTGRES_PORT,
               UserIdGroupPairs: [
                 {
-                  Description: 'Gossip Access ' + parseInt(allowPort),
+                  Description: 'Postgres access from grafana',
                   GroupId: secGroup.GroupId,
                 },
               ],
@@ -1039,6 +1002,56 @@ ${awsUserData.runDockerCompose()}
           ],
         })
         .promise();
+    } catch (e) {
+      if (e.code !== 'InvalidPermission.Duplicate') {
+        throw e;
+      }
+    }
+    for (const port of GRAFANA_PORTS) {
+      const [allowPort, proto] = port.split('/');
+      try {
+        await ec2Sdk
+          .authorizeSecurityGroupIngress({
+            GroupId: secGroup.GroupId,
+            IpPermissions: [
+              {
+                FromPort: parseInt(allowPort),
+                IpProtocol: proto,
+                ToPort: parseInt(allowPort),
+                IpRanges: [
+                  {
+                    CidrIp: '0.0.0.0/0',
+                    Description: 'Allow traffic from anywhere within the VPC.',
+                  },
+                ],
+              },
+            ],
+          })
+          .promise();
+
+        await ec2Sdk
+          .authorizeSecurityGroupIngress({
+            GroupId: secGroup.GroupId,
+            IpPermissions: [
+              {
+                FromPort: parseInt(allowPort),
+                ToPort: parseInt(allowPort),
+                IpProtocol: proto,
+                UserIdGroupPairs: [
+                  {
+                    Description: 'Gossip Access ' + parseInt(allowPort),
+                    GroupId: secGroup.GroupId,
+                  },
+                ],
+              },
+            ],
+          })
+          .promise();
+      } catch (e) {
+        if (e.code !== 'InvalidPermission.Duplicate') {
+          throw e;
+        }
+      }
     }
   }
 
