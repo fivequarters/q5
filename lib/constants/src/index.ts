@@ -21,6 +21,8 @@ interface IModuleSpec {
 
 import { isSpecialized, Permissions, RestrictedPermissions, UserPermissions, v2Permissions } from './permissions';
 
+const NotBeforeHeader = 'fusebit-task-not-before'; // epoch time
+
 const API_PUBLIC_ENDPOINT = process.env.LOGS_HOST
   ? `https://${process.env.LOGS_HOST}`
   : (process.env.API_SERVER as string);
@@ -439,4 +441,5 @@ export {
   makeTraceSpanId,
   CRON_EXECUTOR_NAME,
   get_function_management_endpoint,
+  NotBeforeHeader,
 };

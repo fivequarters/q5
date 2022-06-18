@@ -29,7 +29,6 @@ const agent = require('./handlers/agent');
 const audit = require('./handlers/audit');
 const statistics = require('./handlers/statistics');
 const npm = require('@5qtrs/npm');
-const Url = require('url');
 
 const { clear_built_module, custom_layers_health } = require('@5qtrs/function-lambda');
 const { AwsRegistry } = require('@5qtrs/registry');
@@ -38,7 +37,7 @@ const RDS = require('@5qtrs/db').default;
 
 const { execAs, loadSummary, checkAuthorization } = require('@5qtrs/runas');
 
-const { addLogging, isTaskSchedulingRequest } = require('@5qtrs/runtime-common');
+const { addLogging, isTaskSchedulingRequest, enforceNotBeforeHeader } = require('@5qtrs/runtime-common');
 
 const { StorageActions } = require('@5qtrs/storage');
 
@@ -1175,12 +1174,13 @@ router.get(
 
 // Not part of public contract
 
-let run_route = /^\/run\/([^\/]+)\/([^\/]+)\/([^\/]+).*$/;
+let run_route = /^\/run\/([^\/]+)\/([^\/]+)\/([^\/]+)(.*)$/;
 
 function promote_to_name_params(req, res, next) {
   req.params.subscriptionId = req.params[0];
   req.params.boundaryId = req.params[1];
   req.params.functionId = req.params[2];
+  req.params.functionPath = req.params[3] || '/';
 
   // Reverse back the run_route base url component.
   req.params.baseUrl = get_function_location(
@@ -1190,17 +1190,10 @@ function promote_to_name_params(req, res, next) {
     req.params.functionId
   );
 
-  req.params.functionPath =
-    Url.parse(
-      req.originalUrl.substring(
-        `/v1${Constants.get_function_path(req.params.subscriptionId, req.params.boundaryId, req.params.functionId)}`
-          .length
-      )
-    ).pathname || '/';
-
   delete req.params[0];
   delete req.params[1];
   delete req.params[2];
+  delete req.params[3];
 
   return next();
 }
@@ -1221,6 +1214,7 @@ router.options(run_route, cors(corsExecutionOptions));
     ratelimit.rateLimit,
     loadSummary(),
     checkAuthorization(authorize),
+    enforceNotBeforeHeader,
     execAs(keyStore, isTaskSchedulingRequest),
     addLogging(keyStore, isTaskSchedulingRequest),
     (req, res, next) => provider_handlers[req.provider].execute_function(req, res, next),

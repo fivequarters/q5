@@ -11,7 +11,6 @@ import { keyStore, subscriptionCache } from './globals';
 import * as provider_handlers from './handlers/provider_handlers';
 import * as ratelimit from './middleware/ratelimit';
 import { getResolvedAgent } from './account';
-import Url from 'url';
 
 const BUILD_POLL_DELAY = 1000;
 
@@ -318,6 +317,13 @@ const executeFunction = async (
 
     params.functionAccessToken = await mintJwtForPermissions(keyStore, params, functionPerms);
     params.logs = await createLoggingCtx(keyStore, params, 'https', Constants.API_PUBLIC_HOST);
+    params.functionPath =
+      new URL(
+        parsedPhysicalUrl.pathname.substring(
+          `/v1${Constants.get_function_path(params.subscriptionId, params.boundaryId, params.functionId)}`.length
+        ),
+        'https://fusebit.io'
+      ).pathname || '/';
 
     const req: IExecuteRequest = {
       protocol: parsedPhysicalUrl.protocol.replace(':', ''),
@@ -340,14 +346,6 @@ const executeFunction = async (
 
       ...(options.analytics || {}),
     };
-
-    req.params.functionPath =
-      Url.parse(
-        req.originalUrl.substring(
-          `/v1${Constants.get_function_path(req.params.subscriptionId, req.params.boundaryId, req.params.functionId)}`
-            .length
-        )
-      ).pathname || '/';
 
     if (options.analytics) {
       // Override the traceIdHeader with the supplied traceId and spanId.  Otherwise, the header contains the

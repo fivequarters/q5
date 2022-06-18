@@ -219,7 +219,7 @@ async function executeFunction(
   ctx.version = Constants.getFunctionVersion(functionSummary);
 
   const { startTime, deviation } = isTask
-    ? { startTime: Date.now(), deviation: 0 }
+    ? calculateTaskDeviation(ctx)
     : calculateCronDeviation(ctx.cron, ctx.timezone);
 
   const traceId = Constants.makeTraceId();
@@ -273,9 +273,11 @@ async function executeFunction(
   }
 
   // Execute, and record the results.
-  return await new Promise((resolve, reject) =>
+  return new Promise((resolve, reject) =>
     Common.invoke_function(request, (error: any, response: any, meta: any) => {
-      if (!isTask) {
+      if (isTask) {
+        meta.metrics.task = { deviation };
+      } else {
         meta.metrics.cron = { deviation };
       }
       dispatchEvent({
@@ -311,12 +313,7 @@ async function addSecurityTokens(ctx: any, functionSummary: any, isTask?: boolea
   }
 
   // Mint a JWT, if necessary, and add it to the context.
-  ctx.functionAccessToken = await mintJwtForPermissions(
-    keyStore,
-    ctx,
-    functionPermissions,
-    ctx.method === 'TASK' ? 'task' : 'cron'
-  );
+  ctx.functionAccessToken = await mintJwtForPermissions(keyStore, ctx, functionPermissions, ctx.method.toLowerCase());
 
   // Add the realtime logging configuration to the ctx
   ctx.logs = await Common.createLoggingCtx(
@@ -346,13 +343,22 @@ function calculateCronDeviation(expression: string, timezone: string) {
   return { startTime, deviation };
 }
 
+function calculateTaskDeviation(ctx: any) {
+  const startTime = Date.now();
+  const deviation =
+    startTime -
+    (!isNaN(ctx.headers[Constants.NotBeforeHeader]) ? +ctx.headers[Constants.NotBeforeHeader] * 1000 : startTime);
+
+  return { startTime, deviation };
+}
+
 function dispatchEvent(details: any) {
-  const asbf = details.isTask ? details.request : details.request.params;
+  const params = details.isTask ? details.request : details.request.params;
   const fusebit = {
-    accountId: asbf.accountId,
-    subscriptionId: asbf.subscriptionId,
-    boundaryId: asbf.boundaryId,
-    functionId: asbf.functionId,
+    accountId: params.accountId,
+    subscriptionId: params.subscriptionId,
+    boundaryId: params.boundaryId,
+    functionId: params.functionId,
     deploymentKey: process.env.DEPLOYMENT_KEY,
     mode: details.isTask ? 'task' : 'cron',
     modality: 'execution',

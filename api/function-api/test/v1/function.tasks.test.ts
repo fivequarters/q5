@@ -361,6 +361,28 @@ describe('Tasks', () => {
     });
   }, 180000);
 
+  test('Scheduling task more than 24h in advance fails', async () => {
+    let response = await createFunction(undefined, undefined, [
+      {
+        path: '/t1',
+        task: {},
+      },
+    ]);
+    expect(response).toBeHttp({ statusCode: 200 });
+    response = await request({
+      method: 'POST',
+      headers: {
+        Authorization: `Bearer ${account.accessToken}`,
+        'fusebit-task-not-before': (Math.floor(Date.now() / 1000) + 25 * 3600).toString(),
+      },
+      url: response.data.location + '/t1',
+      data: {},
+    });
+    expect(response).toBeHttp({
+      statusCode: 400,
+    });
+  }, 180000);
+
   test('Running a simple task delayed <15s succeeds', async () => {
     await runDelayedTest(10);
   }, 180000);

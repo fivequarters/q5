@@ -14,6 +14,7 @@ const {
   updateTaskStatusAsync,
   createTaskId,
   getTaskStatistics,
+  enforceNotBeforeHeader,
 } = require('./tasks');
 const Common = require('./common.js');
 
@@ -40,4 +41,5 @@ export {
   getTaskKey,
   createTaskId,
   getTaskStatistics,
+  enforceNotBeforeHeader,
 };
