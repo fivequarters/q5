@@ -40,6 +40,7 @@ apt install nodejs -y
 cd /root/
 npm install aws-sdk
 REGION=${region} STACK_ID=${stackId.toString()} SERVICE_ID=${serviceId} node /root/register.js
+export EXTERNAL_IP=$(cat /tmp/ip)
   `;
   }
 

@@ -23,6 +23,18 @@ _Released 6/20/22_
 
 - **Enhancement** Support for tasks.
 
+## Version 1.39.5
+
+_Released 6/15/22_
+
+- **Bugfix** Upgrade Loki to 2.5.0 to eliminate out-of-order event drops.
+
+## Version 1.39.4
+
+_Released 6/15/22_
+
+- **Bugfix** Catch additional traces in functions and better associate them with the active request.
+
 ## Version 1.39.3
 
 _Released 6/2/22_

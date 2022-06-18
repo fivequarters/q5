@@ -18,6 +18,25 @@ All public releases of the Fusebit Operations CLI are documented here, including
 {:toc}
 -->
 
+## Version 1.38.11
+
+_Released 6/15/22_
+
+- **Enhancement** Upgrade Loki to 2.5.0.
+- **Bugfix** Loki instances now can properly synchronize.
+
+## Version 1.38.10
+
+_Released 6/9/22_
+
+- **Enhancement** Support `--ami` flag on `fuse-ops monitoring stack add` to support manually specifying the AMI to use instead of the official ubuntu AMI.
+
+## Version 1.38.9
+
+_Released 6/6/22_
+
+- **Enhancement** Configure log and trace retention to 60 days and block compaction to 5 minutes.
+
 ## Version 1.38.8
 
 _Released 6/3/22_

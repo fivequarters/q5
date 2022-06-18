@@ -2,6 +2,7 @@ multitenancy_enabled: true
 
 server:
   http_listen_port: 3200
+  grpc_listen_port: 19095
 
 distributor:
   log_received_traces: true
@@ -21,20 +22,22 @@ query_frontend:
 ingester:
   trace_idle_period: 10s
   max_block_bytes: 1_000_000
+  # The max time a chunk can stay in ram before flushed to S3.
+  # This should match ingester.chunk_idle_period in the tempo configuration.
   max_block_duration: 5m
 
 compactor:
   compaction:
     compaction_window: 1h
     max_block_bytes: 100_000_000
-    block_retention: 1h
+    block_retention: 1440h
     compacted_block_retention: 10m
 
 memberlist:
   abort_if_cluster_join_fails: false
-  bind_port: 7946
+  bind_port: 7947
   join_members:
-    - placeholder.fusebit.internal:7946
+    - placeholder.fusebit.internal:7947
 
 storage:
   trace:
