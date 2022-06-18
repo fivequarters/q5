@@ -313,7 +313,12 @@ async function addSecurityTokens(ctx: any, functionSummary: any, isTask?: boolea
   }
 
   // Mint a JWT, if necessary, and add it to the context.
-  ctx.functionAccessToken = await mintJwtForPermissions(keyStore, ctx, functionPermissions, ctx.method.toLowerCase());
+  ctx.functionAccessToken = await mintJwtForPermissions(
+    keyStore,
+    ctx,
+    functionPermissions,
+    (ctx.method || 'cron').toLowerCase()
+  );
 
   // Add the realtime logging configuration to the ctx
   ctx.logs = await Common.createLoggingCtx(
