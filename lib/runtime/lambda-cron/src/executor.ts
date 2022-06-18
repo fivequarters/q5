@@ -9,7 +9,7 @@ const s3 = new AWS.S3({
   signatureVersion: 'v4',
 });
 
-import { mintJwtForPermissions, loadFunctionSummary, AwsKeyStore, getExactRoute } from '@5qtrs/runas';
+import { mintJwtForPermissions, loadFunctionSummary, AwsKeyStore, getExactRoute, getMatchingRoute } from '@5qtrs/runas';
 
 const concurrentExecutionLimit = +(process.env.CRON_CONCURRENT_EXECUTION_LIMIT as string) || 5;
 
@@ -299,11 +299,17 @@ async function executeFunction(
 // Add tokens for both RunAs permissions as well as any logging permissions that are needed.
 async function addSecurityTokens(ctx: any, functionSummary: any, isTask?: boolean) {
   // Check if there is route-specific permission override
+  let functionPermissions: any;
   const path = isTask && ctx.headers['fusebit-task-route'];
-  const functionPermissions =
-    path && functionSummary.routes?.[path]?.security
-      ? functionSummary.routes?.[path]?.security.functionPermissions
-      : Constants.getFunctionPermissions(functionSummary);
+  if (path) {
+    if (functionSummary.routes) {
+      const route = getExactRoute(functionSummary.routes, path);
+      functionPermissions = route?.security?.functionPermissions;
+    }
+  } else {
+    functionPermissions = Constants.getFunctionPermissions(functionSummary);
+  }
+
   // Mint a JWT, if necessary, and add it to the context.
   ctx.functionAccessToken = await mintJwtForPermissions(
     keyStore,
