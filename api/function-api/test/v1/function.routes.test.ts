@@ -246,4 +246,56 @@ describe('Function Routes', () => {
       }
     );
   }, 180000);
+
+  test('Route prefix-matching is segment-delimited, variant 4', async () => {
+    await runTest(
+      'none',
+      undefined,
+      [
+        {
+          path: '/foo',
+          security: {
+            authentication: 'none',
+          },
+        },
+        {
+          path: '/foorious',
+          security: {
+            authentication: 'required',
+            authorization: [AuthZ.reqFunctionExe],
+          },
+        },
+      ],
+      '/foo?rious',
+      'badaccesstoken',
+      200,
+      {}
+    );
+  }, 180000);
+
+  test('Route prefix-matching is segment-delimited, variant 5', async () => {
+    await runTest(
+      'none',
+      undefined,
+      [
+        {
+          path: '/foo',
+          security: {
+            authentication: 'none',
+          },
+        },
+        {
+          path: '/foorious',
+          security: {
+            authentication: 'required',
+            authorization: [AuthZ.reqFunctionExe],
+          },
+        },
+      ],
+      '/foo#rious',
+      'badaccesstoken',
+      200,
+      {}
+    );
+  }, 180000);
 });

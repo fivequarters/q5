@@ -23,6 +23,8 @@ import { isSpecialized, Permissions, RestrictedPermissions, UserPermissions, v2P
 
 const NotBeforeHeader = 'fusebit-task-not-before'; // epoch time
 
+const MaxLambdaExecutionTimeSeconds = 900;
+
 const API_PUBLIC_ENDPOINT = process.env.LOGS_HOST
   ? `https://${process.env.LOGS_HOST}`
   : (process.env.API_SERVER as string);
@@ -442,4 +444,5 @@ export {
   CRON_EXECUTOR_NAME,
   get_function_management_endpoint,
   NotBeforeHeader,
+  MaxLambdaExecutionTimeSeconds,
 };

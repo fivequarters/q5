@@ -119,7 +119,12 @@ export async function executor(event: any) {
   };
 
   const runTask = async (envelope: any) => {
-    console.log('RUNNING TASK', envelope);
+    const taskAddress = getTaskAddress(envelope);
+    console.log('RUNNING TASK', {
+      ...taskAddress,
+      scheduledAt: envelope.scheduledAt,
+      notBefore: envelope.ctx.headers?.[Constants.NotBeforeHeader],
+    });
     const ctx = envelope.ctx;
     ctx.method = 'TASK';
     ctx.headers = {
@@ -130,7 +135,6 @@ export async function executor(event: any) {
       'fusebit-task-route': envelope.matchingRoutePath,
     };
     const key = `${ctx.accountId}/${ctx.subscriptionId}/${ctx.boundaryId}/${ctx.functionId}/${ctx.path}`;
-    const taskAddress = getTaskAddress(envelope);
     let output: any;
     try {
       await Common.updateTaskStatusAsync({

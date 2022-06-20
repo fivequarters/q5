@@ -380,7 +380,7 @@ function createCronConfig(config: OpsDataAwsConfig, awsConfig: IAwsConfig) {
     // Lambda function that is triggered by SQS messages and executes user Lambda functions
     executor: {
       name: `${CronPrefix}cron-executor`,
-      timeout: 900,
+      timeout: Constants.MaxLambdaExecutionTimeSeconds,
       memory: 1024,
       runtime: 'nodejs14.x',
       role: `${config.arnPrefix}:iam::${awsConfig.account}:role/${config.cronExecutorRoleName}`,
