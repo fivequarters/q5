@@ -317,13 +317,7 @@ const executeFunction = async (
 
     params.functionAccessToken = await mintJwtForPermissions(keyStore, params, functionPerms);
     params.logs = await createLoggingCtx(keyStore, params, 'https', Constants.API_PUBLIC_HOST);
-    params.functionPath =
-      new URL(
-        parsedPhysicalUrl.pathname.substring(
-          `/v1${Constants.get_function_path(params.subscriptionId, params.boundaryId, params.functionId)}`.length
-        ),
-        'https://fusebit.io'
-      ).pathname || '/';
+    params.functionPath = url || '/';
 
     const req: IExecuteRequest = {
       protocol: parsedPhysicalUrl.protocol.replace(':', ''),
