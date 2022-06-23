@@ -5,12 +5,10 @@ const { dispatch_event } = require('./analytics.js');
 const { pollOnce, is_logging_enabled, addLogging, createLoggingCtx } = require('./logging.js');
 const {
   isTaskSchedulingRequest,
-  scheduleTask,
   scheduleTaskAsync,
   getDelay,
-  getTask,
+  getTaskAsync,
   getTaskKey,
-  updateTaskStatus,
   updateTaskStatusAsync,
   createTaskId,
   getTaskStatistics,
@@ -34,7 +32,7 @@ export {
   isTaskSchedulingRequest,
   scheduleTaskAsync,
   getDelay,
-  getTask,
+  getTaskAsync,
   updateTaskStatusAsync,
   getTaskKey,
   createTaskId,
