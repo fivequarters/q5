@@ -37,7 +37,7 @@ const RDS = require('@5qtrs/db').default;
 
 const { execAs, loadSummary, checkAuthorization } = require('@5qtrs/runas');
 
-const { addLogging } = require('@5qtrs/runtime-common');
+const { addLogging, isTaskSchedulingRequest, enforceNotBeforeHeader } = require('@5qtrs/runtime-common');
 
 const { StorageActions } = require('@5qtrs/storage');
 
@@ -550,6 +550,23 @@ router.delete(
   check_agent_version(),
   determine_provider(),
   (req, res, next) => provider_handlers[req.provider].delete_function(req, res, next),
+  analytics.finished
+);
+
+router.options(
+  '/account/:accountId/subscription/:subscriptionId/boundary/:boundaryId/function/:functionId/task/:taskId',
+  cors(corsManagementOptions)
+);
+router.get(
+  '/account/:accountId/subscription/:subscriptionId/boundary/:boundaryId/function/:functionId/task/:taskId',
+  analytics.enterHandler(analytics.Modes.Administration),
+  cors(corsManagementOptions),
+  validate_schema({ params: require('./validation/api_params') }),
+  authorize({ operation: 'function:schedule' }),
+  user_agent(),
+  check_agent_version(),
+  determine_provider(),
+  (req, res, next) => provider_handlers[req.provider].get_task(req, res, next),
   analytics.finished
 );
 
@@ -1157,12 +1174,13 @@ router.get(
 
 // Not part of public contract
 
-let run_route = /^\/run\/([^\/]+)\/([^\/]+)\/([^\/]+).*$/;
+let run_route = /^\/run\/([^\/]+)\/([^\/]+)\/([^\/]+)(.*)$/;
 
 function promote_to_name_params(req, res, next) {
   req.params.subscriptionId = req.params[0];
   req.params.boundaryId = req.params[1];
   req.params.functionId = req.params[2];
+  req.params.functionPath = req.params[3] || '/';
 
   // Reverse back the run_route base url component.
   req.params.baseUrl = get_function_location(
@@ -1175,6 +1193,7 @@ function promote_to_name_params(req, res, next) {
   delete req.params[0];
   delete req.params[1];
   delete req.params[2];
+  delete req.params[3];
 
   return next();
 }
@@ -1195,12 +1214,15 @@ router.options(run_route, cors(corsExecutionOptions));
     ratelimit.rateLimit,
     loadSummary(),
     checkAuthorization(authorize),
-    execAs(keyStore),
-    addLogging(keyStore),
+    enforceNotBeforeHeader,
+    execAs(keyStore, isTaskSchedulingRequest),
+    addLogging(keyStore, isTaskSchedulingRequest),
     (req, res, next) => provider_handlers[req.provider].execute_function(req, res, next),
     analytics.finished
   );
 });
+
+const notATaskSchedulingRequest = () => false;
 
 ['delete', 'get', 'head'].forEach((verb) => {
   router[verb](
@@ -1214,8 +1236,8 @@ router.options(run_route, cors(corsExecutionOptions));
     ratelimit.rateLimit,
     loadSummary(),
     checkAuthorization(authorize),
-    execAs(keyStore),
-    addLogging(keyStore),
+    execAs(keyStore, notATaskSchedulingRequest),
+    addLogging(keyStore, notATaskSchedulingRequest),
     (req, res, next) => provider_handlers[req.provider].execute_function(req, res, next),
     analytics.finished
   );

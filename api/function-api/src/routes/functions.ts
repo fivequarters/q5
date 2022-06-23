@@ -25,6 +25,7 @@ interface IParams {
   version?: number;
   functionAccessToken?: string;
   logs?: any;
+  functionPath?: string;
 }
 
 interface IFunctionSpecification {
@@ -316,6 +317,7 @@ const executeFunction = async (
 
     params.functionAccessToken = await mintJwtForPermissions(keyStore, params, functionPerms);
     params.logs = await createLoggingCtx(keyStore, params, 'https', Constants.API_PUBLIC_HOST);
+    params.functionPath = url || '/';
 
     const req: IExecuteRequest = {
       protocol: parsedPhysicalUrl.protocol.replace(':', ''),

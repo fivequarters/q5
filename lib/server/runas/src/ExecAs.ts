@@ -5,9 +5,9 @@ import { Response } from 'express';
 
 type ExpressHandler = (req: IFunctionApiRequest, res: any, next: any) => any;
 
-const execAs = (keyStore: KeyStore) => {
+const execAs = (keyStore: KeyStore, skipFunctionAccessToken: (req: IFunctionApiRequest) => boolean) => {
   return async (req: IFunctionApiRequest, res: Response, next: any) => {
-    if (!req.functionSummary) {
+    if (!req.functionSummary || skipFunctionAccessToken(req)) {
       return next();
     }
 

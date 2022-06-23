@@ -21,6 +21,10 @@ interface IModuleSpec {
 
 import { isSpecialized, Permissions, RestrictedPermissions, UserPermissions, v2Permissions } from './permissions';
 
+const NotBeforeHeader = 'fusebit-task-not-before'; // epoch time
+
+const MaxLambdaExecutionTimeSeconds = 900;
+
 const API_PUBLIC_ENDPOINT = process.env.LOGS_HOST
   ? `https://${process.env.LOGS_HOST}`
   : (process.env.API_SERVER as string);
@@ -62,6 +66,8 @@ const GRAFANA_CREDENTIALS_SSM_PATH = '/fusebit/grafana/credentials/';
 const GRAFANA_HEALTH_FUNCTION_NAME = '-grafana-hc';
 
 const GRAFANA_HEALTH_FX_ROLE_NAME = 'grafana-lambda-health-role';
+
+const CRON_EXECUTOR_NAME = `${process.env.DEPLOYMENT_KEY}-cron-executor`;
 
 let builderVersion: string = 'unknown';
 try {
@@ -232,6 +238,18 @@ function get_user_function_name(options: any, version?: string) {
   );
 }
 
+function get_task_queue_description(options: any, path: string) {
+  return `task:${options.accountId}:${options.subscriptionId}:${options.boundaryId}:${options.functionId}:${path}`;
+}
+
+function get_task_queue_names() {
+  const random = crypto.randomBytes(32).toString('hex');
+  return {
+    taskQueueName: `task-${random}.fifo`,
+    delayedTaskQueueName: `delayed-task-${random}`,
+  };
+}
+
 function get_cron_key_prefix(options: any) {
   return `${cron_key_prefix}/${options.subscriptionId}/${options.boundaryId}/${options.functionId}/`;
 }
@@ -246,6 +264,18 @@ function get_cron_key(options: any) {
 
 function get_function_location(req: any, subscriptionId: string, boundaryId: string, functionId: string) {
   return `${get_fusebit_endpoint(req)}/v1${get_function_path(subscriptionId, boundaryId, functionId)}`;
+}
+
+function get_function_management_endpoint(
+  req: any,
+  accountId: string,
+  subscriptionId: string,
+  boundaryId: string,
+  functionId: string
+) {
+  return `${get_fusebit_endpoint(
+    req
+  )}/v1/account/${accountId}/subscription/${subscriptionId}/boundary/${boundaryId}/function/${functionId}`;
 }
 
 function get_fusebit_endpoint(req: any) {
@@ -275,6 +305,7 @@ const get_metadata_tag_key = (key: string) => `tag.${key}`;
 const get_template_tag_key = (key: string) => `template.${key}`;
 const get_fusebit_tag_key = (key: string) => `fusebit.${key}`;
 const get_security_tag_key = (key: string) => `security.${key}`;
+const get_routes_tag_key = () => `routes`;
 
 function isSystemIssuer(issuerId: string) {
   return issuerId.match(`${RUNAS_SYSTEM_ISSUER_SUFFIX}$`);
@@ -292,6 +323,10 @@ function makeFunctionSub(params: any, mode: string) {
 
 const getFunctionPermissions = (summary: any): any => {
   return summary[get_security_tag_key('permissions')];
+};
+
+const getFunctionRoutes = (summary: any): any => {
+  return summary[get_routes_tag_key()];
 };
 
 const getFunctionVersion = (summary: any): any => {
@@ -326,6 +361,8 @@ export {
   get_user_function_spec_key,
   get_user_function_description,
   get_user_function_name,
+  get_task_queue_description,
+  get_task_queue_names,
   get_function_builder_description,
   get_module_builder_description,
   get_function_builder_name,
@@ -344,6 +381,7 @@ export {
   get_template_tag_key,
   get_fusebit_tag_key,
   get_security_tag_key,
+  get_routes_tag_key,
   Permissions,
   v2Permissions,
   RestrictedPermissions,
@@ -353,6 +391,7 @@ export {
   makeSystemIssuerId,
   makeFunctionSub,
   getFunctionPermissions,
+  getFunctionRoutes,
   getFunctionVersion,
   getFunctionAuthorization,
   getFunctionAuthentication,
@@ -402,4 +441,8 @@ export {
   traceIdHeader,
   makeTraceId,
   makeTraceSpanId,
+  CRON_EXECUTOR_NAME,
+  get_function_management_endpoint,
+  NotBeforeHeader,
+  MaxLambdaExecutionTimeSeconds,
 };

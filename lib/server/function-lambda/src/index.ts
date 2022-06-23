@@ -11,6 +11,7 @@ import { put_function, clear_built_module, custom_layers_health } from './put_fu
 import { terminate_garbage_collection } from './create_function_worker';
 import { post_logs_query } from './post_logs_query';
 import { get_logs_query } from './get_logs_query';
+import { get_task } from './get_task';
 
 export {
   put_function,
@@ -28,4 +29,5 @@ export {
   terminate_garbage_collection,
   post_logs_query,
   get_logs_query,
+  get_task,
 };
