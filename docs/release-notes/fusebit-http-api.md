@@ -17,6 +17,12 @@ All public releases of the Fusebit HTTP API are documented here, including notab
 <!-- 1. TOC
 {:toc} -->
 
+## Version 1.40.1
+
+_Released 6/24/22_
+
+- **Bugfix** Fix for regression in encoding of the `ctx.path` parameter.
+
 ## Version 1.40.0
 
 _Released 6/20/22_

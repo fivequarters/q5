@@ -298,4 +298,31 @@ describe('Function Routes', () => {
       {}
     );
   }, 180000);
+
+  test('Route prefix-matching is segment-delimited, variant 6', async () => {
+    await runTest(
+      'required',
+      undefined,
+      [
+        {
+          path: '/foo/rious',
+          security: {
+            authentication: 'required',
+          },
+        },
+        {
+          path: '/foo',
+          security: {
+            authentication: 'none',
+          },
+        },
+      ],
+      '/foo/rious%2Frious',
+      'badaccesstoken',
+      200,
+      {
+        path: '/foo/rious%2Frious',
+      }
+    );
+  }, 180000);
 });
