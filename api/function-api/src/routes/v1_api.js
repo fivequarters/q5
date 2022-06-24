@@ -1174,13 +1174,13 @@ router.get(
 
 // Not part of public contract
 
-let run_route = /^\/run\/([^\/]+)\/([^\/]+)\/([^\/]+)(.*)$/;
+let run_route = /^\/run\/([^\/]+)\/([^\/]+)\/([^\/]+).*$/;
 
 function promote_to_name_params(req, res, next) {
   req.params.subscriptionId = req.params[0];
   req.params.boundaryId = req.params[1];
   req.params.functionId = req.params[2];
-  req.params.functionPath = req.params[3] || '/';
+  req.params.functionPath = req.url.substring(`/run/${req.params[0]}/${req.params[1]}/${req.params[2]}`.length) || '/';
 
   // Reverse back the run_route base url component.
   req.params.baseUrl = get_function_location(
@@ -1193,7 +1193,6 @@ function promote_to_name_params(req, res, next) {
   delete req.params[0];
   delete req.params[1];
   delete req.params[2];
-  delete req.params[3];
 
   return next();
 }
