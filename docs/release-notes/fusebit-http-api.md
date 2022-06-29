@@ -17,6 +17,12 @@ All public releases of the Fusebit HTTP API are documented here, including notab
 <!-- 1. TOC
 {:toc} -->
 
+## Version 1.40.2
+
+_Released 6/29/22_
+
+- **Enhancement** Add `--no-audit` to the `npm install` build arguments for packages.
+
 ## Version 1.40.1
 
 _Released 6/24/22_
