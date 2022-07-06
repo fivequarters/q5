@@ -3,6 +3,7 @@ const Joi = require('joi');
 import * as EntityCommon from './entities';
 
 import * as Common from './common';
+import * as Routes from './routes';
 
 const Data = Joi.object().keys({
   handler: [Common.npmPackageName.required(), Joi.string().regex(/^(.+)\/([^\/]+)$/)],
@@ -22,6 +23,7 @@ const Data = Joi.object().keys({
       })
     ),
   }),
+  routes: Routes.entityRoutes,
 });
 
 const Entity = EntityCommon.validateEntity(Data);

@@ -1,11 +1,17 @@
 import create_error from 'http-errors';
 import { IncomingHttpHeaders } from 'http';
 
-import { loadFunctionSummary, mintJwtForPermissions } from '@5qtrs/runas';
+import { loadFunctionSummary, mintJwtForPermissions, IFunctionSummary, getMatchingRoute, IRoute } from '@5qtrs/runas';
 import { AwsRegistry } from '@5qtrs/registry';
 import { IAgent } from '@5qtrs/account-data';
 import * as Constants from '@5qtrs/constants';
-import { createLoggingCtx, dispatch_event, ISpanEvent, ILogEvent } from '@5qtrs/runtime-common';
+import {
+  createLoggingCtx,
+  dispatch_event,
+  ISpanEvent,
+  ILogEvent,
+  isTaskSchedulingRequest,
+} from '@5qtrs/runtime-common';
 
 import { keyStore, subscriptionCache } from './globals';
 import * as provider_handlers from './handlers/provider_handlers';
@@ -26,6 +32,15 @@ interface IParams {
   functionAccessToken?: string;
   logs?: any;
   functionPath?: string;
+  matchingRoute?: IRoute;
+}
+
+type IExecuteParams = IParams & { functionPath: string };
+
+interface IFunctionSecuritySpecification {
+  authentication?: string;
+  authorization?: any;
+  functionPermissions?: any;
 }
 
 interface IFunctionSpecification {
@@ -51,17 +66,21 @@ interface IFunctionSpecification {
     timezone?: string;
   };
   scheduleSerialized?: string;
-  security?: {
-    authentication?: string;
-    authorization?: any;
-    functionPermissions?: any;
-  };
+  security?: IFunctionSecuritySpecification;
   fusebitEditor?: {
     runConfig: {
       method?: string;
       url?: string;
       payload?: Record<string, any>;
     }[];
+  };
+  routes?: {
+    path: string;
+    security?: IFunctionSecuritySpecification;
+    task?: {
+      maxPending?: number;
+      maxRunning?: number;
+    };
   };
 }
 
@@ -268,16 +287,48 @@ const checkAuthorization = async (
   }
 };
 
-/*
- * TBD a bit on how much of the authorization flow it's desired to go through for this.  Right now it's
- * assumed to be fully permissioned.
- */
+const getAuthorization = (method: string, params: IExecuteParams, functionSummary: IFunctionSummary) => {
+  let authz = Constants.getFunctionAuthorization(functionSummary);
+  let authn = Constants.getFunctionAuthentication(functionSummary);
+  const route = (params.matchingRoute = getMatchingRoute(functionSummary, params));
+
+  console.log(`Found route? ${JSON.stringify(route)}`);
+  if (route) {
+    if (route.security) {
+      // Route level security requirements take precedence over function level security requirements
+      authn = route.security.authentication;
+      authz = route.security.authorization;
+    } else if (route.task && method === 'POST') {
+      // If a route is a task and request is a task scheduling request and the route does not specify
+      // security requirements explicitly, enforce default task security
+      authn = 'required';
+      authz = [
+        {
+          action: 'function:schedule',
+          resource: `/account/${params.accountId}/subscription/${params.subscriptionId}/boundary/${params.boundaryId}/function/${params.functionId}/`,
+        },
+      ];
+    }
+  }
+
+  return { authz, authn };
+};
+
 const executeFunction = async (
-  params: IParams,
+  params: IExecuteParams,
   method: string,
-  url: string = '',
   options: IExecuteFunctionOptions = { mode: 'request', apiVersion: 'v2' }
 ): Promise<IExecuteFunction> => {
+  /*
+   * Should probably be moved into the schema/ side.
+  const notBefore = req.headers[Constants.NotBeforeHeader];
+  if (notBefore !== undefined) {
+    if (isNaN(notBefore) || Date.now() + MaxFusebitTaskNotBeforeRelativeHours * 3600 * 1000 < +notBefore * 1000) {
+      return next(
+        create_error(
+        ))}};
+  */
+
   let sub;
   try {
     sub = await subscriptionCache.find(params.subscriptionId);
@@ -286,10 +337,10 @@ const executeFunction = async (
   }
 
   const functionSummary = await loadFunctionSummary(params);
-  const functionAuthz = Constants.getFunctionAuthorization(functionSummary);
-  const functionAuthn = Constants.getFunctionAuthentication(functionSummary);
-  const functionPerms = Constants.getFunctionPermissions(functionSummary);
 
+  const { authz: functionAuthz, authn: functionAuthn } = getAuthorization(method, params, functionSummary);
+
+  const functionPerms = Constants.getFunctionPermissions(functionSummary);
   // Guarantee a release regardless of the exceptions that occur later by using a finally{} clause to call
   // the releaseRate function.
   const releaseRate = ratelimit.checkRateLimit(sub, params.subscriptionId);
@@ -310,14 +361,10 @@ const executeFunction = async (
             params.subscriptionId
           }/${params.boundaryId}/${params.functionId}`;
 
-    const parsedPhysicalUrl = new URL(physicalBaseUrl + url);
-    const parsedLogicalUrl = new URL(logicalBaseUrl + url);
+    const parsedPhysicalUrl = new URL(physicalBaseUrl + params.functionPath);
+    const parsedLogicalUrl = new URL(logicalBaseUrl + params.functionPath);
 
     params = { ...params, baseUrl: physicalBaseUrl, version: Constants.getFunctionVersion(functionSummary) };
-
-    params.functionAccessToken = await mintJwtForPermissions(keyStore, params, functionPerms);
-    params.logs = await createLoggingCtx(keyStore, params, 'https', Constants.API_PUBLIC_HOST);
-    params.functionPath = url || '/';
 
     const req: IExecuteRequest = {
       protocol: parsedPhysicalUrl.protocol.replace(':', ''),
@@ -341,6 +388,15 @@ const executeFunction = async (
       ...(options.analytics || {}),
     };
 
+    // Check for task scheduling request
+    const taskSchedulingRequest = isTaskSchedulingRequest(req);
+
+    if (!taskSchedulingRequest) {
+      params.functionAccessToken = await mintJwtForPermissions(keyStore, params, functionPerms);
+      params.logs = await createLoggingCtx(keyStore, params, 'https', Constants.API_PUBLIC_HOST);
+    }
+
+    console.log(`Executing: ${req.originalUrl}: task: ${taskSchedulingRequest}`);
     if (options.analytics) {
       // Override the traceIdHeader with the supplied traceId and spanId.  Otherwise, the header contains the
       // value from the "parent" request, which also absorbs the logs and spans that come from this execution.

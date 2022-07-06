@@ -25,6 +25,7 @@ export interface IRequestOptions {
   maxRedirects?: number;
   contentType?: string;
   body?: string | object;
+  headers?: Record<string, string>;
   authz?: string;
   rawUrl?: boolean;
 }
@@ -33,6 +34,7 @@ export interface IDispatchOptions {
   maxRedirects?: number;
   contentType?: string;
   body?: string | object;
+  headers?: Record<string, string>;
   authz?: string;
 }
 
@@ -78,6 +80,7 @@ export const v2Request = async (account: IAccount, options: IRequestOptions) => 
         : { Authorization: `Bearer ${options.authz ? options.authz : account.accessToken}` }),
       'user-agent': account.userAgent,
       ...(options.contentType ? { 'content-type': options.contentType } : {}),
+      ...(options.headers || {}),
     },
     url: options.rawUrl
       ? (options.uri as string)

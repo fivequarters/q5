@@ -1,7 +1,7 @@
 const Joi = require('joi');
 
 import * as EntityCommon from './entities';
-import * as Session from './session';
+import * as Routes from './routes';
 
 import * as Common from './common';
 
@@ -53,6 +53,7 @@ const Data = Joi.alternatives().try(
         })
       ),
     }),
+    routes: Routes.entityRoutes,
     fusebitEditor: Common.fusebitEditor,
   }),
   Joi.object().keys({})

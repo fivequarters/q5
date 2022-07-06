@@ -2,6 +2,7 @@ const Joi = require('joi');
 
 const Common = require('./common');
 const Security = require('./security');
+const Routes = require('./routes');
 
 module.exports = Joi.object().keys({
   accountId: Common.accountId,
@@ -43,15 +44,6 @@ module.exports = Joi.object().keys({
   metadata: Joi.object(),
   runtime: Joi.object(),
   security: Security.default({ authentication: 'none' }),
-  routes: Joi.array().items(
-    Joi.object().keys({
-      path: Joi.string().required(),
-      security: Security,
-      task: Joi.object().keys({
-        maxPending: Joi.number().integer().min(0).optional(),
-        maxRunning: Joi.number().integer().min(0).optional(),
-      }),
-    })
-  ),
+  routes: Routes.functionRoutes,
   fusebitEditor: Common.fusebitEditor,
 });

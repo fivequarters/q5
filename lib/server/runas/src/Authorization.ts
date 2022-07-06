@@ -12,7 +12,7 @@ export const checkAuthorization = (authorize: AuthorizationFactory) => {
   return (req: IFunctionApiRequest, res: any, next: any) => {
     let authentication = Constants.getFunctionAuthentication(req.functionSummary);
     let authorization = Constants.getFunctionAuthorization(req.functionSummary);
-    const route = (req.params.matchingRoute = getMatchingRoute(req));
+    const route = (req.params.matchingRoute = getMatchingRoute(req.functionSummary, req.params));
     if (route) {
       if (route.security) {
         // Route level security requirements take precedence over function level security requirements

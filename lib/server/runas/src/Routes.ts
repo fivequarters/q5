@@ -1,17 +1,25 @@
-import { IFunctionApiRequest, IRoute } from './Request';
+import { IFunctionSummary, IFunctionParams, IRoute } from './Request';
 
 // Return first route that has a path prefix-matching the request path by entire segment,
 // or undefined if no routes match
-const getMatchingRoute = (req: IFunctionApiRequest) =>
-  (req.functionSummary.routes || []).find((route) => {
-    const index = req.params.functionPath.indexOf(route.path);
+const getMatchingRoute = (functionSummary: IFunctionSummary, params: { functionPath: string }) =>
+  (functionSummary.routes || []).find((route) => {
+    console.log(`Evaluating ${route.path} vs ${params.functionPath}`);
+    const index = params.functionPath.indexOf(route.path);
     const lastPathCharacter = route.path[route.path.length - 1];
+    console.log(
+      `index ${index}, ${
+        params.functionPath === route.path ||
+        lastPathCharacter === '/' ||
+        ['/', '#', '?'].indexOf(params.functionPath[route.path.length]) >= 0
+      }`
+    );
     return (
       index === 0 &&
       // ensure entire url segment matches
-      (req.params.functionPath === route.path ||
+      (params.functionPath === route.path ||
         lastPathCharacter === '/' ||
-        ['/', '#', '?'].indexOf(req.params.functionPath[route.path.length]) >= 0)
+        ['/', '#', '?'].indexOf(params.functionPath[route.path.length]) >= 0)
     );
   });
 
