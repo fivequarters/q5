@@ -5,25 +5,14 @@ import { Response, NextFunction } from 'express';
 import * as Common from './common';
 import * as Constants from '@5qtrs/constants';
 
+import { IRoute, ITaskConfiguration } from '@5qtrs/runas';
+
 interface ITaskRequest {
   method: string;
   params: {
-    matchingRoute?: ITaskRoute;
+    matchingRoute?: IRoute;
   };
   headers: Record<string, string | string[] | undefined>;
-}
-
-interface ITaskRoute {
-  path: string;
-  security?: {
-    authorization?: any;
-    authentication?: any;
-    functionPermissions?: any;
-  };
-  task?: {
-    maxPending?: number;
-    maxRunning?: number;
-  };
 }
 
 interface ITaskOptions {
@@ -32,14 +21,6 @@ interface ITaskOptions {
   boundaryId: string;
   functionId: string;
   taskId: string;
-}
-
-interface ITaskConfig {
-  queue: {
-    delayedUrl: string;
-    url: string;
-  };
-  maxRunning: number;
 }
 
 interface ITaskStatus {
@@ -116,7 +97,7 @@ const updateTaskStatusAsync = async (newStatus: ITaskStatus) => {
 
 const createTaskId = () => `tsk-${Crypto.randomBytes(8).toString('hex')}`;
 
-const getTaskConfig = (req: ITaskRequest) => ((req.params.matchingRoute as unknown) as ITaskRoute)?.task;
+const getTaskConfig = (req: ITaskRequest) => ((req.params.matchingRoute as unknown) as IRoute)?.task;
 
 const isTaskSchedulingRequest = (req: ITaskRequest) => req.method === 'POST' && getTaskConfig(req);
 
@@ -127,7 +108,10 @@ const enforceNotBeforeHeader = (req: ITaskRequest, res: Response, next: NextFunc
 
   const notBefore = req.headers[Constants.NotBeforeHeader];
   if (notBefore !== undefined) {
-    if (isNaN(+notBefore) || Date.now() + MaxFusebitTaskNotBeforeRelativeHours * 3600 * 1000 < +notBefore * 1000) {
+    if (
+      isNaN(notBefore as any) ||
+      Date.now() + MaxFusebitTaskNotBeforeRelativeHours * 3600 * 1000 < +notBefore * 1000
+    ) {
       return next(
         create_error(
           400,
@@ -145,11 +129,10 @@ const getDelay = (ctx: ITaskCtx, total: boolean = false): number | undefined => 
   const delta = Math.floor((notBefore - now) / 1000);
   const delaySeconds = now >= notBefore ? undefined : total ? delta : Math.min(MaxSQSDelaySeconds, delta);
 
-  console.log(`delaySeconds: ${delaySeconds} `);
   return delaySeconds;
 };
 
-const scheduleTaskAsync = async (taskConfig: ITaskConfig, task: ITask) => {
+const scheduleTaskAsync = async (taskConfig: ITaskConfiguration, task: ITask) => {
   const delaySeconds = getDelay(task.ctx);
   const isDelayed = delaySeconds && delaySeconds > 0;
   // Send delayed tasks to the Standard delayed-task SQS queue,
@@ -201,7 +184,7 @@ setInterval(() => {
   });
 }, PendingTasksCacheTtlMs).unref();
 
-const getTaskStatistics = async (taskConfig: ITaskConfig) => {
+const getTaskStatistics = async (taskConfig: ITaskConfiguration) => {
   const url = taskConfig.queue.url;
   if (!isNaN(taskStatisticsCache[url]?.pendingCount)) {
     // Cache hit, return

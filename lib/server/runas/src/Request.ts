@@ -20,7 +20,7 @@ export interface ISecurity {
 export interface ITaskConfiguration {
   maxPending?: number;
   maxRunning?: number;
-  queue: { url: string };
+  queue: { url: string; delayedUrl: string };
 }
 
 export interface IRoute {

@@ -425,6 +425,7 @@ export default abstract class BaseEntityService<E extends Model.IEntity, F exten
         functionId: entity.id,
         version: undefined,
         functionPath: location || '/',
+        baseUrl: '', // Populated in executeFunction
       },
       method,
       elements

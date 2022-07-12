@@ -1,7 +1,14 @@
 import create_error from 'http-errors';
 import { IncomingHttpHeaders } from 'http';
 
-import { loadFunctionSummary, mintJwtForPermissions, IFunctionSummary, getMatchingRoute, IRoute } from '@5qtrs/runas';
+import {
+  loadFunctionSummary,
+  mintJwtForPermissions,
+  IFunctionSummary,
+  getMatchingRoute,
+  IRoute,
+  pickAuthorization,
+} from '@5qtrs/runas';
 import { AwsRegistry } from '@5qtrs/registry';
 import { IAgent } from '@5qtrs/account-data';
 import * as Constants from '@5qtrs/constants';
@@ -35,7 +42,7 @@ interface IParams {
   matchingRoute?: IRoute;
 }
 
-type IExecuteParams = IParams & { functionPath: string };
+type IExecuteParams = IParams & { functionPath: string; baseUrl: string };
 
 interface IFunctionSecuritySpecification {
   authentication?: string;
@@ -81,7 +88,7 @@ interface IFunctionSpecification {
       maxPending?: number;
       maxRunning?: number;
     };
-  };
+  }[];
 }
 
 interface ICreateFunction {
@@ -287,33 +294,6 @@ const checkAuthorization = async (
   }
 };
 
-const getAuthorization = (method: string, params: IExecuteParams, functionSummary: IFunctionSummary) => {
-  let authz = Constants.getFunctionAuthorization(functionSummary);
-  let authn = Constants.getFunctionAuthentication(functionSummary);
-  const route = (params.matchingRoute = getMatchingRoute(functionSummary, params));
-
-  console.log(`Found route? ${JSON.stringify(route)}`);
-  if (route) {
-    if (route.security) {
-      // Route level security requirements take precedence over function level security requirements
-      authn = route.security.authentication;
-      authz = route.security.authorization;
-    } else if (route.task && method === 'POST') {
-      // If a route is a task and request is a task scheduling request and the route does not specify
-      // security requirements explicitly, enforce default task security
-      authn = 'required';
-      authz = [
-        {
-          action: 'function:schedule',
-          resource: `/account/${params.accountId}/subscription/${params.subscriptionId}/boundary/${params.boundaryId}/function/${params.functionId}/`,
-        },
-      ];
-    }
-  }
-
-  return { authz, authn };
-};
-
 const executeFunction = async (
   params: IExecuteParams,
   method: string,
@@ -338,7 +318,11 @@ const executeFunction = async (
 
   const functionSummary = await loadFunctionSummary(params);
 
-  const { authz: functionAuthz, authn: functionAuthn } = getAuthorization(method, params, functionSummary);
+  const { authorization: functionAuthz, authentication: functionAuthn } = pickAuthorization(
+    method,
+    params,
+    functionSummary
+  );
 
   const functionPerms = Constants.getFunctionPermissions(functionSummary);
   // Guarantee a release regardless of the exceptions that occur later by using a finally{} clause to call
@@ -396,7 +380,6 @@ const executeFunction = async (
       params.logs = await createLoggingCtx(keyStore, params, 'https', Constants.API_PUBLIC_HOST);
     }
 
-    console.log(`Executing: ${req.originalUrl}: task: ${taskSchedulingRequest}`);
     if (options.analytics) {
       // Override the traceIdHeader with the supplied traceId and spanId.  Otherwise, the header contains the
       // value from the "parent" request, which also absorbs the logs and spans that come from this execution.
