@@ -299,16 +299,6 @@ const executeFunction = async (
   method: string,
   options: IExecuteFunctionOptions = { mode: 'request', apiVersion: 'v2' }
 ): Promise<IExecuteFunction> => {
-  /*
-   * Should probably be moved into the schema/ side.
-  const notBefore = req.headers[Constants.NotBeforeHeader];
-  if (notBefore !== undefined) {
-    if (isNaN(notBefore) || Date.now() + MaxFusebitTaskNotBeforeRelativeHours * 3600 * 1000 < +notBefore * 1000) {
-      return next(
-        create_error(
-        ))}};
-  */
-
   let sub;
   try {
     sub = await subscriptionCache.find(params.subscriptionId);

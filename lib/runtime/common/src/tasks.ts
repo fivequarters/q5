@@ -106,6 +106,10 @@ const enforceNotBeforeHeader = (req: ITaskRequest, res: Response, next: NextFunc
     return next();
   }
 
+  checkNotBeforeHeader(req, res, next);
+};
+
+const checkNotBeforeHeader = (req: ITaskRequest, res: Response, next: NextFunction) => {
   const notBefore = req.headers[Constants.NotBeforeHeader];
   if (notBefore !== undefined) {
     if (
@@ -253,4 +257,5 @@ export {
   getTaskConfig,
   getTaskStatistics,
   enforceNotBeforeHeader,
+  checkNotBeforeHeader,
 };

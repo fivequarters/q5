@@ -14,6 +14,7 @@ import {
   createTaskId,
   getTaskStatistics,
   enforceNotBeforeHeader,
+  checkNotBeforeHeader,
 } from './tasks';
 
 import * as Common from './common.js';
@@ -40,4 +41,5 @@ export {
   createTaskId,
   getTaskStatistics,
   enforceNotBeforeHeader,
+  checkNotBeforeHeader,
 };
