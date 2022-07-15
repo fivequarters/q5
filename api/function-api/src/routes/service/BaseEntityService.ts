@@ -3,8 +3,8 @@ import { Model } from '@5qtrs/db';
 
 import * as Function from '../functions';
 
-export const defaultFrameworkSemver = '>7.32.1';
-export const defaultOAuthConnectorSemver = '>7.32.1';
+export const defaultFrameworkSemver = '>=7.49.0';
+export const defaultOAuthConnectorSemver = '>=7.49.0';
 
 export interface IServiceResult {
   statusCode: number;
@@ -88,6 +88,10 @@ export default abstract class BaseEntityService<E extends Model.IEntity, F exten
   public abstract sanitizeEntity(entity: Model.IEntity): Model.IEntity;
   public abstract getFunctionSecuritySpecification(entity: Model.IEntity): any;
 
+  public getFunctionRoutes(entity: Model.IEntity) {
+    return entity.data.routes || [];
+  }
+
   public createFunctionSpecification = (entity: Model.IEntity): Function.IFunctionSpecification => {
     // Make a copy of data so the files can be removed.
     const functionConfig = { ...entity.data };
@@ -129,6 +133,7 @@ export default abstract class BaseEntityService<E extends Model.IEntity, F exten
       },
       fusebitEditor: entity.data.fusebitEditor,
       security: this.getFunctionSecuritySpecification(entity),
+      routes: this.getFunctionRoutes(entity),
     };
 
     if (entity.data.schedule && entity.data.schedule.length > 0) {
@@ -414,9 +419,15 @@ export default abstract class BaseEntityService<E extends Model.IEntity, F exten
     elements: Function.IExecuteFunctionOptions
   ): Promise<Function.IExecuteFunction> => {
     return Function.executeFunction(
-      { ...entity, boundaryId: this.entityType, functionId: entity.id, version: undefined },
+      {
+        ...entity,
+        boundaryId: this.entityType,
+        functionId: entity.id,
+        version: undefined,
+        functionPath: location || '/',
+        baseUrl: '', // Populated in executeFunction
+      },
       method,
-      location,
       elements
     );
   };
