@@ -31,6 +31,11 @@ interface ITaskStatus {
   taskId: string;
   status: string;
   notBefore?: string;
+  error?: {
+    statusCode: number;
+    message: string;
+  };
+  output?: any;
 }
 
 interface ITaskCtx extends ITaskRequest {

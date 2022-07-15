@@ -1,8 +1,8 @@
 // @ts-ignore
 
-const { invoke_function } = require('./invoke_function.js');
-const { dispatch_event } = require('./analytics.js');
-const { pollOnce, is_logging_enabled, addLogging, createLoggingCtx } = require('./logging.js');
+const { invoke_function } = require('./invoke_function');
+const { dispatch_event } = require('./analytics');
+const { pollOnce, is_logging_enabled, addLogging, createLoggingCtx } = require('./logging');
 
 import {
   isTaskSchedulingRequest,
@@ -17,7 +17,7 @@ import {
   checkNotBeforeHeader,
 } from './tasks';
 
-import * as Common from './common.js';
+const Common = require('./common');
 
 import { publishLogs, ISpanEvent, ILogEvent } from './grafana';
 
