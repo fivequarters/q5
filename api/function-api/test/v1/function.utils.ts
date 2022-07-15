@@ -16,6 +16,7 @@ export const getParams = (functionId: string, account: IAccount, boundaryId: str
   boundaryId,
   functionId,
   functionPath: '/',
+  baseUrl: '',
 });
 
 export const fakeAgent = {
