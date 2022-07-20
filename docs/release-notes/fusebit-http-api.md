@@ -17,6 +17,12 @@ All public releases of the Fusebit HTTP API are documented here, including notab
 <!-- 1. TOC
 {:toc} -->
 
+## Version 1.40.5
+
+_Released 7/20/22_
+
+- **Enhancement** Change timeout restrictions to be 900s for integrations.
+
 ## Version 1.40.4
 
 _Released 7/15/22_

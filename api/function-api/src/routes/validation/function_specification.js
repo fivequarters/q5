@@ -26,12 +26,12 @@ module.exports = Joi.object().keys({
   lambda: Joi.object().keys({
     memorySize: Joi.number().integer().min(64).max(3008),
     memory_size: Joi.number().integer().min(64).max(3008),
-    timeout: Joi.number().integer().min(1).max(120),
+    timeout: Joi.number().integer().min(1).max(900),
     staticIp: Joi.boolean(),
   }),
   compute: Joi.object().keys({
     memorySize: Joi.number().integer().min(64).max(3008),
-    timeout: Joi.number().integer().min(1).max(120),
+    timeout: Joi.number().integer().min(1).max(900),
     staticIp: Joi.boolean(),
     persistLogs: Joi.boolean(),
   }),
