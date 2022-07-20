@@ -130,6 +130,7 @@ export default abstract class BaseEntityService<E extends Model.IEntity, F exten
       compute: {
         persistLogs: true,
         memorySize: 512,
+        timeout: 900,
       },
       fusebitEditor: entity.data.fusebitEditor,
       security: this.getFunctionSecuritySpecification(entity),
