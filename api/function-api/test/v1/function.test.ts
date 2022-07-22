@@ -986,14 +986,14 @@ describe('Function', () => {
         },
       },
       compute: {
-        timeout: 121,
+        timeout: 901,
       },
     });
     expect(response).toBeHttp({ statusCode: 400 });
     expect(response.data).toMatchObject({
       status: 400,
       statusCode: 400,
-      message: 'compute.timeout: "timeout" must be less than or equal to 120',
+      message: 'compute.timeout: "timeout" must be less than or equal to 900',
     });
   }, 120000);
 
