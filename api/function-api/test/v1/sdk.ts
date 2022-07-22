@@ -1361,3 +1361,51 @@ export async function refreshSubscriptionCache(account: IAccount) {
   const refreshCalls = Array.from(Array(workAroundNumberOfInstances).keys()).map(() => refreshInstanceCache(account));
   return Promise.all(refreshCalls);
 }
+
+export async function waitForTask(
+  account: IAccount,
+  boundaryId: string,
+  functionId: string,
+  taskUrl: string,
+  attempts: number = 60
+) {
+  while (attempts === undefined || attempts > 0) {
+    await new Promise((r) => setTimeout(r, 1000));
+    const response = await request({
+      method: 'GET',
+      url: taskUrl,
+      headers: {
+        Authorization: `Bearer ${account.accessToken}`,
+      },
+    });
+    expect(response).toBeHttp({
+      statusCode: 200,
+      data: {
+        accountId: account.accountId,
+        subscriptionId: account.subscriptionId,
+        boundaryId,
+        functionId,
+        transitions: {},
+      },
+    });
+    expect(response.data.taskId).toMatch(/^tsk-/);
+    expect(response.data.status).toMatch(/^pending|running|completed|error$/);
+    if (response.data.status === 'completed') {
+      expect(response.data.output).toMatchObject({
+        response: {},
+        meta: {},
+      });
+    } else if (response.data.status === 'error') {
+      expect(response.data.error).toMatchObject({});
+    }
+    if (response.data.status === 'error' || response.data.status === 'completed') {
+      return response.data;
+    }
+    if (attempts) {
+      attempts--;
+      if (attempts === 0) {
+        return response.data;
+      }
+    }
+  }
+}

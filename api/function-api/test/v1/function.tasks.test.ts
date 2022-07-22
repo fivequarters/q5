@@ -1,7 +1,7 @@
 import { request } from '@5qtrs/request';
 import * as Constants from '@5qtrs/constants';
 
-import { callFunction, waitForBuild, putFunction } from './sdk';
+import { callFunction, waitForBuild, putFunction, waitForTask } from './sdk';
 
 import { getEnv } from './setup';
 
@@ -79,48 +79,6 @@ const scheduleTask = async (
   return response.data;
 };
 
-const waitForTask = async (url: string, attempts: number = 60) => {
-  while (attempts === undefined || attempts > 0) {
-    await new Promise((r) => setTimeout(r, 1000));
-    const response = await request({
-      method: 'GET',
-      url,
-      headers: {
-        Authorization: `Bearer ${account.accessToken}`,
-      },
-    });
-    expect(response).toBeHttp({
-      statusCode: 200,
-      data: {
-        accountId: account.accountId,
-        subscriptionId: account.subscriptionId,
-        boundaryId,
-        functionId: function1Id,
-        transitions: {},
-      },
-    });
-    expect(response.data.taskId).toMatch(/^tsk-/);
-    expect(response.data.status).toMatch(/^pending|running|completed|error$/);
-    if (response.data.status === 'completed') {
-      expect(response.data.output).toMatchObject({
-        response: {},
-        meta: {},
-      });
-    } else if (response.data.status === 'error') {
-      expect(response.data.error).toMatchObject({});
-    }
-    if (response.data.status === 'error' || response.data.status === 'completed') {
-      return response.data;
-    }
-    if (attempts) {
-      attempts--;
-      if (attempts === 0) {
-        return response.data;
-      }
-    }
-  }
-};
-
 const runDelayedTest = async (delaySeconds: number) => {
   const createResponse = await createFunction(undefined, undefined, [
     {
@@ -141,7 +99,7 @@ const runDelayedTest = async (delaySeconds: number) => {
     requestBody,
     requestHeaders
   );
-  const waitResponse = await waitForTask(scheduleResponse.location);
+  const waitResponse = await waitForTask(account, boundaryId, function1Id, scheduleResponse.location);
   expect(waitResponse).toMatchObject({
     status: 'completed',
     notBefore: notBeforeDate.toISOString(),
@@ -218,7 +176,7 @@ const runCustomHandlerTest = async (handler: any) => {
   expect(scheduleResponse.data.taskId).toMatch(/^tsk-/);
   expect(scheduleResponse.data.location).toMatch(/^http/i);
 
-  const waitResponse = await waitForTask(scheduleResponse.data.location);
+  const waitResponse = await waitForTask(account, boundaryId, function1Id, scheduleResponse.data.location);
   expect(waitResponse).toMatchObject({
     status: 'completed',
     output: {
@@ -255,7 +213,7 @@ const runOneTask = async (location: string, responseObject?: any) => {
     'x-foo': 'x-bar',
   };
   const scheduleResponse = await scheduleTask(location + '/task?a=b', account.accessToken, requestBody, requestHeaders);
-  const waitResponse = await waitForTask(scheduleResponse.location);
+  const waitResponse = await waitForTask(account, boundaryId, function1Id, scheduleResponse.location);
   expect(waitResponse).toMatchObject(
     responseObject || {
       status: 'completed',

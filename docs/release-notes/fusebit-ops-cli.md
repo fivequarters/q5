@@ -18,6 +18,18 @@ All public releases of the Fusebit Operations CLI are documented here, including
 {:toc}
 -->
 
+## Version 1.38.13
+
+_Released 7/15/22_
+
+- **Enhancement** Support tasks in v2 entities.
+
+## Version 1.38.12
+
+_Released 6/28/22_
+
+- **Enhancement** Upgrade cron to support tasks.
+
 ## Version 1.38.11
 
 _Released 6/15/22_

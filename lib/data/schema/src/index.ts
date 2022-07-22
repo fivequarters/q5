@@ -171,6 +171,18 @@ export interface IIntegrationData {
       payload?: Record<string, any>;
     }[];
   };
+  routes?: {
+    path: string;
+    security?: {
+      authentication?: string;
+      authorization?: any;
+      functionPermissions?: IEntityPermission[];
+    };
+    task?: {
+      maxPending?: number;
+      maxRunning?: number;
+    };
+  }[];
 }
 
 export interface IIntegration extends IEntity {

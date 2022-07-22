@@ -1855,8 +1855,69 @@ components:
                 type: string
                 description: The utility package for a connector that provides a configured
                   SDK for use by the integration.
+        schedule:
+          type: array
+          description: Schedule specific endpoints to be invoked based on the crontab
+          items:
+            type: object
+            properties:
+              cron:
+                type: string
+                description: The crontab schedule to invoke the endpoint on
+              timezone:
+                type: string
+                description: The timezone that the crontab should execute within
+              endpoint:
+                type: string
+                description: The endpoint to invoke on the `integration.cron` router
         security:
           $ref: '#/components/schemas/EntitySecurity'
+        routes:
+          type: array
+          description: Properties that control route-specific behaviors of the function
+          items:
+            type: object
+            description: |
+              Overrides security settings and controls task scheduling settings
+              on per-route basis. Given a request, the first route, if any, prefix-matching
+              the path of the request URL is used.
+            required:
+              - path
+            properties:
+              path:
+                type: string
+                description: A prefix of the request path
+                example: '/api/sendEmail'
+              security:
+                $ref: '#/components/schemas/EntitySecurity'
+              task:
+                type: object
+                description: |
+                  If present, HTTP POST requests prefix-matching this route are scheduled
+                  for asynchronous execution as tasks, and an immediate HTTP 202 response is sent
+                  with the `location` HTTP response header containing the URL at which the
+                  status of the task execution can be queried.
+
+                  If the number of requests pending execution exceeds `maxPending`,
+                  an HTTP 429 response is sent and the request is not scheduled for execution.
+
+                  Unless an explicit `security` element is specified for this route, the HTTP POST
+                  requests that schedule task execution must be authorized with an access token that
+                  grants the `function:schedule` action for the function resource.
+                properties:
+                  maxPending:
+                    type: number
+                    description: |
+                      The maximum number of tasks that can be scheduled for execution before
+                      subsequent requests are rejected with an HTTP 429 response. Specify 0
+                      to allow any number of pending requests.
+                    default: 1024
+                  maxRunning:
+                    type: number
+                    description: |
+                      The maximum number of tasks that can be running concurrently. Specify 0
+                      to not limit the maximum number of running tasks.
+                    default: 10
         fusebitEditor:
           $ref: '#/components/schemas/EntityFusebitEditor'
 

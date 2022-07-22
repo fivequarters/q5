@@ -42,7 +42,7 @@ describe('Execution Async', () => {
     expect(response).toBeHttp({ statusCode: 200, data: { status: 'success' } });
     response = await request(response.data.location);
     expect(response).toBeHttp({ statusCode: 200, data: 'function', headers: { 'x-fx-response-source': 'function' } });
-  }, 15000);
+  }, 150000);
 
   test('function context APIs work as expected', async () => {
     const reflectContext = {

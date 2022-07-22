@@ -2,7 +2,7 @@ const Joi = require('joi');
 import express from 'express';
 
 import { getAuthToken } from '@5qtrs/constants';
-import { ISpanEvent, ILogEvent } from '@5qtrs/runtime-common';
+import { ISpanEvent, ILogEvent, checkNotBeforeHeader } from '@5qtrs/runtime-common';
 import { Model } from '@5qtrs/db';
 
 import * as common from '../../middleware/common';
@@ -28,6 +28,7 @@ const router = (
     common.management({
       validate: { params: Validation.EntityIdParams.keys({ '0': Joi.string(), subPath: Joi.string() }) },
     }),
+    checkNotBeforeHeader,
     (req: express.Request, res: express.Response, next: express.NextFunction) => {
       // Touch up subPath to make sure it has the right prefix.
       req.params.subPath = `/api/${req.params.subPath || ''}`;
