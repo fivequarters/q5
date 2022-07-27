@@ -18,6 +18,12 @@ All public releases of the Fusebit Operations CLI are documented here, including
 {:toc}
 -->
 
+## Version 1.38.14
+
+_Released 7/27/22_
+
+- **Bugfix** Fix logging of results for tasks running longer than 120 seconds.
+
 ## Version 1.38.13
 
 _Released 7/15/22_
