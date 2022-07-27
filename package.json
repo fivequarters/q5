@@ -1,5 +1,5 @@
 {
-  "version": "1.40.5",
+  "version": "1.40.6",
   "private": true,
   "org": "5qtrs",
   "engines": {
@@ -37,7 +37,19 @@
     "image": "VERSION=$(cat package.json | grep version | head -1 | awk -F: '{ print $2 }' | sed 's/[\",]//g' | tr -d '[[:space:]]') && docker build . -t fusebit-mono:$VERSION --platform linux/amd64",
     "prettier": "git ls-tree -r `git branch --show-current` --name-only | grep -E \"\\.[tj]?sx?$|\\.yaml$\" | grep -v assets | xargs -P 1 prettier --write",
     "proxy-service": "hygen proxy-service new",
-    "deploy-proxy-service": "cd tool/cicd/actions && yarn build && yarn deploy"
+    "deploy-proxy-service": "cd tool/cicd/actions && yarn build && yarn deploy",
+    "deployment:321.us-west-2.stage": "make -f tool/deployment/deployment.mk deploy-deployment-fuseprod-stage-us-west-2",
+    "deployment:321.us-west-1.api": "make -f tool/deployment/deployment.mk deploy-deployment-fuseprod-api-us-west-1",
+    "deployment:321.us-east-1.api": "make -f tool/deployment/deployment.mk deploy-deployment-fuseprod-api-us-east-1",
+    "deployment:763.us-west-1.api": "make -f tool/deployment/deployment.mk deploy-deployment-fuseself-api-us-west-1",
+    "stack:321.us-west-2.stage": "make -f tool/deployment/stack.mk deploy-stack-fuseprod-stage-us-west-2",
+    "stack:321.us-west-1.api": "make -f tool/deployment/stack.mk deploy-stack-fuseprod-api-us-west-1",
+    "stack:321.us-east-1.api": "make -f tool/deployment/stack.mk deploy-stack-fuseprod-api-us-east-1",
+    "stack:763.us-west-1.api": "make -f tool/deployment/stack.mk deploy-stack-fuseself-api-us-west-1",
+    "stack:rotate:321.us-west-2.stage": "make -f tool/deployment/stack.mk deploy-stack-rotate-fuseprod-stage-us-west-2",
+    "stack:rotate:321.us-west-1.api": "make -f tool/deployment/stack.mk deploy-stack-rotate-fuseprod-api-us-west-1",
+    "stack:rotate:321.us-east-1.api": "make -f tool/deployment/stack.mk deploy-stack-rotate-fuseprod-api-us-east-1",
+    "stack:rotate:763.us-west-1.api": "make -f tool/deployment/stack.mk deploy-stack-rotate-fuseself-api-us-west-1"
   },
   "devDependencies": {
     "@babel/core": "^7.3.3",

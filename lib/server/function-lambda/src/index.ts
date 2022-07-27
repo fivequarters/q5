@@ -7,7 +7,12 @@ import { get_logs } from './get_logs';
 import { list_functions } from './list_functions';
 import { post_function_build } from './post_function_build';
 import { post_logs } from './post_logs';
-import { put_function, clear_built_module, custom_layers_health } from './put_function';
+import {
+  put_function,
+  clear_built_module,
+  custom_layers_health,
+  resolve_one_external_dependency,
+} from './put_function';
 import { terminate_garbage_collection } from './create_function_worker';
 import { post_logs_query } from './post_logs_query';
 import { get_logs_query } from './get_logs_query';
@@ -15,6 +20,7 @@ import { get_task } from './get_task';
 
 export {
   put_function,
+  resolve_one_external_dependency,
   custom_layers_health,
   clear_built_module,
   post_function_build,
