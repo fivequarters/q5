@@ -17,6 +17,12 @@ All public releases of the Fusebit HTTP API are documented here, including notab
 <!-- 1. TOC
 {:toc} -->
 
+## Version 1.40.7
+
+_Released 7/27/22_
+
+- **Bugfix** Fix logging of results for tasks running longer than 120 seconds.
+
 ## Version 1.40.6
 
 _Released 7/22/22_

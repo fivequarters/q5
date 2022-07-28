@@ -17,6 +17,29 @@ const specFuncReturnCtx = {
   security: {},
 };
 
+const specFuncLongRunning = {
+  nodejs: {
+    files: {
+      'index.js': `module.exports = async (ctx) => { 
+    await new Promise((r) => setTimeout(r, 400 * 1000)); // wait 400s
+    return { body: ctx }; 
+  };`,
+    },
+  },
+  compute: {
+    timeout: 500,
+  },
+  routes: [
+    {
+      path: '/task',
+      security: {
+        authentication: 'none',
+      },
+      task: {},
+    },
+  ],
+};
+
 const createFunctionFromSpec = async (spec: any) => {
   let response = await putFunction(account, boundaryId, function1Id, spec);
   expect(response).toBeHttp({ statusCode: [200, 201] });
@@ -207,13 +230,13 @@ const runCustomHandlerTest = async (handler: any) => {
   expect(runningDate.valueOf()).toBeLessThan(completedDate.valueOf());
 };
 
-const runOneTask = async (location: string, responseObject?: any) => {
+const runOneTask = async (location: string, responseObject?: any, attempts?: number) => {
   const requestBody = { foo: 'bar' };
   const requestHeaders = {
     'x-foo': 'x-bar',
   };
   const scheduleResponse = await scheduleTask(location + '/task?a=b', account.accessToken, requestBody, requestHeaders);
-  const waitResponse = await waitForTask(account, boundaryId, function1Id, scheduleResponse.location);
+  const waitResponse = await waitForTask(account, boundaryId, function1Id, scheduleResponse.location, attempts || 60);
   expect(waitResponse).toMatchObject(
     responseObject || {
       status: 'completed',
@@ -267,6 +290,11 @@ describe('Tasks', () => {
     ]);
     await runOneTask(createResponse.data.location);
   }, 180000);
+
+  test('Running a 400s task succeeds', async () => {
+    const createResponse = await createFunctionFromSpec(specFuncLongRunning);
+    await runOneTask(createResponse.data.location, undefined, 430);
+  }, 500000);
 
   test('Getting task statistics succeeds', async () => {
     await createFunction(undefined, undefined, [
