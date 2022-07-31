@@ -319,7 +319,12 @@ const executeFunction = async (
   // the releaseRate function.
   const releaseRate = ratelimit.checkRateLimit(sub, params.subscriptionId);
   try {
-    const resolvedAgent = await checkAuthorization(params.accountId, options.token, functionAuthn, functionAuthz);
+    let resolvedAgent;
+    try {
+      resolvedAgent = await checkAuthorization(params.accountId, options.token, functionAuthn, functionAuthz);
+    } catch (err) {
+      throw create_error(403, 'Unauthorized');
+    }
 
     // execute
     const physicalBaseUrl = Constants.get_function_location(
