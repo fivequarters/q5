@@ -61,6 +61,7 @@ export enum Permissions {
   putRegistry = 'registry:put',
 
   getLogs = 'log:get',
+  scheduleFunction = 'function:schedule',
 }
 
 interface IPermissionSet {

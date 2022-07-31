@@ -88,8 +88,27 @@ export default abstract class BaseEntityService<E extends Model.IEntity, F exten
   public abstract sanitizeEntity(entity: Model.IEntity): Model.IEntity;
   public abstract getFunctionSecuritySpecification(entity: Model.IEntity): any;
 
-  public getFunctionRoutes(entity: Model.IEntity) {
-    return entity.data.routes || [];
+  public getFunctionRoutes(entity: Model.IEntity, functionPermissions: any) {
+    const routes = entity.data.routes || [];
+
+    // Add a default set of functionPermissions for each `routes` entry.
+    routes.forEach((route: any) => {
+      route.security =
+        route.security !== undefined
+          ? route.security
+          : {
+              authentication: 'required',
+              authorization: [
+                {
+                  action: 'function:schedule',
+                  resource: `/account/${entity.accountId}/subscription/${entity.subscriptionId}/boundary/${entity.entityType}/function/${entity.id}/`,
+                },
+              ],
+              functionPermissions,
+            };
+    });
+
+    return routes;
   }
 
   public createFunctionSpecification = (entity: Model.IEntity): Function.IFunctionSpecification => {
@@ -101,8 +120,10 @@ export default abstract class BaseEntityService<E extends Model.IEntity, F exten
     // Add the baseUrl to the configuration.
     const config = {
       ...functionConfig,
-      mountUrl: `/v2/account/${entity.accountId}/subscription/${entity.subscriptionId}/integration/${entity.id}`,
+      mountUrl: `/v2/account/${entity.accountId}/subscription/${entity.subscriptionId}/${entity.entityType}/${entity.id}`,
     };
+
+    const security = this.getFunctionSecuritySpecification(entity);
 
     const spec: Function.IFunctionSpecification = {
       id: entity.id,
@@ -133,8 +154,8 @@ export default abstract class BaseEntityService<E extends Model.IEntity, F exten
         timeout: 900,
       },
       fusebitEditor: entity.data.fusebitEditor,
-      security: this.getFunctionSecuritySpecification(entity),
-      routes: this.getFunctionRoutes(entity),
+      security,
+      routes: this.getFunctionRoutes(entity, security.functionPermissions),
     };
 
     if (entity.data.schedule && entity.data.schedule.length > 0) {

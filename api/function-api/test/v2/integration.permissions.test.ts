@@ -151,9 +151,10 @@ describe('Integration Permissions', () => {
 
     const simplePutToken = await AuthZ.getTokenByPerm({
       allow: [
+        { action: Permissions.allStorage, resource: '/' },
+        { action: Permissions.scheduleFunction, resource: '/' },
         { action: v2Permissions.integration.add, resource: '/' },
         { action: v2Permissions.integration.get, resource: '/' },
-        { action: Permissions.allStorage, resource: '/' },
         { action: v2Permissions.updateSession, resource: '/' },
         { action: v2Permissions.getSession, resource: '/' },
         { action: v2Permissions.install.all, resource: '/' },
