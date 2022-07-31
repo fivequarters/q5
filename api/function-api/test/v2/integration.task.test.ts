@@ -40,10 +40,31 @@ const getTaskedIntegration = (): Model.ISdkEntity & { data: Model.IIntegrationDa
     // @ts-ignore:next-line
     integration.task.on('/api/task', (ctx) => (ctx.body = 'hello'));
 
+    integration.router.get(
+      '/api/schedule',
+      // @ts-ignore:next-line
+      async (ctx) => (ctx.body = await integration.service.scheduleTask(ctx, { path: '/api/task' }))
+    );
+
+    integration.task.on(
+      '/api/task2',
+      // @ts-ignore:next-line
+      async (ctx) => (ctx.body = ctx.state.params.functionAccessToken)
+    );
+
+    integration.router.get(
+      '/api/schedule2',
+      // @ts-ignore:next-line
+      async (ctx) => (ctx.body = await integration.service.scheduleTask(ctx, { path: '/api/task2' }))
+    );
+
     module.exports = integration;
   });
 
-  i.data.routes = [{ path: '/api/task', task: {} }];
+  i.data.routes = [
+    { path: '/api/task', task: {} },
+    { path: '/api/task2', task: {} },
+  ];
   return i;
 };
 
@@ -84,14 +105,13 @@ describe('Integration task', () => {
     expect(taskResult.output.response.body).toEqual('hello');
   }, 180000);
 
-  test.only('Invoking delayed route on an integration succeeds', async () => {
+  test('Invoking delayed route on an integration succeeds', async () => {
     const integ = getTaskedIntegration();
 
     let response = await ApiRequestMap.integration.postAndWait(account, integ.id, integ);
     expect(response).toBeHttp({ statusCode: 200 });
 
     const delaySeconds = 5;
-    const startDate = new Date();
     const notBefore = Math.floor(Date.now() / 1000) + delaySeconds;
     const notBeforeDate = new Date(notBefore * 1000);
 
@@ -102,5 +122,48 @@ describe('Integration task', () => {
     const taskResult = await waitForTask(account, 'integration', integ.id, response.data.location);
     expect(Number(new Date())).toBeGreaterThan(Number(notBeforeDate));
     expect(taskResult.output.response.body).toEqual('hello');
+  }, 180000);
+
+  test('Integration can self-schedule tasks', async () => {
+    const integ = getTaskedIntegration();
+
+    let response = await ApiRequestMap.integration.postAndWait(account, integ.id, integ);
+    expect(response).toBeHttp({ statusCode: 200 });
+
+    response = await ApiRequestMap.integration.dispatch(account, integ.id, RequestMethod.get, '/api/schedule');
+    expect(response).toBeHttp({ statusCode: 200 });
+    const taskResult = await waitForTask(account, 'integration', integ.id, response.data);
+    expect(taskResult.output.response.body).toEqual('hello');
+  }, 180000);
+
+  test('Task requires valid authz token', async () => {
+    const integ = getTaskedIntegration();
+
+    let response = await ApiRequestMap.integration.postAndWait(account, integ.id, integ);
+    expect(response).toBeHttp({ statusCode: 200 });
+
+    response = await ApiRequestMap.integration.dispatch(account, integ.id, RequestMethod.post, '/api/task', {
+      authz: '',
+    });
+    expect(response).toBeHttp({ statusCode: 403 });
+  }, 180000);
+
+  test('Integration tasks can self-schedule tasks', async () => {
+    const integ = getTaskedIntegration();
+
+    let response = await ApiRequestMap.integration.postAndWait(account, integ.id, integ);
+    expect(response).toBeHttp({ statusCode: 200 });
+
+    response = await ApiRequestMap.integration.dispatch(account, integ.id, RequestMethod.get, '/api/schedule2');
+    expect(response).toBeHttp({ statusCode: 200 });
+    // First task
+    const taskResult = await waitForTask(account, 'integration', integ.id, response.data);
+    // ... returns the functionAccessToken, which is used to start another task
+    response = await ApiRequestMap.integration.dispatch(account, integ.id, RequestMethod.post, '/api/task', {
+      authz: taskResult.output.response.body,
+    });
+    const taskResult2 = await waitForTask(account, 'integration', integ.id, response.data.location);
+    // ... returns 'hello'.
+    expect(taskResult2.output.response.body).toEqual('hello');
   }, 180000);
 });

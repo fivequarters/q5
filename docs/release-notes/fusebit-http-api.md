@@ -17,6 +17,12 @@ All public releases of the Fusebit HTTP API are documented here, including notab
 <!-- 1. TOC
 {:toc} -->
 
+## Version 1.40.8
+
+_Released 7/31/22_
+
+- **Bugfix** Extend task permissions into v2 route endpoints.
+
 ## Version 1.40.7
 
 _Released 7/27/22_
