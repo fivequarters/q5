@@ -136,6 +136,22 @@ describe('Integration task', () => {
     expect(taskResult.output.response.body).toEqual('hello');
   }, 180000);
 
+  test('Integration can self-schedule tasks after being modified', async () => {
+    const integ = getTaskedIntegration();
+
+    let response = await ApiRequestMap.integration.postAndWait(account, integ.id, integ);
+    expect(response).toBeHttp({ statusCode: 200 });
+
+    integ.data.routes.push({ path: '/api/task3', task: {} });
+    response = await ApiRequestMap.integration.putAndWait(account, integ.id, integ);
+    expect(response).toBeHttp({ statusCode: 200 });
+
+    response = await ApiRequestMap.integration.dispatch(account, integ.id, RequestMethod.get, '/api/schedule');
+    expect(response).toBeHttp({ statusCode: 200 });
+    const taskResult = await waitForTask(account, 'integration', integ.id, response.data);
+    expect(taskResult.output.response.body).toEqual('hello');
+  }, 180000);
+
   test('Task requires valid authz token', async () => {
     const integ = getTaskedIntegration();
 

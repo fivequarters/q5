@@ -101,7 +101,7 @@ export default abstract class BaseEntityService<E extends Model.IEntity, F exten
               authorization: [
                 {
                   action: 'function:schedule',
-                  resource: `/account/${entity.accountId}/subscription/${entity.subscriptionId}/boundary/${entity.entityType}/function/${entity.id}/`,
+                  resource: `/account/${entity.accountId}/subscription/${entity.subscriptionId}/boundary/${this.entityType}/function/${entity.id}/`,
                 },
               ],
               functionPermissions,
@@ -120,7 +120,7 @@ export default abstract class BaseEntityService<E extends Model.IEntity, F exten
     // Add the baseUrl to the configuration.
     const config = {
       ...functionConfig,
-      mountUrl: `/v2/account/${entity.accountId}/subscription/${entity.subscriptionId}/${entity.entityType}/${entity.id}`,
+      mountUrl: `/v2/account/${entity.accountId}/subscription/${entity.subscriptionId}/${this.entityType}/${entity.id}`,
     };
 
     const security = this.getFunctionSecuritySpecification(entity);
