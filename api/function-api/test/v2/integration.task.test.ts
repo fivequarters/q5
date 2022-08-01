@@ -58,12 +58,16 @@ const getTaskedIntegration = (): Model.ISdkEntity & { data: Model.IIntegrationDa
       async (ctx) => (ctx.body = await integration.service.scheduleTask(ctx, { path: '/api/task2' }))
     );
 
+    // @ts-ignore:next-line
+    integration.task.on('/api/task3/:animal', (ctx) => (ctx.body = ctx.params.animal));
+
     module.exports = integration;
   });
 
   i.data.routes = [
     { path: '/api/task', task: {} },
     { path: '/api/task2', task: {} },
+    { path: '/api/task3', task: {} },
   ];
   return i;
 };
@@ -105,6 +109,18 @@ describe('Integration task', () => {
     expect(taskResult.output.response.body).toEqual('hello');
   }, 180000);
 
+  test('Invoking subroute on an integration succeeds', async () => {
+    const integ = getTaskedIntegration();
+
+    let response = await ApiRequestMap.integration.postAndWait(account, integ.id, integ);
+    expect(response).toBeHttp({ statusCode: 200 });
+
+    response = await ApiRequestMap.integration.dispatch(account, integ.id, RequestMethod.post, '/api/task3/monkey');
+    expect(response).toBeHttp({ statusCode: 202 });
+    const taskResult = await waitForTask(account, 'integration', integ.id, response.data.location);
+    expect(taskResult.output.response.body).toEqual('monkey');
+  }, 180000);
+
   test('Invoking delayed route on an integration succeeds', async () => {
     const integ = getTaskedIntegration();
 
@@ -142,7 +158,8 @@ describe('Integration task', () => {
     let response = await ApiRequestMap.integration.postAndWait(account, integ.id, integ);
     expect(response).toBeHttp({ statusCode: 200 });
 
-    integ.data.routes.push({ path: '/api/task3', task: {} });
+    // Add a new route just to mix things up
+    integ.data.routes.push({ path: `/api/task_${integ.id}`, task: {} });
     response = await ApiRequestMap.integration.putAndWait(account, integ.id, integ);
     expect(response).toBeHttp({ statusCode: 200 });
 
