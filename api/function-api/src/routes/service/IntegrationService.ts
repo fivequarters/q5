@@ -135,7 +135,7 @@ class IntegrationService extends SessionedEntityService<Model.IIntegration, Mode
         });
         permissions.functionPermissions.allow.push({
           action: Permissions.scheduleFunction,
-          resource: `/account/{{accountId}}/subscription/{{subscriptionId}}/connector/${component.entityId}/`,
+          resource: `/account/{{accountId}}/subscription/{{subscriptionId}}/boundary/connector/${component.entityId}/`,
         });
       });
 

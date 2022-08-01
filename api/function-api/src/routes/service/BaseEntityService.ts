@@ -89,7 +89,8 @@ export default abstract class BaseEntityService<E extends Model.IEntity, F exten
   public abstract getFunctionSecuritySpecification(entity: Model.IEntity): any;
 
   public getFunctionRoutes(entity: Model.IEntity, functionPermissions: any) {
-    const routes = entity.data.routes || [];
+    // Duplicate to avoid tainting the original object.
+    const routes = JSON.parse(JSON.stringify(entity.data.routes)) || [];
 
     // Add a default set of functionPermissions for each `routes` entry.
     routes.forEach((route: any) => {
