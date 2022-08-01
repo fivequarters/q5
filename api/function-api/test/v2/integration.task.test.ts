@@ -109,7 +109,7 @@ describe('Integration task', () => {
     expect(taskResult.output.response.body).toEqual('hello');
   }, 180000);
 
-  test.only('Invoking subroute on an integration succeeds', async () => {
+  test('Invoking subroute on an integration succeeds', async () => {
     const integ = getTaskedIntegration();
 
     let response = await ApiRequestMap.integration.postAndWait(account, integ.id, integ);
