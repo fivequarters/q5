@@ -158,7 +158,8 @@ describe('Integration task', () => {
     let response = await ApiRequestMap.integration.postAndWait(account, integ.id, integ);
     expect(response).toBeHttp({ statusCode: 200 });
 
-    integ.data.routes.push({ path: '/api/task3', task: {} });
+    // Add a new route just to mix things up
+    integ.data.routes.push({ path: `/api/task_${integ.id}`, task: {} });
     response = await ApiRequestMap.integration.putAndWait(account, integ.id, integ);
     expect(response).toBeHttp({ statusCode: 200 });
 
