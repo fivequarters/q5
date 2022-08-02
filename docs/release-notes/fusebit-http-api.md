@@ -17,6 +17,12 @@ All public releases of the Fusebit HTTP API are documented here, including notab
 <!-- 1. TOC
 {:toc} -->
 
+## Version 1.40.11
+
+_Released 8/2/22_
+
+- **Enhancement** Support managed Grafana dashboards per user.
+
 ## Version 1.40.10
 
 _Released 8/1/22_

@@ -18,6 +18,13 @@ All public releases of the Fusebit Operations CLI are documented here, including
 {:toc}
 -->
 
+## Version 1.38.15
+
+_Released 8/2/22_
+
+- **Enhancement** Support managed Grafana dashboards per user.
+- **Enhancement** Substantially increase Loki query depth.
+
 ## Version 1.38.14
 
 _Released 7/27/22_
