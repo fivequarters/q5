@@ -7,9 +7,12 @@ import { AccountActions } from '@5qtrs/account';
 import { isGrafanaEnabled } from '@5qtrs/constants';
 
 import authorize from '../middleware/authorize';
+import validate_schema from '../middleware/validate_schema';
 
 import * as grafana from './constants';
-import { defaultDatasources, defaultDashboards } from './defaults';
+import { defaultDatasources, defaultDashboards as commonDefaultDashboards } from './defaults';
+
+import { Initialize } from '../validation/grafana_initialize';
 
 const router = express.Router({ mergeParams: true });
 
@@ -18,6 +21,8 @@ const addAccountId = (accountId: string, obj: any) =>
 
 router.post(
   '/',
+  express.json(),
+  validate_schema({ body: Initialize }),
   authorize({ operation: AccountActions.updateAccount }),
   async (req: express.Request, res: express.Response, next: express.NextFunction) => {
     const accountId = req.params.accountId;
@@ -28,8 +33,11 @@ router.post(
       return res.send({ status: 'unsupported' });
     }
 
+    // Include any overwrites on the dashboards, for custom testing purposes.
+    const defaultDashboards = [...commonDefaultDashboards, ...(req.body?.dashboards || [])];
+
     try {
-      await initializeGrafana(accountId, lastAction);
+      await initializeGrafana(accountId, defaultDashboards, lastAction);
 
       res.send({ status: 'ok' });
     } catch (err) {
@@ -39,7 +47,11 @@ router.post(
   }
 );
 
-const initializeGrafana = async (accountId: string, lastAction: { action: string }): Promise<void> => {
+const initializeGrafana = async (
+  accountId: string,
+  defaultDashboards: any[],
+  lastAction: { action: string }
+): Promise<void> => {
   const creds = await grafana.getAdminCreds();
 
   lastAction.action = 'Create Organization';
