@@ -185,7 +185,7 @@ export class MonitoringService {
           .promise();
         if (JSON.parse(result.Payload?.toString() as string).StatusCode === 200) {
           if (this.input.options.output !== 'json') {
-            await this.executeService.info('Stack Healthy', `'Fusebit monitoring stack ${stackId} reported healthy!`);
+            await this.executeService.info('Stack Healthy', `Fusebit monitoring stack ${stackId} reported healthy!`);
           }
           return;
         }

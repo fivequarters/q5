@@ -1,6 +1,6 @@
 {
   "name": "@5qtrs/fusebit-ops-cli",
-  "version": "1.38.15",
+  "version": "1.38.16",
   "description": "The Fusebit Platform Operations CLI",
   "main": "libc/index.js",
   "license": "UNLICENSED",
