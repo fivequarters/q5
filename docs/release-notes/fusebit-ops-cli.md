@@ -18,6 +18,12 @@ All public releases of the Fusebit Operations CLI are documented here, including
 {:toc}
 -->
 
+## Version 1.38.16
+
+_Released 8/9/22_
+
+- **Enhancement** Increase the allowed query depth in Loki.
+
 ## Version 1.38.15
 
 _Released 8/2/22_

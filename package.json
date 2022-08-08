@@ -49,7 +49,8 @@
     "stack:rotate:321.us-west-2.stage": "make -f tool/deployment/stack.mk deploy-stack-rotate-fuseprod-stage-us-west-2",
     "stack:rotate:321.us-west-1.api": "make -f tool/deployment/stack.mk deploy-stack-rotate-fuseprod-api-us-west-1",
     "stack:rotate:321.us-east-1.api": "make -f tool/deployment/stack.mk deploy-stack-rotate-fuseprod-api-us-east-1",
-    "stack:rotate:763.us-west-1.api": "make -f tool/deployment/stack.mk deploy-stack-rotate-fuseself-api-us-west-1"
+    "stack:rotate:763.us-west-1.api": "make -f tool/deployment/stack.mk deploy-stack-rotate-fuseself-api-us-west-1",
+    "monitoring-stack:321.us-west-2.stage": "make -f tool/deployment/monitoring_stack.mk deploy-stack-monitoring-fuseprod-stage-us-west-2"
   },
   "devDependencies": {
     "@babel/core": "^7.3.3",
