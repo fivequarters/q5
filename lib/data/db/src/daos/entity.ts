@@ -121,7 +121,10 @@ export abstract class Entity<ET extends IEntity> implements IEntityDao<ET> {
 
         obj[name] = value;
       });
-      return obj as T;
+
+      // Return the AWS Response object as a non-enumerable object so that various AWS request metadata, like
+      // the requestId, can be extracted as necessary.
+      return Object.defineProperty(obj, '$response', { value: (result as any)['$response'] }) as T;
     });
   };
 

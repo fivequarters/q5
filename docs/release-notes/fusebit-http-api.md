@@ -17,6 +17,12 @@ All public releases of the Fusebit HTTP API are documented here, including notab
 <!-- 1. TOC
 {:toc} -->
 
+## Version 1.40.12
+
+_Released 9/6/22_
+
+- **Diagnostic** Improve capture of RDS request IDs for tardy responses.
+
 ## Version 1.40.11
 
 _Released 8/2/22_
