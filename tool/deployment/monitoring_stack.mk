@@ -2,7 +2,7 @@ include tool/deployment/profile.mk
 
 .ONESHELL:
 
-DEFAULT_GRAFANA_VER:=fusebit/grafana:fusebit-v1.0.8-v8.3.3
+DEFAULT_GRAFANA_VER:=`curl -s https://raw.githubusercontent.com/fusebit/grafana/fusebit-v1.0.0-v8.3.3/.fusebit.version.json | jq -rc ".version"`
 
 %.stack-mon-prod: 321.require-profile
 	fuse-ops monitoring stack add ${NAME} --grafanaTag ${DEFAULT_GRAFANA_VER} --region ${REGION}
