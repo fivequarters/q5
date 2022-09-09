@@ -21,6 +21,12 @@ All public releases of the Fusebit HTTP API are documented here, including notab
 
 _Released 9/6/22_
 
+- **Enhancement** Add Health Monitoring Dashboard to Grafana Defaults.
+
+## Version 1.40.12
+
+_Released 9/9/22_
+
 - **Diagnostic** Improve capture of RDS request IDs for tardy responses.
 
 ## Version 1.40.11
