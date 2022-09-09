@@ -17,6 +17,12 @@ All public releases of the Fusebit HTTP API are documented here, including notab
 <!-- 1. TOC
 {:toc} -->
 
+## Version 1.40.13
+
+_Released 9/9/22_
+
+- **Enhancement** Add Health Monitoring Dashboard to Grafana Defaults.
+
 ## Version 1.40.12
 
 _Released 9/6/22_
