@@ -19,6 +19,10 @@ const router = express.Router({ mergeParams: true });
 const addAccountId = (accountId: string, obj: any) =>
   JSON.parse(JSON.stringify(obj).replace(new RegExp('{{accountId}}', 'g'), accountId));
 
+const getDefaultDashboards = (req: express.Request) =>
+  // Include any overwrites on the dashboards, for custom testing purposes.
+  [...commonDefaultDashboards, ...(req.body?.dashboards || [])];
+
 router.post(
   '/',
   express.json(),
@@ -33,11 +37,8 @@ router.post(
       return res.send({ status: 'unsupported' });
     }
 
-    // Include any overwrites on the dashboards, for custom testing purposes.
-    const defaultDashboards = [...commonDefaultDashboards, ...(req.body?.dashboards || [])];
-
     try {
-      await initializeGrafana(accountId, defaultDashboards, lastAction);
+      await initializeGrafana(accountId, getDefaultDashboards(req), lastAction);
 
       res.send({ status: 'ok' });
     } catch (err) {
@@ -158,4 +159,4 @@ const initializeGrafana = async (
 };
 
 export default router;
-export { initializeGrafana };
+export { initializeGrafana, getDefaultDashboards };

@@ -17,6 +17,12 @@ All public releases of the Fusebit HTTP API are documented here, including notab
 <!-- 1. TOC
 {:toc} -->
 
+## Version 1.40.14
+
+_Released 9/12/22_
+
+- **Bugfix** Fix invalid grafana initialization call during account creation
+
 ## Version 1.40.13
 
 _Released 9/9/22_
