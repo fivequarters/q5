@@ -2,7 +2,7 @@ const { getAccountContext, errorHandler } = require('../account');
 const { AwsRegistry } = require('@5qtrs/registry');
 const { REGISTRY_DEFAULT, isGrafanaEnabled } = require('@5qtrs/constants');
 
-const { initializeGrafana } = require('../grafana/initialize');
+const { initializeGrafana, getDefaultDashboards } = require('../grafana/initialize');
 
 function accountPatch() {
   return async (req, res) => {
@@ -45,7 +45,7 @@ function accountPost() {
         // Initialize Grafana
         const lastAction = { action: 'unknown' };
         try {
-          await initializeGrafana(account.id, lastAction);
+          await initializeGrafana(account.id, getDefaultDashboards(req), lastAction);
         } catch (err) {
           console.log(`GRAFANA ERROR: ${lastAction.action} failed: `, err.response?.error, err);
           // Silently eat an error here so that account creation doesn't fail due to Grafana.
