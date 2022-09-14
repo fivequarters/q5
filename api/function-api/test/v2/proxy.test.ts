@@ -91,7 +91,7 @@ describe('Proxy', () => {
 
     baseUrl = `${Constants.API_PUBLIC_ENDPOINT}/v2/account/${account.accountId}/subscription/${account.subscriptionId}`;
 
-    redirectUrl = `https://${tunnel.subdomain}.tunnel.dev.fusebit.io`;
+    redirectUrl = `https://${tunnel.subdomain}.tunnel.dev.fivequarters.io`;
     authorizationUrl = `${redirectUrl}/authorize`;
     tokenUrl = `${redirectUrl}/token`;
     revokeUrl = `${redirectUrl}/revoke`;

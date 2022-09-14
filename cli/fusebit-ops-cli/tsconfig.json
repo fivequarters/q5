@@ -20,6 +20,7 @@
     { "path": "../../lib/server/runas" },
     { "path": "../../lib/grafana/config" },
     { "path": "../../lib/aws/user-data" },
-    { "path": "../addon/slack-reporter" }
+    { "path": "../addon/slack-reporter" },
+    { "path": "../../lib/grafana/health-lambda" }
   ]
 }

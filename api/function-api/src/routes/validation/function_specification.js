@@ -1,6 +1,8 @@
 const Joi = require('joi');
 
 const Common = require('./common');
+const Security = require('./security');
+const Routes = require('./routes');
 
 module.exports = Joi.object().keys({
   accountId: Common.accountId,
@@ -24,12 +26,12 @@ module.exports = Joi.object().keys({
   lambda: Joi.object().keys({
     memorySize: Joi.number().integer().min(64).max(3008),
     memory_size: Joi.number().integer().min(64).max(3008),
-    timeout: Joi.number().integer().min(1).max(120),
+    timeout: Joi.number().integer().min(1).max(900),
     staticIp: Joi.boolean(),
   }),
   compute: Joi.object().keys({
     memorySize: Joi.number().integer().min(64).max(3008),
-    timeout: Joi.number().integer().min(1).max(120),
+    timeout: Joi.number().integer().min(1).max(900),
     staticIp: Joi.boolean(),
     persistLogs: Joi.boolean(),
   }),
@@ -41,32 +43,7 @@ module.exports = Joi.object().keys({
   scheduleSerialized: Joi.string().allow('').optional(),
   metadata: Joi.object(),
   runtime: Joi.object(),
-  security: Joi.object()
-    .keys({
-      authentication: Joi.string().valid('none', 'optional', 'required').default('none'),
-      authorization: Joi.when('authentication', {
-        is: 'none',
-        then: Joi.any().forbidden(),
-        otherwise: Joi.array()
-          .items(
-            Joi.object()
-              .keys({
-                action: Joi.string(),
-                resource: Joi.string(),
-              })
-              .optional()
-          )
-          .min(1),
-      }),
-      functionPermissions: Joi.object().keys({
-        allow: Joi.array().items(
-          Joi.object().keys({
-            action: Joi.string(),
-            resource: Joi.string(),
-          })
-        ),
-      }),
-    })
-    .default({ authentication: 'none' }),
+  security: Security.default({ authentication: 'none' }),
+  routes: Routes.functionRoutes,
   fusebitEditor: Common.fusebitEditor,
 });

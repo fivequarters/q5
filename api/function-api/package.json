@@ -34,6 +34,7 @@
     "@5qtrs/npm": "^0.0.1",
     "@5qtrs/registry": "^0.0.1",
     "@5qtrs/runas": "^0.0.1",
+    "@5qtrs/runtime-common": "^0.0.1",
     "@5qtrs/storage": "^0.0.1",
     "@5qtrs/storage-data": "^0.0.1",
     "@5qtrs/storage-data-aws": "^0.0.1",
@@ -51,15 +52,14 @@
     "superagent": "^6.1.0",
     "swagger-ui-express": "^4.0.2",
     "uuid": "^7.0.3",
-    "yamljs": "^0.3.0",
-    "@5qtrs/runtime-common": "^0.0.1"
+    "yamljs": "^0.3.0"
   },
   "devDependencies": {
     "@5qtrs/fusebit-profile-sdk": "^0.0.1",
     "@5qtrs/key-pair": "^0.0.1",
     "@5qtrs/random": "^0.0.1",
     "@5qtrs/request": "^0.0.1",
-    "@fusebit/tunnel": "^3.2.5",
+    "@fusebit/tunnel": "^3.2.6",
     "@npm/types": "^1.0.1",
     "@reportportal/agent-js-jest": "^5.0.3",
     "@types/aws-sdk": "^2.7.0",
@@ -70,6 +70,7 @@
     "@types/superagent": "^4.1.12",
     "aws-sdk": "^2.1001.0",
     "libnpm": "^3.0.1",
+    "nock": "^13.2.9",
     "pem-jwk": "^2.0.0",
     "spdx-license-ids": "^3.0.6",
     "ssri": "^8.0.1",

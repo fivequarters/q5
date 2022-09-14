@@ -159,11 +159,12 @@ paths:
       tags:
         - Connector
       summary: Search for and retrieve entities of the specified type
-      operationId: searchConnectors
+      operationId: listConnectors
       parameters:
         - $ref: '#/components/parameters/SearchIdPrefix'
         - $ref: '#/components/parameters/SearchCount'
         - $ref: '#/components/parameters/SearchNext'
+        - $ref: '#/components/parameters/SearchSort'
         - $ref: '#/components/parameters/SearchTag'
         - $ref: '#/components/parameters/SearchStatus'
       responses:
@@ -264,6 +265,36 @@ paths:
 
   #############################################################################
   # Identity
+  /v2/account/{accountId}/subscription/{subscriptionId}/identity/:
+    parameters:
+      - $ref: '#/components/parameters/Account'
+      - $ref: '#/components/parameters/Subscription'
+    get:
+      tags:
+        - Identity
+      summary: Search for and retrieve entities of the specified type across all Connectors
+      operationId: searchIdentities
+      parameters:
+        - $ref: '#/components/parameters/SearchCount'
+        - $ref: '#/components/parameters/SearchNext'
+        - $ref: '#/components/parameters/SearchSort'
+        - $ref: '#/components/parameters/SearchTag'
+      responses:
+        200:
+          description: A list of the entities found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/IdentityList'
+        400:
+          $ref: '#/components/responses/400'
+        403:
+          $ref: '#/components/responses/403'
+        404:
+          $ref: '#/components/responses/404'
+      security:
+        - AccessToken: ['identity:get']
+
   /v2/account/{accountId}/subscription/{subscriptionId}/connector/{connectorId}/identity/:
     parameters:
       - $ref: '#/components/parameters/Account'
@@ -277,10 +308,11 @@ paths:
       tags:
         - Identity
       summary: Search for and retrieve entities of the specified type
-      operationId: searchIdentities
+      operationId: listIdentities
       parameters:
         - $ref: '#/components/parameters/SearchCount'
         - $ref: '#/components/parameters/SearchNext'
+        - $ref: '#/components/parameters/SearchSort'
         - $ref: '#/components/parameters/SearchTag'
       responses:
         200:
@@ -381,11 +413,12 @@ paths:
       tags:
         - Integration
       summary: Search for and retrieve entities of the specified type
-      operationId: searchIntegrations
+      operationId: listIntegrations
       parameters:
         - $ref: '#/components/parameters/SearchIdPrefix'
         - $ref: '#/components/parameters/SearchCount'
         - $ref: '#/components/parameters/SearchNext'
+        - $ref: '#/components/parameters/SearchSort'
         - $ref: '#/components/parameters/SearchTag'
         - $ref: '#/components/parameters/SearchStatus'
       responses:
@@ -486,6 +519,36 @@ paths:
 
   #############################################################################
   # Install
+  /v2/account/{accountId}/subscription/{subscriptionId}/install/:
+    parameters:
+      - $ref: '#/components/parameters/Account'
+      - $ref: '#/components/parameters/Subscription'
+    get:
+      tags:
+        - Install
+      summary: Search for and retrieve entities of the specified type across all Integrations
+      operationId: searchInstalls
+      parameters:
+        - $ref: '#/components/parameters/SearchCount'
+        - $ref: '#/components/parameters/SearchNext'
+        - $ref: '#/components/parameters/SearchSort'
+        - $ref: '#/components/parameters/SearchTag'
+      responses:
+        200:
+          description: A list of the entities found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/InstallList'
+        400:
+          $ref: '#/components/responses/400'
+        403:
+          $ref: '#/components/responses/403'
+        404:
+          $ref: '#/components/responses/404'
+      security:
+        - AccessToken: ['instance:get']
+
   /v2/account/{accountId}/subscription/{subscriptionId}/integration/{integrationId}/install/:
     parameters:
       - $ref: '#/components/parameters/Account'
@@ -499,10 +562,11 @@ paths:
       tags:
         - Install
       summary: Search for and retrieve entities of the specified type
-      operationId: searchInstalls
+      operationId: listInstalls
       parameters:
         - $ref: '#/components/parameters/SearchCount'
         - $ref: '#/components/parameters/SearchNext'
+        - $ref: '#/components/parameters/SearchSort'
         - $ref: '#/components/parameters/SearchTag'
       responses:
         200:
@@ -592,6 +656,436 @@ paths:
         - AccessToken: ['instance:delete']
 
 #############################################################################
+# Tags
+#
+# This section is duplicated, verbatim, for each of the various endpoints the
+# tags are mounted on: integration, connector, install, identity.
+#
+# Each endpoint is grouped by type, for simplicity in updating all of them at
+# once.
+#
+# GET /tag/
+  /v2/account/{accountId}/subscription/{subscriptionId}/integration/{integrationId}/tag:
+    parameters:
+      - $ref: '#/components/parameters/Account'
+      - $ref: '#/components/parameters/Subscription'
+      - name: integrationId
+        in: path
+        required: true
+        schema:
+          $ref: '#/components/schemas/EntityId'
+    get:
+      tags:
+        - Integration/Tags
+      summary: Get the tags for an entity
+      operationId: getIntegrationTags
+      responses:
+        200:
+          $ref: '#/components/responses/Tag200'
+        400:
+          $ref: '#/components/responses/400'
+        403:
+          $ref: '#/components/responses/403'
+        404:
+          $ref: '#/components/responses/404'
+      security:
+        - AccessToken: ['integration:get']
+
+  /v2/account/{accountId}/subscription/{subscriptionId}/connector/{connectorId}/tag:
+    parameters:
+      - $ref: '#/components/parameters/Account'
+      - $ref: '#/components/parameters/Subscription'
+      - name: connectorId
+        in: path
+        required: true
+        schema:
+          $ref: '#/components/schemas/EntityId'
+    get:
+      tags:
+        - Connector/Tags
+      summary: Get the tags for an entity
+      operationId: getConnectorTags
+      responses:
+        200:
+          $ref: '#/components/responses/Tag200'
+        400:
+          $ref: '#/components/responses/400'
+        403:
+          $ref: '#/components/responses/403'
+        404:
+          $ref: '#/components/responses/404'
+      security:
+        - AccessToken: ['connector:get']
+
+  /v2/account/{accountId}/subscription/{subscriptionId}/integration/{integrationId}/install/{installId}/tag:
+    parameters:
+      - $ref: '#/components/parameters/Account'
+      - $ref: '#/components/parameters/Subscription'
+      - name: integrationId
+        in: path
+        required: true
+        schema:
+          $ref: '#/components/schemas/EntityId'
+      - name: installId
+        in: path
+        required: true
+        schema:
+          $ref: '#/components/schemas/InstallId'
+    get:
+      tags:
+        - Install/Tags
+      summary: Get the tags for an entity
+      operationId: getInstallTags
+      responses:
+        200:
+          $ref: '#/components/responses/Tag200'
+        400:
+          $ref: '#/components/responses/400'
+        403:
+          $ref: '#/components/responses/403'
+        404:
+          $ref: '#/components/responses/404'
+      security:
+        - AccessToken: ['install:get']
+
+  /v2/account/{accountId}/subscription/{subscriptionId}/connector/{connectorId}/identity/{identityId}/tag:
+    parameters:
+      - $ref: '#/components/parameters/Account'
+      - $ref: '#/components/parameters/Subscription'
+      - name: connectorId
+        in: path
+        required: true
+        schema:
+          $ref: '#/components/schemas/EntityId'
+      - name: identityId
+        in: path
+        required: true
+        schema:
+          $ref: '#/components/schemas/IdentityId'
+    get:
+      tags:
+        - Identity/Tags
+      summary: Get the tags for an entity
+      operationId: getIdentityTags
+      responses:
+        200:
+          $ref: '#/components/responses/Tag200'
+        400:
+          $ref: '#/components/responses/400'
+        403:
+          $ref: '#/components/responses/403'
+        404:
+          $ref: '#/components/responses/404'
+      security:
+        - AccessToken: ['identity:get']
+
+# GET/DELETE /tag/tagKey
+  /v2/account/{accountId}/subscription/{subscriptionId}/integration/{integrationId}/tag/{tagKey}:
+    parameters:
+      - $ref: '#/components/parameters/Account'
+      - $ref: '#/components/parameters/Subscription'
+      - name: integrationId
+        in: path
+        required: true
+        schema:
+          $ref: '#/components/schemas/EntityId'
+      - $ref: '#/components/parameters/TagKey'
+    get:
+      tags:
+        - Integration/Tags
+      summary: Get the value of a specific tag for an entity
+      operationId: getIntegrationTag
+      responses:
+        200:
+          $ref: '#/components/responses/TagKey200'
+        400:
+          $ref: '#/components/responses/400'
+        403:
+          $ref: '#/components/responses/403'
+        404:
+          $ref: '#/components/responses/404'
+      security:
+        - AccessToken: ['integration:get']
+    delete:
+      tags:
+        - Integration/Tags
+      summary: Delete a specific tag
+      operationId: deleteIntegrationTag
+      responses:
+        200:
+          $ref: '#/components/responses/Tag200'
+        400:
+          $ref: '#/components/responses/400'
+        403:
+          $ref: '#/components/responses/403'
+        404:
+          $ref: '#/components/responses/404'
+      security:
+        - AccessToken: ['integration:put-tag']
+
+  /v2/account/{accountId}/subscription/{subscriptionId}/connector/{connectorId}/tag/{tagKey}:
+    parameters:
+      - $ref: '#/components/parameters/Account'
+      - $ref: '#/components/parameters/Subscription'
+      - name: connectorId
+        in: path
+        required: true
+        schema:
+          $ref: '#/components/schemas/EntityId'
+      - $ref: '#/components/parameters/TagKey'
+    get:
+      tags:
+        - Connector/Tags
+      summary: Get the value of a specific tag for an entity
+      operationId: getConnectorTag
+      responses:
+        200:
+          $ref: '#/components/responses/TagKey200'
+        400:
+          $ref: '#/components/responses/400'
+        403:
+          $ref: '#/components/responses/403'
+        404:
+          $ref: '#/components/responses/404'
+      security:
+        - AccessToken: ['connector:get']
+    delete:
+      tags:
+        - Connector/Tags
+      summary: Delete a specific tag
+      operationId: deleteConnectorTag
+      responses:
+        200:
+          $ref: '#/components/responses/Tag200'
+        400:
+          $ref: '#/components/responses/400'
+        403:
+          $ref: '#/components/responses/403'
+        404:
+          $ref: '#/components/responses/404'
+      security:
+        - AccessToken: ['connector:put-tag']
+
+  /v2/account/{accountId}/subscription/{subscriptionId}/integration/{integrationId}/install/{installId}/tag/{tagKey}:
+    parameters:
+      - $ref: '#/components/parameters/Account'
+      - $ref: '#/components/parameters/Subscription'
+      - name: integrationId
+        in: path
+        required: true
+        schema:
+          $ref: '#/components/schemas/EntityId'
+      - name: installId
+        in: path
+        required: true
+        schema:
+          $ref: '#/components/schemas/InstallId'
+      - $ref: '#/components/parameters/TagKey'
+    get:
+      tags:
+        - Install/Tags
+      summary: Get the value of a specific tag for an entity
+      operationId: getInstallTag
+      responses:
+        200:
+          $ref: '#/components/responses/TagKey200'
+        400:
+          $ref: '#/components/responses/400'
+        403:
+          $ref: '#/components/responses/403'
+        404:
+          $ref: '#/components/responses/404'
+      security:
+        - AccessToken: ['install:get']
+    delete:
+      tags:
+        - Install/Tags
+      summary: Delete a specific tag
+      operationId: deleteInstallTag
+      responses:
+        200:
+          $ref: '#/components/responses/Tag200'
+        400:
+          $ref: '#/components/responses/400'
+        403:
+          $ref: '#/components/responses/403'
+        404:
+          $ref: '#/components/responses/404'
+      security:
+        - AccessToken: ['install:put-tag']
+
+  /v2/account/{accountId}/subscription/{subscriptionId}/connector/{connectorId}/identity/{identityId}/tag/{tagKey}:
+    parameters:
+      - $ref: '#/components/parameters/Account'
+      - $ref: '#/components/parameters/Subscription'
+      - name: connectorId
+        in: path
+        required: true
+        schema:
+          $ref: '#/components/schemas/EntityId'
+      - $ref: '#/components/parameters/TagKey'
+      - name: identityId
+        in: path
+        required: true
+        schema:
+          $ref: '#/components/schemas/IdentityId'
+    get:
+      tags:
+        - Identity/Tags
+      summary: Get the value of a specific tag for an entity
+      operationId: getIdentityTag
+      responses:
+        200:
+          $ref: '#/components/responses/TagKey200'
+        400:
+          $ref: '#/components/responses/400'
+        403:
+          $ref: '#/components/responses/403'
+        404:
+          $ref: '#/components/responses/404'
+      security:
+        - AccessToken: ['connector:get']
+    delete:
+      tags:
+        - Install/Tags
+      summary: Delete a specific tag
+      operationId: deleteIdentityTag
+      responses:
+        200:
+          $ref: '#/components/responses/Tag200'
+        400:
+          $ref: '#/components/responses/400'
+        403:
+          $ref: '#/components/responses/403'
+        404:
+          $ref: '#/components/responses/404'
+      security:
+        - AccessToken: ['identity:put-tag']
+
+# PUT /tagKey/tagValue
+  /v2/account/{accountId}/subscription/{subscriptionId}/integration/{integrationId}/tag/{tagKey}/{tagValue}:
+    parameters:
+      - $ref: '#/components/parameters/Account'
+      - $ref: '#/components/parameters/Subscription'
+      - name: integrationId
+        in: path
+        required: true
+        schema:
+          $ref: '#/components/schemas/EntityId'
+      - $ref: '#/components/parameters/TagKey'
+      - $ref: '#/components/parameters/TagValue'
+    put:
+      tags:
+        - Integration/Tags
+      summary: Set the value of a specific tag for an entity
+      operationId: putIntegrationTag
+      responses:
+        200:
+          $ref: '#/components/responses/Tag200'
+        400:
+          $ref: '#/components/responses/400'
+        403:
+          $ref: '#/components/responses/403'
+        404:
+          $ref: '#/components/responses/404'
+      security:
+        - AccessToken: ['integration:put']
+
+  /v2/account/{accountId}/subscription/{subscriptionId}/connector/{connectorId}/tag/{tagKey}/{tagValue}:
+    parameters:
+      - $ref: '#/components/parameters/Account'
+      - $ref: '#/components/parameters/Subscription'
+      - name: connectorId
+        in: path
+        required: true
+        schema:
+          $ref: '#/components/schemas/EntityId'
+      - $ref: '#/components/parameters/TagKey'
+      - $ref: '#/components/parameters/TagValue'
+    put:
+      tags:
+        - Connector/Tags
+      summary: Set the value of a specific tag for an entity
+      operationId: putConnectorTag
+      responses:
+        200:
+          $ref: '#/components/responses/Tag200'
+        400:
+          $ref: '#/components/responses/400'
+        403:
+          $ref: '#/components/responses/403'
+        404:
+          $ref: '#/components/responses/404'
+      security:
+        - AccessToken: ['connector:put-tag']
+
+  /v2/account/{accountId}/subscription/{subscriptionId}/integration/{integrationId}/install/{installId}/tag/{tagKey}/{tagValue}:
+    parameters:
+      - $ref: '#/components/parameters/Account'
+      - $ref: '#/components/parameters/Subscription'
+      - name: integrationId
+        in: path
+        required: true
+        schema:
+          $ref: '#/components/schemas/EntityId'
+      - name: installId
+        in: path
+        required: true
+        schema:
+          $ref: '#/components/schemas/InstallId'
+      - $ref: '#/components/parameters/TagKey'
+      - $ref: '#/components/parameters/TagValue'
+    put:
+      tags:
+        - Install/Tags
+      summary: Set the value of a specific tag for an entity
+      operationId: putInstallTag
+      responses:
+        200:
+          $ref: '#/components/responses/Tag200'
+        400:
+          $ref: '#/components/responses/400'
+        403:
+          $ref: '#/components/responses/403'
+        404:
+          $ref: '#/components/responses/404'
+      security:
+        - AccessToken: ['install:put-tag']
+
+  /v2/account/{accountId}/subscription/{subscriptionId}/connector/{connectorId}/identity/{identityId}/tag/{tagKey}/{tagValue}:
+    parameters:
+      - $ref: '#/components/parameters/Account'
+      - $ref: '#/components/parameters/Subscription'
+      - name: connectorId
+        in: path
+        required: true
+        schema:
+          $ref: '#/components/schemas/EntityId'
+      - name: identityId
+        in: path
+        required: true
+        schema:
+          $ref: '#/components/schemas/IdentityId'
+      - $ref: '#/components/parameters/TagKey'
+      - $ref: '#/components/parameters/TagValue'
+    put:
+      tags:
+        - Identity/Tags
+      summary: Set the value of a specific tag for an entity
+      operationId: putIdentityTag
+      responses:
+        200:
+          $ref: '#/components/responses/Tag200'
+        400:
+          $ref: '#/components/responses/400'
+        403:
+          $ref: '#/components/responses/403'
+        404:
+          $ref: '#/components/responses/404'
+      security:
+        - AccessToken: ['connector:put-tag']
+
+#############################################################################
 # Components
 
 components:
@@ -639,7 +1133,6 @@ components:
       description: The id of the session
       schema:
         $ref: '#/components/schemas/SessionId'
-
     SearchIdPrefix:
       name: idPrefix
       in: query
@@ -660,6 +1153,13 @@ components:
       description: The key to use to retrieve the next set of results
       schema:
         type: string
+    SearchSort:
+      name: sort
+      in: query
+      description: Sort the results by `dateModified`, `dateAdded`, or the default value of `entityId`.  If `sort` is
+        prepended with a `-` character, the order direction is reversed.
+      schema:
+        type: string
     SearchTag:
       name: tag
       in: query
@@ -673,6 +1173,20 @@ components:
       description: Search for entities matching a particular status, `creating`, `invalid`, or `active.
       schema:
         $ref: '#/components/schemas/EntityState'
+    TagKey:
+      name: tagKey
+      in: path
+      required: true
+      description: The name of the tag, URL encoded as necessary
+      schema:
+        type: string
+    TagValue:
+      name: tagValue
+      in: path
+      required: true
+      description: The value of the tag, URL encoded as necessary
+      schema:
+        type: string
 
   requestBodies:
     PostConnectorBody:
@@ -733,7 +1247,7 @@ components:
               redirectUrl:
                 type: string
                 description: The URL in your infrastructure that the user should return to
-                  after completing the session.
+                  after completing the session. Must be a full url, including scheme and hostname.
               installId:
                 type: string
                 description: Used when reconfiguring an existing user. Specifies the
@@ -786,6 +1300,31 @@ components:
               targetUrl:
                 type: string
                 description: The endpoint where you can find the install being created
+
+    Tag200:
+      description: The set of tags that apply to a specific entity.
+      content:
+        application/json:
+          schema:
+            type: object
+            required:
+              - tags
+            properties:
+              tags:
+                $ref: '#/components/schemas/EntityTags'
+              version:
+                type: string
+          example:
+            tags:
+              tenantId: Sonicity
+
+    TagKey200:
+      description: The requested tag value
+      content:
+        application/json:
+          schema:
+            type: string
+            description: The value of the requested tag, as a JSON encoded string.
 
     400:
       description: The request submitted is invalid. Please, check the documentation and
@@ -891,6 +1430,11 @@ components:
       type: string
       description: Identity id
       example: 'ins-01234567890123456789012345678912'
+
+    ParentId:
+      type: string
+      description: |
+        The name of the parent entity, matches: `/^[A-Za-z0-9\-]{1,64}$/)`
 
     EntityType:
       type: string
@@ -1215,6 +1759,8 @@ components:
       properties:
         id:
           $ref: '#/components/schemas/IdentityId'
+        parentId:
+          $ref: '#/components/schemas/ParentId'
         data:
           type: object
           description: The data used by the creating connector to establish a relationship
@@ -1309,8 +1855,69 @@ components:
                 type: string
                 description: The utility package for a connector that provides a configured
                   SDK for use by the integration.
+        schedule:
+          type: array
+          description: Schedule specific endpoints to be invoked based on the crontab
+          items:
+            type: object
+            properties:
+              cron:
+                type: string
+                description: The crontab schedule to invoke the endpoint on
+              timezone:
+                type: string
+                description: The timezone that the crontab should execute within
+              endpoint:
+                type: string
+                description: The endpoint to invoke on the `integration.cron` router
         security:
           $ref: '#/components/schemas/EntitySecurity'
+        routes:
+          type: array
+          description: Properties that control route-specific behaviors of the function
+          items:
+            type: object
+            description: |
+              Overrides security settings and controls task scheduling settings
+              on per-route basis. Given a request, the first route, if any, prefix-matching
+              the path of the request URL is used.
+            required:
+              - path
+            properties:
+              path:
+                type: string
+                description: A prefix of the request path
+                example: '/api/sendEmail'
+              security:
+                $ref: '#/components/schemas/EntitySecurity'
+              task:
+                type: object
+                description: |
+                  If present, HTTP POST requests prefix-matching this route are scheduled
+                  for asynchronous execution as tasks, and an immediate HTTP 202 response is sent
+                  with the `location` HTTP response header containing the URL at which the
+                  status of the task execution can be queried.
+
+                  If the number of requests pending execution exceeds `maxPending`,
+                  an HTTP 429 response is sent and the request is not scheduled for execution.
+
+                  Unless an explicit `security` element is specified for this route, the HTTP POST
+                  requests that schedule task execution must be authorized with an access token that
+                  grants the `function:schedule` action for the function resource.
+                properties:
+                  maxPending:
+                    type: number
+                    description: |
+                      The maximum number of tasks that can be scheduled for execution before
+                      subsequent requests are rejected with an HTTP 429 response. Specify 0
+                      to allow any number of pending requests.
+                    default: 1024
+                  maxRunning:
+                    type: number
+                    description: |
+                      The maximum number of tasks that can be running concurrently. Specify 0
+                      to not limit the maximum number of running tasks.
+                    default: 10
         fusebitEditor:
           $ref: '#/components/schemas/EntityFusebitEditor'
 
@@ -1456,6 +2063,8 @@ components:
       properties:
         id:
           $ref: '#/components/schemas/InstallId'
+        parentId:
+          $ref: '#/components/schemas/ParentId'
         data:
           type: object
           description: A hash of configuration objects key'ed by the `name` in the

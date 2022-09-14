@@ -18,6 +18,113 @@ All public releases of the Fusebit Operations CLI are documented here, including
 {:toc}
 -->
 
+## Version 1.38.16
+
+_Released 8/9/22_
+
+- **Enhancement** Increase the allowed query depth in Loki.
+
+## Version 1.38.15
+
+_Released 8/2/22_
+
+- **Enhancement** Support managed Grafana dashboards per user.
+- **Enhancement** Substantially increase Loki query depth.
+
+## Version 1.38.14
+
+_Released 7/27/22_
+
+- **Bugfix** Fix logging of results for tasks running longer than 120 seconds.
+
+## Version 1.38.13
+
+_Released 7/15/22_
+
+- **Enhancement** Support tasks in v2 entities.
+
+## Version 1.38.12
+
+_Released 6/28/22_
+
+- **Enhancement** Upgrade cron to support tasks.
+
+## Version 1.38.11
+
+_Released 6/15/22_
+
+- **Enhancement** Upgrade Loki to 2.5.0.
+- **Bugfix** Loki instances now can properly synchronize.
+
+## Version 1.38.10
+
+_Released 6/9/22_
+
+- **Enhancement** Support `--ami` flag on `fuse-ops monitoring stack add` to support manually specifying the AMI to use instead of the official ubuntu AMI.
+
+## Version 1.38.9
+
+_Released 6/6/22_
+
+- **Enhancement** Configure log and trace retention to 60 days and block compaction to 5 minutes.
+
+## Version 1.38.8
+
+_Released 6/3/22_
+
+- **Bugfix** Increase permission scope for `assume on` JWTs.
+
+## Version 1.38.7
+
+_Released 6/1/22_
+
+- **Bugfix** Add a missing permission to `assume on` JWTs.
+
+## Version 1.38.6
+
+_Released 5/26/22_
+
+- **Enhancement** Implement the capability to health check a monitoring stack during `monitoring stack add`
+  - `fuse-ops setup` to create the role required for grafana-health lambda function.
+  - `fuse-ops monitoring add` to create the lambda function.
+
+## Version 1.38.4
+
+_Released 5/18/22_
+
+- **Bugfix** Add permission to access CloudWatch for monitoring instances.
+
+## Version 1.38.3
+
+_Released 5/17/22_
+
+- **Enhancement** Improve cron logging to Grafana.
+
+## Version 1.38.2
+
+_Released 5/17/22_
+
+- **Enhancement** Forward docker logs to CloudWatch.
+- **Enhancement** Automatically delete logs when it reaches > 50MB on disk.
+
+## Version 1.38.1
+
+_Released 5/2/22_
+
+- **Enhancement.** Add support for Tempo search.
+
+## Version 1.38.0
+
+_Released 4/14/22_
+
+- **Enhancement.** Upgrade semver used in the package to 7.3.7.
+
+## Version 1.37.8
+
+_Released 4/7/22_
+
+- **Security.** Patch Axios against CVE-2021-3749.
+
 ## Version 1.37.7
 
 _Released 3/1/22_

@@ -739,11 +739,14 @@ describe('Sessions', () => {
 
   test('Tags specified on the session get persisted to identities and installs', async () => {
     const { integrationId } = await createPair(account, boundaryId);
-    const tenantId = 'exampleTenantId';
+    const extendedTags = {
+      tenantId: 'exampleTenantId',
+      [encodeURIComponent('https://fusebit.io/')]: null,
+      [encodeURIComponent('https://fusebit.io/foo')]: encodeURIComponent('https://fusebit.io/bar'),
+    };
+
     let response = await ApiRequestMap.integration.session.post(account, integrationId, {
-      tags: {
-        tenantId,
-      },
+      tags: extendedTags,
       redirectUrl: demoRedirectUrl,
     });
     const parentSessionId = response.data.id;
@@ -769,7 +772,7 @@ describe('Sessions', () => {
 
     // Get the install, and validate it has the tag specified
     response = await ApiRequestMap.install.get(account, integrationId, installId);
-    expect(response).toBeHttp({ statusCode: 200, data: { tags: { tenantId } } });
+    expect(response).toBeHttp({ statusCode: 200, data: { tags: extendedTags } });
   }, 180000);
 
   test('Tags specified on the integration get extended to installs and identities', async () => {

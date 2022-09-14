@@ -115,6 +115,7 @@ describe('Fan Out Endpoint Tests', () => {
       `/fan_out/event/webhook?tag=${sharedTag}`,
       { body: { payload } }
     );
+
     expect(response).toBeHttp({ statusCode: 200 });
 
     // Verify just two of the three installs ids were supplied on invocation

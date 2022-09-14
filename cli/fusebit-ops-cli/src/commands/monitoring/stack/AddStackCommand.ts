@@ -34,6 +34,10 @@ const command: ICommand = {
       name: 'tempoTag',
       description: `The version of the Tempo docker image, defaults to ${TEMPO_DEFAULT_VERSION}`,
     },
+    {
+      name: 'ami',
+      description: 'AMI ID to use instead of the official Ubuntu AMI',
+    },
   ],
 };
 
@@ -53,7 +57,8 @@ export class AddStackCommand extends Command {
     let grafanaTag = await svc.getGrafanaImage(input.options.grafanaTag as string | undefined);
     let lokiTag = await svc.getLokiImage(input.options.lokiTag as string | undefined);
     let tempoTag = await svc.getTempoImage(input.options.tempoTag as string | undefined);
-    await svc.stackAdd(monitoringName, grafanaTag, tempoTag, lokiTag, region);
+    let ami = input.options.ami as string | undefined;
+    await svc.stackAdd(monitoringName, grafanaTag, tempoTag, lokiTag, region, ami);
     return 0;
   }
 }

@@ -12,7 +12,7 @@ interface IIntegration extends IBaseComponentType {
 
 export class IntegrationService extends BaseComponentService<IIntegration> {
   private constructor(profileService: ProfileService, executeService: ExecuteService, input: IExecuteInput) {
-    super(EntityType.integration, profileService, executeService, input);
+    super(EntityType.integration, profileService, executeService, input, 'Integration');
   }
 
   public static async create(input: IExecuteInput) {

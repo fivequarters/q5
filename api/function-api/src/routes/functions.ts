@@ -1,11 +1,24 @@
 import create_error from 'http-errors';
 import { IncomingHttpHeaders } from 'http';
 
-import { loadFunctionSummary, mintJwtForPermissions } from '@5qtrs/runas';
+import {
+  loadFunctionSummary,
+  mintJwtForPermissions,
+  IFunctionSummary,
+  getMatchingRoute,
+  IRoute,
+  pickAuthorization,
+} from '@5qtrs/runas';
 import { AwsRegistry } from '@5qtrs/registry';
 import { IAgent } from '@5qtrs/account-data';
 import * as Constants from '@5qtrs/constants';
-import { createLoggingCtx, ISpanEvent, ILogEvent } from '@5qtrs/runtime-common';
+import {
+  createLoggingCtx,
+  dispatch_event,
+  ISpanEvent,
+  ILogEvent,
+  isTaskSchedulingRequest,
+} from '@5qtrs/runtime-common';
 
 import { keyStore, subscriptionCache } from './globals';
 import * as provider_handlers from './handlers/provider_handlers';
@@ -25,6 +38,16 @@ interface IParams {
   version?: number;
   functionAccessToken?: string;
   logs?: any;
+  functionPath?: string;
+  matchingRoute?: IRoute;
+}
+
+type IExecuteParams = IParams & { functionPath: string; baseUrl: string };
+
+interface IFunctionSecuritySpecification {
+  authentication?: string;
+  authorization?: any;
+  functionPermissions?: any;
 }
 
 interface IFunctionSpecification {
@@ -50,11 +73,7 @@ interface IFunctionSpecification {
     timezone?: string;
   };
   scheduleSerialized?: string;
-  security?: {
-    authentication?: string;
-    authorization?: any;
-    functionPermissions?: any;
-  };
+  security?: IFunctionSecuritySpecification;
   fusebitEditor?: {
     runConfig: {
       method?: string;
@@ -62,6 +81,14 @@ interface IFunctionSpecification {
       payload?: Record<string, any>;
     }[];
   };
+  routes?: {
+    path: string;
+    security?: IFunctionSecuritySpecification;
+    task?: {
+      maxPending?: number;
+      maxRunning?: number;
+    };
+  }[];
 }
 
 interface ICreateFunction {
@@ -81,6 +108,38 @@ export interface IExecuteFunctionOptions {
   body?: string | object;
   query?: object;
   originalUrl?: string;
+
+  apiVersion: 'v1' | 'v2';
+  mode: 'request' | 'fanout' | 'cron';
+
+  analytics?: {
+    traceId?: string;
+    parentSpanId?: string;
+    spanId?: string;
+  };
+}
+
+interface IExecuteRequest {
+  protocol: string;
+  headers: IncomingHttpHeaders & Record<string, string | string[] | undefined>;
+  params: IParams;
+  method: string;
+  body: string | object | undefined;
+  query: object | undefined;
+
+  url: string;
+  originalUrl: string;
+  baseUrl: string;
+
+  keyStore: typeof keyStore;
+  resolvedAgent?: IAgent;
+
+  functionSummary: any;
+
+  startTime: number;
+  traceId?: string;
+  spanId?: string;
+  parentSpanId?: string;
 }
 
 interface IExecuteFunction {
@@ -99,7 +158,7 @@ interface IWaitForFunction {
 }
 
 interface IResult {
-  code?: number;
+  statusCode?: number;
   body?: string | object;
   bodyEncoding?: string;
   headers: any;
@@ -112,17 +171,17 @@ interface IResult {
 const asyncDispatch = async (req: any, handler: any): Promise<any> => {
   const res: IResult = await new Promise((resolve, reject) => {
     const result: IResult = {
-      code: undefined,
+      statusCode: undefined,
       body: undefined,
       bodyEncoding: undefined,
       headers: {},
       json(val: any) {
-        this.code = this.code || 200;
+        this.statusCode = this.statusCode || 200;
         this.body = val;
         resolve(result);
       },
       status(status: number) {
-        this.code = status;
+        this.statusCode = status;
       },
       set(key: string, value: string) {
         this.headers[key] = value;
@@ -165,9 +224,9 @@ const createFunction = async (
   };
   const res = await asyncDispatch(req, provider_handlers.lambda.put_function);
   if (res.body && typeof res.body === 'object') {
-    return { code: res.code, ...res.body };
+    return { code: res.statusCode, ...res.body };
   }
-  return { code: res.code };
+  return { code: res.statusCode };
 };
 
 const waitForFunctionBuild = async (
@@ -182,15 +241,15 @@ const waitForFunctionBuild = async (
 
   do {
     const res = await asyncDispatch(req, provider_handlers.lambda.get_function_build);
-    if (res.code === 200) {
-      return { code: res.code, version: res.body.version };
+    if (res.statusCode === 200) {
+      return { code: res.statusCode, version: res.body.version };
     }
-    if (res.code === 201) {
+    if (res.statusCode === 201) {
       await new Promise((resolve) => setTimeout(resolve, BUILD_POLL_DELAY));
       continue;
     }
 
-    throw create_error(res.code, res.body.message);
+    throw create_error(res.statusCode, res.body.message);
   } while (Date.now() < startTime + noLongerThan);
 
   throw create_error(408);
@@ -201,7 +260,7 @@ const deleteFunction = async (params: IParams): Promise<any> => {
   if (res.body) {
     return res.body;
   }
-  return { code: res.code };
+  return { code: res.statusCode };
 };
 
 const checkAuthorization = async (
@@ -235,15 +294,10 @@ const checkAuthorization = async (
   }
 };
 
-/*
- * TBD a bit on how much of the authorization flow it's desired to go through for this.  Right now it's
- * assumed to be fully permissioned.
- */
 const executeFunction = async (
-  params: IParams,
+  params: IExecuteParams,
   method: string,
-  url: string = '',
-  options: IExecuteFunctionOptions = {}
+  options: IExecuteFunctionOptions = { mode: 'request', apiVersion: 'v2' }
 ): Promise<IExecuteFunction> => {
   let sub;
   try {
@@ -253,56 +307,127 @@ const executeFunction = async (
   }
 
   const functionSummary = await loadFunctionSummary(params);
-  const functionAuthz = Constants.getFunctionAuthorization(functionSummary);
-  const functionAuthn = Constants.getFunctionAuthentication(functionSummary);
-  const functionPerms = Constants.getFunctionPermissions(functionSummary);
 
+  const { authorization: functionAuthz, authentication: functionAuthn } = pickAuthorization(
+    method,
+    params,
+    functionSummary
+  );
+
+  const functionPerms = Constants.getFunctionPermissions(functionSummary);
   // Guarantee a release regardless of the exceptions that occur later by using a finally{} clause to call
   // the releaseRate function.
   const releaseRate = ratelimit.checkRateLimit(sub, params.subscriptionId);
   try {
-    const resolvedAgent = await checkAuthorization(params.accountId, options.token, functionAuthn, functionAuthz);
+    let resolvedAgent;
+    try {
+      resolvedAgent = await checkAuthorization(params.accountId, options.token, functionAuthn, functionAuthz);
+    } catch (err) {
+      throw create_error(403, 'Unauthorized');
+    }
 
     // execute
-    const baseUrl = Constants.get_function_location({}, params.subscriptionId, params.boundaryId, params.functionId);
-    const apiUrl = baseUrl + url;
+    const physicalBaseUrl = Constants.get_function_location(
+      {},
+      params.subscriptionId,
+      params.boundaryId,
+      params.functionId
+    );
+    const logicalBaseUrl =
+      options.apiVersion === 'v1'
+        ? physicalBaseUrl
+        : `${Constants.get_fusebit_endpoint({})}/${options.apiVersion}/account/${params.accountId}/subscription/${
+            params.subscriptionId
+          }/${params.boundaryId}/${params.functionId}`;
 
-    const parsedBaseUrl = new URL(baseUrl);
-    const parsedUrl = new URL(apiUrl);
+    const parsedPhysicalUrl = new URL(physicalBaseUrl + params.functionPath);
+    const parsedLogicalUrl = new URL(logicalBaseUrl + params.functionPath);
 
-    params = { ...params, baseUrl, version: Constants.getFunctionVersion(functionSummary) };
+    params = { ...params, baseUrl: physicalBaseUrl, version: Constants.getFunctionVersion(functionSummary) };
 
-    params.functionAccessToken = await mintJwtForPermissions(keyStore, params, functionPerms);
-    params.logs = await createLoggingCtx(keyStore, params, 'https', Constants.API_PUBLIC_HOST);
-
-    const req = {
-      protocol: parsedUrl.protocol.replace(':', ''),
-      headers: { ...(options.headers ? options.headers : {}), host: parsedUrl.host },
+    const req: IExecuteRequest = {
+      protocol: parsedPhysicalUrl.protocol.replace(':', ''),
+      headers: { ...(options.headers || {}), host: parsedPhysicalUrl.host },
       params,
       method,
       body: options.body,
       query: options.query,
 
-      url: parsedUrl.pathname.replace(/^\/v1/, ''),
-      originalUrl: parsedUrl.pathname,
-      baseUrl: '/v1',
+      url: parsedPhysicalUrl.pathname.replace(/^\/v1/, ''),
+      originalUrl: parsedPhysicalUrl.pathname,
+      baseUrl: `/${options.apiVersion}`,
 
       keyStore,
       resolvedAgent,
 
       functionSummary,
+
+      startTime: Date.now(),
+
+      ...(options.analytics || {}),
     };
 
+    // Check for task scheduling request
+    const taskSchedulingRequest = isTaskSchedulingRequest(req);
+
+    if (!taskSchedulingRequest) {
+      params.functionAccessToken = await mintJwtForPermissions(keyStore, params, functionPerms);
+      params.logs = await createLoggingCtx(keyStore, params, 'https', Constants.API_PUBLIC_HOST);
+    }
+
+    if (options.analytics) {
+      // Override the traceIdHeader with the supplied traceId and spanId.  Otherwise, the header contains the
+      // value from the "parent" request, which also absorbs the logs and spans that come from this execution.
+      req.headers[Constants.traceIdHeader] = `${req.traceId}.${req.spanId}`;
+    }
+
     const res = await asyncDispatch(req, provider_handlers.lambda.execute_function);
+
+    if (options.analytics) {
+      dispatch_event({
+        requestId: `${req.traceId}.${req.spanId}`,
+        traceId: req.traceId,
+        parentSpanId: req.parentSpanId,
+        spanId: req.spanId,
+        startTime: req.startTime,
+        endTime: Date.now(),
+        metrics: res.metrics,
+        request: {
+          method: req.method,
+          url: parsedLogicalUrl.pathname,
+          params: { ...req.params, baseUrl: logicalBaseUrl },
+          headers: req.headers,
+        },
+        response: { statusCode: res.statusCode, headers: res.headers },
+        fusebit: {
+          ...params,
+          modality: 'execution',
+          baseUrl: logicalBaseUrl,
+          mode: options.mode,
+          apiVersion: options.apiVersion,
+        },
+        error: res.error,
+        functionLogs: res.functionLogs,
+        functionSpans: res.functionSpans,
+        logs: res.logs,
+      });
+    }
 
     return {
       body: res.body,
       bodyEncoding: res.bodyEncoding,
-      code: res.code,
+      code: res.statusCode,
       error: res.error,
       headers: res.headers,
-      functionLogs: res.functionLogs,
-      functionSpans: res.functionSpans,
+
+      // The parent absorbs the logs and spans if this execution doesn't have it's own analytics
+      // configuration.
+      ...(!options.analytics
+        ? {
+            functionLogs: res.functionLogs,
+            functionSpans: res.functionSpans,
+          }
+        : { functionLogs: [], functionSpans: [] }),
     };
   } finally {
     releaseRate();

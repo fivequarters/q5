@@ -82,18 +82,23 @@ export const decomposeSubordinateId = (id: string): Schema.ISubordinateId => {
   };
 };
 
+// Safari doesn't support timestamps w/o a T in the middle, and PostgreSQL supports both.  Convert all.
+const convertToISODate = (d?: string) => d?.replace(' ', 'T');
+
 // Remove any extra fields returned as part of the entity.
 export const entityToSdk = (entity: Schema.IEntity): Schema.ISdkEntity => {
   return {
     id: entity.id && entity.id.indexOf('/') >= 0 ? decomposeSubordinateId(entity.id).entityId : entity.id,
+    entityType: entity.entityType,
+    parentId: entity.parentId,
     data: entity.data,
     tags: entity.tags,
-    expires: entity.expires,
+    expires: convertToISODate(entity.expires),
     version: entity.version,
     state: entity.state,
     operationState: entity.operationState,
-    dateAdded: entity.dateAdded,
-    dateModified: entity.dateModified,
+    dateAdded: convertToISODate(entity.dateAdded),
+    dateModified: convertToISODate(entity.dateModified),
   };
 };
 
@@ -107,6 +112,8 @@ export interface DefaultQueryOptions {
   filterExpired?: boolean;
   listLimit?: number;
   next?: string;
+  validateParent?: boolean;
+  sortKey?: string;
 }
 export interface MergedQueryOptions extends DefaultQueryOptions {
   upsert: boolean;
@@ -116,6 +123,7 @@ export interface MergedQueryOptions extends DefaultQueryOptions {
 export interface InputQueryOptionsWithDefaults extends DefaultQueryOptions {}
 export interface InputQueryOptionsWithoutDefaults {
   next?: string;
+  sortKey?: string;
 }
 export interface InputQueryOptions extends InputQueryOptionsWithDefaults, InputQueryOptionsWithoutDefaults {}
 export interface FinalQueryOptions extends InputQueryOptionsWithoutDefaults, MergedQueryOptions {}

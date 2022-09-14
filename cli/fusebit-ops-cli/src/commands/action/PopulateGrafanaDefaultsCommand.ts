@@ -1,3 +1,5 @@
+import * as fs from 'fs';
+
 import * as superagent from 'superagent';
 import { asyncPool } from '@5qtrs/constants';
 import { ArgType, Command, IExecuteInput } from '@5qtrs/cli';
@@ -25,6 +27,16 @@ const command = {
       name: 'region',
       description: 'The region of the deployment; required if the network is not globally unique',
       defaultText: 'network region',
+    },
+    {
+      name: 'dashboards',
+      description: 'A file containing extra dashboards, in a JSON array, to deploy',
+      defaultText: 'dashboards.json',
+    },
+    {
+      name: 'account',
+      description: 'A single accountId to deploy to, for use when testing updated dashboards',
+      defaultText: 'acc-1234567812345678',
     },
 
     // Common options across all actions
@@ -60,6 +72,8 @@ export class PopulateGrafanaDefaultsCommand extends Command {
     let region = input.options.region as string;
     const dryRun = input.options['dry-run'] as boolean | undefined;
     const confirm = input.options.confirm as boolean | undefined;
+    const dashboardFile = input.options.dashboards as string | undefined;
+    const accountId = input.options.account as string | undefined;
 
     // Get the deployment
     const opsService = await OpsService.create(input);
@@ -96,13 +110,18 @@ export class PopulateGrafanaDefaultsCommand extends Command {
 
     // Get all of the the acounts.
     await executeService.info('Setup', `Loading accounts...`);
-    const accounts = await deploymentData.listAllAccounts(deployment);
+    const accounts = accountId ? [{ id: accountId }] : await deploymentData.listAllAccounts(deployment);
 
     await executeService.info('Setup', `Found ${accounts.length} accounts`);
 
     const service = await AssumeService.create(input);
 
     const { jwt } = await service.createMasterAuthBundle(deployment);
+
+    const payload: { dashboards?: any[] } = {};
+    if (dashboardFile) {
+      payload.dashboards = JSON.parse(fs.readFileSync(dashboardFile, 'utf8'));
+    }
 
     await executeService.info('Setup', `Created master credential for deployment ${deploymentName}:${region}`);
 
@@ -115,7 +134,15 @@ export class PopulateGrafanaDefaultsCommand extends Command {
       const url =
         process.env.FUSEBIT_API_ENDPOINT?.replace('{{accountId}}', account.id) ||
         `https://${deployment.deploymentName}.${deployment.region}.${deployment.domainName}/v2/account/${account.id}/grafana`;
-      return dryRun ? { statusCode: 200 } : superagent.post(url).set('Authorization', `Bearer ${jwt}`);
+      // Useful debugging command, saving for later
+      //   console.log( `curl -H"Content-Type: application/json" -H"Authorization: Bearer ${jwt}" -XPOST ${url} -d '${JSON.stringify( payload)}'`);
+      return dryRun
+        ? { statusCode: 200 }
+        : superagent
+            .post(url)
+            .set('Authorization', `Bearer ${jwt}`)
+            .send(payload)
+            .ok(() => true);
     };
 
     const results = await asyncPool(2, accounts, initialize);

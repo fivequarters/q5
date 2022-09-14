@@ -65,7 +65,7 @@ const router = (
               ...pathParams.accountAndSubscription(req),
               ...entityFromBody(req),
             });
-            res.status(statusCode).json(result);
+            res.status(statusCode).json(Model.entityToSdk(result));
           } catch (e) {
             next(e);
           }
@@ -85,13 +85,22 @@ const router = (
         try {
           const entity = await requestToEntity(EntityService, paramIdNames, req);
           const { result } = await EntityService.getEntity(entity);
-          let status = 200;
+          let statusCode = 200;
 
           if (result.state === Model.EntityState.creating) {
-            status = 202;
+            statusCode = 202;
           }
 
-          res.status(status).json(Model.entityToSdk(result));
+          // Make sure the `getEntity` operation includes the parentId, even though it's redundant with the
+          // calll, so that the same object is consistently returned.
+          if (
+            EntityService.entityType === Model.EntityType.install ||
+            EntityService.entityType === Model.EntityType.identity
+          ) {
+            result.parentId = req.params[paramIdNames[0]];
+          }
+
+          res.status(statusCode).json(Model.entityToSdk(result));
         } catch (e) {
           next(e);
         }

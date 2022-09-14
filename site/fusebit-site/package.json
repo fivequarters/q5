@@ -14,8 +14,7 @@
     "lint": "tslint --fix -t stylish src/{,**/}*.ts{,x} test/{,**/}*.ts{,x}",
     "clean": "rm -r -f libc; rm -r -f libm; rm -r -f coverage; rm -f tsconfig.tsbuildinfo",
     "start": "rm -rf node_modules && tsc -b -w & webpack-dev-server --open --hot",
-    "bundle": "rm -rf dist && webpack --config webpack.prod.js",
-    "tunnel": "lt -p 9508 -h https://tunnel.dev.fusebit.io"
+    "bundle": "rm -rf dist && webpack --config webpack.prod.js"
   },
   "keywords": [],
   "dependencies": {

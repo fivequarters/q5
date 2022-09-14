@@ -3,8 +3,8 @@ import { Model } from '@5qtrs/db';
 
 import * as Function from '../functions';
 
-export const defaultFrameworkSemver = '>7.32.1';
-export const defaultOAuthConnectorSemver = '>7.32.1';
+export const defaultFrameworkSemver = '>=7.49.0';
+export const defaultOAuthConnectorSemver = '>=7.49.0';
 
 export interface IServiceResult {
   statusCode: number;
@@ -88,6 +88,30 @@ export default abstract class BaseEntityService<E extends Model.IEntity, F exten
   public abstract sanitizeEntity(entity: Model.IEntity): Model.IEntity;
   public abstract getFunctionSecuritySpecification(entity: Model.IEntity): any;
 
+  public getFunctionRoutes(entity: Model.IEntity, functionPermissions: any) {
+    // Duplicate to avoid tainting the original object.
+    const routes = JSON.parse(JSON.stringify(entity.data.routes || []));
+
+    // Add a default set of functionPermissions for each `routes` entry.
+    routes.forEach((route: any) => {
+      route.security =
+        route.security !== undefined
+          ? route.security
+          : {
+              authentication: 'required',
+              authorization: [
+                {
+                  action: 'function:schedule',
+                  resource: `/account/${entity.accountId}/subscription/${entity.subscriptionId}/boundary/${this.entityType}/function/${entity.id}/`,
+                },
+              ],
+              functionPermissions,
+            };
+    });
+
+    return routes;
+  }
+
   public createFunctionSpecification = (entity: Model.IEntity): Function.IFunctionSpecification => {
     // Make a copy of data so the files can be removed.
     const functionConfig = { ...entity.data };
@@ -97,8 +121,10 @@ export default abstract class BaseEntityService<E extends Model.IEntity, F exten
     // Add the baseUrl to the configuration.
     const config = {
       ...functionConfig,
-      mountUrl: `/v2/account/${entity.accountId}/subscription/${entity.subscriptionId}/integration/${entity.id}`,
+      mountUrl: `/v2/account/${entity.accountId}/subscription/${entity.subscriptionId}/${this.entityType}/${entity.id}`,
     };
+
+    const security = this.getFunctionSecuritySpecification(entity);
 
     const spec: Function.IFunctionSpecification = {
       id: entity.id,
@@ -126,9 +152,11 @@ export default abstract class BaseEntityService<E extends Model.IEntity, F exten
       compute: {
         persistLogs: true,
         memorySize: 512,
+        timeout: 900,
       },
       fusebitEditor: entity.data.fusebitEditor,
-      security: this.getFunctionSecuritySpecification(entity),
+      security,
+      routes: this.getFunctionRoutes(entity, security.functionPermissions),
     };
 
     if (entity.data.schedule && entity.data.schedule.length > 0) {
@@ -414,9 +442,15 @@ export default abstract class BaseEntityService<E extends Model.IEntity, F exten
     elements: Function.IExecuteFunctionOptions
   ): Promise<Function.IExecuteFunction> => {
     return Function.executeFunction(
-      { ...entity, boundaryId: this.entityType, functionId: entity.id, version: undefined },
+      {
+        ...entity,
+        boundaryId: this.entityType,
+        functionId: entity.id,
+        version: undefined,
+        functionPath: location || '/',
+        baseUrl: '', // Populated in executeFunction
+      },
       method,
-      location,
       elements
     );
   };

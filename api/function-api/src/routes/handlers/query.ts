@@ -41,7 +41,11 @@ const idPrefix = (req: Request): { idPrefix?: string } => {
 };
 
 const listPagination = (req: Request) => {
-  return { listLimit: Number(req.query.count), next: req.query.next as string | undefined };
+  return {
+    listLimit: Number(req.query.count),
+    next: req.query.next as string | undefined,
+    sortKey: req.query.sort as string | undefined,
+  };
 };
 
 const version = (req: Request) => {

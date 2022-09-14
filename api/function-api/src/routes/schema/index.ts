@@ -7,6 +7,7 @@ import { subscriptionCache } from '../globals';
 import common from './common';
 import { IdentityService, InstallService, ConnectorService, IntegrationService } from '../service';
 import SubcomponentRouter from './subcomponent';
+import SubsearchRouter from './subsearch';
 
 import * as analytics from '../middleware/analytics';
 
@@ -40,6 +41,18 @@ router.use(
   analytics.setEntityType(Model.EntityType.integration),
   common(integrationService),
   SubcomponentRouter(installService, ['entityId', 'installId'], Model.EntityType.integration)
+);
+
+router.use(
+  '/install',
+  analytics.setEntityType(Model.EntityType.install),
+  SubsearchRouter(installService, Model.EntityType.integration)
+);
+
+router.use(
+  '/identity',
+  analytics.setEntityType(Model.EntityType.identity),
+  SubsearchRouter(identityService, Model.EntityType.connector)
 );
 
 export default router;

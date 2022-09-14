@@ -1,9 +1,23 @@
 // @ts-ignore
 
-const { invoke_function } = require('./invoke_function.js');
-const { dispatch_event } = require('./analytics.js');
-const { pollOnce, is_logging_enabled, addLogging, createLoggingCtx } = require('./logging.js');
-const Common = require('./common.js');
+const { invoke_function } = require('./invoke_function');
+const { dispatch_event } = require('./analytics');
+const { pollOnce, is_logging_enabled, addLogging, createLoggingCtx } = require('./logging');
+
+import {
+  isTaskSchedulingRequest,
+  scheduleTaskAsync,
+  getDelay,
+  getTaskAsync,
+  getTaskKey,
+  updateTaskStatusAsync,
+  createTaskId,
+  getTaskStatistics,
+  enforceNotBeforeHeader,
+  checkNotBeforeHeader,
+} from './tasks';
+
+const Common = require('./common');
 
 import { publishLogs, ISpanEvent, ILogEvent } from './grafana';
 
@@ -18,4 +32,14 @@ export {
   publishLogs,
   ISpanEvent,
   ILogEvent,
+  isTaskSchedulingRequest,
+  scheduleTaskAsync,
+  getDelay,
+  getTaskAsync,
+  updateTaskStatusAsync,
+  getTaskKey,
+  createTaskId,
+  getTaskStatistics,
+  enforceNotBeforeHeader,
+  checkNotBeforeHeader,
 };

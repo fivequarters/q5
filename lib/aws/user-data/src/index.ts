@@ -12,7 +12,7 @@ export default class AwsData {
 
   public static runDockerCompose() {
     return `cd /root/
-docker-compose up -d`;
+docker-compose up > /var/log/compose-log 2>&1 &`;
   }
 
   public static updateSystem() {
@@ -40,6 +40,7 @@ apt install nodejs -y
 cd /root/
 npm install aws-sdk
 REGION=${region} STACK_ID=${stackId.toString()} SERVICE_ID=${serviceId} node /root/register.js
+export EXTERNAL_IP=$(cat /tmp/ip)
   `;
   }
 
@@ -55,7 +56,7 @@ cat > /opt/aws/amazon-cloudwatch-agent/bin/config.json << EOF
       "files": {
         "collect_list": [
           {
-            "file_path": "/var/log/${folderName}",
+            "file_path": "${folderName}",
             "log_group_name": "/fusebit-${serviceType}/${deploymentName}",
             "log_stream_name": "{instance_id}"
           }

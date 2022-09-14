@@ -38,7 +38,7 @@ export class ExecuteService {
   }
 
   public static addCommonHeaders(headers: any) {
-    headers['User-Agent'] = `fusebit-cli/${VersionService.getVersion()}`;
+    headers['User-Agent'] = `${COMMAND_MODE.toLowerCase()}-cli/${VersionService.getVersion()}`;
     if (process.env.FUSEBIT_AUTHORIZATION_ACCOUNT_ID) {
       headers['fusebit-authorization-account-id'] = process.env.FUSEBIT_AUTHORIZATION_ACCOUNT_ID;
     }

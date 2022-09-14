@@ -82,6 +82,7 @@ class ConnectorService extends SessionedEntityService<Model.IConnector, Model.II
       functionPermissions: {
         allow: [
           { action: Permissions.allStorage, resource: resStorage },
+          { action: Permissions.scheduleFunction, resource: resEntity },
           { action: v2Permissions.updateSession, resource: resSession },
           { action: v2Permissions.getSession, resource: resSession },
           { action: v2Permissions.connector.get, resource: resEntity },

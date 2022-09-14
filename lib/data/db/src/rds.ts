@@ -19,6 +19,8 @@ class RDS implements IRds {
   private readonly defaultPurgeInterval = 10 * 60 * 1000;
   private lastHealth = false;
   private lastHealthExecution: number = new Date(0).getTime();
+  private lastGetRequestId = '';
+  private lastUpdateRequestId = '';
   private readonly RDS_HEALTH_CHECK_TTL = 10 * 1000;
   private readonly RDS_HEALTH_TEST_ACC_ID = 'acc-000000000000';
   private readonly RDS_HEALTH_TEST_SUB_ID = 'sub-000000000000';
@@ -117,12 +119,23 @@ class RDS implements IRds {
     };
     try {
       const update = await this.DAO.storage.createEntity(entity);
+      const updateRequestId = (update as any)['$response']?.requestId;
       const get = await this.DAO.storage.getEntity(entity);
+      const getRequestId = (get as any)['$response']?.requestId;
+      const duration = Date.now() - entity.data.checked;
+
+      if (duration > this.RDS_HEALTH_MAX_ACCEPTABLE_TTL) {
+        console.log(
+          `RDS ERROR: Excessive interval between start of update and conclusion of get: ${duration}ms. Get requestId: ${getRequestId} Update requestId: ${updateRequestId}`
+        );
+      }
 
       // Validate that the write was committed successfully
       if (update.data && get.data && update.data.checked === get.data.checked) {
         this.lastHealth = true;
         this.healthError = null;
+        this.lastGetRequestId = getRequestId;
+        this.lastUpdateRequestId = updateRequestId;
         this.lastHealthExecution = Date.now();
       } else {
         throw new Error('RDS ERROR: Failure was detected when trying to insert entity.');
@@ -149,7 +162,9 @@ class RDS implements IRds {
         throw new Error('RDS ERROR: No successful connection to database');
       }
 
-      throw new Error(`RDS ERROR: ${timeDifference} exceeded threshold of ${this.RDS_HEALTH_MAX_ACCEPTABLE_TTL}`);
+      throw new Error(
+        `RDS ERROR: ${timeDifference} exceeded threshold of ${this.RDS_HEALTH_MAX_ACCEPTABLE_TTL}; get requestId: ${this.lastGetRequestId}, update requestId: ${this.lastUpdateRequestId}`
+      );
     }
   }
 

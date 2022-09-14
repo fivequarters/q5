@@ -1,6 +1,5 @@
 import * as AWS from 'aws-sdk';
 import Cron from 'cron-parser';
-import { v4 as uuidv4 } from 'uuid';
 
 import * as Constants from '@5qtrs/constants';
 import * as Common from '@5qtrs/runtime-common';
@@ -10,7 +9,7 @@ const s3 = new AWS.S3({
   signatureVersion: 'v4',
 });
 
-import { mintJwtForPermissions, loadFunctionSummary, AwsKeyStore } from '@5qtrs/runas';
+import { mintJwtForPermissions, loadFunctionSummary, AwsKeyStore, getExactRoute, getMatchingRoute } from '@5qtrs/runas';
 
 const concurrentExecutionLimit = +(process.env.CRON_CONCURRENT_EXECUTION_LIMIT as string) || 5;
 
@@ -24,6 +23,18 @@ const keyStore = new AwsKeyStore({
   rekeyInterval: 60 * 60 * 1000,
 });
 let keyStoreHealth: Promise<any>;
+
+async function getFunctionTags(ctx: any) {
+  // Load the desired function summary from DynamoDB
+  try {
+    return await loadFunctionSummary(ctx);
+  } catch (e) {
+    console.log(
+      `ERROR: Unable to load summary for ${ctx.accountId}/${ctx.subscriptionId}/${ctx.boundaryId}/${ctx.functionId}: ${e}`
+    );
+    throw e;
+  }
+}
 
 export async function executor(event: any) {
   if (keyStoreHealth === undefined) {
@@ -39,7 +50,7 @@ export async function executor(event: any) {
         if (e) {
           return reject(e);
         }
-        resolve();
+        resolve(undefined);
       })
     ),
   ]);
@@ -50,9 +61,7 @@ export async function executor(event: any) {
     skipped: [],
   };
 
-  await Constants.asyncPool(concurrentExecutionLimit, event.Records, async (msg: any) => {
-    const ctx = JSON.parse(msg.body);
-
+  const processCron = async (ctx: any) => {
     try {
       const exists = await checkCronStillExists(ctx.key);
 
@@ -62,10 +71,131 @@ export async function executor(event: any) {
         return;
       }
 
-      await executeFunction(ctx);
-      result.success.push({ key: ctx.key, logs: ctx.logs ? 'enabled' : 'disabled' });
+      const functionSummary = await getFunctionTags(ctx);
+      await executeFunction(ctx, functionSummary, false);
+      result.success.push({ type: 'cron', key: ctx.key, logs: ctx.logs ? 'enabled' : 'disabled' });
     } catch (e) {
-      result.failure.push({ key: ctx.key, error: `${e}` });
+      result.failure.push({ type: 'cron', key: ctx.key, error: `${e}` });
+    }
+  };
+
+  const getTaskAddress = (envelope: any) => ({
+    accountId: envelope.ctx.accountId,
+    subscriptionId: envelope.ctx.subscriptionId,
+    boundaryId: envelope.ctx.boundaryId,
+    functionId: envelope.ctx.functionId,
+    taskId: envelope.taskId,
+  });
+
+  const rescheduleTask = async (envelope: any) => {
+    const taskAddress = getTaskAddress(envelope);
+    try {
+      const functionSummary = await getFunctionTags(envelope.ctx);
+      const route = functionSummary.routes && getExactRoute(functionSummary.routes, envelope.matchingRoutePath);
+      const taskConfig = route?.task;
+      if (!taskConfig) {
+        throw new Error(
+          `Unable to reschedule task ${Common.getTaskKey(taskAddress)} because the original task scheduling route '${
+            envelope.matchingRoutePath
+          }' is no longer exists. The task is abandoned.`
+        );
+      }
+      await Common.scheduleTaskAsync(taskConfig, envelope);
+    } catch (e) {
+      try {
+        await Common.updateTaskStatusAsync({
+          ...taskAddress,
+          status: 'error',
+          error: {
+            statusCode: 500,
+            message: (e as any).stack || (e as any).message || e,
+          },
+        });
+      } catch (e1) {
+        console.log('ERROR TRANSITIONING TO FAILED STATE AFTER TASK RESCHEDULING ERROR', taskAddress, e, e1);
+        // do nothing
+      }
+    }
+  };
+
+  const runTask = async (envelope: any) => {
+    const taskAddress = getTaskAddress(envelope);
+    console.log('RUNNING TASK', {
+      ...taskAddress,
+      scheduledAt: envelope.scheduledAt,
+      notBefore: envelope.ctx.headers?.[Constants.NotBeforeHeader],
+    });
+    const ctx = envelope.ctx;
+    ctx.method = 'TASK';
+    ctx.headers = {
+      ...ctx.headers,
+      'fusebit-task-id': envelope.taskId,
+      'fusebit-task-scheduled-at': envelope.scheduledAt.toString(),
+      'fusebit-task-executing-at': Date.now().toString(),
+      'fusebit-task-route': envelope.matchingRoutePath,
+    };
+    const key = `${ctx.accountId}/${ctx.subscriptionId}/${ctx.boundaryId}/${ctx.functionId}/${ctx.path}`;
+    let output: any;
+    try {
+      await Common.updateTaskStatusAsync({
+        ...taskAddress,
+        status: 'running',
+      });
+      const functionSummary = await getFunctionTags(ctx);
+      output = await executeFunction(ctx, functionSummary, true);
+      try {
+        await Common.updateTaskStatusAsync({
+          ...taskAddress,
+          status: 'completed',
+          output,
+        });
+      } catch (e1) {
+        console.log('ERROR UPDATING TASK STATUS AFTER TASK COMPLETION', taskAddress, e1);
+        try {
+          await Common.updateTaskStatusAsync({
+            ...taskAddress,
+            status: 'error',
+            error: {
+              statusCode: 500,
+              message: (e1 as any).stack || (e1 as any).message || e1,
+            },
+          });
+        } catch (e2) {
+          console.log('ERROR TRANSITIONING TO FAILED STATE AFTER TASK STATUS UPDATE ERROR', taskAddress, e1, e2);
+          // do nothing
+        }
+      }
+      result.success.push({ type: 'task', key, logs: ctx.logs ? 'enabled' : 'disabled' });
+    } catch (e) {
+      try {
+        await Common.updateTaskStatusAsync({
+          ...taskAddress,
+          status: 'error',
+          error: {
+            statusCode: 500,
+            message: (e as any).stack || (e as any).message || e,
+          },
+        });
+      } catch (e3) {
+        console.log('ERROR TRANSITIONING TO FAILED STATE AFTER TASK ERROR', taskAddress, e, e3);
+        // do nothing
+      }
+      result.failure.push({
+        type: 'task',
+        key,
+        error: `${(e as any).stack || e}`,
+      });
+    }
+  };
+
+  await Constants.asyncPool(concurrentExecutionLimit, event.Records, async (msg: any) => {
+    const ctx = JSON.parse(msg.body);
+    if (ctx.type === 'task') {
+      await runTask(ctx);
+    } else if (ctx.type === 'delayed-task') {
+      await rescheduleTask(ctx);
+    } else {
+      await processCron(ctx);
     }
   });
 
@@ -82,39 +212,54 @@ async function checkCronStillExists(key: string) {
   }
 }
 
-async function executeFunction(ctx: any) {
-  // Load the desired function summary from DynamoDB
-  let functionSummary: any;
-  try {
-    functionSummary = await loadFunctionSummary(ctx);
-  } catch (e) {
-    console.log(
-      `ERROR: Unable to load summary for ${ctx.accountId}/${ctx.subscriptionId}/${ctx.boundaryId}/${ctx.functionId}: ${e}`
-    );
-    throw e;
-  }
-
+async function executeFunction(
+  ctx: any,
+  functionSummary: any,
+  isTask?: boolean
+): Promise<{ response: any; meta: any }> {
   // Add any necessary security tokens to the request.
-  await addSecurityTokens(ctx, functionSummary);
+  await addSecurityTokens(ctx, functionSummary, isTask);
 
   ctx.version = Constants.getFunctionVersion(functionSummary);
 
-  const { startTime, deviation } = calculateCronDeviation(ctx.cron, ctx.timezone);
+  const { startTime, deviation } = isTask
+    ? calculateTaskDeviation(ctx)
+    : calculateCronDeviation(ctx.cron, ctx.timezone);
+
+  const traceId = Constants.makeTraceId();
+  const spanId = Constants.makeTraceSpanId();
 
   // Generate a pseudo-request object to drive the invocation.
-  let traceId = Constants.makeTraceId();
-  let spanId = Constants.makeTraceSpanId();
-  const request = {
-    method: 'CRON',
-    url: `${Constants.get_function_path(ctx.subscriptionId, ctx.boundaryId, ctx.functionId)}`,
-    body: ctx,
-    originalUrl: `/v1${Constants.get_function_path(ctx.subscriptionId, ctx.boundaryId, ctx.functionId)}`,
-    protocol: 'cron',
+  let request: any = isTask
+    ? {
+        method: 'TASK',
+        body: ctx.body,
+        url: ctx.url,
+        headers: ctx.headers,
+        query: ctx.query,
+        params: {
+          ...ctx,
+          functionPath: ctx.path,
+        },
+      }
+    : {
+        method: 'CRON',
+        body: ctx,
+        url: `${Constants.get_function_path(ctx.subscriptionId, ctx.boundaryId, ctx.functionId)}`,
+        originalUrl: `/v1${Constants.get_function_path(ctx.subscriptionId, ctx.boundaryId, ctx.functionId)}`,
+        protocol: 'cron',
+        query: {},
+        params: {
+          ...ctx,
+          path: '/',
+        },
+      };
+  request = {
+    ...request,
     headers: {
+      ...request.headers,
       [Constants.traceIdHeader]: `${traceId}.${spanId}`,
     },
-    query: {},
-    params: ctx,
     traceId,
     requestId: `${traceId}.${spanId}`,
     spanId,
@@ -122,18 +267,25 @@ async function executeFunction(ctx: any) {
     functionSummary,
   };
 
-  request.params.baseUrl = Constants.get_function_location(
-    { headers: { 'x-forwarded-proto': 'https', host: Constants.API_PUBLIC_ENDPOINT.replace(/http[s]?:\/\//i, '') } },
-    ctx.subscriptionId,
-    ctx.boundaryId,
-    ctx.functionId
-  );
+  if (!isTask) {
+    request.params.baseUrl = Constants.get_function_location(
+      { headers: { 'x-forwarded-proto': 'https', host: Constants.API_PUBLIC_ENDPOINT.replace(/http[s]?:\/\//i, '') } },
+      ctx.subscriptionId,
+      ctx.boundaryId,
+      ctx.functionId
+    );
+  }
 
   // Execute, and record the results.
-  await new Promise((resolve, reject) =>
+  return new Promise((resolve, reject) =>
     Common.invoke_function(request, (error: any, response: any, meta: any) => {
-      meta.metrics.cron = { deviation };
-      dispatchCronEvent({
+      if (isTask) {
+        meta.metrics.task = { deviation };
+      } else {
+        meta.metrics.cron = { deviation };
+      }
+      dispatchEvent({
+        isTask,
         request,
         error,
         response,
@@ -144,20 +296,32 @@ async function executeFunction(ctx: any) {
       if (error) {
         reject(error);
       } else {
-        resolve(ctx);
+        resolve({ response, meta });
       }
     })
   );
 }
 
 // Add tokens for both RunAs permissions as well as any logging permissions that are needed.
-async function addSecurityTokens(ctx: any, functionSummary: any) {
+async function addSecurityTokens(ctx: any, functionSummary: any, isTask?: boolean) {
+  // Check if there is route-specific permission override
+  let functionPermissions: any;
+  const path = isTask && ctx.headers['fusebit-task-route'];
+  if (path) {
+    if (functionSummary.routes) {
+      const route = getExactRoute(functionSummary.routes, path);
+      functionPermissions = route?.security?.functionPermissions;
+    }
+  } else {
+    functionPermissions = Constants.getFunctionPermissions(functionSummary);
+  }
+
   // Mint a JWT, if necessary, and add it to the context.
   ctx.functionAccessToken = await mintJwtForPermissions(
     keyStore,
     ctx,
-    Constants.getFunctionPermissions(functionSummary),
-    'cron'
+    functionPermissions,
+    (ctx.method || 'cron').toLowerCase()
   );
 
   // Add the realtime logging configuration to the ctx
@@ -188,38 +352,65 @@ function calculateCronDeviation(expression: string, timezone: string) {
   return { startTime, deviation };
 }
 
-function dispatchCronEvent(details: any) {
+function calculateTaskDeviation(ctx: any) {
+  const startTime = Date.now();
+  const deviation =
+    startTime -
+    (!isNaN(ctx.headers[Constants.NotBeforeHeader]) ? +ctx.headers[Constants.NotBeforeHeader] * 1000 : startTime);
+
+  return { startTime, deviation };
+}
+
+function dispatchEvent(details: any) {
+  const params = details.isTask ? details.request : details.request.params;
   const fusebit = {
-    accountId: details.request.params.accountId,
-    subscriptionId: details.request.params.subscriptionId,
-    boundaryId: details.request.params.boundaryId,
-    functionId: details.request.params.functionId,
+    accountId: params.accountId,
+    subscriptionId: params.subscriptionId,
+    boundaryId: params.boundaryId,
+    functionId: params.functionId,
     deploymentKey: process.env.DEPLOYMENT_KEY,
-    mode: 'cron',
+    mode: details.isTask ? 'task' : 'cron',
     modality: 'execution',
   };
+
+  const apiVersion = fusebit.boundaryId === 'connector' || fusebit.boundaryId === 'integration' ? 'v2' : 'v1';
+
+  const url =
+    apiVersion === 'v1'
+      ? details.request.url
+      : `/${apiVersion}/account/${fusebit.accountId}/subscription/${fusebit.subscriptionId}/${fusebit.boundaryId}/${fusebit.functionId}/cron/event`;
+
+  const baseUrl =
+    apiVersion === 'v1'
+      ? details.request.url
+      : `/${apiVersion}/account/${fusebit.accountId}/subscription/${fusebit.subscriptionId}/${fusebit.boundaryId}/${fusebit.functionId}`;
+
+  const statusCode = details.error ? details.error.statusCode || 501 : details.response?.status || 200;
 
   const event = {
     requestId: details.request.requestId,
     traceId: details.request.traceId,
+    spanId: details.request.spanId,
     startTime: details.request.startTime,
     endTime: Date.now(),
-    request: details.request,
+    request: {
+      method: details.request.method,
+      url,
+      params: { ...details.request.params, baseUrl },
+      headers: details.request.headers,
+    },
     metrics: details.meta.metrics,
-    response: { statusCode: 200, headers: [] },
+    response: { statusCode, headers: details.response?.headers || [] },
     ...(details.persistLogs && details.meta.log ? { logs: details.meta.log } : {}),
-    fusebit,
+    fusebit: {
+      ...fusebit,
+      baseUrl,
+      apiVersion,
+    },
     error: details.meta.error || details.error, // The meta error always has more information.
-    functionLogs: details.response.logs,
-    functionSpans: details.response.spans,
+    functionLogs: details.response?.logs || [],
+    functionSpans: details.response?.spans || [],
   };
-
-  // Make sure the response.statusCode is populated so that it shows up in analytics reports
-  if (details.response && details.response.statusCode) {
-    event.response = { statusCode: details.response.statusCode, headers: details.response.headers || [] };
-  } else if (details.error) {
-    event.response = { statusCode: details.error.statusCode || 501, headers: [] };
-  }
 
   Common.dispatch_event(event);
 }

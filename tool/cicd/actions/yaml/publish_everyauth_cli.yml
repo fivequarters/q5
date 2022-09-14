@@ -1,0 +1,4 @@
+# Publish everyauth-cli
+steps:
+- name: Publish - everyauth-cli
+  run: ./tool/cicd/actions/scripts/publish_everyauth_cli.sh

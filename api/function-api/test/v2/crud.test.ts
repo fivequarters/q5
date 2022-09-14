@@ -6,6 +6,7 @@ import {
   ApiRequestMap,
   waitForCompletion,
   DefaultWaitForCompletionParams,
+  usFromTs,
 } from './sdk';
 import { callFunction, getFunctionLocation, INVALID_UUID } from '../v1/sdk';
 import { v2Permissions } from '@5qtrs/constants';
@@ -155,7 +156,9 @@ const performTests = (testEntityType: TestableEntityTypes, sampleEntityMap: Samp
   }, 180000);
 
   test('Create Entity', async () => {
-    await createEntityTest(sampleEntity());
+    const entity = await createEntityTest(sampleEntity());
+    expect(entity.entityType).toBe(testEntityType);
+    expect(entity.__databaseId).toBeUndefined();
   }, 180000);
 
   test('Create Entity without body id', async () => {
@@ -302,6 +305,59 @@ const performTests = (testEntityType: TestableEntityTypes, sampleEntityMap: Samp
     }
 
     expect(receivedIds.sort()).toEqual(Entitys.map((c: any) => c.id).sort());
+  }, 180000);
+
+  test('List Entitys, Sorted', async () => {
+    const entityCount = 10;
+    const Entitys = Array(entityCount)
+      .fill(undefined)
+      .map(() => {
+        return {
+          ...sampleEntity(),
+          id: newId('Mapped-Entity'),
+        };
+      });
+    await Promise.all(
+      Entitys.map(async (entity) => ApiRequestMap[testEntityType].postAndWait(account, entity.id, entity))
+    );
+
+    let response = await ApiRequestMap[testEntityType].list(account, getIdPrefix());
+    expect(response).toBeHttp({ statusCode: 200 });
+    expect(response.data.items).toHaveLength(entityCount);
+
+    const byIds = response.data.items.map((i: any) => i.id).sort();
+    const byAdded = [...response.data.items]
+      .sort((a: any, b: any) => usFromTs(a.dateAdded) - usFromTs(b.dateAdded))
+      .map((i: any) => i.id);
+    const byModified = [...response.data.items]
+      .sort((a: any, b: any) => usFromTs(a.dateModified) - usFromTs(b.dateModified))
+      .map((i: any) => i.id);
+    expect(response.data.items.map((item: any) => item.id)).toEqual(byIds);
+
+    response = await ApiRequestMap[testEntityType].list(account, { ...getIdPrefix(), sort: 'dateAdded' });
+    expect(response).toBeHttp({ statusCode: 200 });
+    expect(response.data.items).toHaveLength(entityCount);
+
+    expect(response.data.items.map((item: any) => item.id)).toEqual(byAdded);
+
+    response = await ApiRequestMap[testEntityType].list(account, { ...getIdPrefix(), sort: 'dateModified' });
+    expect(response).toBeHttp({ statusCode: 200 });
+    expect(response.data.items).toHaveLength(entityCount);
+    expect(response.data.items.map((item: any) => item.id)).toEqual(byModified);
+
+    response = await ApiRequestMap[testEntityType].list(account, { ...getIdPrefix(), sort: '-dateAdded' });
+    expect(response).toBeHttp({ statusCode: 200 });
+    expect(response.data.items).toHaveLength(entityCount);
+
+    expect(response.data.items.map((item: any) => item.id)).toEqual(byAdded.reverse());
+
+    response = await ApiRequestMap[testEntityType].list(account, { ...getIdPrefix(), sort: '-dateModified' });
+    expect(response).toBeHttp({ statusCode: 200 });
+    expect(response.data.items).toHaveLength(entityCount);
+    expect(response.data.items.map((item: any) => item.id)).toEqual(byModified.reverse());
+
+    response = await ApiRequestMap[testEntityType].list(account, { ...getIdPrefix(), sort: 'anything; else' });
+    expect(response).toBeHttp({ statusCode: 400 });
   }, 180000);
 
   test('List Entitys by prefix', async () => {

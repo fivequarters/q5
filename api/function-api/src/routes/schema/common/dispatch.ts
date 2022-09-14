@@ -2,7 +2,7 @@ const Joi = require('joi');
 import express from 'express';
 
 import { getAuthToken } from '@5qtrs/constants';
-import { ISpanEvent, ILogEvent } from '@5qtrs/runtime-common';
+import { ISpanEvent, ILogEvent, checkNotBeforeHeader } from '@5qtrs/runtime-common';
 import { Model } from '@5qtrs/db';
 
 import * as common from '../../middleware/common';
@@ -12,7 +12,10 @@ import pathParams from '../../handlers/pathParams';
 import { BaseEntityService } from '../../service';
 
 // Add logging and span data to the express response object
-type EnrichedResponse = express.Response & { functionLogs: ILogEvent[]; functionSpans: ISpanEvent[] };
+type EnrichedResponse = express.Response & {
+  functionLogs: ILogEvent[];
+  functionSpans: ISpanEvent[];
+};
 
 const router = (
   EntityService: BaseEntityService<Model.IEntity, Model.IEntity>,
@@ -25,6 +28,7 @@ const router = (
     common.management({
       validate: { params: Validation.EntityIdParams.keys({ '0': Joi.string(), subPath: Joi.string() }) },
     }),
+    checkNotBeforeHeader,
     (req: express.Request, res: express.Response, next: express.NextFunction) => {
       // Touch up subPath to make sure it has the right prefix.
       req.params.subPath = `/api/${req.params.subPath || ''}`;
@@ -61,10 +65,15 @@ const router = (
           body: req.body,
           query: req.query,
           originalUrl: req.originalUrl,
+          mode: 'request',
+          apiVersion: 'v2',
         }
       );
     } catch (e) {
       return next(e);
+    } finally {
+      res.functionLogs.push(...(result?.functionLogs || []));
+      res.functionSpans.push(...(result?.functionSpans || []));
     }
 
     if (result.error) {
@@ -73,9 +82,6 @@ const router = (
 
     res.set(result.headers);
     res.status(result.code);
-
-    res.functionLogs.push(...result.functionLogs);
-    res.functionSpans.push(...result.functionSpans);
 
     if (!result.body) {
       res.end();

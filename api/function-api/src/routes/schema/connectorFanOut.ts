@@ -1,6 +1,6 @@
 import { ConnectorService, InstallService, IntegrationService } from '../service';
 
-import { v2Permissions, getAuthToken } from '@5qtrs/constants';
+import { v2Permissions, getAuthToken, makeTraceSpanId } from '@5qtrs/constants';
 import { Model } from '@5qtrs/db';
 
 import * as fanOutValidate from '../validation/fanOut';
@@ -102,7 +102,16 @@ const router = (
       } else {
         res.status(500);
       }
-      res.send(dispatchResponses);
+      res.send(
+        dispatchResponses.map((response) => ({
+          status: response.status,
+          value: {
+            ...(response.status === 'fulfilled' ? response.value : {}),
+            functionLogs: undefined,
+            functionSpans: undefined,
+          },
+        }))
+      );
     }
   );
 
@@ -122,6 +131,13 @@ const router = (
         },
         query: req.query,
         originalUrl: req.originalUrl,
+        apiVersion: 'v2',
+        mode: 'fanout',
+        analytics: {
+          traceId: (req as any).traceId,
+          parentSpanId: (req as any).spanId,
+          spanId: makeTraceSpanId(),
+        },
       }
     );
 

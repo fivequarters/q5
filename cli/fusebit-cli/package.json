@@ -1,6 +1,6 @@
 {
   "name": "@5qtrs/fusebit-cli",
-  "version": "1.21.1",
+  "version": "1.24.0",
   "description": "",
   "main": "libc/index.js",
   "bin": {
@@ -36,9 +36,8 @@
     "@5qtrs/random": "^0.0.1",
     "@5qtrs/request": "^0.0.1",
     "@fusebit/schema": "^1.0.0",
-    "@fusebit/tunnel": "^3.2.5",
-    "@types/open": "^6.0.0",
-    "axios": "^0.21.0",
+    "@fusebit/tunnel": "^3.2.6",
+    "axios": "^0.21.4",
     "buffer-equal-constant-time": "1.0.1",
     "depd": "~1.1.2",
     "dotenv": "^10.0.0",
@@ -57,22 +56,25 @@
     "lodash.isplainobject": "^4.0.6",
     "lodash.isstring": "^4.0.1",
     "lodash.once": "^4.0.0",
+    "lru-cache": "^7.8.1",
     "ms": "^2.1.1",
     "mustache": "^4.2.0",
     "open": "^6.0.0",
     "qrcode-terminal": "^0.12.0",
     "safe-buffer": "^5.0.1",
-    "semver": "^5.6.0",
+    "semver": "^7.3.7",
     "setprototypeof": "1.2.0",
     "statuses": "1.5.0",
-    "superagent": "^6.1.0",
+    "superagent": "7.1.1",
     "toidentifier": "1.0.0",
-    "uuid": "^7.0.3"
+    "uuid": "^7.0.3",
+    "yallist": "^4.0.0"
   },
   "devDependencies": {
     "@types/mustache": "^4.1.2",
+    "@types/open": "^6.0.0",
     "@types/opn": "^5.5.0",
-    "@types/superagent": "^4.1.13"
+    "@types/superagent": "4.1.14"
   },
   "bundledDependencies": [
     "@fusebit/schema",
@@ -99,6 +101,8 @@
     "lodash.includes",
     "safe-buffer",
     "lodash.isinteger",
-    "uuid"
+    "uuid",
+    "lru-cache",
+    "yallist"
   ]
 }

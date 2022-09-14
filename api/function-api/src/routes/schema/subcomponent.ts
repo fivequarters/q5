@@ -49,7 +49,10 @@ const subcomponentRouter = (
               ...query.listPagination(req),
             }
           );
-          res.json({ ...response, items: response.items.map((entity: any) => Model.entityToSdk(entity)) });
+          res.json({
+            ...response,
+            items: response.items.map((entity: any) => Model.entityToSdk({ ...entity, parentId: req.params.entityId })),
+          });
         } catch (e) {
           next(e);
         }
@@ -84,7 +87,7 @@ const subcomponentRouter = (
             tags: { ...req.body.tags },
           };
           const { statusCode, result } = await service.createEntity(req.resolvedAgent, leafEntity);
-          res.status(statusCode).json(Model.entityToSdk(result));
+          res.status(statusCode).json(Model.entityToSdk({ ...result, parentId: req.params.entityId }));
         } catch (e) {
           next(e);
         }

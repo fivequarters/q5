@@ -8,6 +8,7 @@ const stateEnum = Joi.string().valid('creating', 'invalid', 'active').optional()
 const validateEntity = (data: any) =>
   Joi.object().keys({
     id: Common.entityId.required(),
+    entityType: Common.entityType.strip(),
     data,
     tags: Common.tags,
     version: Joi.string().guid(),
@@ -22,6 +23,7 @@ const validateEntity = (data: any) =>
 const validatePostEntity = (data: any) =>
   Joi.object().keys({
     id: Common.entityId.optional(),
+    entityType: Common.entityType.strip(),
     data: data.optional(),
     tags: Common.tags,
     version: Joi.string().guid(),
@@ -56,6 +58,7 @@ const EntityIdQuery = Joi.object().keys({
   tag: Common.tagQuery,
   state: stateEnum,
   defaults: Joi.boolean(),
+  sort: Joi.string().valid('-dateModified', 'dateModified', '-dateAdded', 'dateAdded', '-entityId', 'entityId'),
 });
 
 export { validateEntity, validatePostEntity, EntityId, EntityIdParams, EntityIdQuery };

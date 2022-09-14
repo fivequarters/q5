@@ -38,6 +38,7 @@ const BANNER = [
 const publishAll = [
   'publish_function_api',
   'publish_fusebit_cli',
+  'publish_everyauth_cli',
   'publish_fusebit_ops_cli',
   'publish_fusebit_schema',
   'publish_api_docs',
@@ -145,6 +146,11 @@ const specs: ISpec[] = [
     name: 'Publish Segment Files - Manual',
     inputs: ['checkout', 'setup_env', 'deploy_segment', 'publish_slack'],
     output: 'publish_segment-manual',
+  },
+  {
+    name: 'Publish Fusetunnel',
+    inputs: ['checkout', 'setup_env', 'publish_ft', 'publish_slack'],
+    output: 'publish_fusetunnel',
   },
 ];
 

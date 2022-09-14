@@ -44,15 +44,22 @@ logger.token('prettyStatus', (req, res) => {
   return `\x1b[${color}m${status}\x1b[0m`;
 });
 
+logger.token('traceId', (req, res) => {
+  let colorStart = usePrettyLogs ? '\x1b[90m' : '';
+  let colorEnd = usePrettyLogs ? '\x1b[0m' : '';
+
+  return req.traceId
+    ? `${colorStart}${req.traceId}:${req.spanId || '_'.repeat(16)}${colorEnd}`
+    : `${' '.repeat(32)} ${' '.repeat(16)}`;
+});
+
 app.use(
   logger((tokens, req, res) =>
     [
-      req.traceId
-        ? `\x1b[90m${req.traceId}:${req.spanId || '_'.repeat(16)}\x1b[0m`
-        : `${' '.repeat(32)} ${' '.repeat(16)}`,
+      tokens.traceId(req, res),
+      tokens.prettyStatus(req, res),
       tokens.method(req, res).padStart(7, ' '),
       tokens.url(req, res),
-      tokens.prettyStatus(req, res),
       tokens.res(req, res, 'content-length'),
       '-',
       tokens['response-time'](req, res),
@@ -88,7 +95,7 @@ app.use(function (err, req, res, next) {
       err.message,
       req.url,
       'stacktrace:',
-      process.stdout.isTTY ? err : err.stack.split('\n').join(',')
+      process.stdout.isTTY || !err?.stack ? err : err.stack.split('\n').join(',')
     );
   }
 

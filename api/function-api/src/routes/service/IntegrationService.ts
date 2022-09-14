@@ -109,6 +109,7 @@ class IntegrationService extends SessionedEntityService<Model.IIntegration, Mode
   public getFunctionSecuritySpecification = (entity: Model.IIntegration) => {
     const resStorage = `/account/{{accountId}}/subscription/{{subscriptionId}}/storage/${this.entityType}/{{functionId}}/`;
     const resEntity = `/account/{{accountId}}/subscription/{{subscriptionId}}/${this.entityType}/{{functionId}}/`;
+    const v1ResEntity = `/account/{{accountId}}/subscription/{{subscriptionId}}/boundary/${this.entityType}/function/{{functionId}}/`;
     const resSession = `${resEntity}session/`;
 
     const permissions = {
@@ -116,6 +117,7 @@ class IntegrationService extends SessionedEntityService<Model.IIntegration, Mode
       functionPermissions: {
         allow: [
           { action: Permissions.allStorage, resource: resStorage },
+          { action: Permissions.scheduleFunction, resource: v1ResEntity },
           { action: v2Permissions.updateSession, resource: resSession },
           { action: v2Permissions.getSession, resource: resSession },
           { action: v2Permissions.install.all, resource: resEntity },
@@ -130,6 +132,10 @@ class IntegrationService extends SessionedEntityService<Model.IIntegration, Mode
         permissions.functionPermissions.allow.push({
           action: v2Permissions.connector.execute,
           resource: `/account/{{accountId}}/subscription/{{subscriptionId}}/connector/${component.entityId}/`,
+        });
+        permissions.functionPermissions.allow.push({
+          action: Permissions.scheduleFunction,
+          resource: `/account/{{accountId}}/subscription/{{subscriptionId}}/boundary/connector/${component.entityId}/`,
         });
       });
 

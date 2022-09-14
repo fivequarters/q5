@@ -17,6 +17,166 @@ All public releases of the Fusebit HTTP API are documented here, including notab
 <!-- 1. TOC
 {:toc} -->
 
+## Version 1.40.14
+
+_Released 9/12/22_
+
+- **Bugfix** Fix invalid grafana initialization call during account creation
+
+## Version 1.40.13
+
+_Released 9/9/22_
+
+- **Enhancement** Add Health Monitoring Dashboard to Grafana Defaults.
+
+## Version 1.40.12
+
+_Released 9/6/22_
+
+- **Diagnostic** Improve capture of RDS request IDs for tardy responses.
+
+## Version 1.40.11
+
+_Released 8/2/22_
+
+- **Enhancement** Support managed Grafana dashboards per user.
+
+## Version 1.40.10
+
+_Released 8/1/22_
+
+- **Bugfix** Extend task permissions into v2 route endpoints.
+- **Bugfix** Enable function serve with tasks.
+- **Bugfix** Remove unnecessary duplication of permissions added to v2 routes.
+
+## Version 1.40.7
+
+_Released 7/27/22_
+
+- **Bugfix** Fix logging of results for tasks running longer than 120 seconds.
+
+## Version 1.40.6
+
+_Released 7/22/22_
+
+- **Bugfix** Improve module resolution algorithm to improve fallback behaviors.
+
+## Version 1.40.5
+
+_Released 7/20/22_
+
+- **Enhancement** Change timeout restrictions to be 900s for integrations.
+
+## Version 1.40.4
+
+_Released 7/15/22_
+
+- **Enhancement** Support tasks in v2 entities.
+
+## Version 1.40.2
+
+_Released 6/29/22_
+
+- **Enhancement** Add `--no-audit` to the `npm install` build arguments for packages.
+
+## Version 1.40.1
+
+_Released 6/24/22_
+
+- **Bugfix** Fix for regression in encoding of the `ctx.path` parameter.
+
+## Version 1.40.0
+
+_Released 6/20/22_
+
+- **Enhancement** Support for tasks.
+
+## Version 1.39.5
+
+_Released 6/15/22_
+
+- **Bugfix** Upgrade Loki to 2.5.0 to eliminate out-of-order event drops.
+
+## Version 1.39.4
+
+_Released 6/15/22_
+
+- **Bugfix** Catch additional traces in functions and better associate them with the active request.
+
+## Version 1.39.3
+
+_Released 6/2/22_
+
+- **Enhancement** Provision Grafana resources on new account creation.
+
+## Version 1.39.2
+
+_Released 5/23/22_
+
+- **Enhancement** Partition log events under the `fusebit_` namespace for internal attributes.
+
+## Version 1.39.1
+
+_Released 5/23/22_
+
+- **Enhancement** Correctly error on an invalid redirectUrl in session creation.
+
+## Version 1.38.3
+
+_Released 5/13/22_
+
+- **Enhancement** Improved analytics tracking of events.
+
+## Version 1.38.2
+
+_Released 5/9/22_
+
+- **Enhancement** NodeJS 16 support for Fusebit functions, integrations, and connectors.
+
+## Version 1.38.1
+
+_Released 5/5/22_
+
+- **Bugfix** Reduce restrictions on allowed redirect addresses when serving functions.
+
+## Version 1.38.0
+
+_Released 5/4/22_
+
+- **Enhancement** Return entity dates in ISO format with a `T` instead of ``.
+- **Enhancement** Include the `entityType` field in returned objects.
+
+## Version 1.37.1
+
+_Released 4/22/22_
+
+- **Bugfix** Improve internal error handling.
+
+## Version 1.37.0
+
+_Released 4/10/22_
+
+- **Enhancement** Support `sort` parameter to list endpoints to search off of several criteria.
+- **Bugfix** Correctly sanitize the results of an integration or connector creation operation.
+
+## Version 1.36.1
+
+_Released 4/7/22_
+
+- **Security** Patch Axios against CVE-2021-3749.
+
+## Version 1.36.0
+
+_Released 3/17/22_
+
+- **Enhancement** Support /install and /identity endpoints to search across all Integrations and Connectors.
+
+## Version 1.35.10
+
+_Released 3/17/22_
+
+- **Bugfix** Allow the `%` character within tag key and values for sessions.
+
 ## Version 1.35.9
 
 _Released 3/4/22_

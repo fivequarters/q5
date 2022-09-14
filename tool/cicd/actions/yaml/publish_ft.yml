@@ -1,0 +1,4 @@
+# Publish Fusetunnel
+steps:
+  - name: Publish - Fusetunnel
+    run: ./tool/cicd/actions/scripts/publish_ft.sh

@@ -22,7 +22,6 @@ export interface IDatabaseCredentials {
   };
 }
 
-// Make sure this gets changed to something non-standard to further challenge attackers.
 export const authHeader = Constants.GRAFANA_AUTH_HEADER;
 export const orgHeader = Constants.GRAFANA_ORG_HEADER;
 

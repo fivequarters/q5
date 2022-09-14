@@ -187,6 +187,19 @@ const helloWorldWithNode14JavaScript = {
   },
 };
 
+const helloWorldWithNode16Javascript = {
+  nodejs: {
+    files: {
+      'index.js': 'module.exports = (ctx, cb) => cb(null, { body: process.version });',
+      'package.json': {
+        engines: {
+          node: '16',
+        },
+      },
+    },
+  },
+};
+
 const helloWorldWithMustache = {
   nodejs: {
     files: {
@@ -236,6 +249,14 @@ describe('Function', () => {
     const version = await request(response.data.location);
     expect(version).toBeHttp({ statusCode: 200 });
     expect(version.data).toMatch(/^v14/);
+  }, 120000);
+
+  test('PUT succeeds with supported node.js version 16', async () => {
+    const response = await putFunction(account, boundaryId, function1Id, helloWorldWithNode16Javascript);
+    expect(response).toBeHttp({ statusCode: 200 });
+    const version = await request(response.data.location);
+    expect(version).toBeHttp({ statusCode: 200 });
+    expect(version.data).toMatch(/^v16/);
   }, 120000);
 
   test('PUT succeeds with default node.js matching version 14', async () => {
@@ -965,14 +986,14 @@ describe('Function', () => {
         },
       },
       compute: {
-        timeout: 121,
+        timeout: 901,
       },
     });
     expect(response).toBeHttp({ statusCode: 400 });
     expect(response.data).toMatchObject({
       status: 400,
       statusCode: 400,
-      message: 'compute.timeout: "timeout" must be less than or equal to 120',
+      message: 'compute.timeout: "timeout" must be less than or equal to 900',
     });
   }, 120000);
 

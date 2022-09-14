@@ -17,7 +17,7 @@ beforeEach(() => {
   ({ account, boundaryId, function1Id, function2Id, function3Id, function4Id, function5Id } = getEnv());
 });
 
-const REQ_SUFFIX = 'tunnel.dev.fusebit.io';
+const REQ_SUFFIX = 'tunnel.dev.fivequarters.io';
 
 const helloWorld = {
   nodejs: {
@@ -84,7 +84,10 @@ describe('Function Redirect', () => {
     await Promise.all(
       invalidRedirects.map(async (uri) => {
         response = await postFunctionRedirect(account, boundaryId, function1Id, uri);
-        expect(response).toBeHttp({ statusCode: 400 });
+        expect(response).toBeHttp({
+          statusCode: 400,
+          data: { status: 400, statusCode: 400, message: 'redirectUrl: Unsupported tunnel endpoint' },
+        });
       })
     );
   }, 120000);
@@ -148,7 +151,7 @@ describe('Function Redirection', () => {
 
     tunnel = await startTunnel(port);
 
-    redirectUrl = `https://${tunnel.subdomain}.tunnel.dev.fusebit.io`;
+    redirectUrl = `https://${tunnel.subdomain}.tunnel.dev.fivequarters.io`;
   });
 
   afterEach(async () => {

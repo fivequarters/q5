@@ -7,7 +7,9 @@ export const SessionParameters = Joi.object().keys({
   tags: Common.tags.optional(),
   extendTags: Joi.boolean().default(false),
   input: Joi.object().optional(),
-  redirectUrl: Joi.string().required(),
+  redirectUrl: Joi.string()
+    .uri({ scheme: ['http', 'https'] })
+    .required(),
   installId: Common.installId,
 });
 

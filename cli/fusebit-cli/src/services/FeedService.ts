@@ -11,7 +11,7 @@ import { EntityType, IIntegration, IIntegrationData, IConnector, IConnectorData 
 import { ExecuteService } from './ExecuteService';
 import { ProfileService } from './ProfileService';
 
-import { FeedTypes } from '../commands/feed/FeedOptions';
+import { FeedTypes } from '../commands/fuse/feed/FeedOptions';
 
 const FEED_BASE_URL = process.env.FEED_BASE_URL || 'https://manage.fusebit.io/feed/';
 
@@ -133,10 +133,8 @@ export class FeedService {
     return global;
   }
 
-  protected makeEntityId<T extends EntityType>(entity: IEntity<T>) {
-    return `${entity.entityType === EntityType.integration ? 'my-integration' : 'my-connector'}-${Math.floor(
-      Math.random() * 1000
-    )}`;
+  protected makeEntityId<T extends EntityType>(entity: IEntity<T>, feedId: string, commonRandom: number) {
+    return `${feedId}-${entity.entityType}-${commonRandom}`;
   }
 
   protected getCommonTags(feed: IFeed) {
@@ -159,6 +157,13 @@ export class FeedService {
 
     const entityIdCache: Record<string, { id?: string }> = {};
 
+    const commonRandom = Math.floor(Math.random() * 1000);
+
+    const entityCount: Record<string, number> = {
+      connector: 0,
+      integration: 0,
+    };
+
     Object.entries(feed.configuration.entities).forEach(([name, entity]) => {
       if (!entityIdCache[name]) {
         entityIdCache[name] = {};
@@ -169,7 +174,12 @@ export class FeedService {
         id: () => {
           // Only create a new random ID once for an entry
           if (!entityIdCache[name].id) {
-            entityIdCache[name].id = this.makeEntityId(entity);
+            entityIdCache[name].id = this.makeEntityId(entity, feed.id, commonRandom);
+
+            entityCount[entity.entityType] += 1;
+            if (entityCount[entity.entityType] > 1) {
+              entityIdCache[name].id += `-${entityCount[entity.entityType]}`;
+            }
           }
           return entityIdCache[name].id;
         },

@@ -82,8 +82,8 @@ describe('Function Utilities', () => {
     const create = await FunctionUtilities.createFunction(params, ctxFunction, fakeAgent as IAgent);
     expect(create).toMatchObject({ code: 200 });
 
-    const exec = await FunctionUtilities.executeFunction(params, 'GET', '');
-    const base = await callFunction('', create.location as string);
+    const exec = await FunctionUtilities.executeFunction(params, 'GET');
+    const base = await callFunction('', (create.location as string) + '/');
 
     const bodyParam = ['accountId', 'subscriptionId', 'boundaryId', 'functionId', 'method', 'url', 'body', 'path'];
     bodyParam.forEach((p) => expect(exec.body[p]).toEqual(base.data[p]));
@@ -100,7 +100,11 @@ describe('Function Utilities', () => {
     expect(create).toMatchObject({ code: 200 });
 
     const body = { hello: 'world' };
-    const exec = await FunctionUtilities.executeFunction(params, 'POST', '', { body });
+    const exec = await FunctionUtilities.executeFunction(params, 'POST', {
+      body,
+      apiVersion: 'v1',
+      mode: 'request',
+    });
     const base = await callFunction('', create.location as string, 'POST', JSON.stringify(body));
 
     expect(exec.body.method).toBe('POST');

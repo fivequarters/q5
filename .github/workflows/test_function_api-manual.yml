@@ -53,6 +53,7 @@ jobs:
       - name: Test - function-api
         env:
           FUSE_PROFILE: cicd
+          FUSETUNNEL_SECRET: ${{ secrets.FUSETUNNEL_SECRET }}
         run: ./tool/cicd/actions/scripts/test_function_api.sh
       - name: Notify slack success
         if: success()

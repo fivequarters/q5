@@ -17,6 +17,76 @@ All public releases of the Fusebit CLI are documented here, including notable ch
 <!-- 1. TOC
 {:toc} -->
 
+## Version 1.24.0
+
+_Released 6/10/22_
+
+- **Enhancement.** Add support for the routes element in fusebit.json
+
+## Version 1.23.12
+
+_Released 6/3/22_
+
+- **Bugfix.** Allow for profiles without explicit subscriptions.
+
+## Version 1.23.10
+
+_Released 5/2/22_
+
+- **Bugfix.** Update fuse function serve with the newest fusetunnel to support private deployments of fusetunnel.
+
+## Version 1.23.9
+
+_Released 4/27/22_
+
+- **Bugfix.** EveryAuth: Improve support for alternative operating systems.
+
+## Version 1.23.8
+
+_Released 4/25/22_
+
+- **Bugfix.** Fix issue blocking new OAuth-based profiles from being initialized.
+- **Enhancement.** EveryAuth: Change the default `token` output to provide a `base64` encoded object.
+
+## Version 1.23.6
+
+_Released 4/21/22_
+
+- **Enhancement.** EveryAuth: Support the new command `profile import` and `profile export`
+- **Enhancement.** EveryAuth: Support the new command `token` to generate a token, with an optional `--expires` parameter to control the lifetime.
+
+## Version 1.23.5
+
+_Released 4/14/22_
+
+- **Enhancement.** Upgrade semver used in the package to 7.3.7.
+- **Enhancement.** EveryAuth: Create a useful error message when running prior to `init`.
+- **Enhancement.** EveryAuth: Support for specifying an email on `init` and capturing OS username as first name.
+
+## Version 1.22.1
+
+_Released 4/13/22_
+
+- **Enhancement.** Upgrade superagent used in the package to 7.1.1.
+
+## Version 1.22.0
+
+_Released 4/4/22_
+
+- **Enhancement.** Support the `everyauth` CLI.
+
+## Version 1.21.4
+
+_Released 4/7/22_
+
+- **Security.** Patch Axios against CVE-2021-3749.
+
+## Version 1.21.3
+
+_Released 4/4/22_
+
+- **Enhancement.** Name entities created via the feed based on the `feed.id` rather than `my-integration`.
+
 ## Version 1.21.1
 
 _Released 2/23/22_

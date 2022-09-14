@@ -12,6 +12,7 @@ import { AwsAmi } from '@5qtrs/aws-ami';
 import { OpsDataAwsConfig } from '@5qtrs/ops-data-aws';
 import { Text } from '@5qtrs/text';
 import * as Constants from '@5qtrs/constants';
+import { getBuffer as getHealthLambdaBuffer } from '@5qtrs/health-lambda';
 
 const DISCOVERY_SERVICE_PREFIX = 'discovery-';
 const MONITORING_SEC_GROUP_PREFIX = `fusebit-monitoring-`;
@@ -26,6 +27,8 @@ const DB_PREFIX = 'mondb';
 const DB_ENGINE = 'postgres';
 const LOGGING_SERVICE_TYPE = 'monitoring';
 const MIN_MAX = 1;
+const HEALTH_MAX_TIME = 10 * 60;
+const HEALTH_RETRY_DELAY = 10;
 const GRAFANA_PORTS = [
   /** Tempo GRPC Ingress TCP */ '4317/tcp',
   /** Tempo Port */ '3200/tcp',
@@ -34,6 +37,7 @@ const GRAFANA_PORTS = [
   /** Tempo memberlist */ '7946/tcp',
   /** Loki memberlist */ '7947/tcp',
   /** Grafana aggregated health */ '9999/tcp',
+  /** Loki querier */ '9095/tcp',
 ];
 const NLB_PREFIX = 'nlb-grafana-';
 
@@ -43,7 +47,9 @@ const INSTANCE_SIZE = 't3a.medium';
 // 20.04 is the latest Ubuntu LTS.
 const UBUNTU_VERSION = '20.04';
 
-export const LOKI_DEFAULT_VERSION = 'grafana/loki:2.3.0';
+const GRAFANA_HEALTH_TIMEOUT = 7;
+
+export const LOKI_DEFAULT_VERSION = 'grafana/loki:2.5.0';
 export const GRAFANA_DEFAULT_VERSION = 'grafana/grafana:latest';
 export const TEMPO_DEFAULT_VERSION = 'grafana/tempo:latest';
 
@@ -131,6 +137,73 @@ export class MonitoringService {
         throw e;
       }
     }
+  }
+
+  private async ensureHealthLambda(monDeploymentName: string, network: IOpsNetwork) {
+    const functionName = monDeploymentName + Constants.GRAFANA_HEALTH_FUNCTION_NAME;
+    const lambdaSdk = await this.getAwsSdk(AWS.Lambda, { region: network.region });
+    const lambdaEndpoint = `http://leader-${monDeploymentName}.fusebit.internal:9999`;
+    const fxPayload: AWS.Lambda.CreateFunctionRequest = {
+      FunctionName: functionName,
+      Role: `${this.opsAwsConfig.arnPrefix}:iam::${this.config.account}:role/${Constants.GRAFANA_HEALTH_FX_ROLE_NAME}`,
+      Code: {
+        ZipFile: getHealthLambdaBuffer(),
+      },
+      Handler: 'index.handler',
+      VpcConfig: {
+        SecurityGroupIds: [network.securityGroupId],
+        SubnetIds: network.privateSubnets.map((sub) => sub.id),
+      },
+      Environment: {
+        Variables: {
+          MON_DEPLOYMENT_NAME: monDeploymentName,
+          DISCOVERY_PREFIX: DISCOVERY_SERVICE_PREFIX,
+          DISCOVERY_SUFFIX: this.opsAwsConfig.getDiscoveryDomainName(),
+        },
+      },
+      Runtime: 'nodejs16.x',
+      Timeout: GRAFANA_HEALTH_TIMEOUT,
+    };
+    try {
+      await lambdaSdk.deleteFunction({ FunctionName: fxPayload.FunctionName }).promise();
+    } catch (e) {
+      if (e.code !== 'ResourceNotFoundException') {
+        throw e;
+      }
+    }
+    await lambdaSdk.createFunction(fxPayload).promise();
+  }
+
+  private async ensureHealth(monDeploymentName: string, region: string, stackId: string) {
+    const functionName = monDeploymentName + Constants.GRAFANA_HEALTH_FUNCTION_NAME;
+    const lambdaSdk = await this.getAwsSdk(AWS.Lambda, { region });
+    let tries = HEALTH_MAX_TIME / HEALTH_RETRY_DELAY;
+    do {
+      try {
+        const result = await lambdaSdk
+          .invoke({ FunctionName: functionName, Payload: JSON.stringify({ STACK_ID: stackId }) })
+          .promise();
+        if (JSON.parse(result.Payload?.toString() as string).StatusCode === 200) {
+          if (this.input.options.output !== 'json') {
+            await this.executeService.info('Stack Healthy', `Fusebit monitoring stack ${stackId} reported healthy!`);
+          }
+          return;
+        }
+      } catch (e) {
+        if (e.code === 'ResourceNotFoundException') {
+          throw Error('Healthcheck function not found, re run fuse-ops monitoring add.');
+        }
+      }
+      await new Promise((res) => setTimeout(res, HEALTH_RETRY_DELAY * 1000));
+      tries--;
+    } while (tries > 0);
+    await this.executeService.error(
+      'Stack Unhealthy',
+      `Fusebit monitoring stack ${stackId} did not transition into a healthy state within ${
+        HEALTH_MAX_TIME / 60
+      } minutes.`
+    );
+    throw Error('Stack was not able to transition into a healthy status within the allocated time.');
   }
 
   private async addBootstrapScriptToBucket(
@@ -417,7 +490,7 @@ mkdir /root/tempo-data
 mkdir /root/loki
 chmod 777 -R /var/log
 chmod 777 -R /root/loki
-${awsUserData.installCloudWatchAgent('grafana', LOGGING_SERVICE_TYPE, deployment.monitoringDeploymentName)}
+${awsUserData.installCloudWatchAgent('/var/log/compose-log', LOGGING_SERVICE_TYPE, deployment.monitoringDeploymentName)}
 ${awsUserData.installDocker()}
 ${awsUserData.installDockerCompose()}
 ${awsUserData.addFile(grafanaConfigFile, '/root/grafana.ini')}
@@ -449,7 +522,8 @@ ${awsUserData.runDockerCompose()}
         DISCOVERY_SERVICE_PREFIX +
         monDeployment.monitoringDeploymentName +
         '.' +
-        this.opsAwsConfig.getDiscoveryDomainName(),
+        this.opsAwsConfig.getDiscoveryDomainName() +
+        ':7946',
     ];
     return this.toBase64(grafanaConfig.toYamlFile(template));
   }
@@ -464,7 +538,8 @@ ${awsUserData.runDockerCompose()}
         DISCOVERY_SERVICE_PREFIX +
         monDeployment.monitoringDeploymentName +
         '.' +
-        this.opsAwsConfig.getDiscoveryDomainName(),
+        this.opsAwsConfig.getDiscoveryDomainName() +
+        ':7947',
     ];
     return this.toBase64(grafanaConfig.toYamlFile(template));
   }
@@ -898,68 +973,28 @@ ${awsUserData.runDockerCompose()}
     const rdsSecGroup = (await this.getSecGroup(rdsSecGroupName, region)) as AWS.EC2.SecurityGroup;
     const monitoringDeployment = await this.getMonitoringDeploymentByName(monDeploymentName, region);
     const cloudMap = await this.getCloudMap(monitoringDeployment.networkName);
-    if (await this.getSecGroup(monitoringSecGroupName, region)) {
-      return;
-    }
-    const secGroup = await ec2Sdk
-      .createSecurityGroup({
-        GroupName: monitoringSecGroupName,
-        VpcId: cloudMap.network.vpcId,
-        Description: 'Network ingress for monitoring deployment' + monDeploymentName,
-      })
-      .promise();
-
-    await ec2Sdk
-      .authorizeSecurityGroupIngress({
-        GroupId: rdsSecGroup.GroupId,
-        IpPermissions: [
-          {
-            FromPort: POSTGRES_PORT,
-            IpProtocol: 'tcp',
-            ToPort: POSTGRES_PORT,
-            UserIdGroupPairs: [
-              {
-                Description: 'Postgres access from grafana',
-                GroupId: secGroup.GroupId,
-              },
-            ],
-          },
-        ],
-      })
-      .promise();
-
-    for (const port of GRAFANA_PORTS) {
-      const [allowPort, proto] = port.split('/');
-      await ec2Sdk
-        .authorizeSecurityGroupIngress({
-          GroupId: secGroup.GroupId,
-          IpPermissions: [
-            {
-              FromPort: parseInt(allowPort),
-              IpProtocol: proto,
-              ToPort: parseInt(allowPort),
-              IpRanges: [
-                {
-                  CidrIp: '0.0.0.0/0',
-                  Description: 'Allow traffic from anywhere within the VPC.',
-                },
-              ],
-            },
-          ],
+    let secGroup = await this.getSecGroup(monitoringSecGroupName, region);
+    if (!secGroup) {
+      secGroup = await ec2Sdk
+        .createSecurityGroup({
+          GroupName: monitoringSecGroupName,
+          VpcId: cloudMap.network.vpcId,
+          Description: 'Network ingress for monitoring deployment' + monDeploymentName,
         })
         .promise();
-
+    }
+    try {
       await ec2Sdk
         .authorizeSecurityGroupIngress({
-          GroupId: secGroup.GroupId,
+          GroupId: rdsSecGroup.GroupId,
           IpPermissions: [
             {
-              FromPort: parseInt(allowPort),
-              ToPort: parseInt(allowPort),
-              IpProtocol: proto,
+              FromPort: POSTGRES_PORT,
+              IpProtocol: 'tcp',
+              ToPort: POSTGRES_PORT,
               UserIdGroupPairs: [
                 {
-                  Description: 'Gossip Access ' + parseInt(allowPort),
+                  Description: 'Postgres access from grafana',
                   GroupId: secGroup.GroupId,
                 },
               ],
@@ -967,6 +1002,56 @@ ${awsUserData.runDockerCompose()}
           ],
         })
         .promise();
+    } catch (e) {
+      if (e.code !== 'InvalidPermission.Duplicate') {
+        throw e;
+      }
+    }
+    for (const port of GRAFANA_PORTS) {
+      const [allowPort, proto] = port.split('/');
+      try {
+        await ec2Sdk
+          .authorizeSecurityGroupIngress({
+            GroupId: secGroup.GroupId,
+            IpPermissions: [
+              {
+                FromPort: parseInt(allowPort),
+                IpProtocol: proto,
+                ToPort: parseInt(allowPort),
+                IpRanges: [
+                  {
+                    CidrIp: '0.0.0.0/0',
+                    Description: 'Allow traffic from anywhere within the VPC.',
+                  },
+                ],
+              },
+            ],
+          })
+          .promise();
+
+        await ec2Sdk
+          .authorizeSecurityGroupIngress({
+            GroupId: secGroup.GroupId,
+            IpPermissions: [
+              {
+                FromPort: parseInt(allowPort),
+                ToPort: parseInt(allowPort),
+                IpProtocol: proto,
+                UserIdGroupPairs: [
+                  {
+                    Description: 'Gossip Access ' + parseInt(allowPort),
+                    GroupId: secGroup.GroupId,
+                  },
+                ],
+              },
+            ],
+          })
+          .promise();
+      } catch (e) {
+        if (e.code !== 'InvalidPermission.Duplicate') {
+          throw e;
+        }
+      }
     }
   }
 
@@ -1174,6 +1259,7 @@ ${awsUserData.runDockerCompose()}
       await this.executeInitialGrafanaDbSetup(monDeploymentName, cloudMap.network.region);
     }
     await this.setupBootstrapBucket(monDeploymentName, cloudMap.network.region);
+    await this.ensureHealthLambda(monDeploymentName, cloudMap.network);
   }
 
   private async deleteMonitoringStack(monDeploymentName: string, stackId: string, force: boolean, region?: string) {
@@ -1190,7 +1276,8 @@ ${awsUserData.runDockerCompose()}
     grafanaTag: string,
     tempoTag: string,
     lokiTag: string,
-    region?: string
+    region?: string,
+    ami?: string
   ) {
     const monDeployment = await this.getMonitoringDeploymentByName(monDeploymentName, region);
     const stackId = this.generateStackId();
@@ -1199,6 +1286,7 @@ ${awsUserData.runDockerCompose()}
       grafanaImage: grafanaTag,
       lokiImage: lokiTag,
       tempoImage: tempoTag,
+      amiId: ami,
     };
     await this.ensureMonitoringDeploymentStackItem(monDeploymentName, stack, monDeployment.region);
     const lt = await this.createLaunchTemplate(monDeployment, stack);
@@ -1212,6 +1300,8 @@ ${awsUserData.runDockerCompose()}
       return;
     }
     await this.executeService.info('Stack Created', `Fusebit monitoring stack created with stackId ${stack.stackId}`);
+
+    await this.ensureHealth(monDeployment.monitoringDeploymentName, monDeployment.region, stack.stackId.toString());
   }
 
   public async listDeployments() {
@@ -1322,7 +1412,8 @@ ${awsUserData.runDockerCompose()}
     grafanaTag: string,
     tempoTag: string,
     lokiTag: string,
-    region?: string
+    region?: string,
+    ami?: string
   ) {
     const createResult = await this.executeService.execute(
       {
@@ -1330,7 +1421,7 @@ ${awsUserData.runDockerCompose()}
         message: 'Adding monitoring stack for the Fusebit platform.',
         errorHeader: 'Stack Adding Error',
       },
-      () => this.createNewMonitoringStack(monDeploymentName, grafanaTag, tempoTag, lokiTag, region)
+      () => this.createNewMonitoringStack(monDeploymentName, grafanaTag, tempoTag, lokiTag, region, ami)
     );
   }
 
@@ -1386,6 +1477,7 @@ ${awsUserData.runDockerCompose()}
     }
 
     for (const stack of itemsJson) {
+      const ami = stack.amiId.includes('default') ? [] : [Text.dim('AMI: '), stack.amiId, Text.eol()];
       const details = [
         Text.dim('Region: '),
         stack.region,
@@ -1399,6 +1491,7 @@ ${awsUserData.runDockerCompose()}
         Text.dim('Tempo Version: '),
         stack.tempoVersion,
         Text.eol(),
+        ...ami,
         Text.dim('Status: '),
         stack.active ? 'ACTIVE' : 'NOT ACTIVE',
       ];

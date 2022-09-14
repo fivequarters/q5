@@ -1,3 +1,5 @@
+import ms from 'ms';
+
 import { IExecuteInput, Confirm } from '@5qtrs/cli';
 import { Text, IText } from '@5qtrs/text';
 import {
@@ -16,6 +18,7 @@ import { ExecuteService } from './ExecuteService';
 import { request } from '@5qtrs/request';
 const QR = require('qrcode-terminal');
 import { decodeJwt } from '@5qtrs/jwt';
+const OS = require('os');
 
 // ------------------
 // Internal Constants
@@ -23,6 +26,8 @@ import { decodeJwt } from '@5qtrs/jwt';
 
 const profileOptions = ['account', 'subscription', 'boundary', 'function'];
 const notSet = Text.dim(Text.italic('<not set>'));
+export const DEFAULT_TOKEN_EXPIRATION = '2h';
+const DEFAULT_TOKEN_EXPIRATION_MS = ms('2h');
 
 // -------------------
 // Exported Interfaces
@@ -370,13 +375,17 @@ export class ProfileService {
 
   private async getExecutionProfileDemux(
     profileName?: string,
-    ignoreCache?: boolean
+    ignoreCache?: boolean,
+    expiresIn?: number
   ): Promise<IFusebitExecutionProfile> {
     const profile = await this.profile.getProfileOrDefaultOrThrow(profileName);
     const profiles = this.profile.getTypedProfile(profile);
     if (profiles.pkiProfile) {
-      return this.profile.getPKIExecutionProfile(profileName, ignoreCache);
+      return this.profile.getPKIExecutionProfile(profileName, ignoreCache, undefined, expiresIn);
     } else {
+      if (expiresIn && expiresIn !== DEFAULT_TOKEN_EXPIRATION_MS) {
+        throw new Error('Custom token expiration unsupported for OAuth profiles');
+      }
       return this.getOAuthExecutionProfile(profiles.oauthProfile as IOAuthFusebitProfile, ignoreCache);
     }
   }
@@ -639,7 +648,19 @@ export class ProfileService {
     await this.writeProfile(profile, profile.name === defaultProfileName, agentDetails);
   }
 
-  public async displayTokenContext(profileName?: string): Promise<void> {
+  public async displayPrettyProfile(profile: IFusebitProfile) {
+    if (this.input.options.output === 'json') {
+      await this.input.io.writeLine(JSON.stringify(profile, null, 2));
+      return;
+    }
+
+    await this.executeService.message(profile.name, 'Successfully created!');
+  }
+
+  public async displayTokenContext(
+    profileName?: string,
+    expiresIn: number = DEFAULT_TOKEN_EXPIRATION_MS
+  ): Promise<void> {
     if (!profileName) {
       profileName = await this.profile.getDefaultProfileName();
     }
@@ -647,7 +668,13 @@ export class ProfileService {
     const output = this.input.options.output;
 
     // Get execution profile to ensure OAuth flow was executed at least once
-    const profile = await this.execute(() => this.getExecutionProfileDemux(profileName, true));
+    const profile = await this.execute(() => this.getExecutionProfileDemux(profileName, true, expiresIn));
+    profile.expiresAt = new Date(Date.now() + expiresIn).toUTCString();
+
+    if (output === 'base64') {
+      await this.input.io.writeLineRaw(Buffer.from(JSON.stringify(profile), 'utf8').toString('base64'));
+      return;
+    }
 
     if (output === 'json') {
       await this.input.io.writeLineRaw(JSON.stringify(profile, null, 2));
@@ -748,7 +775,7 @@ export class ProfileService {
   // Removes any half-complete profile created during the initial OAuth flow
   public async removeUncompletedProfiles(): Promise<void> {
     const profiles = await this.execute(() => this.profile.listProfiles());
-    const uncompletedProfiles = profiles.filter((profile) => !profile.account || !profile.subscription);
+    const uncompletedProfiles = profiles.filter((profile) => !profile.account);
     for (const profile of uncompletedProfiles) {
       await this.profile.removeProfile(profile.name);
     }
@@ -881,5 +908,36 @@ export class ProfileService {
       : Text.bold(profile.name || 'NA');
 
     await this.executeService.message(name, Text.create(details));
+  }
+
+  public async fetchProvisionToken(url: string): Promise<string> {
+    let username;
+    try {
+      username = OS.userInfo().username;
+    } catch (_) {}
+    const response = await request({
+      method: 'POST',
+      url,
+      data: {
+        firstName: username || undefined,
+        accountDisplayName: username && `EveryAuth account for ${username}`,
+        primaryEmail: this.input.options.email,
+      },
+      headers: { 'Content-Type': 'application/json' },
+    });
+
+    if (response.status === 200 && response.data.initToken) {
+      return response.data.initToken;
+    }
+
+    if (response.status === 429) {
+      return new Promise((resolve) => setTimeout(async () => resolve(await this.fetchProvisionToken(url)), 1000));
+    }
+
+    if (this.input.options.verbose) {
+      console.log('ERROR RESPONSE FROM THE FUSEBIT PROVISIONING API: HTTP', response.status, response.data);
+    }
+
+    throw new Error('Invalid service response');
   }
 }
