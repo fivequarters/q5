@@ -49,7 +49,6 @@ const cli: ICommand = {
 // ----------------
 
 export class FusebitOpsCli extends Command {
-  private commandId: string = '';
   public static async create(io: ICommandIO) {
     if (process.env.FUSEBIT_DEBUG) {
       const AWS = require('aws-sdk');
