@@ -38,7 +38,6 @@
     "@5qtrs/dot-config": "^0.0.1",
     "@5qtrs/function-tags": "^0.0.1",
     "@5qtrs/fusebit-ops-profile-sdk": "^0.0.1",
-    "@5qtrs/grafana-config": "^0.0.1",
     "@5qtrs/ops-data": "^0.0.1",
     "@5qtrs/ops-data-aws": "^0.0.1",
     "@5qtrs/registry": "^0.0.1",
@@ -50,6 +49,7 @@
     "jszip": "^3.7.0",
     "open": "^6.0.0",
     "rimraf": "^3.0.2",
+    "@5qtrs/grafana-config": "^0.0.1",
     "@5qtrs/health-lambda": "^0.0.1"
   },
   "devDependencies": {
