@@ -89,9 +89,7 @@ export class OpsService {
         };
 
     const credsCache = this.getCredsCache(profile.name);
-    const creds = await AwsCreds.create(userCredOptions, credsCache);
-
-    return creds;
+    return await AwsCreds.create(userCredOptions, credsCache);
   }
 
   public async getOpsDataContextImpl(settings?: IConfigSettings): Promise<OpsDataAwsContext> {
@@ -106,12 +104,12 @@ export class OpsService {
     }
 
     const config = await this.opsDataContext.provider.getAwsConfigForMain();
-    const credentials = await (config.creds as AwsCreds).getCredentials();
 
     if (await cliAddonSlack.isSetup(config.account)) {
+      const credentials = await (config.creds as AwsCreds).getCredentials();
       const awsIdentity = await cliAddonSlack.getAwsIdentity(credentials);
       // Getting the base identity to extract the username
-      const baseIdentity = await cliAddonSlack.getAwsIdentity(config.creds);
+      const baseIdentity = await cliAddonSlack.getAwsIdentity(config.creds?.getCredentials());
       const [, , ...command] = process.argv;
       cliAddonSlack.setAccountUserId(baseIdentity.userId as string);
       await cliAddonSlack.startExecution(command.join(' '), awsIdentity);
