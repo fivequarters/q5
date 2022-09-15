@@ -1,0 +1,42 @@
+{
+  "id": "cli-int",
+  "tags": {
+    "fusebit.feedId": "slack-bot",
+    "fusebit.service": "Slack",
+    "fusebit.feedType": "integration"
+  },
+  "handler": "./integration",
+  "security": {
+    "permissions": [
+      {
+        "action": "integration:get",
+        "resource": "/account/{{accountId}}/subscription/{{subscriptionId}}/integration/"
+      },
+      {
+        "action": "connector:get",
+        "resource": "/account/{{accountId}}/subscription/{{subscriptionId}}/connector/"
+      },
+      {
+        "action": "session:add",
+        "resource": "/account/{{accountId}}/subscription/{{subscriptionId}}/integration/{{functionId}}/session/"
+      },
+      {
+        "action": "session:commit",
+        "resource": "/account/{{accountId}}/subscription/{{subscriptionId}}/integration/{{functionId}}/session/"
+      }
+    ]
+  },
+  "components": [
+    {
+      "name": "slackConnector",
+      "path": "/api/authorize",
+      "skip": false,
+      "entityId": "slack-bot-connector-847",
+      "provider": "@fusebit-int/slack-provider",
+      "dependsOn": [],
+      "entityType": "connector"
+    }
+  ],
+  "componentTags": {},
+  "configuration": {}
+}
