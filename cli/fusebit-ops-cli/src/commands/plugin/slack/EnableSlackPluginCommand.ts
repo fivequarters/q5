@@ -14,7 +14,7 @@ const command: ICommand = {
     {
       name: 'baseUrl',
       description:
-        'The base URL or the Fusebit integration you would like to utilize. Check out https://github.com/fusebit/awesome-examples for the various plugins supported.',
+        'The base URL of the Fusebit integration you would like to utilize. Check out https://github.com/fusebit/awesome-examples for the various plugins supported.',
     },
   ],
 };

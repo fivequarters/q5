@@ -27,6 +27,7 @@ const setup = async (integrationBaseUrl: string) => {
   const sessionId = start.redirects[0].split(integrationBaseUrl)[1].split('/')[2];
   open(start.redirects[0]);
   let sessionResult;
+
   do {
     const result = await superagent.get(`${integrationBaseUrl}/api/service/status/session/${sessionId}`);
     sessionResult = result.body;
@@ -37,9 +38,11 @@ const setup = async (integrationBaseUrl: string) => {
     integrationBaseUrl: integrationBaseUrl,
   };
 };
+
 function getPluginPath(accountId: string) {
   return path.join(os.userInfo().homedir, dotFolderPath, accountId, dotFileName);
 }
+
 export class PluginService {
   public static async create(input: IExecuteInput) {
     const opsSvc = await OpsService.create(input);
