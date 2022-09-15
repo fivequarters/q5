@@ -223,7 +223,6 @@
       "tool/lambda-nuke",
       "lib/grafana/config",
       "lib/aws/user-data",
-      "cli/addon/slack-reporter",
       "lib/grafana/health-lambda"
     ]
   }

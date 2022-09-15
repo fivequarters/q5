@@ -12,6 +12,8 @@ import * as cliAddonSlack from '../services/SlackPluginService';
 // Internal Functions
 // ------------------
 
+let baseCreds: any;
+
 function getMfaCodeResolver(io: ICommandIO) {
   return async (accountId: string) => {
     const message = await Message.create({
@@ -91,6 +93,8 @@ export class OpsService {
     const credsCache = this.getCredsCache(profile.name);
     const creds = await AwsCreds.create(userCredOptions, credsCache);
 
+    baseCreds = await creds.getCredentials();
+
     return creds;
   }
 
@@ -110,7 +114,10 @@ export class OpsService {
 
     if (await cliAddonSlack.isSetup(config.account)) {
       const awsIdentity = await cliAddonSlack.getAwsIdentity(credentials);
+      // Getting the base identity to extract the username
+      const baseIdentity = await cliAddonSlack.getAwsIdentity(baseCreds);
       const [, , ...command] = process.argv;
+      cliAddonSlack.setAccountUserId(baseIdentity.userId as string);
       await cliAddonSlack.startExecution(command.join(' '), awsIdentity);
     }
 

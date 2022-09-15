@@ -32,7 +32,6 @@
     "@5qtrs/aws-config": "^0.0.1",
     "@5qtrs/aws-cred": "^0.0.1",
     "@5qtrs/cli": "^0.0.1",
-    "@5qtrs/cli-addon-slack-reporter": "^0.0.1",
     "@5qtrs/config": "^0.0.1",
     "@5qtrs/constants": "^0.0.1",
     "@5qtrs/db": "^0.0.1",
@@ -51,12 +50,13 @@
     "jszip": "^3.7.0",
     "open": "^6.0.0",
     "rimraf": "^3.0.2",
-    "@5qtrs/grafana-config": "^0.0.1",
     "@5qtrs/health-lambda": "^0.0.1"
   },
   "devDependencies": {
     "@types/jszip": "^3.4.1",
     "@types/rimraf": "^3.0.0"
   },
-  "bundledDependencies": ["@fusebit/schema"]
+  "bundledDependencies": [
+    "@fusebit/schema"
+  ]
 }

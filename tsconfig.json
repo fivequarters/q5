@@ -148,7 +148,6 @@
       "@5qtrs/lambda-nuke": ["tool/lambda-nuke/src"],
       "@5qtrs/grafana-config": ["lib/grafana/config/src"],
       "@5qtrs/user-data": ["lib/aws/user-data/src"],
-      "@5qtrs/slack-reporter": ["cli/addon/slack-reporter/src"],
       "@5qtrs/health-lambda": ["lib/grafana/health-lambda/src"]
     }
   }

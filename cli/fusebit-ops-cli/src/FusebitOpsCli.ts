@@ -85,8 +85,6 @@ export class FusebitOpsCli extends Command {
     super(cli);
   }
 
-  protected async onSubCommandExecuting(command: Command, input: IExecuteInput): Promise<void> {}
-
   protected async onSubCommandExecuted(command: Command, input: IExecuteInput, result: number): Promise<void> {
     if (await cliAddonSlack.isSetup()) {
       await cliAddonSlack.endExecution(result.toString());
@@ -94,7 +92,10 @@ export class FusebitOpsCli extends Command {
   }
 
   protected async onSubCommandError(command: Command, input: IExecuteInput, error: Error) {
-    await cliAddonSlack.endExecution('1');
+    // 1 here indicates a error code of 1, defaulting to it for now.
+    if (await cliAddonSlack.isSetup()) {
+      await cliAddonSlack.endExecution('1');
+    }
     const verbose = (input.options.verbose as boolean) || process.env.FUSEBIT_DEBUG;
     if (verbose) {
       try {
