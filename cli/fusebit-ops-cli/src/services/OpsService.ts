@@ -1,6 +1,6 @@
 import { IExecuteInput, ICommandIO, Message, MessageKind } from '@5qtrs/cli';
 import { Text } from '@5qtrs/text';
-import { AwsCreds, IAwsCredentials } from '@5qtrs/aws-cred';
+import { AwsCreds } from '@5qtrs/aws-cred';
 import { Config, IConfigSettings } from '@5qtrs/config';
 import { IOpsDataContext } from '@5qtrs/ops-data';
 import { OpsDataAwsContextFactory, OpsDataAwsContext } from '@5qtrs/ops-data-aws';
