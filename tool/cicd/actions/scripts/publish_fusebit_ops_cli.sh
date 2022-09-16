@@ -43,6 +43,10 @@ aws s3 cp ${AWS_S3_OPTS} --content-type application/gzip \
   fusebit-ops-cli-${VERSION}.tgz	\
   s3://fusebit-io-cdn/fusebit/cli/fusebit-ops-cli-v${VERSION}.tgz 1>&2
 
+aws s3 cp ${AWS_S3_OPTS} --content-type application/gzip \
+  fusebit-ops-cli-${VERSION}.tgz \
+  s3://fusebit-io-cdn/fusebit/cli/fusebit-ops-cli-latest.tgz 1>&2
+
 echoerr "Validating package is accessible and installable"
 npm -g i https://cdn.fusebit.io/fusebit/cli/fusebit-ops-cli-v${MAJOR_MINOR}.tgz 1>&2
 
