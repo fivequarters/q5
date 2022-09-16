@@ -8,6 +8,7 @@ import { ProfileService } from './ProfileService';
 import { ExecuteService } from './ExecuteService';
 import { IFusebitOpsProfile } from '@5qtrs/fusebit-ops-profile-sdk';
 import * as cliAddonSlack from '../services/SlackPluginService';
+
 // ------------------
 // Internal Functions
 // ------------------
@@ -87,7 +88,6 @@ export class OpsService {
           mfaCodeResolver: getMfaCodeResolver(this.input.io),
           govCloud: profile.govCloud,
         };
-
     const credsCache = this.getCredsCache(profile.name);
     return await AwsCreds.create(userCredOptions, credsCache);
   }
