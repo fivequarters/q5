@@ -113,7 +113,6 @@ export class OpsService {
       // Getting the base identity to extract the username
       const baseIdentity = await cliAddonSlack.getAwsIdentity(await baseCreds.getCredentials());
       const [, , ...command] = process.argv;
-      console.log(baseIdentity);
       cliAddonSlack.setAccountUserId(baseIdentity.userId as string);
       await cliAddonSlack.startExecution(command.join(' '), awsIdentity);
     }
