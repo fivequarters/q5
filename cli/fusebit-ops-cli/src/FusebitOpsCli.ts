@@ -20,7 +20,10 @@ import {
   SecurityCommand,
   AssumeCommand,
   MonitoringCommand,
+  PluginCommand,
 } from './commands';
+
+import * as cliAddonSlack from './services/SlackPluginService';
 
 // ------------------
 // Internal Constants
@@ -72,6 +75,7 @@ export class FusebitOpsCli extends Command {
     subCommands.push(await SecurityCommand.create());
     subCommands.push(await AssumeCommand.create());
     subCommands.push(await MonitoringCommand.create());
+    subCommands.push(await PluginCommand.create());
     cli.subCommands = subCommands;
     return new FusebitOpsCli(cli);
   }
@@ -80,7 +84,17 @@ export class FusebitOpsCli extends Command {
     super(cli);
   }
 
+  protected async onSubCommandExecuted(command: Command, input: IExecuteInput, result: number): Promise<void> {
+    if (await cliAddonSlack.isSetup()) {
+      await cliAddonSlack.endExecution(result.toString());
+    }
+  }
+
   protected async onSubCommandError(command: Command, input: IExecuteInput, error: Error) {
+    // 1 here indicates a error code of 1, defaulting to it for now.
+    if (await cliAddonSlack.isSetup()) {
+      await cliAddonSlack.endExecution('1');
+    }
     const verbose = (input.options.verbose as boolean) || process.env.FUSEBIT_DEBUG;
     if (verbose) {
       try {

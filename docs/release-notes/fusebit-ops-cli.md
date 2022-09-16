@@ -18,6 +18,12 @@ All public releases of the Fusebit Operations CLI are documented here, including
 {:toc}
 -->
 
+## Version 1.39.0
+
+_Released 9/15/22_
+
+- **Enhancement** Support reporting the output of command executions to slack.
+
 ## Version 1.38.16
 
 _Released 8/9/22_

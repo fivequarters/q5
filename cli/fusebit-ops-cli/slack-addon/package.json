@@ -1,0 +1,18 @@
+{
+  "scripts": {
+    "deploy": "fuse integration deploy cli-int -d .",
+    "get": "fuse integration get cli-int -d ."
+  },
+  "dependencies": {
+    "@fusebit-int/framework": "7.50.3",
+    "@fusebit-int/slack-provider": "7.50.3",
+    "uuid": "*"
+  },
+  "files": [
+    "./integration.js",
+    "README.md"
+  ],
+  "name": "@fusebit-int/catalog-feed-integration-slack-bot-integration",
+  "version": "7.50.3",
+  "private": true
+}

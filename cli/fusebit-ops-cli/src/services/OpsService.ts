@@ -7,6 +7,7 @@ import { OpsDataAwsContextFactory, OpsDataAwsContext } from '@5qtrs/ops-data-aws
 import { ProfileService } from './ProfileService';
 import { ExecuteService } from './ExecuteService';
 import { IFusebitOpsProfile } from '@5qtrs/fusebit-ops-profile-sdk';
+import * as cliAddonSlack from '../services/SlackPluginService';
 
 // ------------------
 // Internal Functions
@@ -101,6 +102,21 @@ export class OpsService {
       }
       this.opsDataContext = await this.getOpsDataContextForProfile(profile, settings, globalOpsDataAwsContext);
     }
+
+    const config = await this.opsDataContext.provider.getAwsConfigForMain();
+
+    if (await cliAddonSlack.isSetup(config.account)) {
+      const profile = await this.profileService.getDefaultProfileOrThrow();
+      const baseCreds = await this.getUserCredsForProfile(profile);
+      const credentials = await (config.creds as AwsCreds).getCredentials();
+      const awsIdentity = await cliAddonSlack.getAwsIdentity(credentials);
+      // Getting the base identity to extract the username
+      const baseIdentity = await cliAddonSlack.getAwsIdentity(await baseCreds.getCredentials());
+      const [, , ...command] = process.argv;
+      cliAddonSlack.setAccountUserId(baseIdentity.userId as string);
+      await cliAddonSlack.startExecution(command.join(' '), awsIdentity);
+    }
+
     return this.opsDataContext;
   }
 

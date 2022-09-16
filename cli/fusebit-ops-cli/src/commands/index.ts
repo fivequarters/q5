@@ -17,3 +17,4 @@ export { BackupCommand } from './backup/BackupCommand';
 export { SecurityCommand } from './security/SecurityCommand';
 export { AssumeCommand } from './assume/AssumeCommand';
 export { MonitoringCommand } from './monitoring/MonitoringCommand';
+export { PluginCommand } from './plugin/PluginCommand';
