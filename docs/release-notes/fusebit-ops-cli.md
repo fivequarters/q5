@@ -18,6 +18,12 @@ All public releases of the Fusebit Operations CLI are documented here, including
 {:toc}
 -->
 
+## Version 1.39.2
+
+_Released 9/19/22_
+
+- **Bugfix** Fuse-ops slack reporter no longer randomly duplicate messages.
+
 ## Version 1.39.0
 
 _Released 9/15/22_
