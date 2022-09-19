@@ -124,6 +124,7 @@ class RDS implements IRds {
       const getRequestId = (get as any)['$response']?.requestId;
       const duration = Date.now() - entity.data.checked;
 
+      console.log(`${updateRequestId}: ${entity.data.checked}, ${getRequestId}: ${Date.now()}, duration: ${duration}`);
       if (duration > this.RDS_HEALTH_MAX_ACCEPTABLE_TTL) {
         console.log(
           `RDS ERROR: Excessive interval between start of update and conclusion of get: ${duration}ms. Get requestId: ${getRequestId} Update requestId: ${updateRequestId}`
