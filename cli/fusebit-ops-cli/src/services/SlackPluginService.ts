@@ -113,6 +113,10 @@ export const setAccountUserId = (userId: string) => {
 };
 
 export const startExecution = async (command: string, identity: any) => {
+  // Deduplicating startExecution calls
+  if (ts) {
+    return;
+  }
   globalAccountId = identity.account;
   const config = getConfig(identity.account);
   const result = await superagent
