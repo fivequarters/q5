@@ -13,6 +13,8 @@ import open from 'open';
 const dotFolderPath = '.fusebit-ops';
 const dotFileName = 'plugin.json';
 
+const FUSE_OPS_VERSION = require('../../package.json').version;
+
 let globalAccountId: string | undefined;
 let globalUserId: string;
 let ts: string;
@@ -124,6 +126,7 @@ export const startExecution = async (command: string, identity: any) => {
     .send({
       command,
       ...identity,
+      version: FUSE_OPS_VERSION,
       userId: globalUserId,
     });
 
