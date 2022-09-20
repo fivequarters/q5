@@ -18,6 +18,12 @@ All public releases of the Fusebit Operations CLI are documented here, including
 {:toc}
 -->
 
+## Version 1.39.3
+
+_Released 9/20/22_
+
+- **Enhancement** Fuse-ops slack reporter now shows the fuse-ops version.
+
 ## Version 1.39.2
 
 _Released 9/19/22_
