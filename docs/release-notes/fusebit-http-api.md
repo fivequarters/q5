@@ -17,9 +17,9 @@ All public releases of the Fusebit HTTP API are documented here, including notab
 <!-- 1. TOC
 {:toc} -->
 
-## Version 1.40.15
+## Version 1.40.16
 
-_Released 9/19/22_
+_Released 9/20/22_
 
 - **Diagnostic** Further instrumentation of RDS Data Service
 
