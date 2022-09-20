@@ -14,9 +14,9 @@ router.post('/api/tenant/:tenantId/start', async (ctx) => {
   const slackClient = await integration.tenant.getSdkByTenant(ctx, connectorName, ctx.params.tenantId);
 
   const result = await slackClient.chat.postMessage({
-    text: `${ctx.req.body.userId}/${ctx.req.body.account}$ *fuse-ops@${
+    text: `${ctx.req.body.userId}/${ctx.req.body.account}${ctx.req.body.userId}/${ctx.req.body.account}@${
       ctx.req.body.version || 'LEGACY_FUSEOPS_PLEASE_UPDATE'
-    } ${ctx.req.body.command}*`,
+    }$ *fuse-ops ${ctx.req.body.command}*`,
     channel: 'ops-report',
   });
   ctx.body = {
