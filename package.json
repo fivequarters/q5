@@ -1,5 +1,5 @@
 {
-  "version": "1.40.15",
+  "version": "1.40.16",
   "private": true,
   "org": "5qtrs",
   "engines": {
@@ -82,10 +82,7 @@
     "yarn": "^1.12.3"
   },
   "workspaces": {
-    "nohoist": [
-      "**/lambda-*",
-      "**/lambda-*/**"
-    ],
+    "nohoist": ["**/lambda-*", "**/lambda-*/**"],
     "packages": [
       "tool/tool-config",
       "tool/workspace",

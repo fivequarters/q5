@@ -117,12 +117,19 @@ class RDS implements IRds {
       data: { checked: Date.now() },
       expires: new Date(Date.now() + this.RDS_HEALTH_ENTITY_EXPIRE).toISOString(),
     };
+    let dbgState: any = {};
+
     try {
       const update = await this.DAO.storage.createEntity(entity);
       const updateRequestId = (update as any)['$response']?.requestId;
+      dbgState = { updateRequestId };
       const get = await this.DAO.storage.getEntity(entity);
       const getRequestId = (get as any)['$response']?.requestId;
+
       const duration = Date.now() - entity.data.checked;
+
+      dbgState.getRequestId = getRequestId;
+      dbgState.duration = duration;
 
       console.log(`${updateRequestId}: ${entity.data.checked}, ${getRequestId}: ${Date.now()}, duration: ${duration}`);
       if (duration > this.RDS_HEALTH_MAX_ACCEPTABLE_TTL) {
@@ -142,6 +149,7 @@ class RDS implements IRds {
         throw new Error('RDS ERROR: Failure was detected when trying to insert entity.');
       }
     } catch (e) {
+      console.log(`RDS ERROR: Exception thrown on request ${JSON.stringify(dbgState)}: `, e);
       if (this.lastHealthExecution < entity.data.checked + this.RDS_HEALTH_ENTITY_EXPIRE) {
         // Only record errors when the last success happened prior to the start time + expiration. This
         // captures situations where a request goes away for a long time, the subsequent getEntity expires,
@@ -196,7 +204,11 @@ class RDS implements IRds {
       if (e.message.match(/not_found/)) {
         throw new httpError.NotFound();
       }
-      throw new httpError.InternalServerError(e.message);
+      const error = new httpError.InternalServerError(e.message);
+
+      error.originalError = e;
+
+      throw error;
     }
   }
 
