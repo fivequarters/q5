@@ -522,7 +522,7 @@ export const defaultDashboards = [
                 },
                 {
                   "id": "custom.displayMode",
-                  "value": "basic"
+                  "value": "color-text"
                 },
                 {
                   "id": "thresholds",
