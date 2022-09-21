@@ -120,16 +120,24 @@ class RDS implements IRds {
     let dbgState: any = {};
 
     try {
+      dbgState = { updateStart: entity.data.checked };
       const update = await this.DAO.storage.createEntity(entity);
       const updateRequestId = (update as any)['$response']?.requestId;
-      dbgState = { updateRequestId };
+
+      dbgState.updateRequestId = updateRequestId;
+      dbgState.updateFinish = Date.now();
+      dbgState.updateDuration = dbgState.updateFinish - dbgState.updateStart;
+      dbgState.getStart = dbgState.updateFinish;
+
       const get = await this.DAO.storage.getEntity(entity);
       const getRequestId = (get as any)['$response']?.requestId;
 
       const duration = Date.now() - entity.data.checked;
 
       dbgState.getRequestId = getRequestId;
-      dbgState.duration = duration;
+      dbgState.getFinish = Date.now();
+      dbgState.getDuration = dbgState.getFinish - dbgState.getStart;
+      dbgState.totalDuration = duration;
 
       console.log(`${updateRequestId}: ${entity.data.checked}, ${getRequestId}: ${Date.now()}, duration: ${duration}`);
       if (duration > this.RDS_HEALTH_MAX_ACCEPTABLE_TTL) {
@@ -149,7 +157,7 @@ class RDS implements IRds {
         throw new Error('RDS ERROR: Failure was detected when trying to insert entity.');
       }
     } catch (e) {
-      console.log(`RDS ERROR: Exception thrown on request ${JSON.stringify(dbgState)}: `, e);
+      console.log(`RDS ERROR: Exception thrown at ${Date.now()} on request ${JSON.stringify(dbgState)}: `, e);
       if (this.lastHealthExecution < entity.data.checked + this.RDS_HEALTH_ENTITY_EXPIRE) {
         // Only record errors when the last success happened prior to the start time + expiration. This
         // captures situations where a request goes away for a long time, the subsequent getEntity expires,
@@ -198,13 +206,16 @@ class RDS implements IRds {
         .promise();
       return result;
     } catch (e) {
+      let error: any;
       if (e.message.match(/conflict_data/)) {
-        throw new httpError.Conflict();
+        error = new httpError.Conflict();
       }
       if (e.message.match(/not_found/)) {
-        throw new httpError.NotFound();
+        error = new httpError.NotFound();
       }
-      const error = new httpError.InternalServerError(e.message);
+      if (!error) {
+        error = new httpError.InternalServerError(e.message);
+      }
 
       error.originalError = e;
 
@@ -330,7 +341,10 @@ class RDS implements IRds {
     columnMetadata: NonNullable<any>;
   } {
     if (!result || !result.records || result.records.length === 0 || !result.columnMetadata) {
-      throw new httpError.NotFound();
+      const requestId = (result as any)['$response']?.requestId;
+      const error = new httpError.NotFound();
+      error.requestId = requestId;
+      throw error;
     }
   }
 }
