@@ -16,27 +16,23 @@ const command: ICommand = {
       name: 'monitoringName',
       description: 'The monitoring deployment you want to add stacks against.',
     },
+    {
+      name: 'lokiVersion',
+      description: 'The version of the Loki docker image.',
+    },
+    {
+      name: 'tempoVersion',
+      description: 'The version of the tempo docker image.',
+    },
+    {
+      name: 'grafanaVersion',
+      description: 'The version of the tempo docker image.',
+    },
   ],
   options: [
     {
       name: 'region',
       description: 'The region that the Fusebit monitoring deployment resides in.',
-    },
-    {
-      name: 'grafanaTag',
-      description: `The version of the Grafana docker image, defaults to ${GRAFANA_DEFAULT_VERSION}`,
-    },
-    {
-      name: 'lokiTag',
-      description: `The version of the Loki docker image, defaults to ${LOKI_DEFAULT_VERSION}`,
-    },
-    {
-      name: 'tempoTag',
-      description: `The version of the Tempo docker image, defaults to ${TEMPO_DEFAULT_VERSION}`,
-    },
-    {
-      name: 'ami',
-      description: 'AMI ID to use instead of the official Ubuntu AMI',
     },
   ],
 };
@@ -51,12 +47,12 @@ export class AddStackCommand extends Command {
   }
 
   protected async onExecute(input: IExecuteInput): Promise<number> {
-    const [monitoringName] = input.arguments as string[];
+    const [monitoringName, lokiVersion, tempoVersion, grafanaVersion] = input.arguments as string[];
     const svc = await MonitoringService.create(input);
     let region = input.options.region as string | undefined;
-    let grafanaTag = await svc.getGrafanaImage(input.options.grafanaTag as string | undefined);
-    let lokiTag = await svc.getLokiImage(input.options.lokiTag as string | undefined);
-    let tempoTag = await svc.getTempoImage(input.options.tempoTag as string | undefined);
+    let grafanaTag = await svc.getGrafanaImage(grafanaVersion);
+    let lokiTag = await svc.getLokiImage(lokiVersion);
+    let tempoTag = await svc.getTempoImage(tempoVersion);
     let ami = input.options.ami as string | undefined;
     await svc.stackAdd(monitoringName, grafanaTag, tempoTag, lokiTag, region, ami);
     return 0;

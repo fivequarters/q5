@@ -18,6 +18,12 @@ All public releases of the Fusebit Operations CLI are documented here, including
 {:toc}
 -->
 
+## Version 1.39.4
+
+_Released 9/22/22_
+
+- **Enhancement** Fuse-ops now require manually setting the Grafana, Tempo, and Loki image version.
+
 ## Version 1.39.3
 
 _Released 9/20/22_
