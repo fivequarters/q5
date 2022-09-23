@@ -34,6 +34,10 @@ const command: ICommand = {
       name: 'region',
       description: 'The region that the Fusebit monitoring deployment resides in.',
     },
+    {
+      name: 'ami',
+      description: 'AMI ID to use instead of the official Ubuntu AMI',
+    },
   ],
 };
 
