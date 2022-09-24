@@ -26,7 +26,7 @@ services:
     logging:
       driver: syslog
       options:
-        tag: '##STACKID##/loki/{{.ImageFullID}}'
+        tag: '##STACKID##/loki/{{.ImageID}}'
 
   grafana:
     image: grafana/grafana:latest
@@ -38,7 +38,7 @@ services:
     logging:
       driver: syslog
       options:
-        tag: '##STACKID##/grafana/{{.ImageFullID}}'
+        tag: '##STACKID##/grafana/{{.ImageID}}'
 
   health:
     image: public.ecr.aws/fusebit/grafana-health:latest
@@ -50,4 +50,4 @@ services:
     logging:
       driver: syslog
       options:
-        tag: '##STACKID##/health/{{.ImageFullID}}'
+        tag: '##STACKID##/health/{{.ImageID}}'
