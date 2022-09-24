@@ -9,9 +9,9 @@ services:
       - /root/tempo-data:/tmp/tempo
       - /var/log/:/var/log/
     logging:
-      driver: 'json-file'
+      driver: syslog
       options:
-        max-size: '50m'
+        tag: '##STACKID##/tempo/{{.ImageID}}'
 
   loki:
     image: grafana/loki:2.3.0
@@ -24,9 +24,9 @@ services:
     environment:
       - EXTERNAL_IP=${EXTERNAL_IP}
     logging:
-      driver: 'json-file'
+      driver: syslog
       options:
-        max-size: '50m'
+        tag: '##STACKID##/loki/{{.ImageFullID}}'
 
   grafana:
     image: grafana/grafana:latest
@@ -36,9 +36,9 @@ services:
       - /var/log/:/var/log/
     network_mode: 'host'
     logging:
-      driver: 'json-file'
+      driver: syslog
       options:
-        max-size: '50m'
+        tag: '##STACKID##/grafana/{{.ImageFullID}}'
 
   health:
     image: public.ecr.aws/fusebit/grafana-health:latest
@@ -48,6 +48,6 @@ services:
       - LOKI_ENDPOINT=http://localhost:3100
       - TEMPO_ENDPOINT=http://localhost:3200
     logging:
-      driver: 'json-file'
+      driver: syslog
       options:
-        max-size: '50m'
+        tag: '##STACKID##/health/{{.ImageFullID}}'

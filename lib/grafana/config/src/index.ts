@@ -8,8 +8,9 @@ export const getGrafanaConfigTemplate = () => {
   return ini.decode(file);
 };
 
-export const getDockerComposeTemplate = () => {
-  const file = fs.readFileSync(path.join(__dirname, 'config', 'docker-compose.yml'), 'utf-8');
+export const getDockerComposeTemplate = (stackId: string) => {
+  let file = fs.readFileSync(path.join(__dirname, 'config', 'docker-compose.yml'), 'utf-8');
+  file = file.replace(/##STACKID##/g, stackId);
   return yaml.load(file);
 };
 

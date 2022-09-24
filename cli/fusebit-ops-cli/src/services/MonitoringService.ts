@@ -490,7 +490,7 @@ mkdir /root/tempo-data
 mkdir /root/loki
 chmod 777 -R /var/log
 chmod 777 -R /root/loki
-${awsUserData.installCloudWatchAgent('/var/log/compose-log', LOGGING_SERVICE_TYPE, deployment.monitoringDeploymentName)}
+${awsUserData.installCloudWatchAgent(LOGGING_SERVICE_TYPE, deployment.monitoringDeploymentName)}
 ${awsUserData.installDocker()}
 ${awsUserData.installDockerCompose()}
 ${awsUserData.addFile(grafanaConfigFile, '/root/grafana.ini')}
@@ -504,7 +504,7 @@ ${awsUserData.runDockerCompose()}
   }
 
   private async getComposeFile(stack: IMonitoringStack) {
-    const composeTemplate = grafanaConfig.getDockerComposeTemplate() as any;
+    const composeTemplate = grafanaConfig.getDockerComposeTemplate(stack.stackId.toString()) as any;
     composeTemplate.services.tempo.image = stack.tempoImage;
     composeTemplate.services.loki.image = stack.lokiImage;
     composeTemplate.services.grafana.image = stack.grafanaImage;
