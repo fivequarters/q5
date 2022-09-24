@@ -12,7 +12,7 @@ export default class AwsData {
 
   public static runDockerCompose() {
     return `cd /root/
-docker-compose up > /var/log/compose-log 2>&1 &`;
+docker-compose up -d`;
   }
 
   public static updateSystem() {
@@ -44,7 +44,7 @@ export EXTERNAL_IP=$(cat /tmp/ip)
   `;
   }
 
-  public static installCloudWatchAgent(folderName: string, serviceType: string, deploymentName: string) {
+  public static installCloudWatchAgent(serviceType: string, deploymentName: string) {
     return `
 wget https://s3.amazonaws.com/amazoncloudwatch-agent/ubuntu/amd64/latest/amazon-cloudwatch-agent.deb
 dpkg -i -E ./amazon-cloudwatch-agent.deb
@@ -56,7 +56,7 @@ cat > /opt/aws/amazon-cloudwatch-agent/bin/config.json << EOF
       "files": {
         "collect_list": [
           {
-            "file_path": "${folderName}",
+            "file_path": "/var/log/syslog",
             "log_group_name": "/fusebit-${serviceType}/${deploymentName}",
             "log_stream_name": "{instance_id}"
           }

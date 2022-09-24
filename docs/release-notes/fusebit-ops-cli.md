@@ -18,6 +18,12 @@ All public releases of the Fusebit Operations CLI are documented here, including
 {:toc}
 -->
 
+## Version 1.39.5
+
+_Released 9/23/22_
+
+- **Enhancement** Changes to how Grafana, Loki, and Tempo logs to cloudwatch.
+
 ## Version 1.39.4
 
 _Released 9/22/22_
