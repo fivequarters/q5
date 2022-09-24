@@ -82,11 +82,10 @@ router.get(
     { check: async () => RDS.ensureConnection(), name: 'RDS connection' },
     { check: async () => RDS.ensureRDSLiveliness(), name: 'RDS execution' },
     { check: async () => custom_layers_health(), name: 'Custom Layers' },
-    ...(process.env.GRAFANA_ENDPOINT
-      ? [{ check: async () => grafanaHealth.checkGrafanaHealth(), name: 'Grafana' }]
-      : []),
   ])
 );
+
+router.get('/health/analytics', grafanaHealth.checkGrafanaHealth());
 
 router.get('/metrics', (req, res) => res.json({ rateLimits: ratelimit.getMetrics() }).send());
 
