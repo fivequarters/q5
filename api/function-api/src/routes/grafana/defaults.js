@@ -162,661 +162,657 @@ export const defaultDashboards = [
     },
   },
   {
-    annotations: {
-      list: [
+    "annotations": {
+      "list": [
         {
-          builtIn: 1,
-          datasource: '-- Grafana --',
-          enable: true,
-          hide: true,
-          iconColor: 'rgba(0, 211, 255, 1)',
-          name: 'Annotations & Alerts',
-          target: {
-            limit: 100,
-            matchAny: false,
-            tags: [],
-            type: 'dashboard',
+          "builtIn": 1,
+          "datasource": "-- Grafana --",
+          "enable": true,
+          "hide": true,
+          "iconColor": "rgba(0, 211, 255, 1)",
+          "name": "Annotations & Alerts",
+          "target": {
+            "limit": 100,
+            "matchAny": false,
+            "tags": [],
+            "type": "dashboard"
           },
-          type: 'dashboard',
-        },
-      ],
+          "type": "dashboard"
+        }
+      ]
     },
-    description: '',
-    editable: false,
-    fiscalYearStartMonth: 0,
-    graphTooltip: 2,
-    iteration: 1659985582514,
-    links: [],
-    liveNow: true,
-    panels: [
+    "description": "",
+    "editable": false,
+    "fiscalYearStartMonth": 0,
+    "graphTooltip": 2,
+    "iteration": 1659985582514,
+    "links": [],
+    "liveNow": true,
+    "panels": [
       {
-        description: '',
-        fieldConfig: {
-          defaults: {
-            color: {
-              mode: 'palette-classic',
+        "description": "",
+        "fieldConfig": {
+          "defaults": {
+            "color": {
+              "mode": "palette-classic"
             },
-            custom: {
-              axisLabel: '',
-              axisPlacement: 'auto',
-              barAlignment: 0,
-              drawStyle: 'bars',
-              fillOpacity: 100,
-              gradientMode: 'none',
-              hideFrom: {
-                legend: false,
-                tooltip: false,
-                viz: false,
+            "custom": {
+              "axisLabel": "",
+              "axisPlacement": "auto",
+              "barAlignment": 0,
+              "drawStyle": "bars",
+              "fillOpacity": 100,
+              "gradientMode": "none",
+              "hideFrom": {
+                "legend": false,
+                "tooltip": false,
+                "viz": false
               },
-              lineInterpolation: 'linear',
-              lineStyle: {
-                fill: 'solid',
+              "lineInterpolation": "linear",
+              "lineStyle": {
+                "fill": "solid"
               },
-              lineWidth: 2,
-              pointSize: 1,
-              scaleDistribution: {
-                type: 'linear',
+              "lineWidth": 2,
+              "pointSize": 1,
+              "scaleDistribution": {
+                "type": "linear"
               },
-              showPoints: 'auto',
-              spanNulls: false,
-              stacking: {
-                group: 'A',
-                mode: 'none',
+              "showPoints": "auto",
+              "spanNulls": false,
+              "stacking": {
+                "group": "A",
+                "mode": "none"
               },
-              thresholdsStyle: {
-                mode: 'off',
-              },
+              "thresholdsStyle": {
+                "mode": "off"
+              }
             },
-            mappings: [],
-            thresholds: {
-              mode: 'absolute',
-              steps: [
+            "mappings": [],
+            "thresholds": {
+              "mode": "absolute",
+              "steps": [
                 {
-                  color: 'green',
-                  value: null,
-                },
-              ],
+                  "color": "green",
+                  "value": null
+                }
+              ]
             },
-            unit: 'req',
+            "unit": "req"
           },
-          overrides: [
+          "overrides": [
             {
-              matcher: {
-                id: 'byName',
-                options: '4xx',
+              "matcher": {
+                "id": "byName",
+                "options": "4xx"
               },
-              properties: [
+              "properties": [
                 {
-                  id: 'color',
-                  value: {
-                    fixedColor: 'orange',
-                    mode: 'fixed',
-                  },
-                },
-              ],
+                  "id": "color",
+                  "value": {
+                    "fixedColor": "orange",
+                    "mode": "fixed"
+                  }
+                }
+              ]
             },
             {
-              matcher: {
-                id: 'byName',
-                options: '5xx',
+              "matcher": {
+                "id": "byName",
+                "options": "5xx"
               },
-              properties: [
+              "properties": [
                 {
-                  id: 'color',
-                  value: {
-                    fixedColor: 'red',
-                    mode: 'fixed',
-                  },
-                },
-              ],
+                  "id": "color",
+                  "value": {
+                    "fixedColor": "red",
+                    "mode": "fixed"
+                  }
+                }
+              ]
             },
             {
-              matcher: {
-                id: 'byName',
-                options: '2xx',
+              "matcher": {
+                "id": "byName",
+                "options": "2xx"
               },
-              properties: [
+              "properties": [
                 {
-                  id: 'color',
-                  value: {
-                    fixedColor: 'green',
-                    mode: 'fixed',
-                  },
-                },
-              ],
+                  "id": "color",
+                  "value": {
+                    "fixedColor": "green",
+                    "mode": "fixed"
+                  }
+                }
+              ]
             },
             {
-              matcher: {
-                id: 'byName',
-                options: '3xx',
+              "matcher": {
+                "id": "byName",
+                "options": "3xx"
               },
-              properties: [
+              "properties": [
                 {
-                  id: 'color',
-                  value: {
-                    fixedColor: 'blue',
-                    mode: 'fixed',
-                  },
-                },
-              ],
-            },
-          ],
+                  "id": "color",
+                  "value": {
+                    "fixedColor": "blue",
+                    "mode": "fixed"
+                  }
+                }
+              ]
+            }
+          ]
         },
-        gridPos: {
-          h: 7,
-          w: 12,
-          x: 0,
-          y: 0,
+        "gridPos": {
+          "h": 7,
+          "w": 12,
+          "x": 0,
+          "y": 0
         },
-        hideTimeOverride: false,
-        id: 7,
-        interval: '1000ms',
-        maxDataPoints: 100000000000000000,
-        options: {
-          legend: {
-            calcs: [],
-            displayMode: 'list',
-            placement: 'bottom',
+        "hideTimeOverride": false,
+        "id": 7,
+        "interval": "1000ms",
+        "maxDataPoints": 100000000000000000,
+        "options": {
+          "legend": {
+            "calcs": [],
+            "displayMode": "list",
+            "placement": "bottom"
           },
-          tooltip: {
-            mode: 'single',
-          },
+          "tooltip": {
+            "mode": "single"
+          }
         },
-        pluginVersion: '8.4.0-pre',
-        targets: [
+        "pluginVersion": "8.4.0-pre",
+        "targets": [
           {
-            datasource: {
-              type: 'loki',
-              uid: 'loki',
+            "datasource": {
+              "type": "loki",
+              "uid": "loki"
             },
-            expr:
-              'count_over_time({fusebit_accountId="$accountId",fusebit_subscriptionId="$subscriptionId",fusebit_boundaryId="$boundaryId",fusebit_functionId="$functionId"} |~ "2\\\\d{2}\\\\s[A-Z]{3,7}\\\\s"[1s])',
-            hide: false,
-            instant: false,
-            legendFormat: '2xx',
-            range: true,
-            refId: '2xx',
-            resolution: 1,
+            "expr": "count_over_time({fusebit_accountId=\"$accountId\",fusebit_subscriptionId=\"$subscriptionId\",fusebit_boundaryId=\"$boundaryId\",fusebit_functionId=\"$functionId\"} |~ \"2\\\\d{2}\\\\s[A-Z]{3,7}\\\\s\"[1s])",
+            "hide": false,
+            "instant": false,
+            "legendFormat": "2xx",
+            "range": true,
+            "refId": "2xx",
+            "resolution": 1
           },
           {
-            datasource: {
-              type: 'loki',
-              uid: 'loki',
+            "datasource": {
+              "type": "loki",
+              "uid": "loki"
             },
-            expr:
-              'count_over_time({fusebit_accountId="$accountId",fusebit_subscriptionId="$subscriptionId",fusebit_boundaryId="$boundaryId",fusebit_functionId="$functionId"} |~ "3\\\\d{2}\\\\s[A-Z]{3,7}\\\\s"[1s])',
-            hide: false,
-            legendFormat: '3xx',
-            refId: '3xx',
+            "expr": "count_over_time({fusebit_accountId=\"$accountId\",fusebit_subscriptionId=\"$subscriptionId\",fusebit_boundaryId=\"$boundaryId\",fusebit_functionId=\"$functionId\"} |~ \"3\\\\d{2}\\\\s[A-Z]{3,7}\\\\s\"[1s])",
+            "hide": false,
+            "legendFormat": "3xx",
+            "refId": "3xx"
           },
           {
-            datasource: {
-              type: 'loki',
-              uid: 'loki',
+            "datasource": {
+              "type": "loki",
+              "uid": "loki"
             },
-            expr:
-              'count_over_time({fusebit_accountId="$accountId",fusebit_subscriptionId="$subscriptionId",fusebit_boundaryId="$boundaryId",fusebit_functionId="$functionId"} |~ "4\\\\d{2}\\\\s[A-Z]{3,7}\\\\s"[1s])',
-            hide: false,
-            legendFormat: '4xx',
-            refId: '4xx raw',
+            "expr": "count_over_time({fusebit_accountId=\"$accountId\",fusebit_subscriptionId=\"$subscriptionId\",fusebit_boundaryId=\"$boundaryId\",fusebit_functionId=\"$functionId\"} |~ \"4\\\\d{2}\\\\s[A-Z]{3,7}\\\\s\"[1s])",
+            "hide": false,
+            "legendFormat": "4xx",
+            "refId": "4xx raw"
           },
           {
-            datasource: {
-              type: 'loki',
-              uid: 'loki',
+            "datasource": {
+              "type": "loki",
+              "uid": "loki"
             },
-            expr:
-              'count_over_time({fusebit_accountId="$accountId",fusebit_subscriptionId="$subscriptionId",fusebit_boundaryId="$boundaryId",fusebit_functionId="$functionId"} |~ "5\\\\d{2}\\\\s[A-Z]{3,7}\\\\s"[1s])',
-            hide: false,
-            legendFormat: '5xx',
-            refId: '5xx raw',
-          },
+            "expr": "count_over_time({fusebit_accountId=\"$accountId\",fusebit_subscriptionId=\"$subscriptionId\",fusebit_boundaryId=\"$boundaryId\",fusebit_functionId=\"$functionId\"} |~ \"5\\\\d{2}\\\\s[A-Z]{3,7}\\\\s\"[1s])",
+            "hide": false,
+            "legendFormat": "5xx",
+            "refId": "5xx raw"
+          }
         ],
-        title: 'HTTP Request Volume by Status Code',
-        transformations: [],
-        type: 'timeseries',
+        "title": "HTTP Request Volume by Status Code",
+        "transformations": [],
+        "type": "timeseries"
       },
       {
-        description: '',
-        fieldConfig: {
-          defaults: {
-            color: {
-              mode: 'continuous-GrYlRd',
-              seriesBy: 'min',
+        "description": "",
+        "fieldConfig": {
+          "defaults": {
+            "color": {
+              "mode": "continuous-GrYlRd",
+              "seriesBy": "min"
             },
-            custom: {
-              axisLabel: '',
-              axisPlacement: 'auto',
-              barAlignment: -1,
-              drawStyle: 'line',
-              fillOpacity: 100,
-              gradientMode: 'scheme',
-              hideFrom: {
-                legend: false,
-                tooltip: false,
-                viz: false,
+            "custom": {
+              "axisLabel": "",
+              "axisPlacement": "auto",
+              "barAlignment": -1,
+              "drawStyle": "line",
+              "fillOpacity": 100,
+              "gradientMode": "scheme",
+              "hideFrom": {
+                "legend": false,
+                "tooltip": false,
+                "viz": false
               },
-              lineInterpolation: 'linear',
-              lineStyle: {
-                fill: 'solid',
+              "lineInterpolation": "linear",
+              "lineStyle": {
+                "fill": "solid"
               },
-              lineWidth: 2,
-              pointSize: 5,
-              scaleDistribution: {
-                type: 'linear',
+              "lineWidth": 2,
+              "pointSize": 5,
+              "scaleDistribution": {
+                "type": "linear"
               },
-              showPoints: 'auto',
-              spanNulls: true,
-              stacking: {
-                group: 'A',
-                mode: 'normal',
+              "showPoints": "auto",
+              "spanNulls": true,
+              "stacking": {
+                "group": "A",
+                "mode": "normal"
               },
-              thresholdsStyle: {
-                mode: 'off',
-              },
+              "thresholdsStyle": {
+                "mode": "off"
+              }
             },
-            mappings: [],
-            thresholds: {
-              mode: 'percentage',
-              steps: [
+            "mappings": [],
+            "thresholds": {
+              "mode": "percentage",
+              "steps": [
                 {
-                  color: 'green',
-                  value: null,
+                  "color": "green",
+                  "value": null
                 },
                 {
-                  color: '#EAB839',
-                  value: 50,
+                  "color": "#EAB839",
+                  "value": 50
                 },
                 {
-                  color: 'red',
-                  value: 90,
-                },
-              ],
+                  "color": "red",
+                  "value": 90
+                }
+              ]
             },
-            unit: 'ms',
+            "unit": "ms"
           },
-          overrides: [],
+          "overrides": []
         },
-        gridPos: {
-          h: 7,
-          w: 12,
-          x: 12,
-          y: 0,
+        "gridPos": {
+          "h": 7,
+          "w": 12,
+          "x": 12,
+          "y": 0
         },
-        hideTimeOverride: false,
-        id: 6,
-        interval: '1s',
-        maxDataPoints: 9999999,
-        options: {
-          legend: {
-            calcs: [],
-            displayMode: 'hidden',
-            placement: 'bottom',
+        "hideTimeOverride": false,
+        "id": 6,
+        "interval": "1s",
+        "maxDataPoints": 9999999,
+        "options": {
+          "legend": {
+            "calcs": [],
+            "displayMode": "hidden",
+            "placement": "bottom"
           },
-          tooltip: {
-            mode: 'single',
-          },
+          "tooltip": {
+            "mode": "single"
+          }
         },
-        pluginVersion: '8.4.0-pre',
-        targets: [
+        "pluginVersion": "8.4.0-pre",
+        "targets": [
           {
-            datasource: {
-              type: 'loki',
-              uid: 'loki',
+            "datasource": {
+              "type": "loki",
+              "uid": "loki"
             },
-            expr:
-              'max_over_time\n(\n{fusebit_accountId="$accountId",fusebit_subscriptionId="$subscriptionId",fusebit_boundaryId="$boundaryId",fusebit_functionId="$functionId"} \n|~ "\\\\d{3}\\\\s[A-Z]{3,7}\\\\s.*"\n| json \n| unwrap stats_duration\n[1s]) by (stats_duration, traceID)',
-            instant: false,
-            legendFormat: 'Latency = {{stats_duration}} ms | Trace ID = {{traceID}}',
-            maxLines: 0,
-            range: true,
-            refId: 'A',
-            resolution: 1,
-          },
+            "expr": "max_over_time\n(\n{fusebit_accountId=\"$accountId\",fusebit_subscriptionId=\"$subscriptionId\",fusebit_boundaryId=\"$boundaryId\",fusebit_functionId=\"$functionId\"} \n|~ \"\\\\d{3}\\\\s[A-Z]{3,7}\\\\s.*\"\n| json \n| unwrap stats_duration\n[1s]) by (stats_duration, traceID)",
+            "instant": false,
+            "legendFormat": "Latency = {{stats_duration}} ms | Trace ID = {{traceID}}",
+            "maxLines": 0,
+            "range": true,
+            "refId": "A",
+            "resolution": 1
+          }
         ],
-        title: 'HTTP Request Latency',
-        transformations: [],
-        type: 'timeseries',
+        "title": "HTTP Request Latency",
+        "transformations": [],
+        "type": "timeseries"
       },
       {
-        description: '',
-        fieldConfig: {
-          defaults: {
-            custom: {
-              align: 'auto',
-              displayMode: 'auto',
-              filterable: true,
+        "description": "",
+        "fieldConfig": {
+          "defaults": {
+            "custom": {
+              "align": "auto",
+              "displayMode": "auto",
+              "filterable": true
             },
-            mappings: [],
-            thresholds: {
-              mode: 'absolute',
-              steps: [
+            "mappings": [],
+            "thresholds": {
+              "mode": "absolute",
+              "steps": [
                 {
-                  color: 'green',
-                  value: null,
+                  "color": "green",
+                  "value": null
                 },
                 {
-                  color: 'red',
-                  value: 80,
-                },
-              ],
-            },
+                  "color": "red",
+                  "value": 80
+                }
+              ]
+            }
           },
-          overrides: [
+          "overrides": [
             {
-              matcher: {
-                id: 'byName',
-                options: 'Method',
+              "matcher": {
+                "id": "byName",
+                "options": "Method"
               },
-              properties: [
+              "properties": [
                 {
-                  id: 'custom.width',
-                  value: 69,
-                },
-              ],
+                  "id": "custom.width",
+                  "value": 69
+                }
+              ]
             },
             {
-              matcher: {
-                id: 'byName',
-                options: 'Status Code',
+              "matcher": {
+                "id": "byName",
+                "options": "Status Code"
               },
-              properties: [
+              "properties": [
                 {
-                  id: 'custom.width',
-                  value: 112,
+                  "id": "custom.width",
+                  "value": 112
                 },
                 {
-                  id: 'custom.displayMode',
-                  value: 'color-text',
+                  "id": "custom.displayMode",
+                  "value": "color-text"
                 },
                 {
-                  id: 'thresholds',
-                  value: {
-                    mode: 'absolute',
-                    steps: [
+                  "id": "thresholds",
+                  "value": {
+                    "mode": "absolute",
+                    "steps": [
                       {
-                        color: 'green',
-                        value: null,
+                        "color": "green",
+                        "value": null
                       },
                       {
-                        color: 'yellow',
-                        value: 400,
+                        "color": "yellow",
+                        "value": 400
                       },
                       {
-                        color: 'red',
-                        value: 500,
-                      },
-                    ],
-                  },
-                },
-              ],
+                        "color": "red",
+                        "value": 500
+                      }
+                    ]
+                  }
+                }
+              ]
             },
             {
-              matcher: {
-                id: 'byName',
-                options: 'Duration',
+              "matcher": {
+                "id": "byName",
+                "options": "Duration"
               },
-              properties: [
+              "properties": [
                 {
-                  id: 'custom.width',
-                  value: 72,
-                },
-              ],
+                  "id": "custom.width",
+                  "value": 72
+                }
+              ]
             },
             {
-              matcher: {
-                id: 'byName',
-                options: 'spanID',
+              "matcher": {
+                "id": "byName",
+                "options": "spanID"
               },
-              properties: [
+              "properties": [
                 {
-                  id: 'custom.width',
-                  value: 152,
-                },
-              ],
+                  "id": "custom.width",
+                  "value": 152
+                }
+              ]
             },
             {
-              matcher: {
-                id: 'byName',
-                options: 'Timestamp',
+              "matcher": {
+                "id": "byName",
+                "options": "Timestamp"
               },
-              properties: [
+              "properties": [
                 {
-                  id: 'custom.width',
-                  value: 188,
-                },
-              ],
+                  "id": "custom.width",
+                  "value": 188
+                }
+              ]
             },
             {
-              matcher: {
-                id: 'byName',
-                options: 'traceID',
+              "matcher": {
+                "id": "byName",
+                "options": "traceID"
               },
-              properties: [
+              "properties": [
                 {
-                  id: 'custom.width',
-                  value: 273,
-                },
-              ],
+                  "id": "custom.width",
+                  "value": 273
+                }
+              ]
             },
             {
-              matcher: {
-                id: 'byName',
-                options: 'Message',
+              "matcher": {
+                "id": "byName",
+                "options": "Message"
               },
-              properties: [
+              "properties": [
                 {
-                  id: 'custom.filterable',
+                  "id": "custom.filterable"
                 },
                 {
-                  id: 'custom.displayMode',
-                  value: 'json-view',
-                },
-              ],
-            },
-          ],
+                  "id": "custom.displayMode",
+                  "value": "json-view"
+                }
+              ]
+            }
+          ]
         },
-        gridPos: {
-          h: 15,
-          w: 24,
-          x: 0,
-          y: 7,
+        "gridPos": {
+          "h": 15,
+          "w": 24,
+          "x": 0,
+          "y": 7
         },
-        id: 4,
-        options: {
-          footer: {
-            fields: '',
-            reducer: ['sum'],
-            show: false,
+        "id": 4,
+        "options": {
+          "footer": {
+            "fields": "",
+            "reducer": [
+              "sum"
+            ],
+            "show": false
           },
-          showHeader: true,
-          sortBy: [
+          "showHeader": true,
+          "sortBy": [
             {
-              desc: true,
-              displayName: 'Timestamp',
-            },
-          ],
+              "desc": true,
+              "displayName": "Timestamp"
+            }
+          ]
         },
-        pluginVersion: '8.4.0-pre',
-        targets: [
+        "pluginVersion": "8.4.0-pre",
+        "targets": [
           {
-            datasource: {
-              type: 'loki',
-              uid: 'loki',
+            "datasource": {
+              "type": "loki",
+              "uid": "loki"
             },
-            expr:
-              '{fusebit_accountId="$accountId",fusebit_subscriptionId="$subscriptionId",fusebit_boundaryId="$boundaryId",fusebit_functionId="$functionId"} \n|~ "\\\\d{3}\\\\s[A-Z]{3,7}\\\\s.*"\n| json',
-            refId: 'A',
-          },
+            "expr": "{fusebit_accountId=\"$accountId\",fusebit_subscriptionId=\"$subscriptionId\",fusebit_boundaryId=\"$boundaryId\",fusebit_functionId=\"$functionId\"} \n|~ \"\\\\d{3}\\\\s[A-Z]{3,7}\\\\s.*\"\n| json",
+            "refId": "A"
+          }
         ],
-        title: 'Associated Logs',
-        transformations: [
+        "title": "Associated Logs",
+        "transformations": [
           {
-            id: 'merge',
-            options: {},
+            "id": "merge",
+            "options": {}
           },
           {
-            id: 'extractFields',
-            options: {
-              format: 'json',
-              replace: false,
-              source: 'line',
-            },
+            "id": "extractFields",
+            "options": {
+              "format": "json",
+              "replace": false,
+              "source": "line"
+            }
           },
           {
-            id: 'extractFields',
-            options: {
-              format: 'json',
-              source: 'stats',
-            },
+            "id": "extractFields",
+            "options": {
+              "format": "json",
+              "source": "stats"
+            }
           },
           {
-            id: 'organize',
-            options: {
-              excludeByName: {
-                id: true,
-                line: true,
-                reference: true,
-                spanID: true,
-                stats: true,
-                'traceID 2': true,
-                tsNs: true,
+            "id": "organize",
+            "options": {
+              "excludeByName": {
+                "id": true,
+                "line": true,
+                "reference": true,
+                "spanID": true,
+                "stats": true,
+                "traceID 2": true,
+                "tsNs": true
               },
-              indexByName: {
-                duration: 10,
-                id: 2,
-                line: 4,
-                method: 8,
-                msg: 11,
-                reference: 7,
-                spanID: 6,
-                stats: 12,
-                statusCode: 9,
-                'traceID 1': 1,
-                'traceID 2': 5,
-                ts: 0,
-                tsNs: 3,
+              "indexByName": {
+                "duration": 10,
+                "id": 2,
+                "line": 4,
+                "method": 8,
+                "msg": 11,
+                "reference": 7,
+                "spanID": 6,
+                "stats": 12,
+                "statusCode": 9,
+                "traceID 1": 1,
+                "traceID 2": 5,
+                "ts": 0,
+                "tsNs": 3
               },
-              renameByName: {
-                duration: 'Duration',
-                id: '',
-                line: '',
-                method: 'Method',
-                msg: 'Message',
-                reference: '',
-                spanID: '',
-                stats: '',
-                statusCode: 'Status Code',
-                traceID: 'Trace ID',
-                'traceID 1': 'Trace ID',
-                ts: 'Timestamp',
-              },
-            },
-          },
+              "renameByName": {
+                "duration": "Duration",
+                "id": "",
+                "line": "",
+                "method": "Method",
+                "msg": "Message",
+                "reference": "",
+                "spanID": "",
+                "stats": "",
+                "statusCode": "Status Code",
+                "traceID": "Trace ID",
+                "traceID 1": "Trace ID",
+                "ts": "Timestamp"
+              }
+            }
+          }
         ],
-        type: 'table',
-      },
+        "type": "table"
+      }
     ],
-    refresh: '',
-    schemaVersion: 34,
-    style: 'dark',
-    tags: [],
-    templating: {
-      list: [
+    "refresh": "",
+    "schemaVersion": 34,
+    "style": "dark",
+    "tags": [],
+    "templating": {
+      "list": [
         {
-          current: {
-            selected: false,
-            text: 'acc-1111111111111111',
-            value: 'acc-1111111111111111',
+          "current": {
+            "selected": false,
+            "text": "acc-1111111111111111",
+            "value": "acc-1111111111111111"
           },
-          hide: 2,
-          label: 'Account ID',
-          name: 'accountId',
-          options: [
+          "hide": 2,
+          "label": "Account ID",
+          "name": "accountId",
+          "options": [
             {
-              selected: false,
-              text: 'acc-1111111111111111',
-              value: 'acc-1111111111111111',
-            },
+              "selected": false,
+              "text": "acc-1111111111111111",
+              "value": "acc-1111111111111111"
+            }
           ],
-          query: 'acc-1111111111111111',
-          skipUrlSync: false,
-          type: 'textbox',
+          "query": "acc-1111111111111111",
+          "skipUrlSync": false,
+          "type": "textbox"
         },
         {
-          current: {
-            selected: false,
-            text: 'sub-1111111111111111',
-            value: 'sub-1111111111111111',
+          "current": {
+            "selected": false,
+            "text": "sub-1111111111111111",
+            "value": "sub-1111111111111111"
           },
-          hide: 2,
-          label: 'Subscription ID',
-          name: 'subscriptionId',
-          options: [
+          "hide": 2,
+          "label": "Subscription ID",
+          "name": "subscriptionId",
+          "options": [
             {
-              selected: false,
-              text: 'sub-1111111111111111',
-              value: 'sub-1111111111111111',
-            },
+              "selected": false,
+              "text": "sub-1111111111111111",
+              "value": "sub-1111111111111111"
+            }
           ],
-          query: 'sub-1111111111111111',
-          skipUrlSync: false,
-          type: 'textbox',
+          "query": "sub-1111111111111111",
+          "skipUrlSync": false,
+          "type": "textbox"
         },
         {
-          current: {
-            selected: true,
-            text: 'integration',
-            value: 'integration',
+          "current": {
+            "selected": true,
+            "text": "integration",
+            "value": "integration"
           },
-          hide: 2,
-          label: 'Integration / Connector',
-          name: 'boundaryId',
-          options: [
+          "hide": 2,
+          "label": "Integration / Connector",
+          "name": "boundaryId",
+          "options": [
             {
-              selected: true,
-              text: 'integration',
-              value: 'integration',
-            },
+              "selected": true,
+              "text": "integration",
+              "value": "integration"
+            }
           ],
-          query: 'integration',
-          skipUrlSync: false,
-          type: 'textbox',
+          "query": "integration",
+          "skipUrlSync": false,
+          "type": "textbox"
         },
         {
-          current: {
-            selected: false,
-            text: 'Integration',
-            value: 'Integration',
+          "current": {
+            "selected": false,
+            "text": "Integration",
+            "value": "Integration"
           },
-          hide: 2,
-          label: 'Integration ID',
-          name: 'functionId',
-          options: [
+          "hide": 2,
+          "label": "Integration ID",
+          "name": "functionId",
+          "options": [
             {
-              selected: false,
-              text: 'Integration',
-              value: 'Integration',
-            },
+              "selected": false,
+              "text": "Integration",
+              "value": "Integration"
+            }
           ],
-          query: 'HealthTests',
-          skipUrlSync: false,
-          type: 'textbox',
-        },
-      ],
+          "query": "HealthTests",
+          "skipUrlSync": false,
+          "type": "textbox"
+        }
+      ]
     },
-    time: {
-      from: 'now-1h',
-      to: 'now',
+    "time": {
+      "from": "now-1h",
+      "to": "now"
     },
-    timepicker: {
-      hidden: false,
+    "timepicker": {
+      "hidden": false
     },
-    timezone: '',
-    title: 'Health Monitoring',
-    uid: 'HealthMonitor',
-    weekStart: '',
-  },
+    "timezone": "",
+    "title": "Health Monitoring",
+    "uid": "HealthMonitor",
+    "weekStart": ""
+  }
 ];
 
 export const defaultDatasources = [
