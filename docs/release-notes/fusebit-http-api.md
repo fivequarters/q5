@@ -17,10 +17,15 @@ All public releases of the Fusebit HTTP API are documented here, including notab
 <!-- 1. TOC
 {:toc} -->
 
+## Version 1.40.19
+
+_Released 9/24/22_
+
+- **Enhancement** Migrate Grafana healthcheck to /v1/health/analytics.
+
 ## Version 1.40.18
 
 _Released 9/21/22_
-
 
 - **Enhancement** Update to Health Dashboad to convert Status Code column from Bar to Colored Text
 
