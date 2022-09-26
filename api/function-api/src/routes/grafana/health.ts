@@ -11,9 +11,7 @@ export const checkGrafanaHealth = () => {
     // Our internal Grafana+services healthcheck daemon implements a /healthz endpoint
     try {
       const result = await superagent.get(new URL('/healthz', endpoint).toString()).timeout(GRAFANA_HEALTH_TIMEOUT);
-      if (result.ok) {
-        return res.json({ status: 'ok' });
-      }
+      return res.send({ status: 'ok' });
     } catch (_) {
       // There is no error worth capturing here.
     }
