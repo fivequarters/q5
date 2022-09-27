@@ -27,6 +27,9 @@ fuse-ops deployment defaults set api subscription \{\"proxy\":\{\"accountId\":\"
 # Create the proxy payloads
 # -- Hygen -- proxy-payload
 
+PROCORE_SECRET_PAYLOAD="{\"data\":{\"clientId\":\"${PROXY_PROCORE_CLIENT_ID}\",\"clientSecret\":\"${PROXY_PROCORE_CLIENT_SECRET}\",\"authorizationUrl\":\"https://login.procore.com/oauth/authorize\",\"tokenUrl\":\"https://api.procore.com/oauth/token\",\"revokeUrl\":\"https://api.procore.com/oauth/revoke\"}}"
+
+
 CONSTANTCONTACT_SECRET_PAYLOAD="{\"data\":{\"clientId\":\"${PROXY_CONSTANTCONTACT_CLIENT_ID}\",\"clientSecret\":\"${PROXY_CONSTANTCONTACT_CLIENT_SECRET}\",\"authorizationUrl\":\"https://authz.constantcontact.com/oauth2/default/v1/authorize\",\"tokenUrl\":\"https://authz.constantcontact.com/oauth2/default/v1/token\",\"revokeUrl\":\"https://authz.constantcontact.com/oauth2/default/v1/revoke\"}}"
 
 
@@ -77,6 +80,7 @@ TWITTER_SECRET_PAYLOAD="{\"data\":{\"clientId\":\"${PROXY_TWITTER_CLIENT_ID}\",\
 for PROFILE in ${PROXY_SECRET_PUBLISH_PROFILE_LIST}; do
   ./tool/cicd/actions/scripts/set_fuse_profile.sh ${PROFILE}
   # -- Hygen -- proxy-list
+  echo ${PROCORE_SECRET_PAYLOAD} | fuse storage put - --storageId proxy/procore/configuration
   echo ${CONSTANTCONTACT_SECRET_PAYLOAD} | fuse storage put - --storageId proxy/constantcontact/configuration
   echo ${OUTREACH_SECRET_PAYLOAD} | fuse storage put - --storageId proxy/outreach/configuration
   echo ${MAILCHIMP_SECRET_PAYLOAD} | fuse storage put - --storageId proxy/mailchimp/configuration
