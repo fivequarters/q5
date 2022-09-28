@@ -18,6 +18,12 @@ All public releases of the Fusebit Operations CLI are documented here, including
 {:toc}
 -->
 
+## Version 1.39.6
+
+_Released 9/27/22_
+
+- **Enhancement** Support disabling function-API health checks within AWS.
+
 ## Version 1.39.5
 
 _Released 9/23/22_
