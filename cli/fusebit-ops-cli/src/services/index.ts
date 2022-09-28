@@ -15,3 +15,4 @@ export { RestoreService } from './RestoreService';
 export { WafService } from './WafService';
 export { AssumeService } from './AssumeService';
 export { MonitoringService } from './MonitoringService';
+export { HealthCheckService } from './HealthCheckService';
