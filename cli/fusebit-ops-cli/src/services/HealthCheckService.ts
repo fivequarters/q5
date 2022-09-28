@@ -7,7 +7,7 @@ import { IAwsConfig } from '@5qtrs/aws-config';
 import { ExecuteService } from './ExecuteService';
 import { OpsService } from './OpsService';
 
-const TG_PARTIAL_POSTFIX = '-deployment-stack';
+const TG_PARTIAL_POSTFIX = '-deployment-';
 
 export class HealthCheckService {
   public static async create(input: IExecuteInput) {
@@ -33,18 +33,18 @@ export class HealthCheckService {
     return new SdkType({ ...config, ...this.creds });
   }
 
-  public async ManageHealthCheck(deploymentName: string, enable: boolean, region?: string) {
+  public async manageHealthCheck(deploymentName: string, enable: boolean, region?: string) {
     await this.executeService.execute(
       {
         header: `${enable ? 'Enabling' : 'Disabling'} Health Check on Deployment ${deploymentName}`,
         message: `${enable ? 'Enabling' : 'Disabling'} Health Check on Deployment ${deploymentName}`,
         errorHeader: `Failed to ${enable ? 'Enable' : 'Disable'} Health Check on Deployment ${deploymentName}`,
       },
-      () => this.ManageHealthcheckInternal(deploymentName, enable, region)
+      () => this.manageHealthcheckInternal(deploymentName, enable, region)
     );
   }
 
-  public async ManageHealthcheckInternal(deploymentName: string, enable: boolean, region?: string) {
+  public async manageHealthcheckInternal(deploymentName: string, enable: boolean, region?: string) {
     const opsContext = await this.opsService.getOpsDataContext();
     const deployment = await opsContext.deploymentData.listAll(deploymentName);
     if (deployment.length > 1 && !region) {
