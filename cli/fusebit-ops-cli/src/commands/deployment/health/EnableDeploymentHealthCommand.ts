@@ -43,7 +43,7 @@ export class EnableDeploymentHealthCommand extends Command {
     const region = input.options.region as string;
 
     const healthCheckService = await HealthCheckService.create(input);
-    await healthCheckService.ManageHealthCheck(deploymentName, true, region);
+    await healthCheckService.manageHealthCheck(deploymentName, true, region);
 
     return 0;
   }

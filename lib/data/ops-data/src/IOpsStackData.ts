@@ -11,6 +11,7 @@ export interface IOpsNewStack {
   size?: number;
   env?: string;
   ami?: string;
+  disableHealthCheck?: boolean;
 }
 
 export interface IOpsStack extends IOpsNewStack {

@@ -48,6 +48,13 @@ const command = {
       type: ArgType.boolean,
       default: 'true',
     },
+    {
+      name: 'disable-healthcheck',
+      aliases: ['h'],
+      description: 'Disable the health check of this stack, only use this when absolutely nessersary.',
+      type: ArgType.boolean,
+      default: 'true',
+    },
   ],
 };
 
@@ -71,6 +78,7 @@ export class AddStackCommand extends Command {
     const region = input.options.region as string;
     const size = input.options.size as number;
     const confirm = input.options.confirm as boolean;
+    const disableHealthCheck = input.options['disable-healthcheck'] as boolean;
     const env = input.options.env as string;
     const ami = input.options.ami as string;
 
@@ -85,6 +93,7 @@ export class AddStackCommand extends Command {
       region: deployment.region,
       env,
       ami,
+      disableHealthCheck,
     };
 
     if (confirm) {
