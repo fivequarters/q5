@@ -18,7 +18,13 @@ All public releases of the Fusebit Operations CLI are documented here, including
 {:toc}
 -->
 
-## Version 1.39.6
+## Version 1.39.8
+
+_Released 9/28/22_
+
+- **Enhancement** Support disabling health checks during function-api stack creation.
+
+## Version 1.39.7
 
 _Released 9/27/22_
 

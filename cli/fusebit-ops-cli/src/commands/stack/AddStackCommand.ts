@@ -103,7 +103,11 @@ export class AddStackCommand extends Command {
     newStack.env = env ? require('fs').readFileSync(require('path').join(process.cwd(), env), 'utf8') : undefined;
 
     const stack = await stackService.deploy(newStack);
-    await stackService.waitForStack(stack, deployment);
+
+    if (!disableHealthCheck) {
+      await stackService.waitForStack(stack, deployment);
+    }
+
     await stackService.displayStack(stack);
 
     return 0;
