@@ -48,6 +48,12 @@ const command = {
       type: ArgType.boolean,
       default: 'true',
     },
+    {
+      name: 'disable-healthcheck',
+      description: 'Disable the health check of this stack, only use this when absolutely necessary.',
+      type: ArgType.boolean,
+      default: 'false',
+    },
   ],
 };
 
@@ -71,6 +77,7 @@ export class AddStackCommand extends Command {
     const region = input.options.region as string;
     const size = input.options.size as number;
     const confirm = input.options.confirm as boolean;
+    const disableHealthCheck = input.options['disable-healthcheck'] as boolean;
     const env = input.options.env as string;
     const ami = input.options.ami as string;
 
@@ -85,6 +92,7 @@ export class AddStackCommand extends Command {
       region: deployment.region,
       env,
       ami,
+      disableHealthCheck,
     };
 
     if (confirm) {
@@ -94,7 +102,9 @@ export class AddStackCommand extends Command {
     newStack.env = env ? require('fs').readFileSync(require('path').join(process.cwd(), env), 'utf8') : undefined;
 
     const stack = await stackService.deploy(newStack);
-    await stackService.waitForStack(stack, deployment);
+
+    await stackService.waitForStack(stack, deployment, disableHealthCheck);
+
     await stackService.displayStack(stack);
 
     return 0;

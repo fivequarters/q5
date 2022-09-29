@@ -73,7 +73,7 @@ export class OpsAlb extends DataSource {
     await route53.ensureRecord(deployment.domainName, { name: hostName, alias: alb.dns, type: 'A' });
   }
 
-  public async addTargetGroup(deployment: IOpsDeployment, id: number): Promise<string> {
+  public async addTargetGroup(deployment: IOpsDeployment, id: number, healthCheckDisabled?: boolean): Promise<string> {
     const awsAlb = await this.provider.getAwsAlb(deployment.deploymentName, deployment.region);
     const route53 = await this.getRoute53(deployment.domainName);
     const network = await this.networkData.get(deployment.networkName, deployment.region);
@@ -84,9 +84,13 @@ export class OpsAlb extends DataSource {
       name: targetGroupName,
       host: hostName,
       port: this.config.monoAlbApiPort,
-      healthCheck: { path: this.config.monoAlbHealthCheckPath },
+      healthCheck: { path: this.config.monoAlbHealthCheckPath, successCodes: ['200'] },
     };
 
+    if (healthCheckDisabled) {
+      targetGroup.healthCheck.path = this.config.monoAlbHealthCheckDisabledPath;
+      targetGroup.healthCheck.successCodes = ['404'];
+    }
     const alb = await awsAlb.getAlb(this.config.monoAlbDeploymentName);
     await route53.ensureRecord(deployment.domainName, { name: hostName, alias: alb.dns, type: 'A' });
 

@@ -26,6 +26,7 @@ const defaultMonoAlbDeploymentName = 'deployment';
 const defaultMonoAlbDefaultTargetName = 'main';
 const defaultMonoAlbTargetNamePrefix = 'stack';
 const defaultMonoAlbHealthCheckPath = '/v1/health';
+const defaultMonoAlbHealthCheckDisabledPath = '/v1/healthz';
 const defaultLambdaExecutionRoleName = 'fusebit-lambda-execution';
 const defaultDwhExportRoleName = 'fusebit-dwh-export';
 const defaultCronExecutorRoleName = 'fusebit-cron-executor';
@@ -141,6 +142,10 @@ export class OpsDataAwsConfig implements IConfig {
 
   public get monoAlbHealthCheckPath(): string {
     return (this.config.value('monoAlbHealthCheckPath') as string) || defaultMonoAlbHealthCheckPath;
+  }
+
+  public get monoAlbHealthCheckDisabledPath(): string {
+    return (this.config.value('monoAlbHealthCheckDisabledPath') as string) || defaultMonoAlbHealthCheckDisabledPath;
   }
 
   public get ubuntuServerVersion(): string {

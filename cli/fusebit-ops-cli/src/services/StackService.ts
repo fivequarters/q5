@@ -99,8 +99,10 @@ export class StackService {
     }
   }
 
-  public async waitForStack(stack: IOpsStack, deployment: IOpsDeployment): Promise<void> {
-    let url = `https://stack-${stack.id}.${deployment.deploymentName}.${deployment.region}.${deployment.domainName}/v1/health`;
+  public async waitForStack(stack: IOpsStack, deployment: IOpsDeployment, disableHealthCheck?: boolean): Promise<void> {
+    let url = `https://stack-${stack.id}.${deployment.deploymentName}.${deployment.region}.${
+      deployment.domainName
+    }/v1/${disableHealthCheck ? 'healthz' : 'health'}`;
 
     await this.executeService.execute(
       {
@@ -114,6 +116,7 @@ export class StackService {
         await new Promise((resolve) => setTimeout(resolve, 30 * 1000));
         for (let i = 0; i < 27; i++) {
           let response = await request({ method: 'GET', url, validStatus: () => true });
+          if (disableHealthCheck && response.status === 404) return;
           if (response.status === 200) return;
           await new Promise((resolve) => setTimeout(resolve, 10 * 1000));
         }

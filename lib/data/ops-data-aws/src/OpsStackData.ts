@@ -145,7 +145,7 @@ export class OpsStackData extends DataSource implements IOpsStackData {
     });
 
     debug('Attaching to target group');
-    const targetGroupArn = await this.opsAlb.addTargetGroup(deployment, id);
+    const targetGroupArn = await this.opsAlb.addTargetGroup(deployment, id, newStack.disableHealthCheck);
     await awsAutoScale.attachToTargetGroup(autoScaleName, targetGroupArn);
 
     const stack = {
