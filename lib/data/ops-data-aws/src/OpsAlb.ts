@@ -84,12 +84,12 @@ export class OpsAlb extends DataSource {
       name: targetGroupName,
       host: hostName,
       port: this.config.monoAlbApiPort,
-      healthCheck: { path: this.config.monoAlbHealthCheckPath },
+      healthCheck: { path: this.config.monoAlbHealthCheckPath, successCodes: ['200'] },
     };
 
     if (healthCheckDisabled) {
       targetGroup.healthCheck.path = this.config.monoAlbHealthCheckDisabledPath;
-      (targetGroup.healthCheck as any).successCodes = ['404'];
+      targetGroup.healthCheck.successCodes = ['404'];
     }
     const alb = await awsAlb.getAlb(this.config.monoAlbDeploymentName);
     await route53.ensureRecord(deployment.domainName, { name: hostName, alias: alb.dns, type: 'A' });

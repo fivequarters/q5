@@ -50,10 +50,9 @@ const command = {
     },
     {
       name: 'disable-healthcheck',
-      aliases: ['h'],
-      description: 'Disable the health check of this stack, only use this when absolutely nessersary.',
+      description: 'Disable the health check of this stack, only use this when absolutely necessary.',
       type: ArgType.boolean,
-      default: 'true',
+      default: 'false',
     },
   ],
 };
@@ -104,9 +103,7 @@ export class AddStackCommand extends Command {
 
     const stack = await stackService.deploy(newStack);
 
-    if (!disableHealthCheck) {
-      await stackService.waitForStack(stack, deployment);
-    }
+    await stackService.waitForStack(stack, deployment, disableHealthCheck);
 
     await stackService.displayStack(stack);
 
