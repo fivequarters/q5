@@ -18,6 +18,12 @@ All public releases of the Fusebit Operations CLI are documented here, including
 {:toc}
 -->
 
+## Version 1.39.9
+
+_Released 10/5/22_
+
+- **Enhancement** Give Loki and Tempo some additional time to shutdown in a graceful manner.
+
 ## Version 1.39.8
 
 _Released 9/28/22_
