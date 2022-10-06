@@ -498,6 +498,7 @@ ${awsUserData.addFile(lokiConfig, '/root/loki.yml')}
 ${awsUserData.addFile(tempoConfig, '/root/tempo.yml')}
 ${awsUserData.addFile(composeFile, '/root/docker-compose.yml')}
 ${awsUserData.addFile(this.toBase64(grafanaConfig.getRegistrationScript()), '/root/register.js')}
+${awsUserData.configureDockerdShutdown()}
 ${awsUserData.registerCloudMapInstance(serviceId, stack.stackId.toString(), region)}
 ${awsUserData.runDockerCompose()}
     `;

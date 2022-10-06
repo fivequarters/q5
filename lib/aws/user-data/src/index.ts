@@ -23,6 +23,18 @@ docker-compose up -d`;
     return `apt install -y awscli`;
   }
 
+  public static configureDockerdShutdown() {
+    return `
+cat /etc/docker/daemon.json << 'EOF'
+{
+  "shutdown-timeout": 30
+}
+EOF
+
+systemctl reload docker
+    `;
+  }
+
   public static installDockerCompose() {
     return `
 curl -L "https://github.com/docker/compose/releases/download/1.29.2/docker-compose-$(uname -s)-$(uname -m)" -o /usr/local/bin/docker-compose
