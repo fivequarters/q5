@@ -25,7 +25,7 @@ docker-compose up -d`;
 
   public static configureDockerdShutdown() {
     return `
-tee /etc/docker/daemon.json <<-'EOF'
+cat /etc/docker/daemon.json << 'EOF'
 {
   "shutdown-timeout": 30
 }
