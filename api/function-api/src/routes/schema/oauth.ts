@@ -72,7 +72,7 @@ const getTypedOAuthProxyService = (proxyType?: string) => {
 };
 
 // Create a router for this type of OAuth Proxy.
-export const createProxyRouter = (subscriptionCache: SubscriptionCache): express.Router => {
+export const createOAuthProxyRouter = (subscriptionCache: SubscriptionCache): express.Router => {
   const router = express.Router({ mergeParams: true });
 
   // Create a proxy object specialized for each request.
