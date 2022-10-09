@@ -5,9 +5,6 @@ import { SubscriptionCache, SubscriptionCacheTypes } from '@5qtrs/account';
 import * as Subscription from '../middleware/subscription';
 import { AwsProxyService, IAwsProxyConfiguration } from '../service/AwsProxy/AwsProxyService';
 import * as AwsProxyConfig from '../service/AwsProxy/AwsProxyConfig';
-import * as common from '../middleware/common';
-
-import * as Validation from '../validation/awsProxy';
 
 type ProxyRequest = express.Request & {
   subscription?: SubscriptionCacheTypes.ISubscription;
@@ -22,8 +19,6 @@ export const createAwsProxyRouter = (subscriptionCache: SubscriptionCache): expr
       return next(http_error(500, 'Missing subscription for request'));
     }
 
-    console.log(req.subscription);
-
     if (!req.subscription.proxy?.accountId || !req.subscription.proxy?.subscriptionId) {
       return next(http_error(500, 'Proxy is not configured'));
     }
@@ -34,14 +29,29 @@ export const createAwsProxyRouter = (subscriptionCache: SubscriptionCache): expr
         subscriptionId: req.subscription.proxy.subscriptionId,
       });
       req.proxy = new AwsProxyService(proxyConfig);
-    } catch (_) {
+      next();
+    } catch (e) {
+      console.log(e);
       return next(http_error.InternalServerError);
     }
   };
 
+  router.get(
+    '/config',
+    Subscription.get(subscriptionCache),
+    useProxy,
+    async (req: ProxyRequest, res: express.Response) => {
+      const proxyConfig = await AwsProxyConfig.get<IAwsProxyConfiguration>({
+        accountId: req.subscription?.proxy?.accountId as string,
+        subscriptionId: req.subscription?.proxy?.subscriptionId as string,
+      });
+
+      res.send({ bucketName: proxyConfig.bucketName, bucketPrefix: proxyConfig.bucketPrefix });
+    }
+  );
+
   router.post(
     '/action',
-    common.management({ validate: { ...Validation.proxyRequest } }),
     Subscription.get(subscriptionCache),
     useProxy,
     async (req: ProxyRequest, res: express.Response) => {

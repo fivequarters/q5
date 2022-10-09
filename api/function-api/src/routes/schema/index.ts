@@ -27,9 +27,9 @@ integrationService.addService(connectorService);
 
 router.use(analytics.setModality(analytics.Modes.Administration));
 
-router.use('/connector/:entityId/proxy/:proxyType/oauth', createOAuthProxyRouter(subscriptionCache));
+router.use('/connector/:entityId/proxy/aws', createAwsProxyRouter(subscriptionCache));
 
-router.use('/proxy/aws', createAwsProxyRouter(subscriptionCache));
+router.use('/connector/:entityId/proxy/:proxyType/oauth', createOAuthProxyRouter(subscriptionCache));
 
 router.use(
   '/connector',

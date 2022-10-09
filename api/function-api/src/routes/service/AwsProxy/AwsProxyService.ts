@@ -1,9 +1,8 @@
 import { STS, S3 } from 'aws-sdk';
-
-const SERVICE_NAME = 'aws';
+import { v4 as uuidv4 } from 'uuid';
 
 export interface IProxyRequest {
-  action: 'S3.PutObject' | 'S3.DeleteObject' | 'STS.AssumeRole';
+  action: 'S3.PutObject' | 'S3.DeleteObject' | 'STS.GetCallerIdentity' | 'STS.AssumeRole';
 
   requestBody: any;
 }
@@ -18,6 +17,8 @@ export interface IAwsProxyConfiguration extends Record<string, string> {
   accessKeyId: string;
   secretAccessKey: string;
   region: string;
+  bucketName: string;
+  bucketPrefix: string;
 }
 
 export class AwsProxyService {
@@ -36,25 +37,55 @@ export class AwsProxyService {
 
     const action = request.action;
 
-    let response: any;
+    let response: STS.AssumeRoleResponse | STS.GetCallerIdentityResponse | undefined = undefined;
 
     switch (action) {
       case 'S3.PutObject': {
-        response = await s3Sdk.putObject({ ...request.requestBody }).promise();
+        // We do not need any response from this action
+        await s3Sdk
+          .putObject({
+            Bucket: this.proxyConfiguration.bucketName,
+            Key: `${this.proxyConfiguration.bucketPrefix}/${request.requestBody.sessionId}`,
+            Body: Buffer.from(request.requestBody.body),
+            ContentType: 'text/plain',
+          })
+          .promise();
+        break;
       }
 
       case 'S3.DeleteObject': {
-        response = await s3Sdk.deleteObject({ ...request.requestBody }).promise();
+        await s3Sdk
+          .deleteObject({
+            Bucket: this.proxyConfiguration.bucketName,
+            Key: `${this.proxyConfiguration.bucketPrefix}/${request.requestBody.sessionId}`,
+          })
+          .promise();
+        break;
+      }
+
+      case 'STS.GetCallerIdentity': {
+        response = await stsSdk.getCallerIdentity().promise();
+        break;
       }
 
       case 'STS.AssumeRole': {
-        response = await stsSdk.assumeRole({ ...request.requestBody }).promise();
-      }
-      default: {
-        response = { invalid_action: 'true' };
+        response = await stsSdk
+          .assumeRole({
+            ExternalId: request.requestBody.externalId,
+            RoleSessionName: uuidv4(),
+            RoleArn: request.requestBody.roleArn,
+            DurationSeconds: request.requestBody.durationSeconds,
+          })
+          .promise();
+
+        // No need to pass any of this back
+        delete response.AssumedRoleUser;
+        delete response.PackedPolicySize;
+        delete response.SourceIdentity;
+        break;
       }
     }
 
-    return response;
+    return response || { status: 'ok' };
   }
 }
