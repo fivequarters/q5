@@ -1,15 +1,22 @@
 import { STS, S3 } from 'aws-sdk';
 import { v4 as uuidv4 } from 'uuid';
 
-export interface IProxyRequest extends Record<string, any> {
+const S3_BASE_URL = 's3.amazonaws.com';
+
+export interface IProxyRequest {
   action: 'S3.PutObject' | 'S3.DeleteObject' | 'STS.GetCallerIdentity' | 'STS.AssumeRole';
+  body?: string;
+  externalId?: string;
+  roleArn?: string;
+  durationSeconds?: number;
+  sessionId?: string;
 }
 
 export interface IAwsProxyService {
   proxyRequest: (payload: any) => string;
 }
 
-export interface IAwsProxyConfiguration extends Record<string, string> {
+export interface IAwsProxyConfiguration {
   accountId: string;
   subscriptionId: string;
   accessKeyId: string;
@@ -38,6 +45,7 @@ export class AwsProxyService {
     let response:
       | { accountId: string }
       | { accessKeyId: string; secretAccessKey: string; sessionToken: string; expiration: string }
+      | { s3Url: string }
       | undefined = undefined;
 
     switch (action) {
@@ -47,10 +55,13 @@ export class AwsProxyService {
           .putObject({
             Bucket: this.proxyConfiguration.bucketName,
             Key: `${this.proxyConfiguration.bucketPrefix}/${request.sessionId}`,
-            Body: Buffer.from(request.body),
+            Body: Buffer.from(request.body as string),
             ContentType: 'text/plain',
           })
           .promise();
+        response = {
+          s3Url: `https://${S3_BASE_URL}/${this.proxyConfiguration.bucketName}/${this.proxyConfiguration.bucketPrefix}/${request.sessionId}`,
+        };
         break;
       }
 
@@ -73,9 +84,9 @@ export class AwsProxyService {
       case 'STS.AssumeRole': {
         const tempResponse = await stsSdk
           .assumeRole({
-            ExternalId: request.externalId,
+            ExternalId: request.externalId as string,
             RoleSessionName: uuidv4(),
-            RoleArn: request.roleArn,
+            RoleArn: request.roleArn as string,
             DurationSeconds: request.durationSeconds,
           })
           .promise();

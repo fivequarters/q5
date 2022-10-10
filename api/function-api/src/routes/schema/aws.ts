@@ -36,25 +36,14 @@ export const createAwsProxyRouter = (subscriptionCache: SubscriptionCache): expr
       req.proxy = new AwsProxyService(proxyConfig);
       next();
     } catch (e) {
-      console.log(e);
       return next(http_error.InternalServerError);
     }
   };
-
-  router.get(
-    '/config',
-    Subscription.get(subscriptionCache),
-    useProxy,
-    async (req: ProxyRequest, res: express.Response) => {
-      res.send({ bucketName: req.proxyConfig?.bucketName, bucketPrefix: req.proxyConfig?.bucketPrefix });
-    }
-  );
 
   router.post(
     '/action',
     common.management({ validate: { ...Validation.proxyRequest } }),
     Subscription.get(subscriptionCache),
-
     useProxy,
     async (req: ProxyRequest, res: express.Response) => {
       res.send(await req.proxy?.handleRequest(req.body));
