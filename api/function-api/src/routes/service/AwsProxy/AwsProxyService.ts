@@ -1,10 +1,8 @@
 import { STS, S3 } from 'aws-sdk';
 import { v4 as uuidv4 } from 'uuid';
 
-export interface IProxyRequest {
+export interface IProxyRequest extends Record<string, any> {
   action: 'S3.PutObject' | 'S3.DeleteObject' | 'STS.GetCallerIdentity' | 'STS.AssumeRole';
-
-  requestBody: any;
 }
 
 export interface IAwsProxyService {
@@ -37,7 +35,10 @@ export class AwsProxyService {
 
     const action = request.action;
 
-    let response: STS.AssumeRoleResponse | STS.GetCallerIdentityResponse | undefined = undefined;
+    let response:
+      | { accountId: string }
+      | { accessKeyId: string; secretAccessKey: string; sessionToken: string; expiration: string }
+      | undefined = undefined;
 
     switch (action) {
       case 'S3.PutObject': {
@@ -45,8 +46,8 @@ export class AwsProxyService {
         await s3Sdk
           .putObject({
             Bucket: this.proxyConfiguration.bucketName,
-            Key: `${this.proxyConfiguration.bucketPrefix}/${request.requestBody.sessionId}`,
-            Body: Buffer.from(request.requestBody.body),
+            Key: `${this.proxyConfiguration.bucketPrefix}/${request.sessionId}`,
+            Body: Buffer.from(request.body),
             ContentType: 'text/plain',
           })
           .promise();
@@ -57,31 +58,34 @@ export class AwsProxyService {
         await s3Sdk
           .deleteObject({
             Bucket: this.proxyConfiguration.bucketName,
-            Key: `${this.proxyConfiguration.bucketPrefix}/${request.requestBody.sessionId}`,
+            Key: `${this.proxyConfiguration.bucketPrefix}/${request.sessionId}`,
           })
           .promise();
         break;
       }
 
       case 'STS.GetCallerIdentity': {
-        response = await stsSdk.getCallerIdentity().promise();
+        const tempResponse = await stsSdk.getCallerIdentity().promise();
+        response = { accountId: tempResponse.Account as string };
         break;
       }
 
       case 'STS.AssumeRole': {
-        response = await stsSdk
+        const tempResponse = await stsSdk
           .assumeRole({
-            ExternalId: request.requestBody.externalId,
+            ExternalId: request.externalId,
             RoleSessionName: uuidv4(),
-            RoleArn: request.requestBody.roleArn,
-            DurationSeconds: request.requestBody.durationSeconds,
+            RoleArn: request.roleArn,
+            DurationSeconds: request.durationSeconds,
           })
           .promise();
-
-        // No need to pass any of this back
-        delete response.AssumedRoleUser;
-        delete response.PackedPolicySize;
-        delete response.SourceIdentity;
+        const accessCreds = tempResponse.Credentials;
+        response = {
+          accessKeyId: accessCreds?.AccessKeyId as string,
+          secretAccessKey: accessCreds?.SecretAccessKey as string,
+          expiration: accessCreds?.Expiration.toTimeString() as string,
+          sessionToken: accessCreds?.SessionToken as string,
+        };
         break;
       }
     }

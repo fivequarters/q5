@@ -2,13 +2,15 @@ const Joi = require('joi');
 
 import * as Common from './common';
 
-const commonParams = {
-  params: Joi.object().keys({
-    accountId: Common.accountId.required(),
-    subscriptionId: Common.subscriptionId.required(),
-  }),
-};
-
 export const proxyRequest = {
-  ...commonParams,
+  body: Joi.object().keys({
+    action: Joi.string()
+      .valid(['STS.AssumeRole', 'STS.GetCallerIdentity', 'S3.PutObject', 'S3.DeleteObject'])
+      .required(),
+    sessionId: Common.sessionId,
+    roleArn: Joi.string(),
+    body: Joi.string(),
+    externalId: Joi.string(),
+    durationSeconds: Joi.number(),
+  }),
 };
