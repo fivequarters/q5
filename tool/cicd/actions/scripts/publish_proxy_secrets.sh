@@ -27,6 +27,9 @@ fuse-ops deployment defaults set api subscription \{\"proxy\":\{\"accountId\":\"
 # Create the proxy payloads
 # -- Hygen -- proxy-payload
 
+MICROSOFTDYNAMICS_SECRET_PAYLOAD="{\"data\":{\"clientId\":\"${PROXY_MICROSOFTDYNAMICS_CLIENT_ID}\",\"clientSecret\":\"${PROXY_MICROSOFTDYNAMICS_CLIENT_SECRET}\",\"authorizationUrl\":\"https://login.microsoftonline.com/common/oauth2/v2.0/authorize\",\"tokenUrl\":\"https://login.microsoftonline.com/common/oauth2/v2.0/token\",\"revokeUrl\":\"https://graph.microsoft.com/v1.0/me/revokeSignInSessions\"}}"
+
+
 PROCORE_SECRET_PAYLOAD="{\"data\":{\"clientId\":\"${PROXY_PROCORE_CLIENT_ID}\",\"clientSecret\":\"${PROXY_PROCORE_CLIENT_SECRET}\",\"authorizationUrl\":\"https://login.procore.com/oauth/authorize\",\"tokenUrl\":\"https://api.procore.com/oauth/token\",\"revokeUrl\":\"https://api.procore.com/oauth/revoke\"}}"
 
 
@@ -80,6 +83,7 @@ TWITTER_SECRET_PAYLOAD="{\"data\":{\"clientId\":\"${PROXY_TWITTER_CLIENT_ID}\",\
 for PROFILE in ${PROXY_SECRET_PUBLISH_PROFILE_LIST}; do
   ./tool/cicd/actions/scripts/set_fuse_profile.sh ${PROFILE}
   # -- Hygen -- proxy-list
+  echo ${MICROSOFTDYNAMICS_SECRET_PAYLOAD} | fuse storage put - --storageId proxy/microsoftdynamics/configuration
   echo ${PROCORE_SECRET_PAYLOAD} | fuse storage put - --storageId proxy/procore/configuration
   echo ${CONSTANTCONTACT_SECRET_PAYLOAD} | fuse storage put - --storageId proxy/constantcontact/configuration
   echo ${OUTREACH_SECRET_PAYLOAD} | fuse storage put - --storageId proxy/outreach/configuration
