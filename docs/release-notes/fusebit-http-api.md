@@ -17,6 +17,12 @@ All public releases of the Fusebit HTTP API are documented here, including notab
 <!-- 1. TOC
 {:toc} -->
 
+## Version 1.40.21
+
+_Released 10/11/22_
+
+- **Bugfix** Switch AWS proxy to use a different s3 url format.
+
 ## Version 1.40.20
 
 _Released 10/10/22_
