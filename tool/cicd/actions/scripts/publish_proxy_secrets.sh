@@ -29,18 +29,13 @@ fuse-ops deployment defaults set api subscription \{\"proxy\":\{\"accountId\":\"
 
 PROCORE_SECRET_PAYLOAD="{\"data\":{\"clientId\":\"${PROXY_PROCORE_CLIENT_ID}\",\"clientSecret\":\"${PROXY_PROCORE_CLIENT_SECRET}\",\"authorizationUrl\":\"https://login.procore.com/oauth/authorize\",\"tokenUrl\":\"https://api.procore.com/oauth/token\",\"revokeUrl\":\"https://api.procore.com/oauth/revoke\"}}"
 
-
 CONSTANTCONTACT_SECRET_PAYLOAD="{\"data\":{\"clientId\":\"${PROXY_CONSTANTCONTACT_CLIENT_ID}\",\"clientSecret\":\"${PROXY_CONSTANTCONTACT_CLIENT_SECRET}\",\"authorizationUrl\":\"https://authz.constantcontact.com/oauth2/default/v1/authorize\",\"tokenUrl\":\"https://authz.constantcontact.com/oauth2/default/v1/token\",\"revokeUrl\":\"https://authz.constantcontact.com/oauth2/default/v1/revoke\"}}"
-
 
 OUTREACH_SECRET_PAYLOAD="{\"data\":{\"clientId\":\"${PROXY_OUTREACH_CLIENT_ID}\",\"clientSecret\":\"${PROXY_OUTREACH_CLIENT_SECRET}\",\"authorizationUrl\":\"https://api.outreach.io/oauth/authorize\",\"tokenUrl\":\"https://api.outreach.io/oauth/token\",\"revokeUrl\":\"https://api.outreach.io/oauth/revoke\"}}"
 
-
 MAILCHIMP_SECRET_PAYLOAD="{\"data\":{\"clientId\":\"${PROXY_MAILCHIMP_CLIENT_ID}\",\"clientSecret\":\"${PROXY_MAILCHIMP_CLIENT_SECRET}\",\"authorizationUrl\":\"https://login.mailchimp.com/oauth2/authorize\",\"tokenUrl\":\"https://login.mailchimp.com/oauth2/token\",\"revokeUrl\":\"https://login.mailchimp.com/oauth2/token/not_supported\"}}"
 
-
 GITLAB_SECRET_PAYLOAD="{\"data\":{\"clientId\":\"${PROXY_GITLAB_CLIENT_ID}\",\"clientSecret\":\"${PROXY_GITLAB_CLIENT_SECRET}\",\"authorizationUrl\":\"https://gitlab.com/oauth/authorize\",\"tokenUrl\":\"https://gitlab.com/oauth/token\",\"revokeUrl\":\"https://gitlab.com/oauth/revoke\"}}"
-
 
 SLACK_SECRET_PAYLOAD="{\"data\":{\"clientId\":\"${SLACK_PROXY_CLIENT_ID}\",\"clientSecret\":\"${SLACK_PROXY_CLIENT_SECRET}\",\"authorizationUrl\":\"https://slack.com/oauth/v2/authorize\",\"tokenUrl\":\"https://slack.com/api/oauth.v2.access\",\"revokeUrl\":\"https://slack.com/api/auth.revoke\"}}"
 
@@ -76,6 +71,8 @@ LINKEDIN_SECRET_PAYLOAD="{\"data\":{\"clientId\":\"${PROXY_LINKEDIN_CLIENT_ID}\"
 
 TWITTER_SECRET_PAYLOAD="{\"data\":{\"clientId\":\"${PROXY_TWITTER_CLIENT_ID}\",\"clientSecret\":\"${PROXY_TWITTER_CLIENT_SECRET}\",\"authorizationUrl\":\"https://twitter.com/i/oauth2/authorize\",\"tokenUrl\":\"https://api.twitter.com/2/oauth2/token\",\"revokeUrl\":\"https://twitter.com/i/oauth2/invalidate_token\",\"codeChallenge\":\"example_code_challenge\"}}"
 
+AWS_SECRET_PAYLOAD="{\"data\":{\"accessKeyId\":\"${PROXY_AWS_ACCESS_KEY_ID}\",\"secretAccessKey\":\"${PROXY_AWS_SECRET_ACCESS_KEY}\",\"region\":\"us-west-2\",\"bucketName\":\"fusebit-aws-demo-app\",\"bucketPrefix\":\"proxy\"}}"
+
 # Publish to the designated accounts
 for PROFILE in ${PROXY_SECRET_PUBLISH_PROFILE_LIST}; do
   ./tool/cicd/actions/scripts/set_fuse_profile.sh ${PROFILE}
@@ -102,4 +99,5 @@ for PROFILE in ${PROXY_SECRET_PUBLISH_PROFILE_LIST}; do
   echo ${QUICKBOOKS_SECRET_PAYLOAD} | fuse storage put - --storageId proxy/quickbooks/configuration
   echo ${LINKEDIN_SECRET_PAYLOAD} | fuse storage put - --storageId proxy/linkedin/configuration
   echo ${TWITTER_SECRET_PAYLOAD} | fuse storage put - --storageId proxy/twitter/configuration
+  echo ${AWS_SECRET_PAYLOAD} | fuse storage put - --storageId proxy/aws/configuration
 done
