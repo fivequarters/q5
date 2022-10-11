@@ -44,7 +44,7 @@ export class AwsProxyService {
 
     let response:
       | { accountId: string }
-      | { accessKeyId: string; secretAccessKey: string; sessionToken: string; expiration: string }
+      | { accessKeyId: string; secretAccessKey: string; sessionToken: string; expiration: number }
       | { s3Url: string }
       | undefined = undefined;
 
@@ -94,7 +94,7 @@ export class AwsProxyService {
         response = {
           accessKeyId: accessCreds?.AccessKeyId as string,
           secretAccessKey: accessCreds?.SecretAccessKey as string,
-          expiration: accessCreds?.Expiration.toTimeString() as string,
+          expiration: accessCreds?.Expiration.getTime() as number,
           sessionToken: accessCreds?.SessionToken as string,
         };
         break;
