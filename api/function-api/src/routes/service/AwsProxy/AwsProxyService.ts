@@ -60,7 +60,7 @@ export class AwsProxyService {
           })
           .promise();
         response = {
-          s3Url: `https://${S3_BASE_URL}/${this.proxyConfiguration.bucketName}/${this.proxyConfiguration.bucketPrefix}/${request.sessionId}`,
+          s3Url: `https://${this.proxyConfiguration.bucketName}.${S3_BASE_URL}/${this.proxyConfiguration.bucketPrefix}/${request.sessionId}`,
         };
         break;
       }
