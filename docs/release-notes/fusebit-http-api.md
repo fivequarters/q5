@@ -17,6 +17,12 @@ All public releases of the Fusebit HTTP API are documented here, including notab
 <!-- 1. TOC
 {:toc} -->
 
+## Version 1.40.20
+
+_Released 10/10/22_
+
+- **Enhancement** Add proxy support for aws connectors.
+
 ## Version 1.40.19
 
 _Released 9/24/22_

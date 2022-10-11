@@ -11,8 +11,9 @@ import SubsearchRouter from './subsearch';
 
 import * as analytics from '../middleware/analytics';
 
-import { createProxyRouter } from './oauth';
+import { createOAuthProxyRouter } from './oauth';
 import connectorFanOut from './connectorFanOut';
+import { createAwsProxyRouter } from './aws';
 
 const router = express.Router({ mergeParams: true });
 
@@ -26,7 +27,9 @@ integrationService.addService(connectorService);
 
 router.use(analytics.setModality(analytics.Modes.Administration));
 
-router.use('/connector/:entityId/proxy/:proxyType/oauth', createProxyRouter(subscriptionCache));
+router.use('/connector/:entityId/proxy/aws', createAwsProxyRouter(subscriptionCache));
+
+router.use('/connector/:entityId/proxy/:proxyType/oauth', createOAuthProxyRouter(subscriptionCache));
 
 router.use(
   '/connector',
