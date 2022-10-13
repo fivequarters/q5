@@ -1,5 +1,6 @@
 import create_error from 'http-errors';
-import * as superagent from 'superagent';
+
+import { MetadataService } from 'aws-sdk';
 
 import { Request, Response, NextFunction } from 'express';
 
@@ -71,11 +72,22 @@ export const refresh = (cache: SubscriptionCache) => {
     let instanceId: string = 'localhost';
     try {
       // Hit the aws metadata service to get the current instance id.
-      instanceId = (
-        await superagent.get('http://169.254.169.254/latest/meta-data/instance-id').timeout(MAX_METADATA_TIMEOUT)
-      ).text;
+      const metadataService = new MetadataService({ httpOptions: { timeout: MAX_METADATA_TIMEOUT } });
+      // Metadata service does not support .promise() :(
+      instanceId = await new Promise<string>((res, rej) =>
+        metadataService.request('/latest/meta-data/instance-id', (err, data) => {
+          if (err) {
+            console.log(err);
+            rej(err);
+          }
+
+          res(data);
+        })
+      );
+      console.log(instanceId);
     } catch (e) {
       // Unable to load the instanceid; maybe not running on aws
+      console.log(e);
     }
 
     res.json({ cache: when, who: instanceId, at: when - Constants.MAX_CACHE_REFRESH_RATE }).send();

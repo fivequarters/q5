@@ -125,7 +125,7 @@ export class AwsAutoScale extends AwsBase<typeof AutoScaling> {
 
   private async createLaunchTemplate(settings: IAwsAutoScaleSettings): Promise<void> {
     const autoScale = await this.getAws();
-    const params = {
+    const params: EC2.CreateLaunchTemplateRequest = {
       LaunchTemplateName: this.getLaunchTemplateName(settings.name),
       LaunchTemplateData: {
         ImageId: settings.amiId,
@@ -142,6 +142,7 @@ export class AwsAutoScale extends AwsBase<typeof AutoScaling> {
         ],
         MetadataOptions: {
           HttpPutResponseHopLimit: 2,
+          HttpTokens: 'required',
         },
         SecurityGroupIds: settings.securityGroups,
         UserData: toBase64(settings.userData),

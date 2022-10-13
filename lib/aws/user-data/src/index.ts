@@ -44,8 +44,9 @@ chmod +x /usr/local/bin/docker-compose
 
   public static registerCloudMapInstance(serviceId: string, stackId: string, region: string) {
     return `
-curl http://169.254.169.254/latest/meta-data/instance-id > /tmp/instance-id
-curl http://169.254.169.254/latest/meta-data/local-ipv4 > /tmp/ip
+TOKEN=$(curl -X PUT "http://169.254.169.254/latest/api/token" -H "X-aws-ec2-metadata-token-ttl-seconds: 21600")
+curl -H "X-aws-ec2-metadata-token: $TOKEN" http://169.254.169.254/latest/meta-data/instance-id > /tmp/instance-id
+curl -H "X-aws-ec2-metadata-token: $TOKEN" http://169.254.169.254/latest/meta-data/local-ipv4 > /tmp/ip
 # Install Node 14
 curl -sL https://deb.nodesource.com/setup_14.x | bash -
 apt install nodejs -y

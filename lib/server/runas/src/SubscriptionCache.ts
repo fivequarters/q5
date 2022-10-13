@@ -1,12 +1,15 @@
 import { DynamoDB } from 'aws-sdk';
 import create_error from 'http-errors';
-import * as superagent from 'superagent';
+
+import { MetadataService } from 'aws-sdk';
 
 import { Request, Response, NextFunction } from 'express';
 
 import * as Constants from '@5qtrs/constants';
 
 import { IFunctionApiRequest } from './Request';
+
+const MAX_METADATA_TIMEOUT = 1000;
 
 interface ISubscription {
   accountId: string;
@@ -144,9 +147,17 @@ class SubscriptionCache {
     let instanceId: string = 'localhost';
     try {
       // Hit the aws metadata service to get the current instance id.
-      instanceId = (
-        await superagent.get('http://169.254.169.254/latest/meta-data/instance-id').timeout({ response: 1000 })
-      ).text;
+      const metadataService = new MetadataService({ httpOptions: { timeout: MAX_METADATA_TIMEOUT } });
+      // Metadata service does not support .promise() :(
+      instanceId = await new Promise<string>((res, rej) =>
+        metadataService.request('/latest/meta-data/instance-id', (err, data) => {
+          if (err) {
+            rej(err);
+          }
+
+          res(data);
+        })
+      );
     } catch (e) {}
 
     res.json({ cache: when, who: instanceId, at: this.refreshedAt }).send();
