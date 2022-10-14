@@ -103,6 +103,7 @@ export async function request(
     try {
       axiosResponse = await axios.request(axiosRequest);
     } catch (error) {
+      throw error;
       if (error.code !== 'ENOTFOUND' || retry >= 4) {
         throw error;
       }
