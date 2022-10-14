@@ -87,7 +87,6 @@ export const refresh = (cache: SubscriptionCache) => {
       console.log(instanceId);
     } catch (e) {
       // Unable to load the instanceid; maybe not running on aws
-      console.log(e);
     }
 
     res.json({ cache: when, who: instanceId, at: when - Constants.MAX_CACHE_REFRESH_RATE }).send();
