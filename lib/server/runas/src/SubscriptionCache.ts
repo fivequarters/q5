@@ -1,7 +1,5 @@
-import { DynamoDB } from 'aws-sdk';
+import { DynamoDB, MetadataService } from 'aws-sdk';
 import create_error from 'http-errors';
-
-import { MetadataService } from 'aws-sdk';
 
 import { Request, Response, NextFunction } from 'express';
 
