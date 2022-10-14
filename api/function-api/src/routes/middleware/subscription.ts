@@ -84,7 +84,6 @@ export const refresh = (cache: SubscriptionCache) => {
           res(data);
         })
       );
-      console.log(instanceId);
     } catch (e) {
       // Unable to load the instanceid; maybe not running on aws
     }
