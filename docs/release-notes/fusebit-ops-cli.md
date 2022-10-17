@@ -22,7 +22,7 @@ All public releases of the Fusebit Operations CLI are documented here, including
 
 _Released 10/13/22_
 
-- **Enhancement** Require the use of IMDSv2 on Fusebit monitoring infrastructure for improved security.
+- **Enhancement** Require the use of IMDSv2 on function-API and the Fusebit monitoring infrastructure for improved security.
 
 ## Version 1.39.9
 
