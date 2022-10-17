@@ -71,7 +71,7 @@ export const cleanupEntities = async (account: IAccount) => {
     }
   }
 
-  await new (Promise as any)((res) => setTimeout(res, 5000));
+  await new (Promise as any)((res: any) => setTimeout(res, 5000));
 };
 
 export const v2Request = async (account: IAccount, options: IRequestOptions) => {
