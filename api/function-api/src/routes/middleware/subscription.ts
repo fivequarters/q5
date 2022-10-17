@@ -1,7 +1,5 @@
 import create_error from 'http-errors';
 
-import { MetadataService } from 'aws-sdk';
-
 import { Request, Response, NextFunction } from 'express';
 
 import * as Constants from '@5qtrs/constants';
@@ -71,19 +69,7 @@ export const refresh = (cache: SubscriptionCache) => {
 
     let instanceId: string = 'localhost';
     try {
-      // Hit the aws metadata service to get the current instance id.
-      const metadataService = new MetadataService({ httpOptions: { timeout: MAX_METADATA_TIMEOUT } });
-      // Metadata service does not support .promise() :(
-      instanceId = await new Promise<string>((res, rej) =>
-        metadataService.request('/latest/meta-data/instance-id', (err, data) => {
-          if (err) {
-            console.log(err);
-            rej(err);
-          }
-
-          res(data);
-        })
-      );
+      instanceId = await Constants.getInstanceId();
     } catch (e) {
       // Unable to load the instanceid; maybe not running on aws
     }

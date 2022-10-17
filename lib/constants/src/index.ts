@@ -12,6 +12,7 @@ import {
   getAuthToken,
   mergeDeep,
   createUniqueIdentifier,
+  getInstanceId,
 } from './utilities';
 
 interface IModuleSpec {
@@ -445,4 +446,5 @@ export {
   get_function_management_endpoint,
   NotBeforeHeader,
   MaxLambdaExecutionTimeSeconds,
+  getInstanceId,
 };

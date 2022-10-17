@@ -1,4 +1,4 @@
-import { DynamoDB, MetadataService } from 'aws-sdk';
+import { DynamoDB } from 'aws-sdk';
 import create_error from 'http-errors';
 
 import { Request, Response, NextFunction } from 'express';
@@ -145,17 +145,7 @@ class SubscriptionCache {
     let instanceId: string = 'localhost';
     try {
       // Hit the aws metadata service to get the current instance id.
-      const metadataService = new MetadataService({ httpOptions: { timeout: MAX_METADATA_TIMEOUT } });
-      // Metadata service does not support .promise() :(
-      instanceId = await new Promise<string>((res, rej) =>
-        metadataService.request('/latest/meta-data/instance-id', (err, data) => {
-          if (err) {
-            rej(err);
-          }
-
-          res(data);
-        })
-      );
+      instanceId = await Constants.getInstanceId();
     } catch (e) {}
 
     res.json({ cache: when, who: instanceId, at: this.refreshedAt }).send();

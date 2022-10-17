@@ -1,6 +1,7 @@
 import * as path from 'path';
 import http_error from 'http-errors';
 import * as express from 'express';
+import superagent from 'superagent';
 
 import * as crypto from 'crypto';
 
@@ -13,6 +14,17 @@ const expBackoff = async (c: number, delay: number = DYNAMO_BACKOFF_DELAY) => {
   const backoff = Math.pow(2, c - 1) * delay;
   await new Promise((resolve, reject) => setTimeout(resolve, backoff));
 };
+
+async function getInstanceId(): Promise<string> {
+  const awsToken = await superagent
+    .put('http://169.254.169.254/latest/api/token')
+    .set('X-aws-ec2-metadata-token-ttl-seconds', '21600');
+  const instanceId = await superagent
+    .get('http://169.254.169.254/latest/meta-data/instance-id')
+    .set('X-aws-ec2-metadata-token', awsToken.text);
+
+  return instanceId.text;
+}
 
 async function dynamoScanTable(dynamo: any, params: any, map: any = (e: any) => e): Promise<any[]> {
   const result: any[] = [];
@@ -167,6 +179,7 @@ const mergeDeep = (lhs: any, source: any, isMergingArrays: boolean = false) => {
 };
 
 export {
+  getInstanceId,
   dynamoScanTable,
   expBackoff,
   asyncPool,
