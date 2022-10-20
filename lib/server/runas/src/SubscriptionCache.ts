@@ -1,6 +1,5 @@
 import { DynamoDB } from 'aws-sdk';
 import create_error from 'http-errors';
-import * as superagent from 'superagent';
 
 import { Request, Response, NextFunction } from 'express';
 
@@ -144,9 +143,7 @@ class SubscriptionCache {
     let instanceId: string = 'localhost';
     try {
       // Hit the aws metadata service to get the current instance id.
-      instanceId = (
-        await superagent.get('http://169.254.169.254/latest/meta-data/instance-id').timeout({ response: 1000 })
-      ).text;
+      instanceId = await Constants.getInstanceId();
     } catch (e) {}
 
     res.json({ cache: when, who: instanceId, at: this.refreshedAt }).send();

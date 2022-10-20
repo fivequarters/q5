@@ -17,6 +17,12 @@ All public releases of the Fusebit HTTP API are documented here, including notab
 <!-- 1. TOC
 {:toc} -->
 
+## Version 1.40.22
+
+_Released 10/13/22_
+
+- **Enhancement** Require the use of IMDSv2 on function-API for improved security.
+
 ## Version 1.40.21
 
 _Released 10/11/22_

@@ -142,6 +142,7 @@ export class AwsAutoScale extends AwsBase<typeof AutoScaling> {
         ],
         MetadataOptions: {
           HttpPutResponseHopLimit: 2,
+          HttpTokens: 'required',
         },
         SecurityGroupIds: settings.securityGroups,
         UserData: toBase64(settings.userData),
