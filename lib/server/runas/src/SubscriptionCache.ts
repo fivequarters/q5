@@ -7,8 +7,6 @@ import * as Constants from '@5qtrs/constants';
 
 import { IFunctionApiRequest } from './Request';
 
-const MAX_METADATA_TIMEOUT = 1000;
-
 interface ISubscription {
   accountId: string;
   displayName: string;
