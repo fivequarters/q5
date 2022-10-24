@@ -375,6 +375,7 @@ afterAll(() => {
   const errors = Object.keys(functionCatalog).filter((k) => functionCatalog[k].cnt > 1);
 
   if (errors.length > 0) {
+    console.log(errors.length);
     const breakingEntries: IFunctionCatalog = {};
     errors.forEach((e) => (breakingEntries[e] = functionCatalog[e]));
     throw new DuplicateFunctionUsage(breakingEntries);
