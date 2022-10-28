@@ -27,6 +27,9 @@ fuse-ops deployment defaults set api subscription \{\"proxy\":\{\"accountId\":\"
 # Create the proxy payloads
 # -- Hygen -- proxy-payload
 
+MICROSOFTGRAPH_SECRET_PAYLOAD="{\"data\":{\"clientId\":\"${PROXY_MICROSOFTGRAPH_CLIENT_ID}\",\"clientSecret\":\"${PROXY_MICROSOFTGRAPH_CLIENT_SECRET}\",\"authorizationUrl\":\"https://login.microsoftonline.com/{{tenant}}/oauth2/v2.0/authorize\",\"tokenUrl\":\"https://login.microsoftonline.com/{{tenant}}/oauth2/v2.0/token\",\"revokeUrl\":\"https://graph.microsoft.com/v1.0/me/revokeSignInSessions\"}}"
+
+
 MICROSOFTDYNAMICS_SECRET_PAYLOAD="{\"data\":{\"clientId\":\"${PROXY_MICROSOFTDYNAMICS_CLIENT_ID}\",\"clientSecret\":\"${PROXY_MICROSOFTDYNAMICS_CLIENT_SECRET}\",\"authorizationUrl\":\"https://login.microsoftonline.com/common/oauth2/v2.0/authorize\",\"tokenUrl\":\"https://login.microsoftonline.com/common/oauth2/v2.0/token\",\"revokeUrl\":\"https://graph.microsoft.com/v1.0/me/revokeSignInSessions\"}}"
 
 
@@ -80,6 +83,7 @@ AWS_SECRET_PAYLOAD="{\"data\":{\"accessKeyId\":\"${PROXY_AWS_ACCESS_KEY_ID}\",\"
 for PROFILE in ${PROXY_SECRET_PUBLISH_PROFILE_LIST}; do
   ./tool/cicd/actions/scripts/set_fuse_profile.sh ${PROFILE}
   # -- Hygen -- proxy-list
+  echo ${MICROSOFTGRAPH_SECRET_PAYLOAD} | fuse storage put - --storageId proxy/microsoftgraph/configuration
   echo ${MICROSOFTDYNAMICS_SECRET_PAYLOAD} | fuse storage put - --storageId proxy/microsoftdynamics/configuration
   echo ${PROCORE_SECRET_PAYLOAD} | fuse storage put - --storageId proxy/procore/configuration
   echo ${CONSTANTCONTACT_SECRET_PAYLOAD} | fuse storage put - --storageId proxy/constantcontact/configuration
