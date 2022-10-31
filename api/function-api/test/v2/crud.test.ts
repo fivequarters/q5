@@ -24,6 +24,7 @@ beforeEach(() => {
 });
 afterAll(async () => {
   await cleanupEntities(account);
+  await new Promise((res) => setTimeout(res, 30000));
 }, 180000);
 
 // Types
