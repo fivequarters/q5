@@ -6,9 +6,9 @@ import * as AuthZ from './authz';
 
 import { getEnv } from './setup';
 
-let { account, boundaryId, function1Id } = getEnv();
+let { account, boundaryId, function1Id, function2Id } = getEnv();
 beforeEach(() => {
-  ({ account, boundaryId, function1Id } = getEnv());
+  ({ account, boundaryId, function1Id, function2Id } = getEnv());
 });
 
 const specFuncReturnCtx = {
@@ -70,7 +70,7 @@ describe('Function Routes', () => {
     const spec = Constants.duplicate({}, specFuncReturnCtx);
     spec.routes = 'foo';
 
-    const response = await putFunction(account, boundaryId, function1Id, spec);
+    const response = await putFunction(account, boundaryId, function2Id, spec);
     expect(response).toBeHttp({ statusCode: 400 });
   }, 180000);
 
