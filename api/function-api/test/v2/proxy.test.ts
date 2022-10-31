@@ -175,7 +175,7 @@ describe('Proxy', () => {
     );
   };
 
-  test('Proxy redirects to the http endpoint', async () => {
+  test.skip('Proxy redirects to the http endpoint', async () => {
     await configureProxy();
     registerOAuthServer();
 
