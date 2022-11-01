@@ -17,6 +17,12 @@ All public releases of the Fusebit HTTP API are documented here, including notab
 <!-- 1. TOC
 {:toc} -->
 
+## Version 1.40.23
+
+_Released 11/1/22_
+
+- **Bugfix** Rate limited function executions now return 429 instead of 503.
+
 ## Version 1.40.22
 
 _Released 10/13/22_
