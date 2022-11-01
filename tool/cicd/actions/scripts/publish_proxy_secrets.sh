@@ -27,6 +27,9 @@ fuse-ops deployment defaults set api subscription \{\"proxy\":\{\"accountId\":\"
 # Create the proxy payloads
 # -- Hygen -- proxy-payload
 
+DRIFT_SECRET_PAYLOAD="{\"data\":{\"clientId\":\"${PROXY_DRIFT_CLIENT_ID}\",\"clientSecret\":\"${PROXY_DRIFT_CLIENT_SECRET}\",\"authorizationUrl\":\"https://dev.drift.com/authorize\",\"tokenUrl\":\"https://driftapi.com/oauth2/token\",\"revokeUrl\":\"https://driftapi.com/oauth2/revoke-not-supported\"}}"
+
+
 CLICKUP_SECRET_PAYLOAD="{\"data\":{\"clientId\":\"${PROXY_CLICKUP_CLIENT_ID}\",\"clientSecret\":\"${PROXY_CLICKUP_CLIENT_SECRET}\",\"authorizationUrl\":\"https://app.clickup.com/api\",\"tokenUrl\":\"https://api.clickup.com/api/v2/oauth/token\",\"revokeUrl\":\"https://api.clickup.com/api/v2/oauth/revoke-not-supported\"}}"
 
 
@@ -86,6 +89,7 @@ AWS_SECRET_PAYLOAD="{\"data\":{\"accessKeyId\":\"${PROXY_AWS_ACCESS_KEY_ID}\",\"
 for PROFILE in ${PROXY_SECRET_PUBLISH_PROFILE_LIST}; do
   ./tool/cicd/actions/scripts/set_fuse_profile.sh ${PROFILE}
   # -- Hygen -- proxy-list
+  echo ${DRIFT_SECRET_PAYLOAD} | fuse storage put - --storageId proxy/drift/configuration
   echo ${CLICKUP_SECRET_PAYLOAD} | fuse storage put - --storageId proxy/clickup/configuration
   echo ${MICROSOFTGRAPH_SECRET_PAYLOAD} | fuse storage put - --storageId proxy/microsoftgraph/configuration
   echo ${MICROSOFTDYNAMICS_SECRET_PAYLOAD} | fuse storage put - --storageId proxy/microsoftdynamics/configuration
