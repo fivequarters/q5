@@ -18,6 +18,7 @@ beforeEach(() => {
 
 afterAll(async () => {
   await cleanupEntities(account);
+  await new Promise((res) => setTimeout(res, 30000));
 }, 30000);
 
 const getSimpleIntegration = (): any => ({
