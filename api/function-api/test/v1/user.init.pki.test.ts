@@ -14,7 +14,6 @@ beforeEach(() => {
 
 afterEach(async () => {
   await cleanUpUsers(account);
-  await new Promise((res) => setTimeout(res, 30000));
 }, 180000);
 
 describe('User Init PKI', () => {
