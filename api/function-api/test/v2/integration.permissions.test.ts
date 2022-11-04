@@ -77,7 +77,7 @@ describe('Integration Permissions', () => {
     // Without this, the function.utils import gets pruned
     let ks = keyStore;
     ks = ks;
-  }, 180000);
+  });
 
   test('Does the integration have the correct set of permissions', async () => {
     const { integrationId, connectorId } = await createPair(account, boundaryId);
