@@ -19,8 +19,10 @@ import { getEnv } from '../v1/setup';
 import { defaultFrameworkSemver } from '../v1/function.utils';
 
 let { account, boundaryId, function1Id, function2Id, function3Id, function4Id, function5Id } = getEnv();
-beforeEach(() => {
+beforeEach(async () => {
   ({ account, boundaryId, function1Id, function2Id, function3Id, function4Id, function5Id } = getEnv());
+  // Wait 10 seconds before each test so function-API can catch up so we don't get a bunch of 502s
+  await new Promise((res) => setTimeout(res, 10000));
 });
 afterAll(async () => {
   await cleanupEntities(account);

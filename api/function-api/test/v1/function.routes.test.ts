@@ -1,7 +1,7 @@
 import { request } from '@5qtrs/request';
 import * as Constants from '@5qtrs/constants';
 
-import { callFunction, getFunction, putFunction } from './sdk';
+import { callFunction, getFunction, putFunction, disableFunctionUsageRestriction } from './sdk';
 import * as AuthZ from './authz';
 
 import { getEnv } from './setup';
@@ -9,6 +9,8 @@ import { getEnv } from './setup';
 let { account, boundaryId, function1Id } = getEnv();
 beforeEach(() => {
   ({ account, boundaryId, function1Id } = getEnv());
+
+  disableFunctionUsageRestriction();
 });
 
 const specFuncReturnCtx = {
