@@ -17,6 +17,12 @@ All public releases of the Fusebit HTTP API are documented here, including notab
 <!-- 1. TOC
 {:toc} -->
 
+## Version 1.40.24
+
+_Released 11/6/22_
+
+- **Bugfix** Tune down RDS timing alert notifications.
+
 ## Version 1.40.23
 
 _Released 11/1/22_

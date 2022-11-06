@@ -139,10 +139,9 @@ class RDS implements IRds {
       dbgState.getDuration = dbgState.getFinish - dbgState.getStart;
       dbgState.totalDuration = duration;
 
-      console.log(`${updateRequestId}: ${entity.data.checked}, ${getRequestId}: ${Date.now()}, duration: ${duration}`);
       if (duration > this.RDS_HEALTH_MAX_ACCEPTABLE_TTL) {
         console.log(
-          `RDS ERROR: Excessive interval between start of update and conclusion of get: ${duration}ms. Get requestId: ${getRequestId} Update requestId: ${updateRequestId}`
+          `RDS WARN: Excessive interval between start of update and conclusion of get: ${duration}ms. Get requestId: ${getRequestId} Update requestId: ${updateRequestId}`
         );
       }
 
@@ -154,10 +153,10 @@ class RDS implements IRds {
         this.lastUpdateRequestId = updateRequestId;
         this.lastHealthExecution = Date.now();
       } else {
-        throw new Error('RDS ERROR: Failure was detected when trying to insert entity.');
+        throw new Error('RDS WARN: Failure was detected when trying to insert entity.');
       }
     } catch (e) {
-      console.log(`RDS ERROR: Exception thrown at ${Date.now()} on request ${JSON.stringify(dbgState)}: `, e);
+      console.log(`RDS WARN: Exception thrown at ${Date.now()} on request ${JSON.stringify(dbgState)}: `, e);
       if (this.lastHealthExecution < entity.data.checked + this.RDS_HEALTH_ENTITY_EXPIRE) {
         // Only record errors when the last success happened prior to the start time + expiration. This
         // captures situations where a request goes away for a long time, the subsequent getEntity expires,
@@ -180,7 +179,7 @@ class RDS implements IRds {
       }
 
       throw new Error(
-        `RDS ERROR: ${timeDifference} exceeded threshold of ${this.RDS_HEALTH_MAX_ACCEPTABLE_TTL}; get requestId: ${this.lastGetRequestId}, update requestId: ${this.lastUpdateRequestId}`
+        `RDS WARN: ${timeDifference} exceeded threshold of ${this.RDS_HEALTH_MAX_ACCEPTABLE_TTL}; get requestId: ${this.lastGetRequestId}, update requestId: ${this.lastUpdateRequestId}`
       );
     }
   }
