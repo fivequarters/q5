@@ -88,7 +88,7 @@ const publishTraces = async (accountId: string, traces: Trace[]) => {
       })
     );
   } catch (err) {
-    console.log(`TEMPO ERROR: `, err);
+    console.log(`TEMPO WARN: `, err);
   }
 };
 
