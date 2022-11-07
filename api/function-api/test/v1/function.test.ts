@@ -235,14 +235,6 @@ describe('Function', () => {
     expect(response).toBeHttp({ statusCode: 400 });
   }, 120000);
 
-  test.skip('PUT succeeds with supported node.js version 12', async () => {
-    const response = await putFunction(account, boundaryId, function1Id, helloWorldWithNode12JavaScript);
-    expect(response).toBeHttp({ statusCode: [200, 201] });
-    const version = await request(response.data.location);
-    expect(version).toBeHttp({ statusCode: 200 });
-    expect(version.data).toMatch(/^v12/);
-  }, 120000);
-
   test('PUT succeeds with supported node.js version 14', async () => {
     const response = await putFunction(account, boundaryId, function1Id, helloWorldWithNode14JavaScript);
     expect(response).toBeHttp({ statusCode: 200 });
