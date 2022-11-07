@@ -10,6 +10,8 @@ let { account, boundaryId, function1Id } = getEnv();
 beforeEach(() => {
   ({ account, boundaryId, function1Id } = getEnv());
 
+  // Tests here don't invoke functions, or if they do they don't care about the result, so the usage
+  // restriction doesn't apply
   disableFunctionUsageRestriction();
 });
 
