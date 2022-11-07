@@ -17,6 +17,12 @@ All public releases of the Fusebit HTTP API are documented here, including notab
 <!-- 1. TOC
 {:toc} -->
 
+## Version 1.41.0
+
+_Released 11/7/22_
+
+- **Enhancement** Deprecate official lambda node 12 runtime.
+
 ## Version 1.40.21
 
 _Released 10/11/22_
