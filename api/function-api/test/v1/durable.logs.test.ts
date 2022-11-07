@@ -7,7 +7,7 @@ beforeEach(() => {
   ({ account, boundaryId, function1Id, function2Id } = getEnv());
 });
 
-describe('durable logs', () => {
+describe.skip('durable logs', () => {
   test(
     'are captured when configured',
     async () => {

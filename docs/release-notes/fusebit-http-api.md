@@ -23,6 +23,24 @@ _Released 11/7/22_
 
 - **Enhancement** Deprecate official lambda node 12 runtime.
 
+## Version 1.40.24
+
+_Released 11/6/22_
+
+- **Bugfix** Tune down RDS timing alert notifications.
+
+## Version 1.40.23
+
+_Released 11/1/22_
+
+- **Bugfix** Rate limited function executions now return 429 instead of 503.
+
+## Version 1.40.22
+
+_Released 10/13/22_
+
+- **Enhancement** Require the use of IMDSv2 on function-API for improved security.
+
 ## Version 1.40.21
 
 _Released 10/11/22_

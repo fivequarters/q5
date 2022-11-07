@@ -1572,6 +1572,7 @@ ${awsUserData.runDockerCompose()}
         ],
         MetadataOptions: {
           HttpPutResponseHopLimit: 2,
+          HttpTokens: 'required',
         },
         SecurityGroupIds: [sg.GroupId as string],
         UserData: this.toBase64(bootstrapUserData),
