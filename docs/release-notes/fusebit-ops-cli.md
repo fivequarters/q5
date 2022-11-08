@@ -22,7 +22,7 @@ All public releases of the Fusebit Operations CLI are documented here, including
 
 _Released 11/8/22_
 
-- **Enhancement** Support overriding instance size within stacks from fuse-ops. 
+- **Enhancement** Support overriding instance type within stacks from fuse-ops.
 
 ## Version 1.39.10
 

@@ -55,7 +55,7 @@ const command = {
       default: 'false',
     },
     {
-      name: 'instance-type',
+      name: 'instanceType',
       description: 'The underlying EC2 instance type to use when creating stacks',
       type: ArgType.string,
       default: 't3.medium',
@@ -84,7 +84,7 @@ export class AddStackCommand extends Command {
     const size = input.options.size as number;
     const confirm = input.options.confirm as boolean;
     const disableHealthCheck = input.options['disable-healthcheck'] as boolean;
-    const instanceType = input.options['instance-type'] as string;
+    const instanceType = input.options.instanceType as string;
     const env = input.options.env as string;
     const ami = input.options.ami as string;
 
