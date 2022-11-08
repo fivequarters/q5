@@ -135,7 +135,7 @@ export class OpsStackData extends DataSource implements IOpsStackData {
     await awsAutoScale.createAutoScale({
       name: autoScaleName,
       amiId,
-      instanceType: this.config.monoInstanceType,
+      instanceType: newStack.instanceSize || this.config.monoInstanceType,
       securityGroups: [network.securityGroupId],
       userData,
       instanceProfile: this.config.monoInstanceProfile,
