@@ -49,7 +49,7 @@ const command = {
       default: 'true',
     },
     {
-      name: 'disable-healthcheck',
+      name: 'disableHealthcheck',
       description: 'Disable the health check of this stack, only use this when absolutely necessary.',
       type: ArgType.boolean,
       default: 'false',
@@ -83,7 +83,7 @@ export class AddStackCommand extends Command {
     const region = input.options.region as string;
     const size = input.options.size as number;
     const confirm = input.options.confirm as boolean;
-    const disableHealthCheck = input.options['disable-healthcheck'] as boolean;
+    const disableHealthCheck = input.options.disableHealthcheck as boolean;
     const instanceType = input.options.instanceType as string;
     const env = input.options.env as string;
     const ami = input.options.ami as string;
