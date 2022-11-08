@@ -24,7 +24,10 @@ beforeEach(() => {
 });
 afterAll(async () => {
   await cleanupEntities(account);
-}, 180000);
+  // There is a lot of entities to clean up here, so we need to give function-API a moment to chill out
+  // before we perform more tests, otherwise bad stuff will happen
+  await new Promise((res) => setTimeout(res, 30000));
+}, 210000);
 
 // Types
 type TestableEntityTypes = Extract<Model.EntityType, Model.EntityType.connector | Model.EntityType.integration>;

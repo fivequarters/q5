@@ -1,7 +1,7 @@
 import { request } from '@5qtrs/request';
 import * as Constants from '@5qtrs/constants';
 
-import { callFunction, getFunction, putFunction } from './sdk';
+import { callFunction, getFunction, putFunction, disableFunctionUsageRestriction } from './sdk';
 import * as AuthZ from './authz';
 
 import { getEnv } from './setup';
@@ -9,6 +9,12 @@ import { getEnv } from './setup';
 let { account, boundaryId, function1Id } = getEnv();
 beforeEach(() => {
   ({ account, boundaryId, function1Id } = getEnv());
+
+  // Tests here don't invoke functions, or if they do they don't care about the result, so the usage
+  // restriction doesn't apply
+  // We really don't know why this is needed at all, but if it's not here, CICD will break
+  // So please do not remove if you do not like a headache ~ Matthew
+  disableFunctionUsageRestriction();
 });
 
 const specFuncReturnCtx = {
