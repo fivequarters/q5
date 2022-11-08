@@ -12,6 +12,8 @@ beforeEach(() => {
 
   // Tests here don't invoke functions, or if they do they don't care about the result, so the usage
   // restriction doesn't apply
+  // We really don't know why this is needed at all, but if it's not here, CICD will break
+  // So please do not remove if you do not like a headache ~ Matthew
   disableFunctionUsageRestriction();
 });
 
