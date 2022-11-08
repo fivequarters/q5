@@ -12,6 +12,7 @@ export interface IOpsNewStack {
   env?: string;
   ami?: string;
   disableHealthCheck?: boolean;
+  instanceType?: string;
 }
 
 export interface IOpsStack extends IOpsNewStack {
