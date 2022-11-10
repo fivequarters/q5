@@ -60,7 +60,7 @@ FUSEBIT_DEBUG=1 ${FUSEOPS} deployment add ${DEPLOYMENT_NAME} ${NETWORK_NAME} ${D
 
 echoerr "Deploying stack ${DEPLOYMENT_NAME}/${REGION}: ${IMG_VER} with environment params: ${ENV_PARAMS}"
 
-STACK_ADD_PARAMS="--region ${REGION} -c false --instance-type t3a.xlarge --size 1 -o json ${ENV_PARAMS}"
+STACK_ADD_PARAMS="--region ${REGION} -c false --instanceType t3a.xlarge --size 1 -o json ${ENV_PARAMS}"
 STACK_ADD=`${FUSEOPS} stack add ${DEPLOYMENT_NAME} ${IMG_VER} ${STACK_ADD_PARAMS}`
 NEW_STACK_ID=`echo ${STACK_ADD} | jq -r '.id'`
 
