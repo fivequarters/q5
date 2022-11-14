@@ -79,8 +79,8 @@ router.get(
   health.getHealth([
     { check: async () => keyStore.healthCheck(), name: 'Keystore' },
     { check: async () => subscriptionCache.healthCheck(), name: 'Subscription cache' },
-    { check: async () => RDS.ensureConnection(), name: 'RDS connection' },
-    { check: async () => RDS.ensureRDSLiveliness(), name: 'RDS execution' },
+    { check: async () => RDS.ensureConnection(), name: 'RDS connection', once: true },
+    { check: async () => RDS.ensureRDSLiveliness(), name: 'RDS execution', once: true },
     { check: async () => custom_layers_health(), name: 'Custom Layers' },
   ])
 );

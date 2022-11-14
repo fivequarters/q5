@@ -17,6 +17,12 @@ All public releases of the Fusebit HTTP API are documented here, including notab
 <!-- 1. TOC
 {:toc} -->
 
+## Version 1.41.1
+
+_Released 11/7/22_
+
+- **Enhancement** Demote unstable AWS RDS Data API healthchecks to advisory-only.
+
 ## Version 1.41.0
 
 _Released 11/7/22_
