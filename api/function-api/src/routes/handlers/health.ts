@@ -9,11 +9,13 @@ process.env.FUNCTION_API_VERSION = version;
 interface IHealthCheckTarget {
   check: () => Promise<void>;
   name: string;
+  once?: boolean;
+  satisfied?: boolean;
 }
 
 function getHealth(targets: IHealthCheckTarget[]) {
   return async (req: Request, res: Response, next: NextFunction) => {
-    let creds = await getAWSCredentials(false);
+    const creds = await getAWSCredentials(false);
     if (!creds) {
       return next(create_error(500, `aws credentials pending`));
     }
@@ -23,8 +25,15 @@ function getHealth(targets: IHealthCheckTarget[]) {
         targets.map(async (target) => {
           try {
             await target.check();
+            if (target.once) {
+              target.satisfied = true;
+            }
           } catch (e) {
-            throw new Error(`${target.name} check failed: ${e.message}.`);
+            if (target.satisfied) {
+              console.log(`HEALTH WARN: ${target.name} check failed: ${e.message}`);
+            } else {
+              throw new Error(`${target.name} check failed: ${e.message}.`);
+            }
           }
         })
       );

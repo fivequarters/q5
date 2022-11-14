@@ -1,0 +1,1 @@
+./shell.mjs --profile api.us-west-1.self "SELECT data->>'handler' as handler FROM entity WHERE entityType = 'connector' AND dateadded >= '2022-10-01'::date" | grep handler | sort | uniq -c | sort
