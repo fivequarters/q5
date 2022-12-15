@@ -28,7 +28,8 @@ The steps below make a new build of the portal available on our CDN. To deploy t
 These steps are deploying our production portal instance at https://portal.fusebit.io (with any configured subordinate domains). Deployment to an arbitrary domain requires extra configuration steps not covered here. 
 
 Prerequisites: 
-1. Fusebit Portal is a SPA that can be deployed on any non-GovCloud AWS account on which the Fusebit has a registered DNS domain. This includes any public 1. AWS account on which Fusebit stack has been deployed, or - at minimum - the setup steps for Fusebit had been executed up to registering a DNS domain. 
+1. Fusebit Portal is a SPA that can be deployed on any non-GovCloud AWS account on which the Fusebit has a registered DNS domain. This includes any public  AWS account on which Fusebit stack has been deployed, or - at minimum - the setup steps for Fusebit had been executed up to registering a DNS domain. 
+1. AWS account on which Fusebit stack has been deployed, or - at minimum - the setup steps for Fusebit had been executed up to registering a DNS domain. 
 Fusebit Portal must have already been published to our CDN with instructions from Publishing Portal. 
 
 To deploy the latest portal bits, run: 
