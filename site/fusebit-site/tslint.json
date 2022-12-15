@@ -1,3 +1,0 @@
-{
-  "extends": ["@5qtrs/tool-config/tslint.json"]
-}

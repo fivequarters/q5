@@ -1,6 +1,7 @@
 {
   "version": "1.41.1",
   "private": true,
+  "license": "MIT",
   "org": "5qtrs",
   "engines": {
     "node": "14.17.2",
@@ -146,7 +147,6 @@
       "comp/fusebit-blog",
       "comp/fusebit-link-card",
       "api/function-api",
-      "site/corp",
       "demo/functions/functions-app",
       "comp/corp-favicon",
       "comp/fusebit-favicon",
@@ -177,7 +177,6 @@
       "lib/node/dot-config",
       "lib/aws/aws-ecr",
       "lib/aws/aws-ec2",
-      "site/fusebit-site",
       "lib/data/account-data-aws",
       "sdk/fusebit-profile-sdk",
       "lib/shared/exception",
