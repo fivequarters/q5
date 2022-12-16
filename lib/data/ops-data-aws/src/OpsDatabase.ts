@@ -132,7 +132,7 @@ export async function createDatabase(
     const params = {
       DBClusterIdentifier: getClusterIdentifier(),
       Engine: 'aurora-postgresql',
-      EngineVersion: '10.7',
+      EngineVersion: '11.17',
       DatabaseName: config.auroraDatabaseName,
       MasterUsername: config.auroraMasterUsername,
       MasterUserPassword: password,
