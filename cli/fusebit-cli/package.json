@@ -46,7 +46,7 @@
     "globby": "^11.0.3",
     "http-errors": "^1.8.0",
     "inherits": "2.0.4",
-    "jsonwebtoken": "^8.5.0",
+    "jsonwebtoken": "^9.0.0",
     "jwa": "^1.4.1",
     "jws": "^3.2.2",
     "lodash.includes": "^4.3.0",
