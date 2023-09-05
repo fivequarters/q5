@@ -1,11 +1,11 @@
 {
-  "version": "1.41.1",
+  "version": "1.42.0",
   "private": true,
   "license": "MIT",
   "org": "5qtrs",
   "engines": {
     "node": "14.17.2",
-    "yarn": "1.21.1"
+    "yarn": "1.22.19"
   },
   "scripts": {
     "setup": "node ./tool/setup",
